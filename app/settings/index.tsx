@@ -47,9 +47,23 @@ export default function SettingsScreen() {
   const store = useStore();
   const [showResetConfirm, setShowResetConfirm] = useState(false);
 
-  const { players, teams, showNick, showTeamLogo, hasTournament, tournamentName, language } = store;
+  const { players, teams, showNick, showTeamLogo, hasTournament, tournamentName, language, archivedRounds, closedTournaments } = store;
 
   const currentLang = LANGUAGES.find((l) => l.code === language) ?? LANGUAGES[0];
+
+  const SEED_PLAYER_IDS = ['player-1', 'player-2', 'player-3'];
+  const SEED_TEAM_CODES = ['JUV', 'TOT', 'GAL'];
+  const isDefaultState =
+    !hasTournament &&
+    archivedRounds.length === 0 &&
+    closedTournaments.length === 0 &&
+    players.length === SEED_PLAYER_IDS.length &&
+    players.every((p) => SEED_PLAYER_IDS.includes(p.id)) &&
+    teams.length === SEED_TEAM_CODES.length &&
+    teams.every((t) => SEED_TEAM_CODES.includes(t.code)) &&
+    showNick === true &&
+    showTeamLogo === true &&
+    language === 'en';
 
   const handleReset = () => {
     store.resetStore();
@@ -168,11 +182,13 @@ export default function SettingsScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionHeader}>{t('settings.danger.section')}</Text>
           <TouchableOpacity
-            style={styles.resetBtn}
-            onPress={() => setShowResetConfirm(true)}
-            activeOpacity={0.8}
+            style={[styles.resetBtn, isDefaultState && styles.resetBtnDisabled]}
+            onPress={() => !isDefaultState && setShowResetConfirm(true)}
+            activeOpacity={isDefaultState ? 1 : 0.8}
           >
-            <Text style={styles.resetBtnText}>🗑  {t('settings.danger.resetAll')}</Text>
+            <Text style={[styles.resetBtnText, isDefaultState && styles.resetBtnTextDisabled]}>
+              🗑  {t('settings.danger.resetAll')}
+            </Text>
           </TouchableOpacity>
         </View>
 
@@ -306,10 +322,17 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.md,
     alignItems: 'center',
   },
+  resetBtnDisabled: {
+    backgroundColor: Colors.bg.elevated,
+    borderColor: Colors.border.default,
+  },
   resetBtnText: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.base,
     color: Colors.accent.red,
+  },
+  resetBtnTextDisabled: {
+    color: Colors.text.ghost,
   },
   dialogOverlay: {
     flex: 1,

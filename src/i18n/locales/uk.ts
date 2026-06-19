@@ -290,7 +290,8 @@ const uk = {
   players: {
     title: 'ГРАВЦІ',
     searchPlaceholder: 'Пошук гравців…',
-    noResults: 'Гравців не знайдено',
+    noResults: 'Поки немає гравців. Додай першого гравця, щоб почати.',
+    noResultsAction: 'Додати гравця',
     editTitle: 'РЕДАГУВАТИ ГРАВЦЯ',
     deleteConfirm: 'Видалити гравця?',
     deleteDesc: 'Цього гравця буде видалено.',
@@ -300,7 +301,8 @@ const uk = {
   teams: {
     title: 'КОМАНДИ',
     searchPlaceholder: 'Пошук команд…',
-    noResults: 'Команд не знайдено',
+    noResults: 'Поки немає команд. Створи команду для призначення гравців.',
+    noResultsAction: 'Додати команду',
     editTitle: 'РЕДАГУВАТИ КОМАНДУ',
     deleteConfirm: 'Видалити команду?',
     deleteDesc: 'Цю команду буде видалено.',

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, ViewStyle } from 'react-native';
+import { View, Text, Image, StyleSheet, ViewStyle } from 'react-native';
 import { useStore } from '../store';
 import { FontFamily, FontSize } from '../theme/typography';
 import { Radius } from '../theme/spacing';
@@ -17,8 +17,16 @@ export function TeamBadge({ teamCode, size = 'md', style }: TeamBadgeProps) {
 
   const label = team?.short ?? teamCode.slice(0, 3).toUpperCase();
   const color = team?.color ?? '#5d666b';
+  const logo = team?.logo;
 
   if (size === 'xs') {
+    if (logo) {
+      return (
+        <View style={[styles.xs, { borderColor: color + '55' }, style]}>
+          <Image source={{ uri: logo }} style={styles.imageXs} resizeMode="cover" />
+        </View>
+      );
+    }
     return (
       <View
         style={[
@@ -33,6 +41,13 @@ export function TeamBadge({ teamCode, size = 'md', style }: TeamBadgeProps) {
   }
 
   if (size === 'lg') {
+    if (logo) {
+      return (
+        <View style={[styles.lg, { borderColor: color + '55' }, style]}>
+          <Image source={{ uri: logo }} style={styles.imageLg} resizeMode="cover" />
+        </View>
+      );
+    }
     return (
       <View
         style={[
@@ -47,6 +62,13 @@ export function TeamBadge({ teamCode, size = 'md', style }: TeamBadgeProps) {
   }
 
   // md (default)
+  if (logo) {
+    return (
+      <View style={[styles.md, { borderColor: color + '55' }, style]}>
+        <Image source={{ uri: logo }} style={styles.imageMd} resizeMode="cover" />
+      </View>
+    );
+  }
   return (
     <View
       style={[
@@ -63,12 +85,13 @@ export function TeamBadge({ teamCode, size = 'md', style }: TeamBadgeProps) {
 const styles = StyleSheet.create({
   xs: {
     height: 18,
-    paddingHorizontal: 5,
+    width: 18,
     borderRadius: Radius.xs,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
     alignSelf: 'flex-start',
+    overflow: 'hidden',
   },
   md: {
     width: 30,
@@ -77,6 +100,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
   },
   lg: {
     width: 34,
@@ -85,7 +109,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
   },
+  imageXs: { width: '100%', height: '100%' },
+  imageMd: { width: '100%', height: '100%' },
+  imageLg: { width: '100%', height: '100%' },
   textXs: {
     fontFamily: FontFamily.bodyBold,
     fontSize: FontSize.xs,

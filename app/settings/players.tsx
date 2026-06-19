@@ -19,6 +19,7 @@ import { Radius, Spacing } from '@/theme/spacing';
 import { NavHeader } from '@/components/NavHeader';
 import { Avatar } from '@/components/Avatar';
 import { TeamBadge } from '@/components/TeamBadge';
+import { EmptyState } from '@/components/EmptyState';
 import { Player } from '@/store/types';
 import { useTranslation } from 'react-i18next';
 
@@ -130,9 +131,11 @@ export default function PlayersScreen() {
         showsVerticalScrollIndicator={false}
       >
         {players.length === 0 ? (
-          <View style={styles.empty}>
-            <Text style={styles.emptyText}>{t('players.noResults')}</Text>
-          </View>
+          <EmptyState
+            message={t('players.noResults')}
+            ctaText={t('players.noResultsAction')}
+            onPress={openCreate}
+          />
         ) : (
           players.map((player) => (
             <View key={player.id} style={styles.playerRow}>
@@ -371,16 +374,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.xl,
     paddingTop: Spacing.lg,
     gap: Spacing.sm,
-  },
-  empty: {
-    paddingVertical: Spacing['3xl'],
-    alignItems: 'center',
-  },
-  emptyText: {
-    fontFamily: FontFamily.body,
-    fontSize: FontSize.base,
-    color: Colors.text.muted,
-    textAlign: 'center',
   },
   playerRow: {
     flexDirection: 'row',

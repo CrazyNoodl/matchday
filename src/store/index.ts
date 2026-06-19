@@ -48,24 +48,28 @@ const mmkvStorage = buildStorage();
 const SEED_PLAYERS: Player[] = [
   {
     id: 'player-1',
-    name: 'Alex',
-    nick: 'Fox',
+    name: 'Ruslan',
     color: Colors.player[0],
-    teamCode: 'MCI',
+    teamCode: 'JUV',
   },
   {
     id: 'player-2',
-    name: 'Max',
-    nick: 'Thunder',
+    name: 'Artem',
     color: Colors.player[1],
-    teamCode: 'BAR',
+    teamCode: 'TOT',
+  },
+  {
+    id: 'player-3',
+    name: 'Uz',
+    color: Colors.player[2],
+    teamCode: 'GAL',
   },
 ];
 
 const SEED_TEAMS: Team[] = [
-  { code: 'MCI', name: 'Manchester City', short: 'MCI', color: Colors.team[0] },
-  { code: 'BAR', name: 'FC Barcelona', short: 'BAR', color: Colors.team[1] },
-  { code: 'RMA', name: 'Real Madrid', short: 'RMA', color: Colors.team[2] },
+  { code: 'JUV', name: 'Juventus', short: 'JUV', color: Colors.team[0] },
+  { code: 'TOT', name: 'Tottenham Hotspur F.C.', short: 'TOT', color: Colors.team[1] },
+  { code: 'GAL', name: 'Galatasaray', short: 'GAL', color: Colors.team[2] },
 ];
 
 // ---------------------------------------------------------------------------

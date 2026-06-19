@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
+  Image,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
@@ -10,6 +11,7 @@ import {
   Pressable,
   Platform,
 } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStore } from '@/store';
@@ -18,6 +20,7 @@ import { FontFamily, FontSize } from '@/theme/typography';
 import { Radius, Spacing } from '@/theme/spacing';
 import { NavHeader } from '@/components/NavHeader';
 import { TeamBadge } from '@/components/TeamBadge';
+import { EmptyState } from '@/components/EmptyState';
 import { Team } from '@/store/types';
 import { useTranslation } from 'react-i18next';
 
@@ -38,12 +41,14 @@ export default function TeamsScreen() {
   const [formName, setFormName] = useState('');
   const [formShort, setFormShort] = useState('');
   const [formColor, setFormColor] = useState<string>(TEAM_COLORS[0]);
+  const [formLogo, setFormLogo] = useState<string | undefined>(undefined);
 
   const openCreate = useCallback(() => {
     setEditingTeam(null);
     setFormName('');
     setFormShort('');
     setFormColor(TEAM_COLORS[teams.length % TEAM_COLORS.length]);
+    setFormLogo(undefined);
     setShowEdit(true);
   }, [teams.length]);
 
@@ -52,7 +57,20 @@ export default function TeamsScreen() {
     setFormName(team.name);
     setFormShort(team.short);
     setFormColor(team.color);
+    setFormLogo(team.logo);
     setShowEdit(true);
+  }, []);
+
+  const pickLogo = useCallback(async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: 'images',
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+    if (!result.canceled && result.assets[0]) {
+      setFormLogo(result.assets[0].uri);
+    }
   }, []);
 
   const handleSave = useCallback(() => {
@@ -61,7 +79,7 @@ export default function TeamsScreen() {
     if (!name || !short) return;
 
     if (editingTeam) {
-      updateTeam({ ...editingTeam, name, short, color: formColor });
+      updateTeam({ ...editingTeam, name, short, color: formColor, logo: formLogo });
     } else {
       const code = short + Date.now().toString(36).slice(-3).toUpperCase();
       addTeam({
@@ -70,6 +88,7 @@ export default function TeamsScreen() {
         short,
         color: formColor,
         custom: true,
+        logo: formLogo,
       });
     }
     setShowEdit(false);
@@ -121,9 +140,11 @@ export default function TeamsScreen() {
         showsVerticalScrollIndicator={false}
       >
         {teams.length === 0 ? (
-          <View style={styles.empty}>
-            <Text style={styles.emptyText}>{t('teams.noResults')}</Text>
-          </View>
+          <EmptyState
+            message={t('teams.noResults')}
+            ctaText={t('teams.noResultsAction')}
+            onPress={openCreate}
+          />
         ) : (
           teams.map((team) => (
             <View key={team.code} style={styles.teamRow}>
@@ -196,6 +217,33 @@ export default function TeamsScreen() {
                 autoCapitalize="characters"
                 maxLength={3}
               />
+            </View>
+
+            <View style={styles.formGroup}>
+              <Text style={styles.formLabel}>LOGO (OPTIONAL)</Text>
+              <View style={styles.logoRow}>
+                <TouchableOpacity
+                  style={styles.logoPickerBtn}
+                  onPress={pickLogo}
+                  activeOpacity={0.8}
+                >
+                  {formLogo ? (
+                    <Image source={{ uri: formLogo }} style={styles.logoPreview} resizeMode="cover" />
+                  ) : (
+                    <Text style={styles.logoPickerIcon}>📷</Text>
+                  )}
+                </TouchableOpacity>
+                {formLogo && (
+                  <TouchableOpacity
+                    style={styles.logoRemoveBtn}
+                    onPress={() => setFormLogo(undefined)}
+                    activeOpacity={0.8}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  >
+                    <Text style={styles.logoRemoveText}>×</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
             </View>
 
             <View style={styles.formGroup}>
@@ -339,15 +387,6 @@ const styles = StyleSheet.create({
     paddingTop: Spacing.lg,
     gap: Spacing.sm,
   },
-  empty: {
-    paddingVertical: Spacing['3xl'],
-    alignItems: 'center',
-  },
-  emptyText: {
-    fontFamily: FontFamily.body,
-    fontSize: FontSize.base,
-    color: Colors.text.muted,
-  },
   teamRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -450,6 +489,46 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.body,
     fontSize: FontSize.base,
     color: Colors.text.primary,
+  },
+  logoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+  },
+  logoPickerBtn: {
+    width: 64,
+    height: 64,
+    borderRadius: Radius.md,
+    backgroundColor: Colors.bg.elevated,
+    borderWidth: 1,
+    borderColor: Colors.border.default,
+    borderStyle: 'dashed',
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  logoPreview: {
+    width: '100%',
+    height: '100%',
+  },
+  logoPickerIcon: {
+    fontSize: 24,
+  },
+  logoRemoveBtn: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: Colors.accent.redSubtle,
+    borderWidth: 1,
+    borderColor: Colors.accent.red + '44',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  logoRemoveText: {
+    fontFamily: FontFamily.bodyBold,
+    fontSize: FontSize.lg,
+    color: Colors.accent.red,
+    lineHeight: 20,
   },
   colorPicker: {
     flexDirection: 'row',

@@ -8,14 +8,15 @@ interface EmptyStateProps {
   message: string;
   ctaText?: string;
   ctaColor?: string;
+  onPress?: () => void;
 }
 
-export function EmptyState({ message, ctaText, ctaColor }: EmptyStateProps) {
+export function EmptyState({ message, ctaText, ctaColor, onPress }: EmptyStateProps) {
   return (
     <View style={styles.container}>
       <Text style={styles.message}>{message}</Text>
       {ctaText ? (
-        <TouchableOpacity style={styles.cta} activeOpacity={0.75}>
+        <TouchableOpacity style={styles.cta} activeOpacity={0.75} onPress={onPress}>
           <Text
             style={[
               styles.ctaText,

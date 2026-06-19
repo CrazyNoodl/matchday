@@ -290,7 +290,8 @@ const en = {
   players: {
     title: 'PLAYERS',
     searchPlaceholder: 'Search players…',
-    noResults: 'No players found',
+    noResults: 'No players yet. Add your first player to get started.',
+    noResultsAction: 'Add Player',
     editTitle: 'EDIT PLAYER',
     deleteConfirm: 'Delete player?',
     deleteDesc: 'This player will be removed.',
@@ -300,7 +301,8 @@ const en = {
   teams: {
     title: 'TEAMS',
     searchPlaceholder: 'Search teams…',
-    noResults: 'No teams found',
+    noResults: 'No teams yet. Create a team to assign players.',
+    noResultsAction: 'Add Team',
     editTitle: 'EDIT TEAM',
     deleteConfirm: 'Delete team?',
     deleteDesc: 'This team will be removed.',

@@ -290,7 +290,8 @@ const fr = {
   players: {
     title: 'JOUEURS',
     searchPlaceholder: 'Rechercher des joueurs…',
-    noResults: 'Aucun joueur trouvé',
+    noResults: 'Aucun joueur pour l\'instant. Ajoutez votre premier joueur pour commencer.',
+    noResultsAction: 'Ajouter un joueur',
     editTitle: 'MODIFIER LE JOUEUR',
     deleteConfirm: 'Supprimer le joueur ?',
     deleteDesc: 'Ce joueur sera supprimé.',
@@ -300,7 +301,8 @@ const fr = {
   teams: {
     title: 'ÉQUIPES',
     searchPlaceholder: 'Rechercher des équipes…',
-    noResults: 'Aucune équipe trouvée',
+    noResults: 'Aucune équipe pour l\'instant. Créez une équipe pour assigner des joueurs.',
+    noResultsAction: 'Ajouter une équipe',
     editTitle: 'MODIFIER L\'ÉQUIPE',
     deleteConfirm: 'Supprimer l\'équipe ?',
     deleteDesc: 'Cette équipe sera supprimée.',

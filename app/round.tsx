@@ -688,7 +688,8 @@ export default function MatchdayScreen() {
             {matches.length === 0 ? (
               <EmptyState
                 message={t('matchday.noMatches')}
-                ctaText={t('matchday.noMatchesAction')}
+                ctaText={roundOpen ? t('matchday.noMatchesAction') : undefined}
+                onPress={roundOpen ? () => store.setModal('add') : undefined}
               />
             ) : (
               matches.map((m) => (

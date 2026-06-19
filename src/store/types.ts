@@ -13,6 +13,7 @@ export interface Team {
   short: string;
   color: string;
   custom?: boolean;
+  logo?: string;
 }
 
 export interface MediaItem {
