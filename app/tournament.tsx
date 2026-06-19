@@ -228,7 +228,7 @@ export default function TournamentScreen() {
               {/* Play button */}
               <TouchableOpacity
                 style={styles.playBtn}
-                onPress={() => router.push('/matchday')}
+                onPress={() => router.push('/round')}
                 activeOpacity={0.8}
               >
                 <Text style={styles.playBtnIcon}>▶</Text>
@@ -307,7 +307,7 @@ export default function TournamentScreen() {
         {roundOpen ? (
           <TouchableOpacity
             style={styles.ctaBtn}
-            onPress={() => router.push('/matchday')}
+            onPress={() => router.push('/round')}
             activeOpacity={0.85}
           >
             <Text style={styles.ctaBtnText}>{t('tournament.continueMatchDay')}</Text>
@@ -561,7 +561,7 @@ export default function TournamentScreen() {
                 onPress={() => {
                   store.startRound(newRoundRanked);
                   store.setModal(null);
-                  router.push('/matchday');
+                  router.push('/round');
                 }}
                 activeOpacity={0.85}
               >

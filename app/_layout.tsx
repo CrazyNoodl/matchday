@@ -14,12 +14,17 @@ import {
   Sora_600SemiBold,
   Sora_700Bold,
 } from '@expo-google-fonts/sora';
-import { Platform, View, ActivityIndicator } from 'react-native';
+import { Platform, View, ActivityIndicator, Text, TextInput } from 'react-native';
 import Constants from 'expo-constants';
 import { Colors } from '@/theme';
 import { useStore } from '@/store';
 import i18n from '@/i18n';
 import { useEffect } from 'react';
+
+if (Text.defaultProps == null) Text.defaultProps = {};
+Text.defaultProps.allowFontScaling = false;
+if (TextInput.defaultProps == null) TextInput.defaultProps = {};
+TextInput.defaultProps.allowFontScaling = false;
 
 const BASE_URL: string = (Constants.expoConfig?.experiments as Record<string, string> | undefined)?.baseUrl ?? '';
 
@@ -87,7 +92,7 @@ export default function RootLayout() {
       >
         <Stack.Screen name="index" />
         <Stack.Screen name="setup" />
-        <Stack.Screen name="matchday" />
+        <Stack.Screen name="round" />
         <Stack.Screen name="tournament" />
         <Stack.Screen name="stats" />
         <Stack.Screen name="archive" />

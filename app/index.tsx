@@ -60,7 +60,7 @@ export default function HomeScreen() {
   const handleNewMatchDay = useCallback(() => {
     if (!hasTournament) return;
     if (roundOpen) {
-      router.push('/matchday');
+      router.push('/round');
     } else {
       store.setModal('newRound');
     }
@@ -69,7 +69,7 @@ export default function HomeScreen() {
   const handleStartRound = useCallback(() => {
     store.startRound(newRoundRanked);
     store.setModal(null);
-    router.push('/matchday');
+    router.push('/round');
   }, [newRoundRanked, store, router]);
 
   const matchDayDisabled = !hasTournament;
