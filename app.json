@@ -1,25 +1,58 @@
 {
   "expo": {
-    "name": "matchday",
+    "name": "Matchday",
     "slug": "matchday",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "scheme": "matchday",
+    "userInterfaceStyle": "dark",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": false,
+      "bundleIdentifier": "com.matchday.app"
     },
     "android": {
+      "package": "com.matchday.app",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
-      },
-      "predictiveBackGestureEnabled": false
+        "backgroundColor": "#0c0e10",
+        "foregroundImage": "./assets/android-icon-foreground.png"
+      }
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro",
+      "output": "single",
+      "name": "Matchday",
+      "shortName": "Matchday",
+      "description": "Tournament & match tracker",
+      "themeColor": "#0c0e10",
+      "backgroundColor": "#0c0e10",
+      "display": "standalone",
+      "orientation": "portrait",
+      "startUrl": "/matchday/"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-status-bar",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow Matchday to access your photos.",
+          "cameraPermission": "Allow Matchday to take photos of match scoreboards."
+        }
+      ],
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "Allow Matchday to access your photo library.",
+          "savePhotosPermission": "Allow Matchday to save photos.",
+          "isAccessMediaLocationEnabled": true
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "baseUrl": "/matchday"
     }
   }
 }

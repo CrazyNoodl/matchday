@@ -1,0 +1,1070 @@
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Image,
+  Modal,
+  Pressable,
+} from 'react-native';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useStore } from '@/store';
+import { Colors } from '@/theme/colors';
+import { FontFamily, FontSize } from '@/theme/typography';
+import { Radius, Spacing } from '@/theme/spacing';
+import { NavHeader } from '@/components/NavHeader';
+import { Avatar } from '@/components/Avatar';
+import { TeamBadge } from '@/components/TeamBadge';
+import { SectionLabel } from '@/components/SectionLabel';
+import { StatsRow } from '@/components/StatsRow';
+import { generateMatchStats } from '@/utils/matchStats';
+import { useTranslation } from 'react-i18next';
+
+export default function MatchDetailScreen() {
+  const { t } = useTranslation();
+  const router = useRouter();
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const store = useStore();
+
+  const { matches, archivedRounds, closedTournaments, players, modal } = store;
+  const isCurrentRoundMatch = matches.some((m) => m.id === id);
+  const match =
+    matches.find((m) => m.id === id) ??
+    archivedRounds.flatMap((r) => r.matches).find((m) => m.id === id) ??
+    closedTournaments
+      .flatMap((t) => t.rounds.flatMap((r) => r.matches))
+      .find((m) => m.id === id);
+
+  // Local state for the edit stats modal values
+  const [editValues, setEditValues] = useState<Record<string, { a: number; b: number }>>({});
+
+  // Local state for the edit score modal
+  const [editAScore, setEditAScore] = useState(0);
+  const [editBScore, setEditBScore] = useState(0);
+
+  // Local state for the media viewer
+  const [viewingMediaIndex, setViewingMediaIndex] = useState<number | null>(null);
+
+  if (!match) {
+    return (
+      <SafeAreaView style={styles.root} edges={['top']}>
+        <View style={styles.glow} pointerEvents="none" />
+        <NavHeader title={t('matchDetail.title')} onBack={() => router.back()} />
+        <View style={styles.center}>
+          <Text style={styles.emptyText}>{t('matchDetail.noData')}</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  const playerA = players.find((p) => p.id === match.aId);
+  const playerB = players.find((p) => p.id === match.bId);
+
+  const aWins = match.aScore > match.bScore;
+  const bWins = match.bScore > match.aScore;
+  const isDraw = match.aScore === match.bScore;
+
+  const winnerName = aWins
+    ? (playerA?.nick ?? playerA?.name ?? 'Player A')
+    : bWins
+    ? (playerB?.nick ?? playerB?.name ?? 'Player B')
+    : null;
+
+  // Generate base stats then merge with override
+  const baseStats = generateMatchStats(match.id, match.aScore, match.bScore);
+  const mergedStats = baseStats.map((stat) => {
+    const override = match.statsOverride?.[stat.key];
+    if (override) {
+      return { ...stat, aVal: override.a, bVal: override.b };
+    }
+    return stat;
+  });
+
+  const hasMediaFiles = match.media && match.media.length > 0;
+  const hasStatsOverride = match.statsOverride && Object.keys(match.statsOverride).length > 0;
+
+  // Open edit score modal — pre-populate with current scores
+  const openEditScore = () => {
+    setEditAScore(match.aScore);
+    setEditBScore(match.bScore);
+    store.setModal('editScore');
+  };
+
+  // Open edit stats modal — pre-populate with current merged values
+  const openEditStats = () => {
+    const initial: Record<string, { a: number; b: number }> = {};
+    mergedStats.forEach((s) => {
+      initial[s.key] = { a: s.aVal, b: s.bVal };
+    });
+    setEditValues(initial);
+    store.setModal('editStats');
+  };
+
+  const handleSaveScore = () => {
+    store.updateMatchScore(match.id, editAScore, editBScore);
+    store.setModal(null);
+  };
+
+  const handleSaveStats = () => {
+    store.updateMatchStats(match.id, editValues);
+    store.setModal(null);
+  };
+
+  const handleDeleteMatch = () => {
+    store.deleteMatch(match.id);
+    store.setModal(null);
+    router.back();
+  };
+
+  const adjustStat = (key: string, side: 'a' | 'b', delta: number) => {
+    setEditValues((prev) => {
+      const current = prev[key] ?? { a: 0, b: 0 };
+      return {
+        ...prev,
+        [key]: {
+          ...current,
+          [side]: Math.max(0, current[side] + delta),
+        },
+      };
+    });
+  };
+
+  const headerRight = isCurrentRoundMatch ? (
+    <View style={styles.headerActions}>
+      <TouchableOpacity
+        style={styles.editBtn}
+        onPress={openEditScore}
+        activeOpacity={0.75}
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+      >
+        <Text style={styles.editBtnText}>Edit</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.deleteBtn}
+        onPress={() => store.setModal('delMatch')}
+        activeOpacity={0.75}
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+      >
+        <Text style={styles.deleteBtnIcon}>🗑</Text>
+      </TouchableOpacity>
+    </View>
+  ) : null;
+
+  return (
+    <SafeAreaView style={styles.root} edges={['top']}>
+      <View style={styles.glow} pointerEvents="none" />
+
+      <NavHeader
+        title={t('matchDetail.title')}
+        onBack={() => router.back()}
+        rightElement={headerRight}
+      />
+
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* ── SCORELINE HERO ── */}
+        <View style={styles.scoreHero}>
+          {/* Side A */}
+          <View style={styles.heroSide}>
+            <Avatar playerId={match.aId} size="xl" />
+            <Text
+              style={[
+                styles.heroName,
+                (!aWins && !isDraw) && styles.heroNameLoser,
+              ]}
+              numberOfLines={1}
+            >
+              {playerA?.nick ?? playerA?.name ?? 'Unknown'}
+            </Text>
+            <TeamBadge teamCode={match.aTeam} size="xs" />
+          </View>
+
+          {/* Center score */}
+          <View style={styles.heroCenter}>
+            <View style={styles.heroScoreRow}>
+              <Text
+                style={[
+                  styles.heroScoreNum,
+                  aWins && { color: Colors.accent.green },
+                  (!aWins && !isDraw) && { color: '#7c8388' },
+                ]}
+              >
+                {match.aScore}
+              </Text>
+              <Text style={styles.heroColon}>:</Text>
+              <Text
+                style={[
+                  styles.heroScoreNum,
+                  bWins && { color: Colors.accent.green },
+                  (!bWins && !isDraw) && { color: '#7c8388' },
+                ]}
+              >
+                {match.bScore}
+              </Text>
+            </View>
+            <Text style={styles.heroResult}>
+              {isDraw ? t('matchday.draw') : `${winnerName} won`}
+            </Text>
+          </View>
+
+          {/* Side B */}
+          <View style={styles.heroSide}>
+            <Avatar playerId={match.bId} size="xl" />
+            <Text
+              style={[
+                styles.heroName,
+                (!bWins && !isDraw) && styles.heroNameLoser,
+              ]}
+              numberOfLines={1}
+            >
+              {playerB?.nick ?? playerB?.name ?? 'Unknown'}
+            </Text>
+            <TeamBadge teamCode={match.bTeam} size="xs" />
+          </View>
+        </View>
+
+        {/* ── MATCH STATS ── */}
+        <View style={styles.sectionHeader}>
+          <SectionLabel label="MATCH STATS" />
+          <View style={styles.sectionHeaderRight}>
+            {hasMediaFiles ? (
+              <View style={styles.sourceBadgeBlue}>
+                <Text style={styles.sourceBadgeBlueText}>
+                  AI-read · from {match.media!.length} media file{match.media!.length !== 1 ? 's' : ''}
+                </Text>
+              </View>
+            ) : hasStatsOverride ? (
+              <View style={styles.sourceBadgeMuted}>
+                <Text style={styles.sourceBadgeMutedText}>Edited manually</Text>
+              </View>
+            ) : null}
+            {isCurrentRoundMatch && (
+              <TouchableOpacity onPress={openEditStats} hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}>
+                <Text style={styles.editLink}>Edit</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+
+        <View style={styles.statsCard}>
+          {mergedStats.map((stat) => {
+            const aLeads = stat.aVal >= stat.bVal;
+            return (
+              <StatsRow
+                key={stat.key}
+                label={stat.isPercent ? `${stat.label} %` : stat.label}
+                aValue={stat.aVal}
+                bValue={stat.bVal}
+                aWins={aLeads}
+              />
+            );
+          })}
+        </View>
+
+        {/* ── MEDIA ── */}
+        <View style={styles.sectionHeader}>
+          <SectionLabel label="MEDIA" />
+        </View>
+
+        {hasMediaFiles ? (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.mediaScroll}
+            contentContainerStyle={styles.mediaContent}
+          >
+            {match.media!.map((item, idx) => (
+              <TouchableOpacity
+                key={idx}
+                style={styles.mediaThumbnail}
+                onPress={() => setViewingMediaIndex(idx)}
+                activeOpacity={0.85}
+              >
+                <Image
+                  source={{ uri: item.uri }}
+                  style={styles.mediaImage}
+                  resizeMode="cover"
+                />
+                {item.type === 'video' && (
+                  <View style={styles.videoOverlay}>
+                    <Text style={styles.videoPlayIcon}>▶</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        ) : (
+          <View style={styles.mediaEmpty}>
+            <Text style={styles.mediaEmptyText}>No media attached</Text>
+          </View>
+        )}
+
+        {/* ── COMMENTARY ── */}
+        <View style={styles.sectionHeader}>
+          <SectionLabel label={t('matchDetail.commentary')} />
+        </View>
+
+        {match.note ? (
+          <View style={styles.noteCard}>
+            <Text style={styles.noteText}>{match.note}</Text>
+          </View>
+        ) : (
+          <View style={styles.noNoteRow}>
+            <Text style={styles.noNoteText}>No commentary</Text>
+          </View>
+        )}
+
+        <View style={{ height: 48 }} />
+      </ScrollView>
+
+      {/* ── EDIT SCORE MODAL ── */}
+      <Modal
+        visible={modal === 'editScore'}
+        transparent
+        animationType="slide"
+        onRequestClose={() => store.setModal(null)}
+      >
+        <View style={styles.sheetOverlay}>
+          <Pressable style={StyleSheet.absoluteFill} onPress={() => store.setModal(null)} />
+          <View style={styles.sheet}>
+            <View style={styles.sheetHeader}>
+              <Text style={styles.sheetTitle}>EDIT SCORE</Text>
+              <Text style={styles.sheetSubtitle}>Correct the result</Text>
+            </View>
+
+            <View style={styles.scoreEditRow}>
+              {/* Side A */}
+              <View style={styles.scoreEditSide}>
+                <Text style={styles.scoreEditName} numberOfLines={1}>
+                  {playerA?.nick ?? playerA?.name ?? 'Home'}
+                </Text>
+                <View style={styles.scoreEditControls}>
+                  <TouchableOpacity
+                    style={styles.stepBtn}
+                    onPress={() => setEditAScore((v) => Math.max(0, v - 1))}
+                    activeOpacity={0.75}
+                  >
+                    <Text style={styles.stepBtnText}>−</Text>
+                  </TouchableOpacity>
+                  <Text style={styles.scoreEditVal}>{editAScore}</Text>
+                  <TouchableOpacity
+                    style={styles.stepBtn}
+                    onPress={() => setEditAScore((v) => v + 1)}
+                    activeOpacity={0.75}
+                  >
+                    <Text style={styles.stepBtnText}>+</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              <Text style={styles.scoreEditColon}>:</Text>
+
+              {/* Side B */}
+              <View style={styles.scoreEditSide}>
+                <Text style={styles.scoreEditName} numberOfLines={1}>
+                  {playerB?.nick ?? playerB?.name ?? 'Away'}
+                </Text>
+                <View style={styles.scoreEditControls}>
+                  <TouchableOpacity
+                    style={styles.stepBtn}
+                    onPress={() => setEditBScore((v) => Math.max(0, v - 1))}
+                    activeOpacity={0.75}
+                  >
+                    <Text style={styles.stepBtnText}>−</Text>
+                  </TouchableOpacity>
+                  <Text style={styles.scoreEditVal}>{editBScore}</Text>
+                  <TouchableOpacity
+                    style={styles.stepBtn}
+                    onPress={() => setEditBScore((v) => v + 1)}
+                    activeOpacity={0.75}
+                  >
+                    <Text style={styles.stepBtnText}>+</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+
+            <View style={styles.sheetButtons}>
+              <TouchableOpacity
+                style={styles.cancelBtn}
+                onPress={() => store.setModal(null)}
+                activeOpacity={0.75}
+              >
+                <Text style={styles.cancelBtnText}>{t('matchday.dialogs.cancel')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.saveBtn}
+                onPress={handleSaveScore}
+                activeOpacity={0.75}
+              >
+                <Text style={styles.saveBtnText}>{t('common.save')}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* ── MEDIA VIEWER ── */}
+      <Modal
+        visible={viewingMediaIndex !== null}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setViewingMediaIndex(null)}
+        statusBarTranslucent
+      >
+        <Pressable
+          style={styles.mediaViewerOverlay}
+          onPress={() => setViewingMediaIndex(null)}
+        >
+          {viewingMediaIndex !== null && match.media?.[viewingMediaIndex] && (
+            <Image
+              source={{ uri: match.media[viewingMediaIndex].uri }}
+              style={styles.mediaViewerImage}
+              resizeMode="contain"
+            />
+          )}
+        </Pressable>
+      </Modal>
+
+      {/* ── EDIT STATS MODAL ── */}
+      <Modal
+        visible={modal === 'editStats'}
+        transparent
+        animationType="slide"
+        onRequestClose={() => store.setModal(null)}
+      >
+        <View style={styles.sheetOverlay}>
+          <Pressable style={StyleSheet.absoluteFill} onPress={() => store.setModal(null)} />
+          <View style={styles.sheet}>
+            {/* Sheet header */}
+            <View style={styles.sheetHeader}>
+              <Text style={styles.sheetTitle}>EDIT STATS</Text>
+              <Text style={styles.sheetSubtitle}>Correct AI-read values</Text>
+            </View>
+
+            <ScrollView
+              style={styles.sheetScroll}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            >
+              {mergedStats.map((stat) => {
+                const current = editValues[stat.key] ?? { a: stat.aVal, b: stat.bVal };
+                return (
+                  <View key={stat.key} style={styles.editStatRow}>
+                    {/* Side A controls */}
+                    <View style={styles.editSideControls}>
+                      <TouchableOpacity
+                        style={styles.stepBtn}
+                        onPress={() => adjustStat(stat.key, 'a', -1)}
+                        activeOpacity={0.75}
+                      >
+                        <Text style={styles.stepBtnText}>−</Text>
+                      </TouchableOpacity>
+                      <Text style={styles.editStatVal}>{current.a}</Text>
+                      <TouchableOpacity
+                        style={styles.stepBtn}
+                        onPress={() => adjustStat(stat.key, 'a', 1)}
+                        activeOpacity={0.75}
+                      >
+                        <Text style={styles.stepBtnText}>+</Text>
+                      </TouchableOpacity>
+                    </View>
+
+                    {/* Label */}
+                    <Text style={styles.editStatLabel}>{stat.label}</Text>
+
+                    {/* Side B controls */}
+                    <View style={styles.editSideControls}>
+                      <TouchableOpacity
+                        style={styles.stepBtn}
+                        onPress={() => adjustStat(stat.key, 'b', -1)}
+                        activeOpacity={0.75}
+                      >
+                        <Text style={styles.stepBtnText}>−</Text>
+                      </TouchableOpacity>
+                      <Text style={styles.editStatVal}>{current.b}</Text>
+                      <TouchableOpacity
+                        style={styles.stepBtn}
+                        onPress={() => adjustStat(stat.key, 'b', 1)}
+                        activeOpacity={0.75}
+                      >
+                        <Text style={styles.stepBtnText}>+</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                );
+              })}
+              <View style={{ height: 16 }} />
+            </ScrollView>
+
+            {/* Sheet buttons */}
+            <View style={styles.sheetButtons}>
+              <TouchableOpacity
+                style={styles.cancelBtn}
+                onPress={() => store.setModal(null)}
+                activeOpacity={0.75}
+              >
+                <Text style={styles.cancelBtnText}>{t('matchday.dialogs.cancel')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.saveBtn}
+                onPress={handleSaveStats}
+                activeOpacity={0.75}
+              >
+                <Text style={styles.saveBtnText}>{t('common.save')}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* ── DELETE MATCH MODAL ── */}
+      <Modal
+        visible={modal === 'delMatch'}
+        transparent
+        animationType="fade"
+        onRequestClose={() => store.setModal(null)}
+        statusBarTranslucent
+      >
+        <View style={styles.delOverlay}>
+          <Pressable style={StyleSheet.absoluteFill} onPress={() => store.setModal(null)} />
+          <View style={styles.delDialog}>
+            <View style={styles.delIconCircle}>
+              <Text style={styles.delIconEmoji}>🗑</Text>
+            </View>
+            <Text style={styles.delTitle}>{t('matchday.dialogs.deleteTitle')}</Text>
+            <Text style={styles.delDesc}>
+              {t('matchday.dialogs.deleteDesc')}
+            </Text>
+            <View style={styles.delButtons}>
+              <TouchableOpacity
+                style={styles.delCancelBtn}
+                onPress={() => store.setModal(null)}
+                activeOpacity={0.75}
+              >
+                <Text style={styles.delCancelText}>{t('matchday.dialogs.cancel')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.delConfirmBtn}
+                onPress={handleDeleteMatch}
+                activeOpacity={0.75}
+              >
+                <Text style={styles.delConfirmText}>{t('matchday.dialogs.delete')}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+    backgroundColor: Colors.bg.base,
+  },
+  glow: {
+    position: 'absolute',
+    width: 340,
+    height: 340,
+    top: -80,
+    left: -40,
+    borderRadius: 170,
+    backgroundColor: Colors.accent.green,
+    opacity: 0.06,
+  },
+  center: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyText: {
+    fontFamily: FontFamily.body,
+    fontSize: FontSize.base,
+    color: Colors.text.muted,
+  },
+
+  // Header actions
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  editBtn: {
+    height: 32,
+    paddingHorizontal: 12,
+    borderRadius: Radius.sm,
+    borderWidth: 1,
+    borderColor: Colors.border.strong,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  editBtnText: {
+    fontFamily: FontFamily.bodySemiBold,
+    fontSize: FontSize.sm,
+    color: Colors.text.secondary,
+  },
+  deleteBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: Radius.full,
+    backgroundColor: Colors.accent.redSubtle,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  deleteBtnIcon: {
+    fontSize: 14,
+  },
+
+  // Scroll
+  scroll: { flex: 1 },
+  scrollContent: {
+    paddingHorizontal: Spacing.xl,
+    paddingTop: Spacing.md,
+    paddingBottom: 40,
+  },
+
+  // Score hero card
+  scoreHero: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#0f1f14',
+    borderRadius: Radius.xl,
+    borderWidth: 1,
+    borderColor: 'rgba(61,220,132,0.2)',
+    padding: Spacing.xl,
+    marginTop: Spacing.lg,
+    gap: Spacing.sm,
+  },
+  heroSide: {
+    flex: 1,
+    alignItems: 'center',
+    gap: 6,
+  },
+  heroName: {
+    fontFamily: FontFamily.display,
+    fontSize: FontSize.base,
+    color: Colors.text.primary,
+    textAlign: 'center',
+    letterSpacing: 0.3,
+  },
+  heroNameLoser: {
+    color: Colors.text.muted,
+  },
+  heroCenter: {
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: Spacing.sm,
+  },
+  heroScoreRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  heroScoreNum: {
+    fontFamily: FontFamily.displayBold,
+    fontSize: FontSize['5xl'],
+    color: Colors.text.secondary,
+    lineHeight: FontSize['5xl'] + 8,
+    minWidth: 36,
+    textAlign: 'center',
+  },
+  heroColon: {
+    fontFamily: FontFamily.displayBold,
+    fontSize: 30,
+    color: Colors.text.placeholder,
+    lineHeight: 40,
+  },
+  heroResult: {
+    fontFamily: FontFamily.body,
+    fontSize: FontSize.sm,
+    color: Colors.accent.green,
+    textAlign: 'center',
+  },
+
+  // Section headers
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: Spacing.xl,
+    marginBottom: Spacing.md,
+  },
+  sectionHeaderRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  sourceBadgeBlue: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: Radius.full,
+    backgroundColor: Colors.accent.blueSubtle,
+    borderWidth: 1,
+    borderColor: 'rgba(106,166,255,0.25)',
+  },
+  sourceBadgeBlueText: {
+    fontFamily: FontFamily.body,
+    fontSize: FontSize.xs,
+    color: Colors.accent.blue,
+  },
+  sourceBadgeMuted: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: Radius.full,
+    backgroundColor: Colors.bg.elevated,
+    borderWidth: 1,
+    borderColor: Colors.border.medium,
+  },
+  sourceBadgeMutedText: {
+    fontFamily: FontFamily.body,
+    fontSize: FontSize.xs,
+    color: Colors.text.muted,
+  },
+  editLink: {
+    fontFamily: FontFamily.bodySemiBold,
+    fontSize: FontSize.sm,
+    color: Colors.accent.blue,
+  },
+
+  // Stats card
+  statsCard: {
+    backgroundColor: Colors.bg.surface,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: Colors.border.default,
+    padding: Spacing.lg,
+    gap: 2,
+  },
+
+  // Media
+  mediaScroll: {
+    flexGrow: 0,
+  },
+  mediaContent: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+    paddingBottom: Spacing.sm,
+  },
+  mediaThumbnail: {
+    width: 90,
+    height: 118,
+    borderRadius: Radius.sm,
+    overflow: 'hidden',
+    backgroundColor: Colors.bg.media,
+    borderWidth: 1,
+    borderColor: Colors.border.medium,
+  },
+  mediaImage: {
+    width: 90,
+    height: 118,
+  },
+  videoOverlay: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  videoPlayIcon: {
+    fontSize: 24,
+    color: '#fff',
+  },
+  mediaEmpty: {
+    height: 80,
+    borderRadius: Radius.sm,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: Colors.border.medium,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  mediaEmptyText: {
+    fontFamily: FontFamily.body,
+    fontSize: FontSize.sm,
+    color: Colors.text.placeholder,
+  },
+
+  // Commentary
+  noteCard: {
+    backgroundColor: 'rgba(106,166,255,0.08)',
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: 'rgba(106,166,255,0.2)',
+    padding: Spacing.lg,
+  },
+  noteText: {
+    fontFamily: FontFamily.body,
+    fontSize: FontSize.base,
+    color: Colors.text.secondary,
+    lineHeight: 22,
+  },
+  noNoteRow: {
+    paddingVertical: Spacing.md,
+    alignItems: 'center',
+  },
+  noNoteText: {
+    fontFamily: FontFamily.body,
+    fontSize: FontSize.sm,
+    color: Colors.text.placeholder,
+  },
+
+  // Edit stats sheet
+  sheetOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'flex-end',
+  },
+  sheet: {
+    backgroundColor: Colors.bg.sheet,
+    borderTopLeftRadius: Radius['3xl'],
+    borderTopRightRadius: Radius['3xl'],
+    borderWidth: 1,
+    borderBottomWidth: 0,
+    borderColor: Colors.border.default,
+    maxHeight: '85%',
+    paddingBottom: 32,
+  },
+  sheetHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing['2xl'],
+    paddingTop: Spacing['2xl'],
+    paddingBottom: Spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border.default,
+  },
+  sheetTitle: {
+    fontFamily: FontFamily.display,
+    fontSize: FontSize.xl,
+    color: Colors.text.primary,
+    letterSpacing: 0.5,
+  },
+  sheetSubtitle: {
+    fontFamily: FontFamily.body,
+    fontSize: FontSize.sm,
+    color: Colors.text.muted,
+    textAlign: 'right',
+  },
+  sheetScroll: {
+    paddingHorizontal: Spacing['2xl'],
+    paddingTop: Spacing.md,
+  },
+
+  // Score edit sheet
+  scoreEditRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    paddingHorizontal: Spacing['2xl'],
+    paddingVertical: Spacing['2xl'],
+  },
+  scoreEditSide: {
+    alignItems: 'center',
+    gap: Spacing.md,
+    flex: 1,
+  },
+  scoreEditName: {
+    fontFamily: FontFamily.bodySemiBold,
+    fontSize: FontSize.sm,
+    color: Colors.text.muted,
+    textAlign: 'center',
+  },
+  scoreEditControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+  },
+  scoreEditVal: {
+    fontFamily: FontFamily.displayBold,
+    fontSize: FontSize['4xl'],
+    color: Colors.text.primary,
+    minWidth: 48,
+    textAlign: 'center',
+  },
+  scoreEditColon: {
+    fontFamily: FontFamily.displayBold,
+    fontSize: FontSize['3xl'],
+    color: Colors.text.placeholder,
+    paddingHorizontal: Spacing.sm,
+  },
+
+  // Media viewer
+  mediaViewerOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.95)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  mediaViewerImage: {
+    width: '100%',
+    height: '100%',
+  },
+
+  // Edit stat rows
+  editStatRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: Spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border.default,
+    gap: Spacing.sm,
+  },
+  editSideControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    flex: 1,
+    justifyContent: 'center',
+  },
+  stepBtn: {
+    width: 30,
+    height: 30,
+    borderRadius: Radius.sm,
+    backgroundColor: Colors.bg.elevated,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: Colors.border.medium,
+  },
+  stepBtnText: {
+    fontFamily: FontFamily.bodyBold,
+    fontSize: FontSize.md,
+    color: Colors.text.primary,
+    lineHeight: 20,
+  },
+  editStatVal: {
+    fontFamily: FontFamily.displayBold,
+    fontSize: FontSize.md,
+    color: Colors.text.primary,
+    minWidth: 28,
+    textAlign: 'center',
+  },
+  editStatLabel: {
+    fontFamily: FontFamily.body,
+    fontSize: FontSize.xs,
+    color: Colors.text.muted,
+    textAlign: 'center',
+    width: 70,
+  },
+
+  // Sheet buttons
+  sheetButtons: {
+    flexDirection: 'row',
+    paddingHorizontal: Spacing['2xl'],
+    paddingTop: Spacing.lg,
+    gap: Spacing.md,
+  },
+  cancelBtn: {
+    flex: 1,
+    height: 48,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: Colors.border.strong,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cancelBtnText: {
+    fontFamily: FontFamily.bodySemiBold,
+    fontSize: FontSize.base,
+    color: Colors.text.secondary,
+  },
+  saveBtn: {
+    flex: 1,
+    height: 48,
+    borderRadius: Radius.md,
+    backgroundColor: Colors.accent.green,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  saveBtnText: {
+    fontFamily: FontFamily.bodySemiBold,
+    fontSize: FontSize.base,
+    color: Colors.bg.base,
+  },
+
+  // Delete dialog
+  delOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.75)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: Spacing['2xl'],
+  },
+  delDialog: {
+    backgroundColor: Colors.bg.elevated,
+    borderRadius: Radius['2xl'],
+    borderWidth: 1,
+    borderColor: Colors.border.strong,
+    padding: Spacing['2xl'],
+    width: '100%',
+    alignItems: 'center',
+    gap: Spacing.md,
+  },
+  delIconCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: Radius.full,
+    backgroundColor: Colors.accent.redSubtle,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Spacing.xs,
+  },
+  delIconEmoji: {
+    fontSize: 22,
+  },
+  delTitle: {
+    fontFamily: FontFamily.display,
+    fontSize: FontSize.xl,
+    color: Colors.text.primary,
+    letterSpacing: 0.5,
+    textAlign: 'center',
+  },
+  delDesc: {
+    fontFamily: FontFamily.body,
+    fontSize: FontSize.sm,
+    color: Colors.text.muted,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  delButtons: {
+    flexDirection: 'row',
+    marginTop: Spacing.sm,
+    gap: Spacing.md,
+    width: '100%',
+  },
+  delCancelBtn: {
+    flex: 1,
+    height: 44,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: Colors.border.strong,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  delCancelText: {
+    fontFamily: FontFamily.bodySemiBold,
+    fontSize: FontSize.base,
+    color: Colors.text.secondary,
+  },
+  delConfirmBtn: {
+    flex: 1,
+    height: 44,
+    borderRadius: Radius.md,
+    backgroundColor: Colors.accent.red,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  delConfirmText: {
+    fontFamily: FontFamily.bodySemiBold,
+    fontSize: FontSize.base,
+    color: '#fff',
+  },
+});

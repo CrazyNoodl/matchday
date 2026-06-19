@@ -1,0 +1,746 @@
+import React, { useState, useMemo } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+} from 'react-native';
+import { useRouter } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useStore } from '@/store';
+import { calculateStandings } from '@/utils/standings';
+import { Colors } from '@/theme/colors';
+import { FontFamily, FontSize } from '@/theme/typography';
+import { Radius, Spacing } from '@/theme/spacing';
+import { Avatar } from '@/components/Avatar';
+import { NavHeader } from '@/components/NavHeader';
+import { SectionLabel } from '@/components/SectionLabel';
+import type { Match, Player } from '@/store/types';
+import { useTranslation } from 'react-i18next';
+
+type Tab = 'ranking' | 'h2h';
+
+// ---------------------------------------------------------------------------
+// Medal config
+// ---------------------------------------------------------------------------
+const MEDALS = [
+  {
+    rank: 1,
+    badgeColor: Colors.accent.gold,
+    badgeBg: 'rgba(255,212,94,0.18)',
+    cardBorder: Colors.accent.greenBorder,
+  },
+  {
+    rank: 2,
+    badgeColor: Colors.text.secondary,
+    badgeBg: 'rgba(200,205,210,0.16)',
+    cardBorder: Colors.border.default,
+  },
+  {
+    rank: 3,
+    badgeColor: '#d08a4a',
+    badgeBg: 'rgba(205,127,50,0.16)',
+    cardBorder: Colors.border.default,
+  },
+];
+
+// ---------------------------------------------------------------------------
+// H2H pair type
+// ---------------------------------------------------------------------------
+interface H2HPair {
+  playerA: Player;
+  playerB: Player;
+  aWins: number;
+  bWins: number;
+  draws: number;
+  aGoals: number;
+  bGoals: number;
+  games: number;
+}
+
+// ---------------------------------------------------------------------------
+// Main screen
+// ---------------------------------------------------------------------------
+export default function StatsScreen() {
+  const router = useRouter();
+  const [activeTab, setActiveTab] = useState<Tab>('ranking');
+  const { t } = useTranslation();
+
+  const tournamentName = useStore((s) => s.tournamentName);
+  const tournamentPlayers = useStore((s) => s.tournamentPlayers);
+  const archivedRounds = useStore((s) => s.archivedRounds);
+  const currentMatches = useStore((s) => s.matches);
+  const players = useStore((s) => s.players);
+
+  // Combine all matches (archived + current)
+  const allMatches = useMemo<Match[]>(() => {
+    const archived = archivedRounds.flatMap((r) => r.matches);
+    return [...archived, ...currentMatches];
+  }, [archivedRounds, currentMatches]);
+
+  // Player IDs for standings — use tournamentPlayers if set, else derive from matches
+  const playerIds = useMemo<string[]>(() => {
+    if (tournamentPlayers.length > 0) return tournamentPlayers;
+    const ids = new Set<string>();
+    for (const m of allMatches) {
+      ids.add(m.aId);
+      ids.add(m.bId);
+    }
+    return Array.from(ids);
+  }, [tournamentPlayers, allMatches]);
+
+  const standings = useMemo(
+    () => calculateStandings(allMatches, playerIds),
+    [allMatches, playerIds],
+  );
+
+  const totalGoals = useMemo(
+    () => allMatches.reduce((acc, m) => acc + m.aScore + m.bScore, 0),
+    [allMatches],
+  );
+  const matchDaysPlayed = useMemo(() => archivedRounds.length, [archivedRounds]);
+
+  // H2H pairs — all combinations of player IDs
+  const h2hPairs = useMemo<H2HPair[]>(() => {
+    const result: H2HPair[] = [];
+    for (let i = 0; i < playerIds.length; i++) {
+      for (let j = i + 1; j < playerIds.length; j++) {
+        const idA = playerIds[i];
+        const idB = playerIds[j];
+        const playerA = players.find((p) => p.id === idA);
+        const playerB = players.find((p) => p.id === idB);
+        if (!playerA || !playerB) continue;
+
+        let aWins = 0;
+        let bWins = 0;
+        let draws = 0;
+        let aGoals = 0;
+        let bGoals = 0;
+
+        for (const m of allMatches) {
+          const isAB = m.aId === idA && m.bId === idB;
+          const isBA = m.aId === idB && m.bId === idA;
+          if (!isAB && !isBA) continue;
+
+          if (isAB) {
+            aGoals += m.aScore;
+            bGoals += m.bScore;
+            if (m.aScore > m.bScore) aWins++;
+            else if (m.aScore < m.bScore) bWins++;
+            else draws++;
+          } else {
+            // isBA: flip perspective so A = playerA
+            aGoals += m.bScore;
+            bGoals += m.aScore;
+            if (m.bScore > m.aScore) aWins++;
+            else if (m.bScore < m.aScore) bWins++;
+            else draws++;
+          }
+        }
+
+        const games = aWins + bWins + draws;
+        if (games === 0) continue;
+
+        result.push({ playerA, playerB, aWins, bWins, draws, aGoals, bGoals, games });
+      }
+    }
+    return result.sort((a, b) => b.games - a.games);
+  }, [playerIds, players, allMatches]);
+
+  return (
+    <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
+      {/* Green glow */}
+      <View style={styles.glow} pointerEvents="none" />
+
+      {/* Custom two-line header */}
+      <View style={styles.headerContainer}>
+        <TouchableOpacity
+          style={styles.backBtn}
+          onPress={() => router.back()}
+          activeOpacity={0.7}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <Text style={styles.chevron}>‹</Text>
+        </TouchableOpacity>
+        <View style={styles.headerTitleWrap}>
+          {t('stats.title').split('\n').map((line, i) => (
+            <Text key={i} style={styles.headerTitle}>{line}</Text>
+          ))}
+        </View>
+        <View style={styles.headerRight} />
+      </View>
+
+      {/* Tab pills */}
+      <View style={styles.tabRow}>
+        <TouchableOpacity
+          style={[styles.tabPill, activeTab === 'ranking' && styles.tabPillActive]}
+          onPress={() => setActiveTab('ranking')}
+          activeOpacity={0.8}
+        >
+          <Text
+            style={[
+              styles.tabLabel,
+              activeTab === 'ranking' ? styles.tabLabelActive : styles.tabLabelInactive,
+            ]}
+          >
+            {t('stats.ranking')}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tabPill, activeTab === 'h2h' && styles.tabPillActive]}
+          onPress={() => setActiveTab('h2h')}
+          activeOpacity={0.8}
+        >
+          <Text
+            style={[
+              styles.tabLabel,
+              activeTab === 'h2h' ? styles.tabLabelActive : styles.tabLabelInactive,
+            ]}
+          >
+            {t('stats.h2h')}
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {activeTab === 'ranking' ? (
+          <RankingTab
+            standings={standings}
+            players={players}
+            totalGoals={totalGoals}
+            matchDaysPlayed={matchDaysPlayed}
+            tournamentName={tournamentName}
+          />
+        ) : (
+          <H2HTab pairs={h2hPairs} />
+        )}
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Ranking tab
+// ---------------------------------------------------------------------------
+interface RankingTabProps {
+  standings: ReturnType<typeof calculateStandings>;
+  players: Player[];
+  totalGoals: number;
+  matchDaysPlayed: number;
+  tournamentName: string;
+}
+
+function RankingTab({
+  standings,
+  players,
+  totalGoals,
+  matchDaysPlayed,
+  tournamentName,
+}: RankingTabProps) {
+  const { t } = useTranslation();
+  const sectionLabel = tournamentName
+    ? t('stats.allTimeTournament', { name: tournamentName })
+    : t('stats.allTime');
+
+  return (
+    <View style={styles.tabContent}>
+      <SectionLabel label={sectionLabel} style={styles.sectionLabel} />
+
+      {standings.map((s, index) => {
+        const player = players.find((p) => p.id === s.playerId);
+        if (!player) return null;
+
+        const medal = MEDALS[index] ?? null;
+
+        return (
+          <View
+            key={s.playerId}
+            style={[
+              styles.rankCard,
+              { borderColor: medal ? medal.cardBorder : Colors.border.default },
+            ]}
+          >
+            {/* Medal badge */}
+            <View
+              style={[
+                styles.medalBadge,
+                {
+                  backgroundColor: medal
+                    ? medal.badgeBg
+                    : 'rgba(255,255,255,0.06)',
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.medalText,
+                  { color: medal ? medal.badgeColor : Colors.text.muted },
+                ]}
+              >
+                {index + 1}
+              </Text>
+            </View>
+
+            {/* Player info */}
+            <View style={styles.rankInfo}>
+              <Avatar playerId={player.id} size="md" />
+              <View style={styles.rankNameWrap}>
+                <Text style={styles.rankName} numberOfLines={1}>
+                  {player.name}
+                </Text>
+                <Text style={styles.rankRecord} numberOfLines={1}>
+                  {t('stats.record', { played: s.played, wins: s.wins, draws: s.draws, losses: s.losses, gf: s.gf, ga: s.ga })}
+                </Text>
+              </View>
+            </View>
+
+            {/* Points */}
+            <View style={styles.ptsWrap}>
+              <Text style={styles.ptsNumber}>{s.pts}</Text>
+              <Text style={styles.ptsLabel}>{t('common.pts')}</Text>
+            </View>
+          </View>
+        );
+      })}
+
+      {standings.length === 0 && (
+        <View style={styles.emptyWrap}>
+          <Text style={styles.emptyText}>{t('stats.noMatches')}</Text>
+        </View>
+      )}
+
+      {/* Stat tiles */}
+      <View style={styles.tilesRow}>
+        <View style={styles.statTile}>
+          <Text style={styles.statTileLabel}>{t('stats.matchDaysPlayed')}</Text>
+          <Text style={styles.statTileValue}>{matchDaysPlayed}</Text>
+        </View>
+        <View style={styles.statTile}>
+          <Text style={styles.statTileLabel}>{t('stats.goalsScored')}</Text>
+          <Text style={[styles.statTileValue, styles.statTileValueGreen]}>
+            {totalGoals}
+          </Text>
+        </View>
+      </View>
+    </View>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// H2H tab
+// ---------------------------------------------------------------------------
+interface H2HTabProps {
+  pairs: H2HPair[];
+}
+
+function H2HTab({ pairs }: H2HTabProps) {
+  const { t } = useTranslation();
+  return (
+    <View style={styles.tabContent}>
+      <SectionLabel label={t('stats.rivalries')} style={styles.sectionLabel} />
+
+      {pairs.map((pair) => {
+        const { playerA, playerB, aWins, bWins, draws, aGoals, bGoals, games } = pair;
+        const totalDecisive = aWins + bWins;
+        const aBarFlex = totalDecisive > 0 ? aWins / totalDecisive : 0.5;
+        const bBarFlex = totalDecisive > 0 ? bWins / totalDecisive : 0.5;
+        const allDraws = totalDecisive === 0;
+
+        return (
+          <View key={`${playerA.id}-${playerB.id}`} style={styles.h2hCard}>
+            {/* Top row: Player A · games · Player B */}
+            <View style={styles.h2hTopRow}>
+              <View style={styles.h2hPlayerLeft}>
+                <Avatar playerId={playerA.id} size="sm" />
+                <Text style={styles.h2hPlayerName} numberOfLines={1}>
+                  {playerA.name}
+                </Text>
+              </View>
+
+              <View style={styles.h2hGamesWrap}>
+                <Text style={styles.h2hGamesText}>{t('stats.h2hGames', { count: games })}</Text>
+              </View>
+
+              <View style={styles.h2hPlayerRight}>
+                <Text style={styles.h2hPlayerName} numberOfLines={1}>
+                  {playerB.name}
+                </Text>
+                <Avatar playerId={playerB.id} size="sm" />
+              </View>
+            </View>
+
+            {/* Wins counts + draws label */}
+            <View style={styles.h2hScoreRow}>
+              <Text style={[styles.h2hWinsCount, { color: playerA.color }]}>
+                {aWins}
+              </Text>
+              <Text style={styles.h2hDrawsLabel}>{t('stats.h2hDraws', { count: draws })}</Text>
+              <Text style={[styles.h2hWinsCount, { color: playerB.color }]}>
+                {bWins}
+              </Text>
+            </View>
+
+            {/* Progress bar */}
+            <View style={styles.h2hBarContainer}>
+              {allDraws ? (
+                <View
+                  style={[
+                    styles.h2hBarSegment,
+                    {
+                      flex: 1,
+                      backgroundColor: Colors.border.strong,
+                      borderRadius: Radius.full,
+                    },
+                  ]}
+                />
+              ) : (
+                <>
+                  <View
+                    style={[
+                      styles.h2hBarSegment,
+                      {
+                        flex: aBarFlex,
+                        backgroundColor: playerA.color,
+                        borderTopLeftRadius: Radius.full,
+                        borderBottomLeftRadius: Radius.full,
+                        borderTopRightRadius: bWins === 0 ? Radius.full : 0,
+                        borderBottomRightRadius: bWins === 0 ? Radius.full : 0,
+                      },
+                    ]}
+                  />
+                  {aWins > 0 && bWins > 0 && <View style={styles.h2hBarGap} />}
+                  <View
+                    style={[
+                      styles.h2hBarSegment,
+                      {
+                        flex: bBarFlex,
+                        backgroundColor: playerB.color,
+                        borderTopRightRadius: Radius.full,
+                        borderBottomRightRadius: Radius.full,
+                        borderTopLeftRadius: aWins === 0 ? Radius.full : 0,
+                        borderBottomLeftRadius: aWins === 0 ? Radius.full : 0,
+                      },
+                    ]}
+                  />
+                </>
+              )}
+            </View>
+
+            {/* Goals line */}
+            <Text style={styles.h2hGoals}>
+              {t('stats.h2hGoals', { a: aGoals, b: bGoals })}
+            </Text>
+          </View>
+        );
+      })}
+
+      {pairs.length === 0 && (
+        <View style={styles.emptyWrap}>
+          <Text style={styles.emptyText}>{t('stats.noRivalries')}</Text>
+        </View>
+      )}
+    </View>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Styles
+// ---------------------------------------------------------------------------
+const styles = StyleSheet.create({
+  safe: {
+    flex: 1,
+    backgroundColor: Colors.bg.base,
+  },
+  glow: {
+    position: 'absolute',
+    width: 340,
+    height: 340,
+    top: -80,
+    left: -40,
+    borderRadius: 170,
+    backgroundColor: Colors.accent.green,
+    opacity: 0.06,
+  },
+
+  // Header
+  headerContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.md,
+    paddingBottom: Spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border.default,
+    backgroundColor: Colors.bg.surface,
+  },
+  backBtn: {
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 4,
+  },
+  chevron: {
+    fontFamily: FontFamily.display,
+    fontSize: FontSize['2xl'],
+    color: Colors.text.secondary,
+    lineHeight: 28,
+    marginTop: -2,
+  },
+  headerTitleWrap: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  headerTitle: {
+    fontFamily: FontFamily.displayBold,
+    fontSize: FontSize['3xl'],
+    color: Colors.text.primary,
+    letterSpacing: 0.5,
+    lineHeight: 34,
+    textAlign: 'center',
+  },
+  headerRight: {
+    width: 36,
+  },
+
+  // Tab pills
+  tabRow: {
+    flexDirection: 'row',
+    marginHorizontal: Spacing.lg,
+    marginTop: Spacing.lg,
+    marginBottom: Spacing.sm,
+    backgroundColor: Colors.bg.elevated,
+    borderRadius: Radius.full,
+    padding: 3,
+    gap: 3,
+  },
+  tabPill: {
+    flex: 1,
+    paddingVertical: Spacing.sm,
+    borderRadius: Radius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tabPillActive: {
+    backgroundColor: Colors.accent.green,
+  },
+  tabLabel: {
+    fontFamily: FontFamily.bodySemiBold,
+    fontSize: FontSize.base,
+    letterSpacing: 0.2,
+  },
+  tabLabelActive: {
+    color: Colors.accent.greenDark,
+  },
+  tabLabelInactive: {
+    color: Colors.text.muted,
+  },
+
+  // Scroll
+  scroll: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: Spacing['3xl'],
+  },
+
+  // Tab content
+  tabContent: {
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.lg,
+    gap: Spacing.md,
+  },
+  sectionLabel: {
+    marginBottom: Spacing.xs,
+  },
+
+  // Ranking card
+  rankCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.bg.surface,
+    borderRadius: Radius.xl,
+    borderWidth: 1,
+    padding: Spacing.lg,
+    gap: Spacing.md,
+  },
+  medalBadge: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  medalText: {
+    fontFamily: FontFamily.display,
+    fontSize: FontSize.md,
+    lineHeight: 18,
+  },
+  rankInfo: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+    overflow: 'hidden',
+  },
+  rankNameWrap: {
+    flex: 1,
+    gap: 3,
+  },
+  rankName: {
+    fontFamily: FontFamily.bodySemiBold,
+    fontSize: FontSize.md,
+    color: Colors.text.primary,
+  },
+  rankRecord: {
+    fontFamily: FontFamily.body,
+    fontSize: FontSize.xs,
+    color: Colors.text.muted,
+  },
+  ptsWrap: {
+    alignItems: 'center',
+    minWidth: 40,
+  },
+  ptsNumber: {
+    fontFamily: FontFamily.display,
+    fontSize: FontSize['3xl'],
+    color: Colors.accent.green,
+    lineHeight: 34,
+  },
+  ptsLabel: {
+    fontFamily: FontFamily.body,
+    fontSize: FontSize.xs,
+    color: Colors.text.muted,
+    letterSpacing: 0.8,
+    marginTop: -2,
+  },
+
+  // Stat tiles
+  tilesRow: {
+    flexDirection: 'row',
+    gap: Spacing.md,
+    marginTop: Spacing.sm,
+  },
+  statTile: {
+    flex: 1,
+    backgroundColor: Colors.bg.surface,
+    borderRadius: Radius.xl,
+    borderWidth: 1,
+    borderColor: Colors.border.default,
+    padding: Spacing.lg,
+    gap: Spacing.xs,
+    alignItems: 'flex-start',
+  },
+  statTileLabel: {
+    fontFamily: FontFamily.bodyBold,
+    fontSize: FontSize.xs,
+    color: Colors.text.placeholder,
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+  },
+  statTileValue: {
+    fontFamily: FontFamily.display,
+    fontSize: FontSize['2xl'],
+    color: Colors.text.primary,
+  },
+  statTileValueGreen: {
+    color: Colors.accent.green,
+  },
+
+  // H2H card
+  h2hCard: {
+    backgroundColor: Colors.bg.surface,
+    borderRadius: Radius.xl,
+    borderWidth: 1,
+    borderColor: Colors.border.default,
+    padding: Spacing.lg,
+    gap: Spacing.md,
+  },
+  h2hTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  h2hPlayerLeft: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  h2hPlayerRight: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: Spacing.sm,
+  },
+  h2hPlayerName: {
+    fontFamily: FontFamily.bodySemiBold,
+    fontSize: FontSize.base,
+    color: Colors.text.primary,
+    flexShrink: 1,
+  },
+  h2hGamesWrap: {
+    paddingHorizontal: Spacing.sm,
+  },
+  h2hGamesText: {
+    fontFamily: FontFamily.body,
+    fontSize: FontSize.xs,
+    color: Colors.text.muted,
+    textAlign: 'center',
+  },
+  h2hScoreRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  h2hWinsCount: {
+    fontFamily: FontFamily.display,
+    fontSize: FontSize['2xl'],
+    lineHeight: 28,
+  },
+  h2hDrawsLabel: {
+    fontFamily: FontFamily.body,
+    fontSize: FontSize.sm,
+    color: Colors.text.muted,
+    flex: 1,
+    textAlign: 'center',
+  },
+  h2hBarContainer: {
+    flexDirection: 'row',
+    height: 6,
+    borderRadius: Radius.full,
+    overflow: 'hidden',
+    alignItems: 'center',
+  },
+  h2hBarSegment: {
+    height: 6,
+  },
+  h2hBarGap: {
+    width: 3,
+    height: 6,
+    backgroundColor: Colors.bg.base,
+  },
+  h2hGoals: {
+    fontFamily: FontFamily.body,
+    fontSize: FontSize.sm,
+    color: Colors.text.muted,
+    textAlign: 'center',
+  },
+
+  // Empty
+  emptyWrap: {
+    paddingVertical: Spacing['2xl'],
+    alignItems: 'center',
+  },
+  emptyText: {
+    fontFamily: FontFamily.body,
+    fontSize: FontSize.base,
+    color: Colors.text.placeholder,
+  },
+});
