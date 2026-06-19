@@ -67,28 +67,32 @@ export default function StatsScreen() {
   const [activeTab, setActiveTab] = useState<Tab>('ranking');
   const { t } = useTranslation();
 
-  const tournamentName = useStore((s) => s.tournamentName);
   const tournamentPlayers = useStore((s) => s.tournamentPlayers);
   const archivedRounds = useStore((s) => s.archivedRounds);
   const currentMatches = useStore((s) => s.matches);
+  const closedTournaments = useStore((s) => s.closedTournaments);
   const players = useStore((s) => s.players);
 
-  // Combine all matches (archived + current)
+  // Combine all matches: closed tournaments + current tournament archived rounds + current round
   const allMatches = useMemo<Match[]>(() => {
-    const archived = archivedRounds.flatMap((r) => r.matches);
-    return [...archived, ...currentMatches];
-  }, [archivedRounds, currentMatches]);
+    const fromClosed = closedTournaments.flatMap((t) => t.rounds.flatMap((r) => r.matches));
+    const fromArchived = archivedRounds.flatMap((r) => r.matches);
+    return [...fromClosed, ...fromArchived, ...currentMatches];
+  }, [closedTournaments, archivedRounds, currentMatches]);
 
-  // Player IDs for standings — use tournamentPlayers if set, else derive from matches
+  // Player IDs — union of current tournament + all closed tournaments
   const playerIds = useMemo<string[]>(() => {
-    if (tournamentPlayers.length > 0) return tournamentPlayers;
     const ids = new Set<string>();
+    for (const id of tournamentPlayers) ids.add(id);
+    for (const t of closedTournaments) {
+      for (const id of t.players) ids.add(id);
+    }
     for (const m of allMatches) {
       ids.add(m.aId);
       ids.add(m.bId);
     }
     return Array.from(ids);
-  }, [tournamentPlayers, allMatches]);
+  }, [tournamentPlayers, closedTournaments, allMatches]);
 
   const standings = useMemo(
     () => calculateStandings(allMatches, playerIds),
@@ -99,7 +103,12 @@ export default function StatsScreen() {
     () => allMatches.reduce((acc, m) => acc + m.aScore + m.bScore, 0),
     [allMatches],
   );
-  const matchDaysPlayed = useMemo(() => archivedRounds.length, [archivedRounds]);
+  const matchDaysPlayed = useMemo(
+    () =>
+      archivedRounds.length +
+      closedTournaments.reduce((acc, t) => acc + t.rounds.length, 0),
+    [archivedRounds, closedTournaments],
+  );
 
   // H2H pairs — all combinations of player IDs
   const h2hPairs = useMemo<H2HPair[]>(() => {
@@ -214,7 +223,6 @@ export default function StatsScreen() {
             players={players}
             totalGoals={totalGoals}
             matchDaysPlayed={matchDaysPlayed}
-            tournamentName={tournamentName}
           />
         ) : (
           <H2HTab pairs={h2hPairs} />
@@ -232,7 +240,6 @@ interface RankingTabProps {
   players: Player[];
   totalGoals: number;
   matchDaysPlayed: number;
-  tournamentName: string;
 }
 
 function RankingTab({
@@ -240,12 +247,9 @@ function RankingTab({
   players,
   totalGoals,
   matchDaysPlayed,
-  tournamentName,
 }: RankingTabProps) {
   const { t } = useTranslation();
-  const sectionLabel = tournamentName
-    ? t('stats.allTimeTournament', { name: tournamentName })
-    : t('stats.allTime');
+  const sectionLabel = t('stats.allTime');
 
   return (
     <View style={styles.tabContent}>

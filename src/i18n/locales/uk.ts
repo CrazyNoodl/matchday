@@ -275,6 +275,7 @@ const uk = {
     gfa: 'ГЗ {{gf}}  :  ГП {{ga}}',
     noMatchesFilter: 'Матчів у цьому фільтрі немає',
     pts: 'ОЧК',
+    gamesSection: 'ІГРИ',
   },
 
   matchDetail: {

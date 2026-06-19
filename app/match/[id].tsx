@@ -8,10 +8,13 @@ import {
   Image,
   Modal,
   Pressable,
+  TextInput,
 } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStore } from '@/store';
+import type { MediaItem } from '@/store/types';
 import { Colors } from '@/theme/colors';
 import { FontFamily, FontSize } from '@/theme/typography';
 import { Radius, Spacing } from '@/theme/spacing';
@@ -31,6 +34,9 @@ export default function MatchDetailScreen() {
 
   const { matches, archivedRounds, closedTournaments, players, modal } = store;
   const isCurrentRoundMatch = matches.some((m) => m.id === id);
+  const isEditableMatch =
+    isCurrentRoundMatch ||
+    (store.hasTournament && archivedRounds.flatMap((r) => r.matches).some((m) => m.id === id));
   const match =
     matches.find((m) => m.id === id) ??
     archivedRounds.flatMap((r) => r.matches).find((m) => m.id === id) ??
@@ -47,6 +53,10 @@ export default function MatchDetailScreen() {
 
   // Local state for the media viewer
   const [viewingMediaIndex, setViewingMediaIndex] = useState<number | null>(null);
+
+  // Local state for note editing
+  const [editingNote, setEditingNote] = useState(false);
+  const [editNoteValue, setEditNoteValue] = useState('');
 
   if (!match) {
     return (
@@ -117,6 +127,37 @@ export default function MatchDetailScreen() {
     store.deleteMatch(match.id);
     store.setModal(null);
     router.back();
+  };
+
+  const handleAddMedia = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsMultipleSelection: false,
+      quality: 0.8,
+    });
+    if (!result.canceled && result.assets[0]) {
+      const asset = result.assets[0];
+      const newItem: MediaItem = {
+        uri: asset.uri,
+        type: asset.type === 'video' ? 'video' : 'image',
+      };
+      store.updateMatchMedia(match.id, [...(match.media ?? []), newItem]);
+    }
+  };
+
+  const handleDeleteMedia = (idx: number) => {
+    const updated = (match.media ?? []).filter((_, i) => i !== idx);
+    store.updateMatchMedia(match.id, updated);
+  };
+
+  const openEditNote = () => {
+    setEditNoteValue(match.note ?? '');
+    setEditingNote(true);
+  };
+
+  const handleSaveNote = () => {
+    store.updateMatchNote(match.id, editNoteValue.trim());
+    setEditingNote(false);
   };
 
   const adjustStat = (key: string, side: 'a' | 'b', delta: number) => {
@@ -270,6 +311,16 @@ export default function MatchDetailScreen() {
         {/* ── MEDIA ── */}
         <View style={styles.sectionHeader}>
           <SectionLabel label="MEDIA" />
+          {isEditableMatch && (
+            <TouchableOpacity
+              style={styles.addMediaBtn}
+              onPress={handleAddMedia}
+              activeOpacity={0.75}
+              hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+            >
+              <Text style={styles.addMediaBtnText}>+ Add</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         {hasMediaFiles ? (
@@ -280,34 +331,58 @@ export default function MatchDetailScreen() {
             contentContainerStyle={styles.mediaContent}
           >
             {match.media!.map((item, idx) => (
-              <TouchableOpacity
-                key={idx}
-                style={styles.mediaThumbnail}
-                onPress={() => setViewingMediaIndex(idx)}
-                activeOpacity={0.85}
-              >
-                <Image
-                  source={{ uri: item.uri }}
-                  style={styles.mediaImage}
-                  resizeMode="cover"
-                />
-                {item.type === 'video' && (
-                  <View style={styles.videoOverlay}>
-                    <Text style={styles.videoPlayIcon}>▶</Text>
-                  </View>
+              <View key={idx} style={styles.mediaThumbnail}>
+                <TouchableOpacity
+                  onPress={() => setViewingMediaIndex(idx)}
+                  activeOpacity={0.85}
+                >
+                  <Image
+                    source={{ uri: item.uri }}
+                    style={styles.mediaImage}
+                    resizeMode="cover"
+                  />
+                  {item.type === 'video' && (
+                    <View style={styles.videoOverlay}>
+                      <Text style={styles.videoPlayIcon}>▶</Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
+                {isEditableMatch && (
+                  <TouchableOpacity
+                    style={styles.mediaDeleteBtn}
+                    onPress={() => handleDeleteMedia(idx)}
+                    hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.mediaDeleteBtnText}>×</Text>
+                  </TouchableOpacity>
                 )}
-              </TouchableOpacity>
+              </View>
             ))}
           </ScrollView>
         ) : (
-          <View style={styles.mediaEmpty}>
-            <Text style={styles.mediaEmptyText}>No media attached</Text>
-          </View>
+          <TouchableOpacity
+            style={styles.mediaEmpty}
+            onPress={isEditableMatch ? handleAddMedia : undefined}
+            activeOpacity={isEditableMatch ? 0.7 : 1}
+          >
+            <Text style={styles.mediaEmptyText}>
+              {isEditableMatch ? 'Tap to add media' : 'No media attached'}
+            </Text>
+          </TouchableOpacity>
         )}
 
         {/* ── COMMENTARY ── */}
         <View style={styles.sectionHeader}>
           <SectionLabel label={t('matchDetail.commentary')} />
+          {isEditableMatch && (
+            <TouchableOpacity
+              onPress={openEditNote}
+              hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+            >
+              <Text style={styles.editLink}>Edit</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         {match.note ? (
@@ -315,9 +390,15 @@ export default function MatchDetailScreen() {
             <Text style={styles.noteText}>{match.note}</Text>
           </View>
         ) : (
-          <View style={styles.noNoteRow}>
-            <Text style={styles.noNoteText}>No commentary</Text>
-          </View>
+          <TouchableOpacity
+            style={styles.noNoteRow}
+            onPress={isEditableMatch ? openEditNote : undefined}
+            activeOpacity={isEditableMatch ? 0.7 : 1}
+          >
+            <Text style={styles.noNoteText}>
+              {isEditableMatch ? 'Add commentary...' : 'No commentary'}
+            </Text>
+          </TouchableOpacity>
         )}
 
         <View style={{ height: 48 }} />
@@ -515,6 +596,53 @@ export default function MatchDetailScreen() {
               <TouchableOpacity
                 style={styles.saveBtn}
                 onPress={handleSaveStats}
+                activeOpacity={0.75}
+              >
+                <Text style={styles.saveBtnText}>{t('common.save')}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* ── EDIT NOTE MODAL ── */}
+      <Modal
+        visible={editingNote}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setEditingNote(false)}
+      >
+        <View style={styles.sheetOverlay}>
+          <Pressable style={StyleSheet.absoluteFill} onPress={() => setEditingNote(false)} />
+          <View style={styles.sheet}>
+            <View style={styles.sheetHeader}>
+              <Text style={styles.sheetTitle}>COMMENTARY</Text>
+              <Text style={styles.sheetSubtitle}>Add match notes</Text>
+            </View>
+            <View style={styles.noteEditBody}>
+              <TextInput
+                style={styles.noteInput}
+                value={editNoteValue}
+                onChangeText={setEditNoteValue}
+                placeholder="Write something about this match..."
+                placeholderTextColor={Colors.text.placeholder}
+                multiline
+                autoFocus
+                maxLength={500}
+              />
+              <Text style={styles.noteCharCount}>{editNoteValue.length}/500</Text>
+            </View>
+            <View style={styles.sheetButtons}>
+              <TouchableOpacity
+                style={styles.cancelBtn}
+                onPress={() => setEditingNote(false)}
+                activeOpacity={0.75}
+              >
+                <Text style={styles.cancelBtnText}>{t('matchday.dialogs.cancel')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.saveBtn}
+                onPress={handleSaveNote}
                 activeOpacity={0.75}
               >
                 <Text style={styles.saveBtnText}>{t('common.save')}</Text>
@@ -988,6 +1116,67 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.base,
     color: Colors.bg.base,
+  },
+
+  // Add media button
+  addMediaBtn: {
+    height: 26,
+    paddingHorizontal: 10,
+    borderRadius: Radius.sm,
+    borderWidth: 1,
+    borderColor: Colors.accent.greenBorder,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  addMediaBtnText: {
+    fontFamily: FontFamily.bodySemiBold,
+    fontSize: FontSize.sm,
+    color: Colors.accent.green,
+  },
+
+  // Media delete button
+  mediaDeleteBtn: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: 'rgba(0,0,0,0.65)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  mediaDeleteBtnText: {
+    fontFamily: FontFamily.bodyBold,
+    fontSize: 14,
+    color: '#fff',
+    lineHeight: 16,
+  },
+
+  // Note edit
+  noteEditBody: {
+    paddingHorizontal: Spacing['2xl'],
+    paddingTop: Spacing.lg,
+    paddingBottom: Spacing.sm,
+  },
+  noteInput: {
+    backgroundColor: Colors.bg.elevated,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: Colors.border.strong,
+    padding: Spacing.lg,
+    fontFamily: FontFamily.body,
+    fontSize: FontSize.base,
+    color: Colors.text.primary,
+    minHeight: 120,
+    textAlignVertical: 'top',
+  },
+  noteCharCount: {
+    fontFamily: FontFamily.body,
+    fontSize: FontSize.xs,
+    color: Colors.text.placeholder,
+    textAlign: 'right',
+    marginTop: 4,
   },
 
   // Delete dialog

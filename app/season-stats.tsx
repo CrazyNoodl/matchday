@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -16,7 +16,8 @@ import { Radius, Spacing } from '@/theme/spacing';
 import { NavHeader } from '@/components/NavHeader';
 import { SectionLabel } from '@/components/SectionLabel';
 import { Avatar } from '@/components/Avatar';
-import type { Match, ArchivedRound } from '@/store/types';
+import { MatchCard } from '@/components/MatchCard';
+import type { ArchivedRound, Match } from '@/store/types';
 import { useTranslation } from 'react-i18next';
 
 // ---------------------------------------------------------------------------
@@ -33,6 +34,14 @@ type ParamChip = 'wdl' | 'gd' | 'gfa';
 function formatFCYear(dateStr: string): string {
   const d = new Date(dateStr);
   return String(d.getFullYear()).slice(-2);
+}
+
+function formatRoundDate(dateStr: string): string {
+  const d = new Date(dateStr);
+  const dd = String(d.getDate()).padStart(2, '0');
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const yy = String(d.getFullYear()).slice(-2);
+  return `${dd}/${mm}/${yy}`;
 }
 
 function filterRounds(
@@ -79,6 +88,11 @@ export default function SeasonStatsScreen() {
 
   const [includeFilter, setIncludeFilter] = useState<IncludeFilter>('Both');
   const [paramChip, setParamChip] = useState<ParamChip>('wdl');
+
+  const handleMatchPress = useCallback(
+    (matchId: string) => router.push(`/match/${matchId}`),
+    [router],
+  );
 
   function buildSubText(
     param: ParamChip,
@@ -354,6 +368,59 @@ export default function SeasonStatsScreen() {
           })
         )}
 
+        {/* ── GAMES section ── */}
+        <SectionLabel label={t('seasonStats.gamesSection')} style={styles.sectionLabel} />
+
+        {filteredRounds.length === 0 ? (
+          <View style={styles.emptyWrap}>
+            <Text style={styles.emptyText}>{t('seasonStats.noMatchesFilter')}</Text>
+          </View>
+        ) : (
+          [...filteredRounds].reverse().map((round) => (
+            <View key={round.id} style={styles.roundBlock}>
+              {/* Round header */}
+              <View style={styles.roundHeader}>
+                <View style={styles.roundNumBadge}>
+                  <Text style={styles.roundNumText}>{round.n}</Text>
+                </View>
+                <View style={styles.roundHeaderInfo}>
+                  <Text style={styles.roundHeaderTitle}>
+                    {t('matchday.round', { n: round.n })}
+                  </Text>
+                  <Text style={styles.roundHeaderDate}>{formatRoundDate(round.date)}</Text>
+                </View>
+                {!round.ranked && (
+                  <View style={styles.friendlyTag}>
+                    <Text style={styles.friendlyTagText}>{t('seasonStats.friendly')}</Text>
+                  </View>
+                )}
+                {round.winner ? (
+                  <View style={styles.roundWinnerArea}>
+                    <Avatar playerId={round.winner} size="sm" />
+                  </View>
+                ) : null}
+              </View>
+
+              {/* Matches */}
+              {round.matches.length === 0 ? (
+                <View style={styles.roundEmptyRow}>
+                  <Text style={styles.roundEmptyText}>—</Text>
+                </View>
+              ) : (
+                round.matches.map((m) => (
+                  <TouchableOpacity
+                    key={m.id}
+                    onPress={() => handleMatchPress(m.id)}
+                    activeOpacity={0.75}
+                  >
+                    <MatchCard match={m} readonly />
+                  </TouchableOpacity>
+                ))
+              )}
+            </View>
+          ))
+        )}
+
         <View style={{ height: 48 }} />
       </ScrollView>
     </SafeAreaView>
@@ -624,6 +691,82 @@ const styles = StyleSheet.create({
     color: Colors.text.muted,
     letterSpacing: 0.8,
     marginTop: -2,
+  },
+
+  // Games / rounds table
+  roundBlock: {
+    marginBottom: Spacing.lg,
+    borderRadius: Radius.xl,
+    borderWidth: 1,
+    borderColor: Colors.border.default,
+    overflow: 'hidden',
+    backgroundColor: Colors.bg.surface,
+  },
+  roundHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border.default,
+    backgroundColor: Colors.bg.elevated,
+  },
+  roundNumBadge: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: Colors.bg.surface,
+    borderWidth: 1,
+    borderColor: Colors.border.strong,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  roundNumText: {
+    fontFamily: FontFamily.displayBold,
+    fontSize: FontSize.sm,
+    color: Colors.text.secondary,
+  },
+  roundHeaderInfo: {
+    flex: 1,
+    gap: 1,
+  },
+  roundHeaderTitle: {
+    fontFamily: FontFamily.bodySemiBold,
+    fontSize: FontSize.base,
+    color: Colors.text.primary,
+  },
+  roundHeaderDate: {
+    fontFamily: FontFamily.body,
+    fontSize: FontSize.xs,
+    color: Colors.text.muted,
+  },
+  friendlyTag: {
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: Radius.full,
+    borderWidth: 1,
+    borderColor: Colors.border.strong,
+    backgroundColor: Colors.bg.surface,
+  },
+  friendlyTagText: {
+    fontFamily: FontFamily.bodyBold,
+    fontSize: FontSize.xs,
+    color: Colors.text.muted,
+    letterSpacing: 0.5,
+  },
+  roundWinnerArea: {
+    flexShrink: 0,
+  },
+  roundEmptyRow: {
+    paddingVertical: Spacing.md,
+    alignItems: 'center',
+  },
+  roundEmptyText: {
+    fontFamily: FontFamily.body,
+    fontSize: FontSize.sm,
+    color: Colors.text.muted,
   },
 
   // Empty

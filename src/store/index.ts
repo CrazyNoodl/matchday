@@ -228,11 +228,19 @@ export const useStore = create<AppState & Actions>()(
       updateMatchMedia: (id, media) =>
         set((s) => ({
           matches: s.matches.map((m) => (m.id === id ? { ...m, media } : m)),
+          archivedRounds: s.archivedRounds.map((r) => ({
+            ...r,
+            matches: r.matches.map((m) => (m.id === id ? { ...m, media } : m)),
+          })),
         })),
 
       updateMatchNote: (id, note) =>
         set((s) => ({
           matches: s.matches.map((m) => (m.id === id ? { ...m, note } : m)),
+          archivedRounds: s.archivedRounds.map((r) => ({
+            ...r,
+            matches: r.matches.map((m) => (m.id === id ? { ...m, note } : m)),
+          })),
         })),
 
       updateMatchStats: (id, stats) =>
