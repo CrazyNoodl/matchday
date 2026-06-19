@@ -77,6 +77,8 @@ const bannerStyles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
+    zIndex: 999,
+    elevation: 999,
     backgroundColor: '#2a1f00',
     borderTopWidth: 1,
     borderTopColor: Colors.accent.yellow + '55',
@@ -161,7 +163,6 @@ export default function RootLayout() {
       )}
       <LanguageSync />
       <StatusBar style="light" />
-      <DemoBanner />
       <Stack
         screenOptions={{
           headerShown: false,
@@ -185,6 +186,7 @@ export default function RootLayout() {
         <Stack.Screen name="settings/display" />
         <Stack.Screen name="settings/language" />
       </Stack>
+      <DemoBanner />
     </GestureHandlerRootView>
   );
 }

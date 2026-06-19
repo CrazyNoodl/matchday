@@ -94,4 +94,8 @@ export const DEMO_STATE = {
   matches: DEMO_CURRENT_MATCHES,
   archivedRounds: DEMO_ARCHIVED_ROUNDS,
   closedTournaments: DEMO_CLOSED_TOURNAMENTS,
+
+  showNick: true,
+  showTeamLogo: true,
+  language: 'en',
 } as const;

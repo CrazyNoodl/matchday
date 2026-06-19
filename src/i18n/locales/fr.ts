@@ -14,6 +14,7 @@ const fr = {
     friendly: 'AMICAL',
     matches: 'matchs',
     games: 'matchs',
+    share: '↑ Partager',
   },
 
   table: {
@@ -319,6 +320,8 @@ const fr = {
     banner: 'MODE DÉMO',
     bannerSub: 'Vos vraies données sont en sécurité',
     exit: 'Quitter',
+    replaceWarning: 'Votre tournoi actif sera temporairement remplacé par des données de démonstration. Il sera restauré à la sortie du mode démo.',
+    enable: 'Activer',
   },
 } as const;
 

@@ -1,4 +1,4 @@
-import React, { useRef, useState, useMemo } from 'react';
+import React, { useRef, useState, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -546,6 +546,10 @@ export function ShareRoundModal({ visible, onClose, round, tournamentName }: Sha
   const winnerRef = useRef<View>(null);
   const standingsRef = useRef<View>(null);
 
+  useEffect(() => {
+    if (!visible) setLoading(false);
+  }, [visible]);
+
   const activeRef = variant === 'winner' ? winnerRef : standingsRef;
 
   const capture = async (): Promise<string | null> => {
@@ -771,7 +775,7 @@ const modalStyles = StyleSheet.create({
   },
   hidden: {
     position: 'absolute',
-    opacity: 0,
+    opacity: 0.001,
     pointerEvents: 'none',
   },
   actions: {

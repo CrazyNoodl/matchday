@@ -14,6 +14,7 @@ const en = {
     friendly: 'FRIENDLY',
     matches: 'matches',
     games: 'games',
+    share: '↑ Share',
   },
 
   table: {
@@ -319,6 +320,8 @@ const en = {
     banner: 'DEMO MODE',
     bannerSub: 'Your real data is safe',
     exit: 'Exit',
+    replaceWarning: 'Your active tournament will be temporarily replaced by demo data. It will be restored when you exit demo mode.',
+    enable: 'Enable',
   },
 } as const;
 

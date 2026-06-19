@@ -66,8 +66,10 @@ export default function SettingsScreen() {
     language === 'en';
 
   const handleReset = () => {
+    if (demoMode) store.setDemoMode(false);
     store.resetStore();
     setShowResetConfirm(false);
+    router.dismissAll();
     router.replace('/');
   };
 
@@ -75,16 +77,16 @@ export default function SettingsScreen() {
     if (on && hasTournament) {
       Alert.alert(
         t('demo.label'),
-        'Your active tournament will be temporarily replaced by demo data. It will be restored when you exit demo mode.',
+        t('demo.replaceWarning'),
         [
           { text: t('common.cancel'), style: 'cancel' },
-          { text: 'Enable', onPress: () => { store.setDemoMode(true); router.replace('/'); } },
+          { text: t('demo.enable'), onPress: () => { store.setDemoMode(true); router.dismissAll(); router.replace('/'); } },
         ],
       );
       return;
     }
     store.setDemoMode(on);
-    if (on) router.replace('/');
+    if (on) { router.dismissAll(); router.replace('/'); }
   };
 
   return (
@@ -202,7 +204,6 @@ export default function SettingsScreen() {
               icon="✨"
               label={t('demo.label')}
               sub={t('demo.desc')}
-              onPress={() => handleDemoToggle(!demoMode)}
               right={
                 <Switch
                   value={demoMode}

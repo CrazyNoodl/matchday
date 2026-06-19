@@ -78,7 +78,7 @@ export default function ArchiveDayScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const viewingRound = useStore((s) => s.viewingRound);
-  const tournamentName = useStore((s) => s.hasTournament ? s.tournamentName : (s.viewingTournament?.name ?? ''));
+  const tournamentName = useStore((s) => s.viewingTournament?.name ?? s.tournamentName ?? '');
   const players = useStore((s) => s.players);
   const [shareVisible, setShareVisible] = useState(false);
 
@@ -126,7 +126,7 @@ export default function ArchiveDayScreen() {
             activeOpacity={0.7}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
-            <Text style={styles.shareBtnText}>↑ Share</Text>
+            <Text style={styles.shareBtnText}>{t('common.share')}</Text>
           </TouchableOpacity>
         }
       />
