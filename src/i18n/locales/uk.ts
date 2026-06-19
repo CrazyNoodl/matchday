@@ -312,6 +312,14 @@ const uk = {
   display: {
     title: 'ВІДОБРАЖЕННЯ',
   },
+
+  demo: {
+    label: 'Демо Режим',
+    desc: 'Подивись як працює додаток на прикладі',
+    banner: 'ДЕМО РЕЖИМ',
+    bannerSub: 'Твої реальні дані збережені',
+    exit: 'Вийти',
+  },
 } as const;
 
 export default uk;

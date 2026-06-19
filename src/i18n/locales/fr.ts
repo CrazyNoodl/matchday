@@ -312,6 +312,14 @@ const fr = {
   display: {
     title: 'AFFICHAGE',
   },
+
+  demo: {
+    label: 'Mode Démo',
+    desc: 'Explorer l\'app avec des données exemple',
+    banner: 'MODE DÉMO',
+    bannerSub: 'Vos vraies données sont en sécurité',
+    exit: 'Quitter',
+  },
 } as const;
 
 export default fr;

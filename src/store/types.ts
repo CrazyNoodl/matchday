@@ -57,6 +57,20 @@ export interface ClosedTournament {
   players: string[];
 }
 
+export interface RealDataBackup {
+  hasTournament: boolean;
+  tournamentName: string;
+  round: number;
+  roundOpen: boolean;
+  tournamentRanked: boolean;
+  tournamentPlayers: string[];
+  matches: Match[];
+  archivedRounds: ArchivedRound[];
+  closedTournaments: ClosedTournament[];
+  players: Player[];
+  teams: Team[];
+}
+
 export type Modal =
   | null
   | 'add'

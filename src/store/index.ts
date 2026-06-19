@@ -8,7 +8,9 @@ import {
   ArchivedRound,
   ClosedTournament,
   Modal,
+  RealDataBackup,
 } from './types';
+import { DEMO_STATE } from '../demo/data';
 import { calculateStandings, isTopTied } from '../utils/standings';
 import { Colors } from '../theme/colors';
 
@@ -93,6 +95,8 @@ interface AppState {
   showNick: boolean;
   showTeamLogo: boolean;
   language: string;
+  demoMode: boolean;
+  realDataBackup: RealDataBackup | null;
 
   // UI state (not persisted)
   modal: Modal;
@@ -145,6 +149,7 @@ interface Actions {
   setShowNick: (v: boolean) => void;
   setShowTeamLogo: (v: boolean) => void;
   setLanguage: (lang: string) => void;
+  setDemoMode: (on: boolean) => void;
   resetStore: () => void;
 }
 
@@ -183,6 +188,8 @@ export const useStore = create<AppState & Actions>()(
       showNick: true,
       showTeamLogo: true,
       language: 'en',
+      demoMode: false,
+      realDataBackup: null,
 
       // UI state
       modal: null,
@@ -374,6 +381,52 @@ export const useStore = create<AppState & Actions>()(
       setShowTeamLogo: (v) => set({ showTeamLogo: v }),
       setLanguage: (lang) => set({ language: lang }),
 
+      setDemoMode: (on) => {
+        const s = get();
+        if (on === s.demoMode) return;
+        if (on) {
+          const backup: RealDataBackup = {
+            hasTournament: s.hasTournament,
+            tournamentName: s.tournamentName,
+            round: s.round,
+            roundOpen: s.roundOpen,
+            tournamentRanked: s.tournamentRanked,
+            tournamentPlayers: s.tournamentPlayers,
+            matches: s.matches,
+            archivedRounds: s.archivedRounds,
+            closedTournaments: s.closedTournaments,
+            players: s.players,
+            teams: s.teams,
+          };
+          set({
+            demoMode: true,
+            realDataBackup: backup,
+            ...DEMO_STATE,
+            modal: null,
+            selectedMatchId: null,
+            editingPlayerId: null,
+            editingTeamCode: null,
+            winnerPlayerId: null,
+            viewingRound: null,
+            viewingTournament: null,
+          });
+        } else {
+          const backup = s.realDataBackup;
+          set({
+            demoMode: false,
+            realDataBackup: null,
+            ...(backup ?? {}),
+            modal: null,
+            selectedMatchId: null,
+            editingPlayerId: null,
+            editingTeamCode: null,
+            winnerPlayerId: null,
+            viewingRound: null,
+            viewingTournament: null,
+          });
+        }
+      },
+
       resetStore: () => {
         set({
           hasTournament: false,
@@ -390,6 +443,8 @@ export const useStore = create<AppState & Actions>()(
           showNick: true,
           showTeamLogo: true,
           language: 'en',
+          demoMode: false,
+          realDataBackup: null,
           modal: null,
           selectedMatchId: null,
           editingPlayerId: null,
@@ -418,6 +473,8 @@ export const useStore = create<AppState & Actions>()(
         showNick: state.showNick,
         showTeamLogo: state.showTeamLogo,
         language: state.language,
+        demoMode: state.demoMode,
+        realDataBackup: state.realDataBackup,
       }),
     },
   ),
