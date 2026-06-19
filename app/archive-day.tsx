@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -18,6 +18,7 @@ import { NavHeader } from '@/components/NavHeader';
 import { Avatar } from '@/components/Avatar';
 import { SectionLabel } from '@/components/SectionLabel';
 import { MatchCard } from '@/components/MatchCard';
+import { ShareRoundModal } from '@/components/ShareRoundModal';
 import { Match } from '@/store/types';
 
 const ROUND_TABLE_COLS = [
@@ -77,7 +78,9 @@ export default function ArchiveDayScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const viewingRound = useStore((s) => s.viewingRound);
+  const tournamentName = useStore((s) => s.hasTournament ? s.tournamentName : (s.viewingTournament?.name ?? ''));
   const players = useStore((s) => s.players);
+  const [shareVisible, setShareVisible] = useState(false);
 
   const playerIds = useMemo(() => {
     if (!viewingRound) return [];
@@ -112,8 +115,21 @@ export default function ArchiveDayScreen() {
     <SafeAreaView style={styles.root} edges={['top']}>
       <View style={styles.glow} pointerEvents="none" />
 
-      {/* Header: back button only, no visible title */}
-      <NavHeader title="" onBack={() => router.back()} />
+      {/* Header */}
+      <NavHeader
+        title=""
+        onBack={() => router.back()}
+        rightElement={
+          <TouchableOpacity
+            style={styles.shareBtn}
+            onPress={() => setShareVisible(true)}
+            activeOpacity={0.7}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Text style={styles.shareBtnText}>↑ Share</Text>
+          </TouchableOpacity>
+        }
+      />
 
       <ScrollView
         style={styles.scroll}
@@ -218,6 +234,15 @@ export default function ArchiveDayScreen() {
 
         <View style={{ height: 48 }} />
       </ScrollView>
+
+      {viewingRound && (
+        <ShareRoundModal
+          visible={shareVisible}
+          onClose={() => setShareVisible(false)}
+          round={viewingRound}
+          tournamentName={tournamentName}
+        />
+      )}
     </SafeAreaView>
   );
 }
@@ -248,6 +273,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.xl,
     paddingTop: Spacing.xl,
     paddingBottom: 40,
+  },
+
+  // ---- Share button ----
+  shareBtn: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+    borderRadius: Radius.md,
+    backgroundColor: Colors.accent.greenSubtle,
+    borderWidth: 1,
+    borderColor: Colors.accent.greenBorder,
+  },
+  shareBtnText: {
+    fontFamily: FontFamily.bodySemiBold,
+    fontSize: FontSize.xs,
+    color: Colors.accent.green,
+    letterSpacing: 0.5,
   },
 
   // ---- Day Winner Banner ----
