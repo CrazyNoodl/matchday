@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Modal, Pressable } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Modal, Pressable, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -47,7 +47,7 @@ export default function SettingsScreen() {
   const store = useStore();
   const [showResetConfirm, setShowResetConfirm] = useState(false);
 
-  const { players, teams, showNick, showTeamLogo, hasTournament, tournamentName, language, archivedRounds, closedTournaments } = store;
+  const { players, teams, showNick, showTeamLogo, hasTournament, tournamentName, language, archivedRounds, closedTournaments, demoMode } = store;
 
   const currentLang = LANGUAGES.find((l) => l.code === language) ?? LANGUAGES[0];
 
@@ -69,6 +69,22 @@ export default function SettingsScreen() {
     store.resetStore();
     setShowResetConfirm(false);
     router.replace('/');
+  };
+
+  const handleDemoToggle = (on: boolean) => {
+    if (on && hasTournament) {
+      Alert.alert(
+        t('demo.label'),
+        'Your active tournament will be temporarily replaced by demo data. It will be restored when you exit demo mode.',
+        [
+          { text: t('common.cancel'), style: 'cancel' },
+          { text: 'Enable', onPress: () => { store.setDemoMode(true); router.replace('/'); } },
+        ],
+      );
+      return;
+    }
+    store.setDemoMode(on);
+    if (on) router.replace('/');
   };
 
   return (
@@ -173,6 +189,28 @@ export default function SettingsScreen() {
               icon="ℹ️"
               label={t('settings.about.appName')}
               sub={t('settings.about.version')}
+              chevron={false}
+            />
+          </View>
+        </View>
+
+        {/* Demo Mode */}
+        <View style={styles.section}>
+          <Text style={styles.sectionHeader}>{t('demo.label').toUpperCase()}</Text>
+          <View style={styles.card}>
+            <SettingsRow
+              icon="✨"
+              label={t('demo.label')}
+              sub={t('demo.desc')}
+              onPress={() => handleDemoToggle(!demoMode)}
+              right={
+                <Switch
+                  value={demoMode}
+                  onValueChange={handleDemoToggle}
+                  trackColor={{ false: Colors.bg.elevated, true: Colors.accent.yellow }}
+                  thumbColor={Colors.text.primary}
+                />
+              }
               chevron={false}
             />
           </View>

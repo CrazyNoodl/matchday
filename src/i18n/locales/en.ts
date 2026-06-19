@@ -312,6 +312,14 @@ const en = {
   display: {
     title: 'DISPLAY',
   },
+
+  demo: {
+    label: 'Demo Mode',
+    desc: 'Explore the app with sample data',
+    banner: 'DEMO MODE',
+    bannerSub: 'Your real data is safe',
+    exit: 'Exit',
+  },
 } as const;
 
 export default en;
