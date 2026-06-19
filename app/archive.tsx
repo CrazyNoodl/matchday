@@ -83,88 +83,6 @@ function WinnerName({ winnerId }: { winnerId: string }) {
 }
 
 // ---------------------------------------------------------------------------
-// Active tournament card (LIVE)
-// ---------------------------------------------------------------------------
-
-interface ActiveTournamentCardProps {
-  tournamentName: string;
-  archivedRounds: ArchivedRound[];
-  onRoundPress: (round: ArchivedRound) => void;
-  onOpenPress: () => void;
-}
-
-function ActiveTournamentCard({
-  tournamentName,
-  archivedRounds,
-  onRoundPress,
-  onOpenPress,
-}: ActiveTournamentCardProps) {
-  const { t } = useTranslation();
-  const [expanded, setExpanded] = useState(true);
-  const year = formatFCYear(new Date().toISOString());
-
-  return (
-    <View style={styles.tourCard}>
-      <TouchableOpacity
-        style={styles.tourCardHeader}
-        onPress={() => setExpanded((v) => !v)}
-        activeOpacity={0.8}
-      >
-        <View style={styles.fcIcon}>
-          <Text style={styles.fcIconText}>{'FC'}</Text>
-          <Text style={styles.fcIconYear}>{year}</Text>
-        </View>
-
-        <View style={styles.tourTitleArea}>
-          <View style={styles.tourNameRow}>
-            <Text style={styles.tourName} numberOfLines={1}>
-              {tournamentName}
-            </Text>
-            <View style={styles.liveBadge}>
-              <Text style={styles.liveBadgeText}>{t('archive.live')}</Text>
-            </View>
-          </View>
-          <Text style={styles.tourSubtitle}>
-            {t('archive.roundMatches', { count: archivedRounds.length })} completed
-          </Text>
-        </View>
-
-        <View style={styles.tourCardRight}>
-          <TouchableOpacity
-            style={styles.statsBtn}
-            onPress={onOpenPress}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.statsBtnText}>{t('archive.openCurrent')}</Text>
-          </TouchableOpacity>
-          <Text style={[styles.chevron, expanded && styles.chevronExpanded]}>
-            ›
-          </Text>
-        </View>
-      </TouchableOpacity>
-
-      {expanded && archivedRounds.length > 0 && (
-        <View style={styles.roundsList}>
-          <View style={styles.roundsDivider} />
-          {[...archivedRounds].reverse().map((r) => (
-            <RoundRow key={r.id} round={r} onPress={() => onRoundPress(r)} />
-          ))}
-        </View>
-      )}
-
-      {expanded && archivedRounds.length === 0 && (
-        <View style={styles.roundsList}>
-          <View style={styles.roundsDivider} />
-          <View style={styles.noRoundsRow}>
-            <Text style={styles.noRoundsText}>{t('tournament.noRounds')}</Text>
-          </View>
-        </View>
-      )}
-    </View>
-  );
-}
-
-// ---------------------------------------------------------------------------
 // Closed tournament card (accordion)
 // ---------------------------------------------------------------------------
 
@@ -297,9 +215,6 @@ export default function ArchiveScreen() {
   const store = useStore();
 
   const {
-    hasTournament,
-    tournamentName,
-    archivedRounds,
     closedTournaments,
     setViewingRound,
     setViewingTournament,
@@ -321,7 +236,7 @@ export default function ArchiveScreen() {
     [setViewingTournament, router],
   );
 
-  const hasAnything = hasTournament || closedTournaments.length > 0;
+  const hasAnything = closedTournaments.length > 0;
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
@@ -341,14 +256,6 @@ export default function ArchiveScreen() {
           <EmptyArchive />
         ) : (
           <>
-            {hasTournament && (
-              <ActiveTournamentCard
-                tournamentName={tournamentName}
-                archivedRounds={archivedRounds}
-                onRoundPress={handleRoundPress}
-                onOpenPress={() => router.push('/tournament')}
-              />
-            )}
             {[...closedTournaments].reverse().map((tournament) => (
               <ClosedTournamentCard
                 key={tournament.id}
@@ -456,21 +363,6 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.body,
     fontSize: FontSize.xs,
     color: Colors.text.muted,
-  },
-
-  liveBadge: {
-    backgroundColor: Colors.accent.greenSubtle,
-    borderRadius: Radius.full,
-    borderWidth: 1,
-    borderColor: Colors.accent.greenBorder,
-    paddingHorizontal: 7,
-    paddingVertical: 2,
-  },
-  liveBadgeText: {
-    fontFamily: FontFamily.bodyBold,
-    fontSize: FontSize.xs,
-    color: Colors.accent.green,
-    letterSpacing: 0.8,
   },
 
   champRow: {

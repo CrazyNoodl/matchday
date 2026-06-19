@@ -21,10 +21,10 @@ import { useStore } from '@/store';
 import i18n from '@/i18n';
 import { useEffect } from 'react';
 
-if (Text.defaultProps == null) Text.defaultProps = {};
-Text.defaultProps.allowFontScaling = false;
-if (TextInput.defaultProps == null) TextInput.defaultProps = {};
-TextInput.defaultProps.allowFontScaling = false;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(Text as any).defaultProps = { ...((Text as any).defaultProps ?? {}), allowFontScaling: false };
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(TextInput as any).defaultProps = { ...((TextInput as any).defaultProps ?? {}), allowFontScaling: false };
 
 const BASE_URL: string = (Constants.expoConfig?.experiments as Record<string, string> | undefined)?.baseUrl ?? '';
 
