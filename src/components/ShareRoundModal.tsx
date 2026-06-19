@@ -10,6 +10,7 @@ import {
   Alert,
   Platform,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 // Native-only modules loaded dynamically so web build doesn't crash
 type CaptureRef = typeof import('react-native-view-shot')['captureRef'];
 type MediaLibraryModule = typeof import('expo-media-library');
@@ -618,10 +619,10 @@ export function ShareRoundModal({ visible, onClose, round, tournamentName }: Sha
     <Modal
       visible={visible}
       animationType="slide"
-      presentationStyle="pageSheet"
+      statusBarTranslucent
       onRequestClose={onClose}
     >
-      <View style={modalStyles.root}>
+      <SafeAreaView style={modalStyles.root} edges={['top', 'bottom']}>
         {/* Header */}
         <View style={modalStyles.header}>
           <Text style={modalStyles.title}>SHARE ROUND</Text>
@@ -698,7 +699,7 @@ export function ShareRoundModal({ visible, onClose, round, tournamentName }: Sha
             )}
           </TouchableOpacity>
         </View>
-      </View>
+      </SafeAreaView>
     </Modal>
   );
 }
