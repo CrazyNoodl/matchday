@@ -234,7 +234,7 @@ const fr = {
     about: {
       section: 'À PROPOS',
       appName: 'Matchday',
-      version: 'Version 1.0.0',
+      version: 'Version 1.1.0',
     },
     danger: {
       section: 'ZONE DANGEREUSE',
