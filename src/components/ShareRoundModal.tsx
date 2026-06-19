@@ -10,9 +10,10 @@ import {
   Alert,
   Platform,
 } from 'react-native';
-import { captureRef } from 'react-native-view-shot';
-import * as MediaLibrary from 'expo-media-library';
-import * as Sharing from 'expo-sharing';
+// Native-only modules loaded dynamically so web build doesn't crash
+type CaptureRef = typeof import('react-native-view-shot')['captureRef'];
+type MediaLibraryModule = typeof import('expo-media-library');
+type SharingModule = typeof import('expo-sharing');
 import { useStore } from '@/store';
 import { ArchivedRound } from '@/store/types';
 import { calculateStandings } from '@/utils/standings';
@@ -548,7 +549,12 @@ export function ShareRoundModal({ visible, onClose, round, tournamentName }: Sha
   const activeRef = variant === 'winner' ? winnerRef : standingsRef;
 
   const capture = async (): Promise<string | null> => {
+    if (Platform.OS === 'web') {
+      Alert.alert('Not available', 'Image capture is only available on mobile.');
+      return null;
+    }
     try {
+      const { captureRef } = await import('react-native-view-shot') as { captureRef: CaptureRef };
       const uri = await captureRef(activeRef, {
         format: 'png',
         quality: 1.0,
@@ -562,8 +568,13 @@ export function ShareRoundModal({ visible, onClose, round, tournamentName }: Sha
   };
 
   const handleSave = async () => {
+    if (Platform.OS === 'web') {
+      Alert.alert('Not available', 'Saving to Photos is only available on mobile.');
+      return;
+    }
     setLoading(true);
     try {
+      const MediaLibrary = await import('expo-media-library') as MediaLibraryModule;
       const { status } = await MediaLibrary.requestPermissionsAsync();
       if (status !== 'granted') {
         Alert.alert('Permission required', 'Allow access to Photos to save the image.');
@@ -579,10 +590,15 @@ export function ShareRoundModal({ visible, onClose, round, tournamentName }: Sha
   };
 
   const handleShare = async () => {
+    if (Platform.OS === 'web') {
+      Alert.alert('Not available', 'Sharing is only available on mobile.');
+      return;
+    }
     setLoading(true);
     try {
       const uri = await capture();
       if (!uri) return;
+      const Sharing = await import('expo-sharing') as SharingModule;
       const canShare = await Sharing.isAvailableAsync();
       if (!canShare) {
         Alert.alert('Not available', 'Sharing is not available on this device.');
