@@ -275,6 +275,7 @@ const en = {
     gfa: 'GF {{gf}}  :  GA {{ga}}',
     noMatchesFilter: 'No matches in this filter',
     pts: 'PTS',
+    gamesSection: 'GAMES',
   },
 
   matchDetail: {

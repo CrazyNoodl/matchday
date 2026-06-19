@@ -275,6 +275,7 @@ const fr = {
     gfa: 'BP {{gf}}  :  BC {{ga}}',
     noMatchesFilter: 'Aucun match dans ce filtre',
     pts: 'PTS',
+    gamesSection: 'MATCHS',
   },
 
   matchDetail: {
