@@ -52,6 +52,8 @@ app/
     teams.tsx          # Team management
     tournaments.tsx    # Closed tournaments list
     display.tsx        # Display preferences
+    developer.tsx      # Developer tools (debug/reset)
+    import-round.tsx   # Import round from external data
 ```
 
 ### State Management
@@ -69,6 +71,25 @@ The `modal` field drives all bottom sheets and overlays — it's a discriminated
 - **Equal games rule**: before `finishRound()`, all `tournamentPlayers` must have the same `played` count — guard this in the UI before calling
 - **Ranked vs friendly**: `tournamentRanked` flag on each round. Only ranked rounds count toward `closeTournament()` champion calculation
 - **Delete guards**: `deletePlayer` and `deleteTeam` silently no-op if the entity appears in current `matches`; callers show `cannotDelete` modal before calling
+
+### Match Editing Rules (`app/match/[id].tsx`)
+
+Two flags control what's editable on the match detail screen:
+
+- `isCurrentRoundMatch` — match is in `matches` (the currently open round, not yet archived)
+- `isEditableMatch` — match is in `matches` OR in `archivedRounds` while `hasTournament` is true
+
+| Action | Condition |
+|---|---|
+| Edit score (header button) | `isEditableMatch` |
+| Delete match (header button) | `isCurrentRoundMatch` only |
+| Edit stats | `isEditableMatch` |
+| Add / delete media | `isEditableMatch` |
+| Edit commentary | `isEditableMatch` |
+
+Once `closeTournament()` is called, `hasTournament` becomes false and matches move into `closedTournaments` — all edit UI disappears and the match is read-only.
+
+All four store update actions (`updateMatchScore`, `updateMatchStats`, `updateMatchMedia`, `updateMatchNote`) update both `matches` and `archivedRounds`. Only `deleteMatch` touches `matches` exclusively — deleting from an archived round is not supported.
 
 ### Path Alias
 

@@ -10,6 +10,7 @@ import {
   Modal,
   RealDataBackup,
 } from './types';
+import { ParsedMatch } from '../utils/importRound';
 import { DEMO_STATE } from '../demo/data';
 import { calculateStandings, isTopTied } from '../utils/standings';
 import { Colors } from '../theme/colors';
@@ -84,7 +85,9 @@ interface AppState {
   round: number;
   roundOpen: boolean;
   tournamentRanked: boolean;
+  tournamentRounds: number;
   tournamentPlayers: string[];
+  roundPlayers: string[];
   matches: Match[];
   archivedRounds: ArchivedRound[];
   closedTournaments: ClosedTournament[];
@@ -113,8 +116,8 @@ interface AppState {
 // ---------------------------------------------------------------------------
 interface Actions {
   // Tournament
-  startTournament: (name: string, playerIds: string[], ranked: boolean) => void;
-  startRound: (ranked: boolean) => void;
+  startTournament: (name: string, playerIds: string[], ranked: boolean, tournamentRounds?: number) => void;
+  startRound: (ranked: boolean, playerIds: string[]) => void;
   addMatch: (match: Match) => void;
   deleteMatch: (id: string) => void;
   updateMatchMedia: (id: string, media: import('./types').MediaItem[]) => void;
@@ -151,6 +154,7 @@ interface Actions {
   setLanguage: (lang: string) => void;
   setDemoMode: (on: boolean) => void;
   resetStore: () => void;
+  bulkImportMatches: (parsed: ParsedMatch[]) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -178,7 +182,9 @@ export const useStore = create<AppState & Actions>()(
       round: 0,
       roundOpen: false,
       tournamentRanked: true,
+      tournamentRounds: 0,
       tournamentPlayers: [],
+      roundPlayers: [],
       matches: [],
       archivedRounds: [],
       closedTournaments: [],
@@ -203,24 +209,27 @@ export const useStore = create<AppState & Actions>()(
       // -----------------------------------------------------------------------
       // Tournament actions
       // -----------------------------------------------------------------------
-      startTournament: (name, playerIds, ranked) =>
+      startTournament: (name, playerIds, ranked, tournamentRounds = 0) =>
         set({
           hasTournament: true,
           tournamentName: name,
           round: 1,
           roundOpen: false,
           tournamentRanked: ranked,
+          tournamentRounds,
           tournamentPlayers: playerIds,
           matches: [],
           archivedRounds: [],
         }),
 
-      startRound: (ranked) =>
+      startRound: (ranked, playerIds) =>
         set((s) => ({
           roundOpen: true,
           tournamentRanked: ranked,
           matches: [],
           round: s.archivedRounds.length + 1,
+          roundPlayers: playerIds,
+          tournamentPlayers: [...new Set([...s.tournamentPlayers, ...playerIds])],
         })),
 
       addMatch: (match) =>
@@ -234,6 +243,12 @@ export const useStore = create<AppState & Actions>()(
           matches: s.matches.map((m) =>
             m.id === id ? { ...m, aScore, bScore } : m,
           ),
+          archivedRounds: s.archivedRounds.map((r) => ({
+            ...r,
+            matches: r.matches.map((m) =>
+              m.id === id ? { ...m, aScore, bScore } : m,
+            ),
+          })),
         })),
 
       updateMatchMedia: (id, media) =>
@@ -259,11 +274,17 @@ export const useStore = create<AppState & Actions>()(
           matches: s.matches.map((m) =>
             m.id === id ? { ...m, statsOverride: stats } : m,
           ),
+          archivedRounds: s.archivedRounds.map((r) => ({
+            ...r,
+            matches: r.matches.map((m) =>
+              m.id === id ? { ...m, statsOverride: stats } : m,
+            ),
+          })),
         })),
 
       finishRound: () => {
         const s = get();
-        const standings = calculateStandings(s.matches, s.tournamentPlayers);
+        const standings = calculateStandings(s.matches, s.roundPlayers);
         const isTrueDraw = isTopTied(standings, s.matches);
         const winnerId = isTrueDraw || !standings[0] ? '' : standings[0].playerId;
 
@@ -276,12 +297,14 @@ export const useStore = create<AppState & Actions>()(
           ranked: s.tournamentRanked,
           matches: [...s.matches],
           name: `Round ${s.round}`,
+          players: [...s.roundPlayers],
         };
 
         set({
           archivedRounds: [...s.archivedRounds, newRound],
           matches: [],
           roundOpen: false,
+          roundPlayers: [],
         });
       },
 
@@ -315,6 +338,7 @@ export const useStore = create<AppState & Actions>()(
           tournamentName: '',
           round: 0,
           roundOpen: false,
+          tournamentRounds: 0,
           tournamentPlayers: [],
           matches: [],
           archivedRounds: [],
@@ -391,7 +415,9 @@ export const useStore = create<AppState & Actions>()(
             round: s.round,
             roundOpen: s.roundOpen,
             tournamentRanked: s.tournamentRanked,
+            tournamentRounds: s.tournamentRounds,
             tournamentPlayers: s.tournamentPlayers,
+            roundPlayers: s.roundPlayers,
             matches: s.matches,
             archivedRounds: s.archivedRounds,
             closedTournaments: s.closedTournaments,
@@ -427,6 +453,73 @@ export const useStore = create<AppState & Actions>()(
         }
       },
 
+      bulkImportMatches: (parsed) => {
+        const s = get();
+        const ts = Date.now();
+        const newPlayers: Player[] = [];
+        const newMatches: Match[] = [];
+
+        const playerByName = new Map<string, Player>(
+          s.players.map((p) => [p.name.toLowerCase(), p]),
+        );
+
+        for (let i = 0; i < parsed.length; i++) {
+          const m = parsed[i];
+
+          const resolvePlayer = (name: string): Player => {
+            const key = name.toLowerCase();
+            let player = playerByName.get(key);
+            if (!player) {
+              player = {
+                id: `player-import-${ts}-${newPlayers.length}`,
+                name,
+                color: Colors.player[(s.players.length + newPlayers.length) % Colors.player.length],
+                teamCode: s.teams[0]?.code ?? 'JUV',
+              };
+              newPlayers.push(player);
+              playerByName.set(key, player);
+            }
+            return player;
+          };
+
+          const playerA = resolvePlayer(m.playerAName);
+          const playerB = resolvePlayer(m.playerBName);
+
+          const resolveTeam = (code: string | null, fallback: string): string => {
+            if (!code) return fallback;
+            const found = s.teams.find(
+              (t) => t.code.toUpperCase() === code.toUpperCase(),
+            );
+            return found ? found.code : fallback;
+          };
+
+          newMatches.push({
+            id: `match-import-${ts}-${i}`,
+            aId: playerA.id,
+            bId: playerB.id,
+            aTeam: resolveTeam(m.teamACode, playerA.teamCode),
+            bTeam: resolveTeam(m.teamBCode, playerB.teamCode),
+            aScore: m.scoreA,
+            bScore: m.scoreB,
+          });
+        }
+
+        const allMatchPlayerIds = [
+          ...new Set(newMatches.flatMap((m) => [m.aId, m.bId])),
+        ];
+        const missingFromTournament = allMatchPlayerIds.filter(
+          (id) => !s.tournamentPlayers.includes(id),
+        );
+
+        set({
+          players: [...s.players, ...newPlayers],
+          matches: [...s.matches, ...newMatches],
+          tournamentPlayers: [
+            ...new Set([...s.tournamentPlayers, ...missingFromTournament]),
+          ],
+        });
+      },
+
       resetStore: () => {
         set({
           hasTournament: false,
@@ -434,7 +527,9 @@ export const useStore = create<AppState & Actions>()(
           round: 0,
           roundOpen: false,
           tournamentRanked: true,
+          tournamentRounds: 0,
           tournamentPlayers: [],
+          roundPlayers: [],
           matches: [],
           archivedRounds: [],
           closedTournaments: [],
@@ -464,7 +559,9 @@ export const useStore = create<AppState & Actions>()(
         round: state.round,
         roundOpen: state.roundOpen,
         tournamentRanked: state.tournamentRanked,
+        tournamentRounds: state.tournamentRounds,
         tournamentPlayers: state.tournamentPlayers,
+        roundPlayers: state.roundPlayers,
         matches: state.matches,
         archivedRounds: state.archivedRounds,
         closedTournaments: state.closedTournaments,

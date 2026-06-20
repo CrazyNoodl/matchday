@@ -173,7 +173,7 @@ export default function MatchDetailScreen() {
     });
   };
 
-  const headerRight = isCurrentRoundMatch ? (
+  const headerRight = isEditableMatch ? (
     <View style={styles.headerActions}>
       <TouchableOpacity
         style={styles.editBtn}
@@ -183,14 +183,16 @@ export default function MatchDetailScreen() {
       >
         <Text style={styles.editBtnText}>Edit</Text>
       </TouchableOpacity>
-      <TouchableOpacity
-        style={styles.deleteBtn}
-        onPress={() => store.setModal('delMatch')}
-        activeOpacity={0.75}
-        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-      >
-        <Text style={styles.deleteBtnIcon}>🗑</Text>
-      </TouchableOpacity>
+      {isCurrentRoundMatch && (
+        <TouchableOpacity
+          style={styles.deleteBtn}
+          onPress={() => store.setModal('delMatch')}
+          activeOpacity={0.75}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <Text style={styles.deleteBtnIcon}>🗑</Text>
+        </TouchableOpacity>
+      )}
     </View>
   ) : null;
 
@@ -285,7 +287,7 @@ export default function MatchDetailScreen() {
                 <Text style={styles.sourceBadgeMutedText}>Edited manually</Text>
               </View>
             ) : null}
-            {isCurrentRoundMatch && (
+            {isEditableMatch && (
               <TouchableOpacity onPress={openEditStats} hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}>
                 <Text style={styles.editLink}>Edit</Text>
               </TouchableOpacity>
