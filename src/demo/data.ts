@@ -91,6 +91,7 @@ export const DEMO_STATE = {
   roundOpen: true,
   tournamentRanked: true,
   tournamentPlayers: ['demo-p1', 'demo-p2', 'demo-p3'] as string[],
+  roundPlayers: ['demo-p1', 'demo-p2', 'demo-p3'] as string[],
   matches: DEMO_CURRENT_MATCHES,
   archivedRounds: DEMO_ARCHIVED_ROUNDS,
   closedTournaments: DEMO_CLOSED_TOURNAMENTS,

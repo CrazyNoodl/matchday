@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   View,
   Text,
@@ -35,11 +35,13 @@ export default function HomeScreen() {
     players,
     tournamentPlayers,
     tournamentRanked,
+    tournamentRounds,
     archivedRounds,
     closedTournaments,
   } = store;
 
   const [newRoundRanked, setNewRoundRanked] = React.useState(true);
+  const [newRoundPlayerIds, setNewRoundPlayerIds] = useState<Set<string>>(new Set());
 
   const SPORT_CHIPS = [
     { label: 'FC / FIFA', active: true, soon: false },
@@ -62,15 +64,19 @@ export default function HomeScreen() {
     if (roundOpen) {
       router.push('/round');
     } else {
+      const lastRound = archivedRounds[archivedRounds.length - 1];
+      const preSelected = lastRound?.players ?? tournamentPlayers;
+      setNewRoundPlayerIds(new Set(preSelected));
       store.setModal('newRound');
     }
-  }, [hasTournament, roundOpen, router, store]);
+  }, [hasTournament, roundOpen, router, store, archivedRounds, tournamentPlayers]);
 
   const handleStartRound = useCallback(() => {
-    store.startRound(newRoundRanked);
+    if (newRoundPlayerIds.size < 2) return;
+    store.startRound(newRoundRanked, Array.from(newRoundPlayerIds));
     store.setModal(null);
     router.push('/round');
-  }, [newRoundRanked, store, router]);
+  }, [newRoundRanked, newRoundPlayerIds, store, router]);
 
   const matchDayDisabled = !hasTournament;
 
@@ -83,6 +89,11 @@ export default function HomeScreen() {
   // Total rounds = archived + current open round (if any)
   const totalRounds = archivedRounds.length + (roundOpen ? 1 : 0);
   const displayTotalRounds = archivedRounds.length + 1;
+
+  const rankedCompleted = archivedRounds.filter((r) => r.ranked).length;
+  const progressFraction = tournamentRounds > 0
+    ? Math.min(rankedCompleted / tournamentRounds, 1)
+    : 0;
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
@@ -165,6 +176,18 @@ export default function HomeScreen() {
 
             {/* Tournament name */}
             <Text style={styles.tournamentName}>{tournamentName}</Text>
+
+            {/* Progress bar (only when tournamentRounds is set) */}
+            {tournamentRounds > 0 && (
+              <View style={styles.progressBlock}>
+                <View style={styles.progressTrack}>
+                  <View style={[styles.progressFill, { width: `${Math.round(progressFraction * 100)}%` }]} />
+                </View>
+                <Text style={styles.progressLabel}>
+                  {t('home.progressRounds', { done: rankedCompleted, total: tournamentRounds })}
+                </Text>
+              </View>
+            )}
 
             {/* Current leader inset row */}
             {leader && (
@@ -309,6 +332,51 @@ export default function HomeScreen() {
             />
           </View>
 
+          <Text style={styles.playersLabel}>
+            {t('tournament.newRound.playersLabel', { count: newRoundPlayerIds.size })}
+          </Text>
+
+          <ScrollView style={styles.playersList} showsVerticalScrollIndicator={false}>
+            {players.map((player) => {
+              const selected = newRoundPlayerIds.has(player.id);
+              return (
+                <TouchableOpacity
+                  key={player.id}
+                  style={[styles.playerRow, selected && styles.playerRowSelected]}
+                  onPress={() => {
+                    setNewRoundPlayerIds((prev) => {
+                      const next = new Set(prev);
+                      if (next.has(player.id)) {
+                        next.delete(player.id);
+                      } else {
+                        next.add(player.id);
+                      }
+                      return next;
+                    });
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Avatar playerId={player.id} size="sm" />
+                  <View style={styles.playerRowInfo}>
+                    <Text style={styles.playerRowName}>{player.name}</Text>
+                    {player.nick ? (
+                      <Text style={styles.playerRowNick}>@{player.nick}</Text>
+                    ) : null}
+                  </View>
+                  <View style={[styles.checkbox, selected && styles.checkboxOn]}>
+                    {selected && <Text style={styles.checkmark}>✓</Text>}
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+
+          {newRoundPlayerIds.size < 2 && (
+            <Text style={styles.minPlayersHint}>
+              {t('tournament.newRound.minPlayers')}
+            </Text>
+          )}
+
           <View style={styles.sheetActions}>
             <TouchableOpacity
               style={styles.cancelBtn}
@@ -318,11 +386,14 @@ export default function HomeScreen() {
               <Text style={styles.cancelBtnText}>{t('common.cancel')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={styles.startRoundBtn}
+              style={[styles.startRoundBtn, newRoundPlayerIds.size < 2 && styles.startRoundBtnDisabled]}
               onPress={handleStartRound}
               activeOpacity={0.8}
+              disabled={newRoundPlayerIds.size < 2}
             >
-              <Text style={styles.startRoundBtnText}>{t('home.sheet.startRound')}</Text>
+              <Text style={[styles.startRoundBtnText, newRoundPlayerIds.size < 2 && styles.startRoundBtnTextDisabled]}>
+                {t('home.sheet.startRound')}
+              </Text>
             </TouchableOpacity>
           </View>
 
@@ -541,6 +612,28 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize.lg,
     color: Colors.accent.green,
+  },
+  // Progress bar
+  progressBlock: {
+    gap: Spacing.xs,
+    marginTop: Spacing.xs,
+  },
+  progressTrack: {
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: Colors.bg.elevated,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 2,
+    backgroundColor: Colors.accent.green,
+  },
+  progressLabel: {
+    fontFamily: FontFamily.body,
+    fontSize: FontSize.xs,
+    color: Colors.text.muted,
+    letterSpacing: 0.3,
   },
   // No tournament card
   noTournamentCard: {
@@ -775,10 +868,86 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.lg,
     alignItems: 'center',
   },
+  startRoundBtnDisabled: {
+    backgroundColor: Colors.bg.elevated,
+    borderWidth: 1,
+    borderColor: Colors.border.medium,
+  },
   startRoundBtnText: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize.base,
     color: Colors.accent.greenDark,
     letterSpacing: 0.5,
+  },
+  startRoundBtnTextDisabled: {
+    color: Colors.text.ghost,
+  },
+  playersLabel: {
+    fontFamily: FontFamily.bodyBold,
+    fontSize: FontSize.xs,
+    color: Colors.text.muted,
+    letterSpacing: 0.8,
+    marginBottom: Spacing.sm,
+  },
+  playersList: {
+    maxHeight: 200,
+    marginBottom: Spacing.sm,
+  },
+  playerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderRadius: Radius.md,
+    gap: Spacing.md,
+    marginBottom: 4,
+    backgroundColor: Colors.bg.elevated,
+    borderWidth: 1,
+    borderColor: Colors.border.default,
+  },
+  playerRowSelected: {
+    borderColor: Colors.accent.greenBorder,
+    backgroundColor: Colors.accent.greenSubtle,
+  },
+  playerRowInfo: {
+    flex: 1,
+    gap: 1,
+  },
+  playerRowName: {
+    fontFamily: FontFamily.bodySemiBold,
+    fontSize: FontSize.sm,
+    color: Colors.text.primary,
+  },
+  playerRowNick: {
+    fontFamily: FontFamily.body,
+    fontSize: FontSize.xs,
+    color: Colors.text.muted,
+  },
+  checkbox: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 1.5,
+    borderColor: Colors.border.strong,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  checkboxOn: {
+    backgroundColor: Colors.accent.green,
+    borderColor: Colors.accent.green,
+  },
+  checkmark: {
+    fontFamily: FontFamily.bodyBold,
+    fontSize: 13,
+    color: Colors.accent.greenDark,
+    lineHeight: 16,
+  },
+  minPlayersHint: {
+    fontFamily: FontFamily.body,
+    fontSize: FontSize.xs,
+    color: Colors.accent.red,
+    textAlign: 'center',
+    marginBottom: Spacing.sm,
   },
 });

@@ -46,6 +46,8 @@ export default function SettingsScreen() {
   const { t } = useTranslation();
   const store = useStore();
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [versionTaps, setVersionTaps] = useState(0);
+  const [devUnlocked, setDevUnlocked] = useState(false);
 
   const { players, teams, showNick, showTeamLogo, hasTournament, tournamentName, language, archivedRounds, closedTournaments, demoMode } = store;
 
@@ -71,6 +73,16 @@ export default function SettingsScreen() {
     setShowResetConfirm(false);
     router.dismissAll();
     router.replace('/');
+  };
+
+  const handleVersionTap = () => {
+    if (devUnlocked) return;
+    const next = versionTaps + 1;
+    setVersionTaps(next);
+    if (next >= 7) {
+      setDevUnlocked(true);
+      setVersionTaps(0);
+    }
   };
 
   const handleDemoToggle = (on: boolean) => {
@@ -190,11 +202,33 @@ export default function SettingsScreen() {
             <SettingsRow
               icon="ℹ️"
               label={t('settings.about.appName')}
-              sub={t('settings.about.version')}
+              sub={
+                devUnlocked
+                  ? '🛠  Developer mode on'
+                  : versionTaps >= 4
+                    ? `${7 - versionTaps} more taps to unlock dev menu`
+                    : t('settings.about.version')
+              }
+              onPress={handleVersionTap}
               chevron={false}
             />
           </View>
         </View>
+
+        {/* Developer section */}
+        {devUnlocked && (
+          <View style={styles.section}>
+            <Text style={[styles.sectionHeader, { color: Colors.accent.blue }]}>DEVELOPER</Text>
+            <View style={styles.card}>
+              <SettingsRow
+                icon="⚙️"
+                label="Developer Menu"
+                sub="Import tools and internal options"
+                onPress={() => router.push('/settings/developer')}
+              />
+            </View>
+          </View>
+        )}
 
         {/* Demo Mode */}
         <View style={styles.section}>

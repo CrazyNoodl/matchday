@@ -185,6 +185,8 @@ export default function RootLayout() {
         <Stack.Screen name="settings/tournaments" />
         <Stack.Screen name="settings/display" />
         <Stack.Screen name="settings/language" />
+        <Stack.Screen name="settings/developer" />
+        <Stack.Screen name="settings/import-round" />
       </Stack>
       <DemoBanner />
     </GestureHandlerRootView>

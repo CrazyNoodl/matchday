@@ -136,7 +136,7 @@ export default function MatchdayScreen() {
     round,
     roundOpen,
     tournamentRanked,
-    tournamentPlayers,
+    roundPlayers,
     matches,
     modal,
     players,
@@ -148,10 +148,10 @@ export default function MatchdayScreen() {
   const [addMatch, setAddMatch] = useState<AddMatchState>(initAddMatch());
   const [localWinnerId, setLocalWinnerId] = useState<string | null>(null);
 
-  const standings = calculateStandings(matches, tournamentPlayers);
+  const standings = calculateStandings(matches, roundPlayers);
 
   const tournamentPlayerList = players.filter((p) =>
-    tournamentPlayers.includes(p.id),
+    roundPlayers.includes(p.id),
   );
 
   // ---- Match validation ----
@@ -174,13 +174,13 @@ export default function MatchdayScreen() {
   }, [allPlayedEqual, matches.length, store]);
 
   const handleConfirmFinish = useCallback(() => {
-    const s = calculateStandings(matches, tournamentPlayers);
+    const s = calculateStandings(matches, roundPlayers);
     const isTrueDraw = isTopTied(s, matches);
     const winnerId = isTrueDraw || !s[0] ? null : s[0].playerId;
     setLocalWinnerId(winnerId);
     store.finishRound();
     store.setModal('winner');
-  }, [matches, tournamentPlayers, store]);
+  }, [matches, roundPlayers, store]);
 
   const handleWinnerDone = useCallback(() => {
     store.setModal(null);

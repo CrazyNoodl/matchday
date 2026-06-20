@@ -61,6 +61,7 @@ export default function TournamentScreen() {
     round,
     roundOpen,
     tournamentRanked,
+    tournamentRounds,
     tournamentPlayers,
     matches,
     archivedRounds,
@@ -70,6 +71,7 @@ export default function TournamentScreen() {
 
   const [renameValue, setRenameValue] = useState('');
   const [newRoundRanked, setNewRoundRanked] = useState(true);
+  const [newRoundPlayerIds, setNewRoundPlayerIds] = useState<Set<string>>(new Set());
   const { t } = useTranslation();
 
   // All ranked matches across all archived rounds + current open round (if ranked)
@@ -83,9 +85,10 @@ export default function TournamentScreen() {
     ? players.find((p) => p.id === standings[0].playerId)
     : null;
 
-  const totalRounds = archivedRounds.length + (roundOpen ? 1 : 0);
+  const rankedCompleted = archivedRounds.filter((r) => r.ranked).length;
+  const rankedTotal = rankedCompleted + (roundOpen && tournamentRanked ? 1 : 0);
 
-  const headerSubtitle = t('tournament.headerSubtitle', { round, total: totalRounds, played: archivedRounds.length });
+  const headerSubtitle = t('tournament.headerSubtitle', { round, total: rankedTotal, played: rankedCompleted });
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
@@ -317,6 +320,10 @@ export default function TournamentScreen() {
             style={styles.ctaBtn}
             onPress={() => {
               setNewRoundRanked(true);
+              // Pre-select last round's players, or all tournamentPlayers for first round
+              const lastRound = archivedRounds[archivedRounds.length - 1];
+              const preSelected = lastRound?.players ?? tournamentPlayers;
+              setNewRoundPlayerIds(new Set(preSelected));
               store.setModal('newRound');
             }}
             activeOpacity={0.85}
@@ -548,6 +555,55 @@ export default function TournamentScreen() {
               </View>
             </TouchableOpacity>
 
+            {/* Players section */}
+            <Text style={newRoundStyles.playersLabel}>
+              {t('tournament.newRound.playersLabel', { count: newRoundPlayerIds.size })}
+            </Text>
+
+            <ScrollView
+              style={newRoundStyles.playersList}
+              showsVerticalScrollIndicator={false}
+            >
+              {players.map((player) => {
+                const selected = newRoundPlayerIds.has(player.id);
+                return (
+                  <TouchableOpacity
+                    key={player.id}
+                    style={[newRoundStyles.playerRow, selected && newRoundStyles.playerRowSelected]}
+                    onPress={() => {
+                      setNewRoundPlayerIds((prev) => {
+                        const next = new Set(prev);
+                        if (next.has(player.id)) {
+                          next.delete(player.id);
+                        } else {
+                          next.add(player.id);
+                        }
+                        return next;
+                      });
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <Avatar playerId={player.id} size="sm" />
+                    <View style={newRoundStyles.playerRowInfo}>
+                      <Text style={newRoundStyles.playerRowName}>{player.name}</Text>
+                      {player.nick ? (
+                        <Text style={newRoundStyles.playerRowNick}>@{player.nick}</Text>
+                      ) : null}
+                    </View>
+                    <View style={[newRoundStyles.checkbox, selected && newRoundStyles.checkboxOn]}>
+                      {selected && <Text style={newRoundStyles.checkmark}>✓</Text>}
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+
+            {newRoundPlayerIds.size < 2 && (
+              <Text style={newRoundStyles.minPlayersHint}>
+                {t('tournament.newRound.minPlayers')}
+              </Text>
+            )}
+
             <View style={newRoundStyles.actions}>
               <TouchableOpacity
                 style={newRoundStyles.cancelBtn}
@@ -557,15 +613,19 @@ export default function TournamentScreen() {
                 <Text style={newRoundStyles.cancelText}>{t('tournament.newRound.cancel')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={newRoundStyles.startBtn}
+                style={[newRoundStyles.startBtn, newRoundPlayerIds.size < 2 && newRoundStyles.startBtnDisabled]}
                 onPress={() => {
-                  store.startRound(newRoundRanked);
+                  if (newRoundPlayerIds.size < 2) return;
+                  store.startRound(newRoundRanked, Array.from(newRoundPlayerIds));
                   store.setModal(null);
                   router.push('/round');
                 }}
                 activeOpacity={0.85}
+                disabled={newRoundPlayerIds.size < 2}
               >
-                <Text style={newRoundStyles.startText}>{t('tournament.newRound.start')}</Text>
+                <Text style={[newRoundStyles.startText, newRoundPlayerIds.size < 2 && newRoundStyles.startTextDisabled]}>
+                  {t('tournament.newRound.start')}
+                </Text>
               </TouchableOpacity>
             </View>
 
@@ -1229,7 +1289,7 @@ const newRoundStyles = StyleSheet.create({
     borderColor: Colors.border.default,
     padding: Spacing.lg,
     gap: Spacing.lg,
-    marginBottom: Spacing.xl,
+    marginBottom: Spacing.md,
   },
   toggleLabelBlock: {
     flex: 1,
@@ -1270,9 +1330,79 @@ const newRoundStyles = StyleSheet.create({
     backgroundColor: Colors.accent.greenDark,
     alignSelf: 'flex-end',
   },
+  playersLabel: {
+    fontFamily: FontFamily.bodyBold,
+    fontSize: FontSize.xs,
+    color: Colors.text.muted,
+    letterSpacing: 0.8,
+    marginTop: Spacing.md,
+    marginBottom: Spacing.sm,
+  },
+  playersList: {
+    maxHeight: 220,
+    marginBottom: Spacing.sm,
+  },
+  playerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderRadius: Radius.md,
+    gap: Spacing.md,
+    marginBottom: 4,
+    backgroundColor: Colors.bg.elevated,
+    borderWidth: 1,
+    borderColor: Colors.border.default,
+  },
+  playerRowSelected: {
+    borderColor: Colors.accent.greenBorder,
+    backgroundColor: Colors.accent.greenSubtle,
+  },
+  playerRowInfo: {
+    flex: 1,
+    gap: 1,
+  },
+  playerRowName: {
+    fontFamily: FontFamily.bodySemiBold,
+    fontSize: FontSize.sm,
+    color: Colors.text.primary,
+  },
+  playerRowNick: {
+    fontFamily: FontFamily.body,
+    fontSize: FontSize.xs,
+    color: Colors.text.muted,
+  },
+  checkbox: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 1.5,
+    borderColor: Colors.border.strong,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  checkboxOn: {
+    backgroundColor: Colors.accent.green,
+    borderColor: Colors.accent.green,
+  },
+  checkmark: {
+    fontFamily: FontFamily.bodyBold,
+    fontSize: 13,
+    color: Colors.accent.greenDark,
+    lineHeight: 16,
+  },
+  minPlayersHint: {
+    fontFamily: FontFamily.body,
+    fontSize: FontSize.xs,
+    color: Colors.accent.red,
+    textAlign: 'center',
+    marginBottom: Spacing.sm,
+  },
   actions: {
     flexDirection: 'row',
     gap: Spacing.md,
+    marginTop: Spacing.sm,
   },
   cancelBtn: {
     flex: 1,
@@ -1301,10 +1431,20 @@ const newRoundStyles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 6,
   },
+  startBtnDisabled: {
+    backgroundColor: Colors.bg.elevated,
+    borderWidth: 1,
+    borderColor: Colors.border.medium,
+    shadowOpacity: 0,
+    elevation: 0,
+  },
   startText: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize.base,
     color: Colors.accent.greenDark,
     letterSpacing: 0.6,
+  },
+  startTextDisabled: {
+    color: Colors.text.ghost,
   },
 });

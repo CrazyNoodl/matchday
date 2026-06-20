@@ -43,6 +43,7 @@ export interface ArchivedRound {
   ranked: boolean;
   matches: Match[];
   name: string;
+  players?: string[];
 }
 
 export interface ClosedTournament {
@@ -63,7 +64,9 @@ export interface RealDataBackup {
   round: number;
   roundOpen: boolean;
   tournamentRanked: boolean;
+  tournamentRounds: number;
   tournamentPlayers: string[];
+  roundPlayers: string[];
   matches: Match[];
   archivedRounds: ArchivedRound[];
   closedTournaments: ClosedTournament[];

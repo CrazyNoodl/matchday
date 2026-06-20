@@ -33,6 +33,7 @@ export default function SetupScreen() {
   const { t } = useTranslation();
 
   const [tournamentName, setTournamentName] = useState('');
+  const [roundsTarget, setRoundsTarget] = useState(0);
   const [selectedPlayers, setSelectedPlayers] = useState<Set<string>>(new Set());
   const [playerTeams, setPlayerTeams] = useState<Map<string, string>>(new Map());
 
@@ -126,7 +127,7 @@ export default function SetupScreen() {
         store.updatePlayer({ ...player, teamCode });
       }
     });
-    store.startTournament(tournamentName.trim(), playerIds, true);
+    store.startTournament(tournamentName.trim(), playerIds, true, roundsTarget);
     router.push('/');
   }, [canStart, selectedPlayers, playerTeams, players, store, tournamentName, router]);
 
@@ -177,6 +178,37 @@ export default function SetupScreen() {
             returnKeyType="done"
             autoCorrect={false}
           />
+
+          {/* Target rounds */}
+          <SectionLabel label={t('setup.roundsLabel')} style={styles.sectionGap} />
+          <View style={styles.stepperRow}>
+            <View style={styles.stepperInfo}>
+              <Text style={styles.stepperDesc}>{t('setup.roundsDesc')}</Text>
+            </View>
+            <View style={styles.stepper}>
+              <TouchableOpacity
+                style={[styles.stepperBtn, roundsTarget === 0 && styles.stepperBtnDisabled]}
+                onPress={() => setRoundsTarget((v) => Math.max(0, v - 1))}
+                disabled={roundsTarget === 0}
+                activeOpacity={0.75}
+              >
+                <Text style={[styles.stepperBtnText, roundsTarget === 0 && styles.stepperBtnTextDisabled]}>−</Text>
+              </TouchableOpacity>
+              <View style={styles.stepperValue}>
+                <Text style={styles.stepperValueText}>
+                  {roundsTarget === 0 ? t('setup.roundsUnlimited') : String(roundsTarget)}
+                </Text>
+              </View>
+              <TouchableOpacity
+                style={[styles.stepperBtn, roundsTarget >= 50 && styles.stepperBtnDisabled]}
+                onPress={() => setRoundsTarget((v) => Math.min(50, v + 1))}
+                disabled={roundsTarget >= 50}
+                activeOpacity={0.75}
+              >
+                <Text style={[styles.stepperBtnText, roundsTarget >= 50 && styles.stepperBtnTextDisabled]}>+</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
 
           {/* Players */}
           <SectionLabel
@@ -628,6 +660,63 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.body,
     fontSize: FontSize.xs,
     color: Colors.text.muted,
+  },
+  stepperRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.bg.surface,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: Colors.border.default,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+    gap: Spacing.md,
+  },
+  stepperInfo: {
+    flex: 1,
+  },
+  stepperDesc: {
+    fontFamily: FontFamily.body,
+    fontSize: FontSize.xs,
+    color: Colors.text.muted,
+  },
+  stepper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+  },
+  stepperBtn: {
+    width: 34,
+    height: 34,
+    borderRadius: Radius.sm,
+    backgroundColor: Colors.accent.greenSubtle,
+    borderWidth: 1,
+    borderColor: Colors.accent.greenBorder,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stepperBtnDisabled: {
+    backgroundColor: Colors.bg.elevated,
+    borderColor: Colors.border.medium,
+  },
+  stepperBtnText: {
+    fontFamily: FontFamily.bodyBold,
+    fontSize: FontSize.lg,
+    color: Colors.accent.green,
+    lineHeight: 22,
+  },
+  stepperBtnTextDisabled: {
+    color: Colors.text.ghost,
+  },
+  stepperValue: {
+    width: 44,
+    alignItems: 'center',
+  },
+  stepperValueText: {
+    fontFamily: FontFamily.displayBold,
+    fontSize: FontSize.xl,
+    color: Colors.text.primary,
+    letterSpacing: 0.5,
   },
   playersList: {
     gap: Spacing.sm,
