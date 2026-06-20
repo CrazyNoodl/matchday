@@ -34,6 +34,7 @@ const en = {
   home: {
     liveTournament: 'LIVE TOURNAMENT',
     roundInfo: 'Round {{round}} / {{total}} · Today',
+    progressRounds: '{{done}} / {{total}} ranked rounds',
     currentLeader: 'CURRENT LEADER',
     noActiveTournament: 'NO ACTIVE TOURNAMENT',
     noActiveTournamentDesc: 'Start a new tournament to track standings and match history',
@@ -111,6 +112,9 @@ const en = {
     subtitle: 'FC / FIFA · set it up',
     tournamentNameLabel: 'TOURNAMENT NAME',
     tournamentNamePlaceholder: 'e.g. FC26 · Round 10',
+    roundsLabel: 'TARGET ROUNDS',
+    roundsDesc: 'Number of ranked rounds to play (0 = unlimited)',
+    roundsUnlimited: '∞',
     playersLabel: 'PLAYERS & TEAMS · {{count}} SELECTED',
     addPlayer: 'Add Player',
     manageTeams: 'Manage Teams',
@@ -186,6 +190,8 @@ const en = {
       subtitle: '{{name}} · Round {{round}}',
       rankedLabel: 'Ranked match day',
       rankedSub: 'Results count toward tournament standings',
+      playersLabel: 'PARTICIPANTS · {{count}} SELECTED',
+      minPlayers: 'Select at least 2 players',
       cancel: 'Cancel',
       start: 'START ROUND',
     },
@@ -235,7 +241,7 @@ const en = {
     about: {
       section: 'ABOUT',
       appName: 'Matchday',
-      version: 'Version 1.1.0',
+      version: 'Version 1.2.0',
     },
     danger: {
       section: 'DANGER ZONE',

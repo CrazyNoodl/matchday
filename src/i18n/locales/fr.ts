@@ -34,6 +34,7 @@ const fr = {
   home: {
     liveTournament: 'TOURNOI EN DIRECT',
     roundInfo: 'Tour {{round}} / {{total}} · Aujourd\'hui',
+    progressRounds: '{{done}} / {{total}} tours classés',
     currentLeader: 'LEADER ACTUEL',
     noActiveTournament: 'AUCUN TOURNOI ACTIF',
     noActiveTournamentDesc: 'Commencez un nouveau tournoi pour suivre les classements et l\'historique',
@@ -111,6 +112,9 @@ const fr = {
     subtitle: 'FC / FIFA · configuration',
     tournamentNameLabel: 'NOM DU TOURNOI',
     tournamentNamePlaceholder: 'ex. FC26 · Tour 10',
+    roundsLabel: 'TOURS CIBLES',
+    roundsDesc: 'Nombre de tours classés à jouer (0 = illimité)',
+    roundsUnlimited: '∞',
     playersLabel: 'JOUEURS & ÉQUIPES · {{count}} SÉLECTIONNÉS',
     addPlayer: 'Ajouter un joueur',
     manageTeams: 'Gérer les équipes',
@@ -186,6 +190,8 @@ const fr = {
       subtitle: '{{name}} · Tour {{round}}',
       rankedLabel: 'Journée classée',
       rankedSub: 'Les résultats comptent pour le classement du tournoi',
+      playersLabel: 'PARTICIPANTS · {{count}} SÉLECTIONNÉS',
+      minPlayers: 'Sélectionnez au moins 2 joueurs',
       cancel: 'Annuler',
       start: 'DÉMARRER LE TOUR',
     },
@@ -235,7 +241,7 @@ const fr = {
     about: {
       section: 'À PROPOS',
       appName: 'Matchday',
-      version: 'Version 1.1.0',
+      version: 'Version 1.2.0',
     },
     danger: {
       section: 'ZONE DANGEREUSE',

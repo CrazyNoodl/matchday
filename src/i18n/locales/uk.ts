@@ -34,6 +34,7 @@ const uk = {
   home: {
     liveTournament: 'ЖИВИЙ ТУРНІР',
     roundInfo: 'Раунд {{round}} / {{total}} · Сьогодні',
+    progressRounds: '{{done}} / {{total}} рейтингових раундів',
     currentLeader: 'ПОТОЧНИЙ ЛІДЕР',
     noActiveTournament: 'НЕМАЄ АКТИВНОГО ТУРНІРУ',
     noActiveTournamentDesc: 'Розпочніть новий турнір для відстеження результатів та матчів',
@@ -111,6 +112,9 @@ const uk = {
     subtitle: 'FC / FIFA · налаштування',
     tournamentNameLabel: 'НАЗВА ТУРНІРУ',
     tournamentNamePlaceholder: 'напр. FC26 · Раунд 10',
+    roundsLabel: 'КІЛЬКІСТЬ РАУНДІВ',
+    roundsDesc: 'Кількість рейтингових раундів (0 = необмежено)',
+    roundsUnlimited: '∞',
     playersLabel: 'ГРАВЦІ Й КОМАНДИ · {{count}} ОБРАНО',
     addPlayer: 'Додати гравця',
     manageTeams: 'Управління командами',
@@ -186,6 +190,8 @@ const uk = {
       subtitle: '{{name}} · Раунд {{round}}',
       rankedLabel: 'Рейтинговий ігровий день',
       rankedSub: 'Результати враховуються в турнірній таблиці',
+      playersLabel: 'УЧАСНИКИ · {{count}} ОБРАНО',
+      minPlayers: 'Оберіть мінімум 2 гравців',
       cancel: 'Скасувати',
       start: 'РОЗПОЧАТИ РАУНД',
     },
@@ -235,7 +241,7 @@ const uk = {
     about: {
       section: 'ПРО ДОДАТОК',
       appName: 'Matchday',
-      version: 'Версія 1.1.0',
+      version: 'Версія 1.2.0',
     },
     danger: {
       section: 'НЕБЕЗПЕЧНА ЗОНА',
