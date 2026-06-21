@@ -45,35 +45,6 @@ const buildStorage = () => {
 
 const mmkvStorage = buildStorage();
 
-// ---------------------------------------------------------------------------
-// Seed data
-// ---------------------------------------------------------------------------
-const SEED_PLAYERS: Player[] = [
-  {
-    id: 'player-1',
-    name: 'Ruslan',
-    color: Colors.player[0],
-    teamCode: 'JUV',
-  },
-  {
-    id: 'player-2',
-    name: 'Artem',
-    color: Colors.player[1],
-    teamCode: 'TOT',
-  },
-  {
-    id: 'player-3',
-    name: 'Uz',
-    color: Colors.player[2],
-    teamCode: 'GAL',
-  },
-];
-
-const SEED_TEAMS: Team[] = [
-  { code: 'JUV', name: 'Juventus', short: 'JUV', color: Colors.team[0] },
-  { code: 'TOT', name: 'Tottenham Hotspur F.C.', short: 'TOT', color: Colors.team[1] },
-  { code: 'GAL', name: 'Galatasaray', short: 'GAL', color: Colors.team[2] },
-];
 
 // ---------------------------------------------------------------------------
 // State interface
@@ -192,8 +163,8 @@ export const useStore = create<AppState & Actions>()(
       archivedRounds: [],
       closedTournaments: [],
 
-      players: SEED_PLAYERS,
-      teams: SEED_TEAMS,
+      players: [],
+      teams: [],
       showNick: true,
       showTeamLogo: true,
       language: 'en',
@@ -537,8 +508,8 @@ export const useStore = create<AppState & Actions>()(
           matches: [],
           archivedRounds: [],
           closedTournaments: [],
-          players: SEED_PLAYERS,
-          teams: SEED_TEAMS,
+          players: [],
+          teams: [],
           showNick: true,
           showTeamLogo: true,
           language: 'en',
