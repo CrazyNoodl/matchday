@@ -190,6 +190,7 @@ const en = {
       subtitle: '{{name}} · Round {{round}}',
       rankedLabel: 'Ranked match day',
       rankedSub: 'Results count toward tournament standings',
+      rankedLimitReached: 'Ranked round limit reached ({{count}})',
       playersLabel: 'PARTICIPANTS · {{count}} SELECTED',
       minPlayers: 'Select at least 2 players',
       cancel: 'Cancel',

@@ -190,6 +190,7 @@ const fr = {
       subtitle: '{{name}} · Tour {{round}}',
       rankedLabel: 'Journée classée',
       rankedSub: 'Les résultats comptent pour le classement du tournoi',
+      rankedLimitReached: 'Limite de tours classés atteinte ({{count}})',
       playersLabel: 'PARTICIPANTS · {{count}} SÉLECTIONNÉS',
       minPlayers: 'Sélectionnez au moins 2 joueurs',
       cancel: 'Annuler',

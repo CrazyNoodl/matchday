@@ -87,6 +87,7 @@ export default function TournamentScreen() {
 
   const rankedCompleted = archivedRounds.filter((r) => r.ranked).length;
   const rankedTotal = rankedCompleted + (roundOpen && tournamentRanked ? 1 : 0);
+  const rankedLimitReached = tournamentRounds > 0 && rankedCompleted >= tournamentRounds;
 
   const headerSubtitle = t('tournament.headerSubtitle', { round, total: rankedTotal, played: rankedCompleted });
 
@@ -319,7 +320,7 @@ export default function TournamentScreen() {
           <TouchableOpacity
             style={styles.ctaBtn}
             onPress={() => {
-              setNewRoundRanked(true);
+              setNewRoundRanked(!rankedLimitReached);
               // Pre-select last round's players, or all tournamentPlayers for first round
               const lastRound = archivedRounds[archivedRounds.length - 1];
               const preSelected = lastRound?.players ?? tournamentPlayers;
@@ -535,21 +536,25 @@ export default function TournamentScreen() {
 
             {/* Ranked toggle */}
             <TouchableOpacity
-              style={newRoundStyles.toggleRow}
-              onPress={() => setNewRoundRanked((v) => !v)}
-              activeOpacity={0.8}
+              style={[newRoundStyles.toggleRow, rankedLimitReached && newRoundStyles.toggleRowDisabled]}
+              onPress={() => !rankedLimitReached && setNewRoundRanked((v) => !v)}
+              activeOpacity={rankedLimitReached ? 1 : 0.8}
             >
               <View style={newRoundStyles.toggleLabelBlock}>
-                <Text style={newRoundStyles.toggleLabel}>{t('tournament.newRound.rankedLabel')}</Text>
+                <Text style={[newRoundStyles.toggleLabel, rankedLimitReached && newRoundStyles.toggleLabelDisabled]}>
+                  {t('tournament.newRound.rankedLabel')}
+                </Text>
                 <Text style={newRoundStyles.toggleSub}>
-                  {t('tournament.newRound.rankedSub')}
+                  {rankedLimitReached
+                    ? t('tournament.newRound.rankedLimitReached', { count: tournamentRounds })
+                    : t('tournament.newRound.rankedSub')}
                 </Text>
               </View>
-              <View style={[newRoundStyles.toggle, newRoundRanked && newRoundStyles.toggleOn]}>
+              <View style={[newRoundStyles.toggle, newRoundRanked && !rankedLimitReached && newRoundStyles.toggleOn]}>
                 <View
                   style={[
                     newRoundStyles.toggleKnob,
-                    newRoundRanked && newRoundStyles.toggleKnobOn,
+                    newRoundRanked && !rankedLimitReached && newRoundStyles.toggleKnobOn,
                   ]}
                 />
               </View>
@@ -1291,6 +1296,9 @@ const newRoundStyles = StyleSheet.create({
     gap: Spacing.lg,
     marginBottom: Spacing.md,
   },
+  toggleRowDisabled: {
+    opacity: 0.55,
+  },
   toggleLabelBlock: {
     flex: 1,
     gap: 3,
@@ -1299,6 +1307,9 @@ const newRoundStyles = StyleSheet.create({
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.base,
     color: Colors.text.primary,
+  },
+  toggleLabelDisabled: {
+    color: Colors.text.muted,
   },
   toggleSub: {
     fontFamily: FontFamily.body,

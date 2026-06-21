@@ -190,6 +190,7 @@ const uk = {
       subtitle: '{{name}} · Раунд {{round}}',
       rankedLabel: 'Рейтинговий ігровий день',
       rankedSub: 'Результати враховуються в турнірній таблиці',
+      rankedLimitReached: 'Ліміт рейтингових раундів досягнуто ({{count}})',
       playersLabel: 'УЧАСНИКИ · {{count}} ОБРАНО',
       minPlayers: 'Оберіть мінімум 2 гравців',
       cancel: 'Скасувати',
