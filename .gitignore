@@ -40,3 +40,5 @@ yarn-error.*
 /ios
 /android
 debug-storybook.log
+.env
+.env.local
