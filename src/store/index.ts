@@ -106,6 +106,7 @@ interface AppState {
   selectedMatchId: string | null;
   viewingRound: ArchivedRound | null;
   viewingTournament: ClosedTournament | null;
+  syncStatus: 'idle' | 'syncing' | 'error';
 }
 
 // ---------------------------------------------------------------------------
@@ -142,6 +143,14 @@ interface Actions {
   setModal: (modal: Modal) => void;
   setSelectedMatch: (id: string | null) => void;
   setViewingRound: (round: ArchivedRound | null) => void;
+  setSyncStatus: (status: 'idle' | 'syncing' | 'error') => void;
+  applyCloudState: (pulled: {
+    players: Player[];
+    teams: Team[];
+    matches: Match[];
+    archivedRounds: ArchivedRound[];
+    closedTournaments: ClosedTournament[];
+  }) => void;
   setViewingTournament: (t: ClosedTournament | null) => void;
   setShowNick: (v: boolean) => void;
   setShowTeamLogo: (v: boolean) => void;
@@ -196,6 +205,7 @@ export const useStore = create<AppState & Actions>()(
       selectedMatchId: null,
       viewingRound: null,
       viewingTournament: null,
+      syncStatus: 'idle',
 
       // -----------------------------------------------------------------------
       // Tournament actions
@@ -388,6 +398,18 @@ export const useStore = create<AppState & Actions>()(
       setModal: (modal) => set({ modal }),
       setSelectedMatch: (id) => set({ selectedMatchId: id }),
       setViewingRound: (round) => set({ viewingRound: round }),
+      setSyncStatus: (status) => set({ syncStatus: status }),
+      applyCloudState: (pulled) => {
+        const s = get();
+        if (s.demoMode) return;
+        set({
+          players: pulled.players.length > 0 ? pulled.players : s.players,
+          teams: pulled.teams.length > 0 ? pulled.teams : s.teams,
+          matches: pulled.matches,
+          archivedRounds: pulled.archivedRounds.length > 0 ? pulled.archivedRounds : s.archivedRounds,
+          closedTournaments: pulled.closedTournaments.length > 0 ? pulled.closedTournaments : s.closedTournaments,
+        });
+      },
       setViewingTournament: (t) => set({ viewingTournament: t }),
       setShowNick: (v) => set({ showNick: v }),
       setShowTeamLogo: (v) => set({ showTeamLogo: v }),

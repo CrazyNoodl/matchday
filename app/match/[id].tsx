@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   Modal,
   Pressable,
   TextInput,
+  ActivityIndicator,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -25,6 +26,8 @@ import { SectionLabel } from '@/components/SectionLabel';
 import { StatsRow } from '@/components/StatsRow';
 import { generateMatchStats } from '@/utils/matchStats';
 import { useTranslation } from 'react-i18next';
+import { fetchMatchById } from '@/supabase/sync';
+import type { Match } from '@/store/types';
 
 export default function MatchDetailScreen() {
   const { t } = useTranslation();
@@ -32,17 +35,33 @@ export default function MatchDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const store = useStore();
 
-  const { matches, archivedRounds, closedTournaments, players, modal } = store;
+  const { matches, archivedRounds, closedTournaments, players, modal, syncStatus } = store;
   const isCurrentRoundMatch = matches.some((m) => m.id === id);
   const isEditableMatch =
     isCurrentRoundMatch ||
     (store.hasTournament && archivedRounds.flatMap((r) => r.matches).some((m) => m.id === id));
-  const match =
+  const localMatch: Match | undefined =
     matches.find((m) => m.id === id) ??
     archivedRounds.flatMap((r) => r.matches).find((m) => m.id === id) ??
     closedTournaments
       .flatMap((t) => t.rounds.flatMap((r) => r.matches))
       .find((m) => m.id === id);
+
+  const [remoteMatch, setRemoteMatch] = useState<Match | null>(null);
+  const [remoteLoading, setRemoteLoading] = useState(false);
+
+  // When local store doesn't have the match (direct link from another device),
+  // try fetching it from Supabase once sync is done.
+  useEffect(() => {
+    if (localMatch || syncStatus === 'syncing') return;
+    setRemoteLoading(true);
+    fetchMatchById(id).then((m) => {
+      setRemoteMatch(m);
+      setRemoteLoading(false);
+    });
+  }, [id, localMatch, syncStatus]);
+
+  const match = localMatch ?? remoteMatch ?? undefined;
 
   // Local state for the edit stats modal values
   const [editValues, setEditValues] = useState<Record<string, { a: number; b: number }>>({});
@@ -59,12 +78,16 @@ export default function MatchDetailScreen() {
   const [editNoteValue, setEditNoteValue] = useState('');
 
   if (!match) {
+    const isLoading = syncStatus === 'syncing' || remoteLoading;
     return (
       <SafeAreaView style={styles.root} edges={['top']}>
         <View style={styles.glow} pointerEvents="none" />
         <NavHeader title={t('matchDetail.title')} onBack={() => router.back()} />
         <View style={styles.center}>
-          <Text style={styles.emptyText}>{t('matchDetail.noData')}</Text>
+          {isLoading
+            ? <ActivityIndicator color={Colors.accent.green} size="large" />
+            : <Text style={styles.emptyText}>{t('matchDetail.noData')}</Text>
+          }
         </View>
       </SafeAreaView>
     );

@@ -164,6 +164,23 @@ export function subscribeToChanges(userId: string, onUpdate: () => void) {
 }
 
 // ---------------------------------------------------------------------------
+// Fetch single match by ID (for direct deep links)
+// ---------------------------------------------------------------------------
+
+export async function fetchMatchById(matchId: string): Promise<Match | null> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const db = supabase as any;
+  const { data, error } = await db
+    .from('matches')
+    .select('*')
+    .eq('id', matchId)
+    .single();
+
+  if (error || !data) return null;
+  return dbMatchToLocal(data as Record<string, unknown>);
+}
+
+// ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 

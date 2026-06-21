@@ -24,6 +24,7 @@ import i18n from '@/i18n';
 import { useTranslation } from 'react-i18next';
 import { useEffect } from 'react';
 import { useRouter } from 'expo-router';
+import { useSyncManager } from '@/supabase/useSyncManager';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 (Text as any).defaultProps = { ...((Text as any).defaultProps ?? {}), allowFontScaling: false };
@@ -31,6 +32,11 @@ import { useRouter } from 'expo-router';
 (TextInput as any).defaultProps = { ...((TextInput as any).defaultProps ?? {}), allowFontScaling: false };
 
 const BASE_URL: string = (Constants.expoConfig?.experiments as Record<string, string> | undefined)?.baseUrl ?? '';
+
+function SyncManager() {
+  useSyncManager();
+  return null;
+}
 
 function LanguageSync() {
   const language = useStore((s) => s.language);
@@ -161,6 +167,7 @@ export default function RootLayout() {
           <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         </Head>
       )}
+      <SyncManager />
       <LanguageSync />
       <StatusBar style="light" />
       <Stack
