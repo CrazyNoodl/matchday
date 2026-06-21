@@ -336,12 +336,9 @@ export default function MatchdayScreen() {
               ]}
               onPress={() => {
                 setAddMatch((prev) => {
-                  if (!prev.homeId || prev.homeId === p.id) {
-                    return { ...prev, homeId: prev.homeId === p.id ? null : p.id };
-                  }
-                  if (prev.awayId === p.id) {
-                    return { ...prev, awayId: null };
-                  }
+                  if (prev.homeId === p.id) return { ...prev, homeId: null };
+                  if (prev.awayId === p.id) return { ...prev, awayId: null };
+                  if (!prev.homeId) return { ...prev, homeId: p.id };
                   return { ...prev, awayId: p.id };
                 });
               }}
@@ -698,7 +695,7 @@ export default function MatchdayScreen() {
                 onPress={roundOpen ? () => store.setModal('add') : undefined}
               />
             ) : (
-              matches.map((m) => (
+              [...matches].reverse().map((m) => (
                 <MatchCard
                   key={m.id}
                   match={m}
