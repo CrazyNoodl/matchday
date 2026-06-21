@@ -30,6 +30,7 @@ import { EmptyState } from '@/components/EmptyState';
 import { MediaThumbnail } from '@/components/MediaThumbnail';
 import { Match, MediaItem } from '@/store/types';
 import { useTranslation } from 'react-i18next';
+import { uploadMediaItems } from '@/supabase/storage';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -240,12 +241,17 @@ export default function MatchdayScreen() {
     });
   }, [store]);
 
-  const handleSaveMatch = useCallback(() => {
+  const handleSaveMatch = useCallback(async () => {
     if (!addMatch.homeId || !addMatch.awayId) return;
     const homePlayer = players.find((p) => p.id === addMatch.homeId);
     const awayPlayer = players.find((p) => p.id === addMatch.awayId);
     const hTeam = addMatch.homeTeam || homePlayer?.teamCode || 'UNK';
     const aTeam = addMatch.awayTeam || awayPlayer?.teamCode || 'UNK';
+
+    // Upload local media to Supabase Storage before saving
+    const uploadedMedia = addMatch.media.length > 0
+      ? await uploadMediaItems(addMatch.media)
+      : [];
 
     const match: Match = {
       id: `match-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
@@ -255,7 +261,7 @@ export default function MatchdayScreen() {
       bTeam: aTeam,
       aScore: addMatch.homeScore,
       bScore: addMatch.awayScore,
-      media: addMatch.media.length > 0 ? addMatch.media : undefined,
+      media: uploadedMedia.length > 0 ? uploadedMedia : undefined,
       note: addMatch.note.trim() || undefined,
     };
     store.addMatch(match);

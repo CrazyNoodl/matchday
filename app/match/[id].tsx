@@ -28,6 +28,7 @@ import { StatsRow } from '@/components/StatsRow';
 import { generateMatchStats } from '@/utils/matchStats';
 import { useTranslation } from 'react-i18next';
 import { fetchMatchById } from '@/supabase/sync';
+import { uploadMediaItem, deleteMediaItem } from '@/supabase/storage';
 import type { Match } from '@/store/types';
 
 export default function MatchDetailScreen() {
@@ -154,6 +155,8 @@ export default function MatchDetailScreen() {
     goBack();
   };
 
+  const [uploadingMedia, setUploadingMedia] = useState(false);
+
   const handleAddMedia = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.All,
@@ -162,15 +165,18 @@ export default function MatchDetailScreen() {
     });
     if (!result.canceled && result.assets[0]) {
       const asset = result.assets[0];
-      const newItem: MediaItem = {
-        uri: asset.uri,
-        type: asset.type === 'video' ? 'video' : 'image',
-      };
+      const type: 'image' | 'video' = asset.type === 'video' ? 'video' : 'image';
+      setUploadingMedia(true);
+      const remoteUrl = await uploadMediaItem(asset.uri, type);
+      setUploadingMedia(false);
+      const newItem: MediaItem = { uri: remoteUrl ?? asset.uri, type };
       store.updateMatchMedia(match.id, [...(match.media ?? []), newItem]);
     }
   };
 
-  const handleDeleteMedia = (idx: number) => {
+  const handleDeleteMedia = async (idx: number) => {
+    const item = match.media?.[idx];
+    if (item) await deleteMediaItem(item.uri);
     const updated = (match.media ?? []).filter((_, i) => i !== idx);
     store.updateMatchMedia(match.id, updated);
   };
@@ -343,9 +349,13 @@ export default function MatchDetailScreen() {
               style={styles.addMediaBtn}
               onPress={handleAddMedia}
               activeOpacity={0.75}
+              disabled={uploadingMedia}
               hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
             >
-              <Text style={styles.addMediaBtnText}>+ Add</Text>
+              {uploadingMedia
+                ? <ActivityIndicator size="small" color={Colors.accent.green} />
+                : <Text style={styles.addMediaBtnText}>+ Add</Text>
+              }
             </TouchableOpacity>
           )}
         </View>
