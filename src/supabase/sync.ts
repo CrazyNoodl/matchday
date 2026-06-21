@@ -55,7 +55,7 @@ export async function pushState(payload: SyncPayload): Promise<void> {
         photo: p.photo ?? null,
         updated_at: now,
       })),
-      { onConflict: 'id' },
+      { onConflict: 'id,user_id' },
     ),
 
     // Teams
