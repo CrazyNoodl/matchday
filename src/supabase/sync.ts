@@ -42,9 +42,9 @@ export async function pushState(payload: SyncPayload): Promise<void> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const db = supabase as any;
 
-  await Promise.all([
-    // Players
-    db.from('players').upsert(
+  // Upsert current local state
+  if (payload.players.length > 0) {
+    await db.from('players').upsert(
       payload.players.map((p) => ({
         id: p.id,
         user_id: userId,
@@ -56,10 +56,11 @@ export async function pushState(payload: SyncPayload): Promise<void> {
         updated_at: now,
       })),
       { onConflict: 'id,user_id' },
-    ),
+    );
+  }
 
-    // Teams
-    db.from('teams').upsert(
+  if (payload.teams.length > 0) {
+    await db.from('teams').upsert(
       payload.teams.map((t) => ({
         code: t.code,
         user_id: userId,
@@ -71,10 +72,11 @@ export async function pushState(payload: SyncPayload): Promise<void> {
         updated_at: now,
       })),
       { onConflict: 'code,user_id' },
-    ),
+    );
+  }
 
-    // Active matches
-    db.from('matches').upsert(
+  if (payload.matches.length > 0) {
+    await db.from('matches').upsert(
       payload.matches.map((m) => ({
         id: m.id,
         user_id: userId,
@@ -92,7 +94,26 @@ export async function pushState(payload: SyncPayload): Promise<void> {
         updated_at: now,
       })),
       { onConflict: 'id' },
-    ),
+    );
+  }
+
+  // Delete rows that no longer exist locally
+  const playerIds = payload.players.map((p) => p.id).join(',');
+  const teamCodes = payload.teams.map((t) => t.code).join(',');
+  const matchIds = payload.matches.map((m) => m.id).join(',');
+
+  await Promise.all([
+    playerIds
+      ? db.from('players').delete().eq('user_id', userId).not('id', 'in', `(${playerIds})`)
+      : db.from('players').delete().eq('user_id', userId),
+
+    teamCodes
+      ? db.from('teams').delete().eq('user_id', userId).not('code', 'in', `(${teamCodes})`)
+      : db.from('teams').delete().eq('user_id', userId),
+
+    matchIds
+      ? db.from('matches').delete().eq('user_id', userId).is('round_id', null).not('id', 'in', `(${matchIds})`)
+      : db.from('matches').delete().eq('user_id', userId).is('round_id', null),
   ]);
 }
 
