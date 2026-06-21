@@ -242,7 +242,7 @@ const en = {
     about: {
       section: 'ABOUT',
       appName: 'Matchday',
-      version: 'Version 1.2.0',
+      version: 'Version 1.3.0',
     },
     danger: {
       section: 'DANGER ZONE',
