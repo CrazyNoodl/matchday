@@ -104,9 +104,6 @@ interface AppState {
   // UI state (not persisted)
   modal: Modal;
   selectedMatchId: string | null;
-  editingPlayerId: string | null;
-  editingTeamCode: string | null;
-  winnerPlayerId: string | null;
   viewingRound: ArchivedRound | null;
   viewingTournament: ClosedTournament | null;
 }
@@ -144,9 +141,6 @@ interface Actions {
   // UI
   setModal: (modal: Modal) => void;
   setSelectedMatch: (id: string | null) => void;
-  setEditingPlayer: (id: string | null) => void;
-  setEditingTeam: (code: string | null) => void;
-  setWinner: (id: string | null) => void;
   setViewingRound: (round: ArchivedRound | null) => void;
   setViewingTournament: (t: ClosedTournament | null) => void;
   setShowNick: (v: boolean) => void;
@@ -200,9 +194,6 @@ export const useStore = create<AppState & Actions>()(
       // UI state
       modal: null,
       selectedMatchId: null,
-      editingPlayerId: null,
-      editingTeamCode: null,
-      winnerPlayerId: null,
       viewingRound: null,
       viewingTournament: null,
 
@@ -396,9 +387,6 @@ export const useStore = create<AppState & Actions>()(
       // -----------------------------------------------------------------------
       setModal: (modal) => set({ modal }),
       setSelectedMatch: (id) => set({ selectedMatchId: id }),
-      setEditingPlayer: (id) => set({ editingPlayerId: id }),
-      setEditingTeam: (code) => set({ editingTeamCode: code }),
-      setWinner: (id) => set({ winnerPlayerId: id }),
       setViewingRound: (round) => set({ viewingRound: round }),
       setViewingTournament: (t) => set({ viewingTournament: t }),
       setShowNick: (v) => set({ showNick: v }),
@@ -430,9 +418,6 @@ export const useStore = create<AppState & Actions>()(
             ...DEMO_STATE,
             modal: null,
             selectedMatchId: null,
-            editingPlayerId: null,
-            editingTeamCode: null,
-            winnerPlayerId: null,
             viewingRound: null,
             viewingTournament: null,
           });
@@ -444,9 +429,6 @@ export const useStore = create<AppState & Actions>()(
             ...(backup ?? {}),
             modal: null,
             selectedMatchId: null,
-            editingPlayerId: null,
-            editingTeamCode: null,
-            winnerPlayerId: null,
             viewingRound: null,
             viewingTournament: null,
           });
@@ -542,9 +524,6 @@ export const useStore = create<AppState & Actions>()(
           realDataBackup: null,
           modal: null,
           selectedMatchId: null,
-          editingPlayerId: null,
-          editingTeamCode: null,
-          winnerPlayerId: null,
           viewingRound: null,
           viewingTournament: null,
         });
