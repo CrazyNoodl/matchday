@@ -5,6 +5,7 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -120,14 +121,16 @@ export default function ArchiveDayScreen() {
         title=""
         onBack={() => router.back()}
         rightElement={
-          <TouchableOpacity
-            style={styles.shareBtn}
-            onPress={() => setShareVisible(true)}
-            activeOpacity={0.7}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          >
-            <Text style={styles.shareBtnText}>{t('common.share')}</Text>
-          </TouchableOpacity>
+          Platform.OS !== 'web' ? (
+            <TouchableOpacity
+              style={styles.shareBtn}
+              onPress={() => setShareVisible(true)}
+              activeOpacity={0.7}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Text style={styles.shareBtnText}>{t('common.share')}</Text>
+            </TouchableOpacity>
+          ) : undefined
         }
       />
 
