@@ -15,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 type CaptureRef = typeof import('react-native-view-shot')['captureRef'];
 type MediaLibraryModule = typeof import('expo-media-library');
 type SharingModule = typeof import('expo-sharing');
+type Html2Canvas = typeof import('html2canvas').default;
 import { useStore } from '@/store';
 import { ArchivedRound } from '@/store/types';
 import { calculateStandings } from '@/utils/standings';
@@ -325,63 +326,92 @@ export function ShareRoundModal({ visible, onClose, round, tournamentName }: Sha
     if (!visible) setLoading(false);
   }, [visible]);
 
-  const capture = async (): Promise<string | null> => {
-    if (Platform.OS === 'web') {
-      Alert.alert('Not available', 'Image capture is only available on mobile.');
-      return null;
-    }
+  const captureNative = async (): Promise<string | null> => {
     try {
       const { captureRef } = await import('react-native-view-shot') as { captureRef: CaptureRef };
-      const uri = await captureRef(cardRef, {
-        format: 'png',
-        quality: 1.0,
-        result: 'tmpfile',
+      return await captureRef(cardRef, { format: 'png', quality: 1.0, result: 'tmpfile' });
+    } catch {
+      Alert.alert('Error', 'Could not capture image. Please try again.');
+      return null;
+    }
+  };
+
+  const captureWeb = async (): Promise<Blob | null> => {
+    try {
+      const html2canvas = (await import('html2canvas')).default as Html2Canvas;
+      const element = cardRef.current as unknown as HTMLElement;
+      if (!element) return null;
+      const canvas = await html2canvas(element, {
+        backgroundColor: '#0c0e10',
+        scale: 2,
+        useCORS: true,
+        logging: false,
       });
-      return uri;
-    } catch (e) {
+      return new Promise((resolve) => {
+        canvas.toBlob((blob) => resolve(blob), 'image/png', 1.0);
+      });
+    } catch {
       Alert.alert('Error', 'Could not capture image. Please try again.');
       return null;
     }
   };
 
   const handleSave = async () => {
-    if (Platform.OS === 'web') {
-      Alert.alert('Not available', 'Saving to Photos is only available on mobile.');
-      return;
-    }
     setLoading(true);
     try {
-      const MediaLibrary = await import('expo-media-library') as MediaLibraryModule;
-      const { status } = await MediaLibrary.requestPermissionsAsync(true);
-      if (status !== 'granted') {
-        Alert.alert('Permission required', 'Allow access to Photos to save the image.');
-        return;
+      if (Platform.OS === 'web') {
+        const blob = await captureWeb();
+        if (!blob) return;
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `matchday-round-${round.n}.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } else {
+        const MediaLibrary = await import('expo-media-library') as MediaLibraryModule;
+        const { status } = await MediaLibrary.requestPermissionsAsync(true);
+        if (status !== 'granted') {
+          Alert.alert('Permission required', 'Allow access to Photos to save the image.');
+          return;
+        }
+        const uri = await captureNative();
+        if (!uri) return;
+        await MediaLibrary.saveToLibraryAsync(uri);
+        Alert.alert('Saved!', 'Image saved to your Photos.');
       }
-      const uri = await capture();
-      if (!uri) return;
-      await MediaLibrary.saveToLibraryAsync(uri);
-      Alert.alert('Saved!', 'Image saved to your Photos.');
     } finally {
       setLoading(false);
     }
   };
 
   const handleShare = async () => {
-    if (Platform.OS === 'web') {
-      Alert.alert('Not available', 'Sharing is only available on mobile.');
-      return;
-    }
     setLoading(true);
     try {
-      const uri = await capture();
-      if (!uri) return;
-      const Sharing = await import('expo-sharing') as SharingModule;
-      const canShare = await Sharing.isAvailableAsync();
-      if (!canShare) {
-        Alert.alert('Not available', 'Sharing is not available on this device.');
-        return;
+      if (Platform.OS === 'web') {
+        const blob = await captureWeb();
+        if (!blob) return;
+        const file = new File([blob], `matchday-round-${round.n}.png`, { type: 'image/png' });
+        if (navigator.canShare?.({ files: [file] })) {
+          await navigator.share({ files: [file], title: `Round ${round.n} · ${tournamentName}` });
+        } else if (navigator.share) {
+          await navigator.share({ title: `Round ${round.n} · ${tournamentName}`, text: 'Matchday results' });
+        }
+      } else {
+        const uri = await captureNative();
+        if (!uri) return;
+        const Sharing = await import('expo-sharing') as SharingModule;
+        const canShare = await Sharing.isAvailableAsync();
+        if (!canShare) {
+          Alert.alert('Not available', 'Sharing is not available on this device.');
+          return;
+        }
+        await Sharing.shareAsync(uri, { mimeType: 'image/png', dialogTitle: 'Share Round Results' });
       }
-      await Sharing.shareAsync(uri, { mimeType: 'image/png', dialogTitle: 'Share Round Results' });
+    } catch {
+      // user cancelled share dialog
     } finally {
       setLoading(false);
     }
@@ -426,7 +456,9 @@ export function ShareRoundModal({ visible, onClose, round, tournamentName }: Sha
             {loading ? (
               <ActivityIndicator color={Colors.text.primary} size="small" />
             ) : (
-              <Text style={modalStyles.actionText}>💾  Save to Photos</Text>
+              <Text style={modalStyles.actionText}>
+              {Platform.OS === 'web' ? '⬇  Download' : '💾  Save to Photos'}
+            </Text>
             )}
           </TouchableOpacity>
           <TouchableOpacity
@@ -438,9 +470,7 @@ export function ShareRoundModal({ visible, onClose, round, tournamentName }: Sha
             {loading ? (
               <ActivityIndicator color={Colors.bg.base} size="small" />
             ) : (
-              <Text style={[modalStyles.actionText, { color: Colors.bg.base }]}>
-                {Platform.OS === 'ios' ? '↑  Share' : '↗  Share'}
-              </Text>
+              <Text style={[modalStyles.actionText, { color: Colors.bg.base }]}>↗  Share</Text>
             )}
           </TouchableOpacity>
         </View>
