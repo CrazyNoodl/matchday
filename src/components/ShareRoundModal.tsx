@@ -5,10 +5,10 @@ import {
   StyleSheet,
   Modal,
   TouchableOpacity,
-  ScrollView,
   ActivityIndicator,
   Alert,
   Platform,
+  ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 // Native-only modules loaded dynamically so web build doesn't crash
@@ -25,8 +25,6 @@ import { Radius, Spacing } from '@/theme/spacing';
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
-
-type Variant = 'winner' | 'standings';
 
 interface ShareRoundModalProps {
   visible: boolean;
@@ -63,7 +61,7 @@ function fmtDate(iso: string): string {
 }
 
 // ---------------------------------------------------------------------------
-// Card 1 — Winner Card
+// Winner Card
 // ---------------------------------------------------------------------------
 
 interface WinnerCardProps {
@@ -315,243 +313,17 @@ const winnerStyles = StyleSheet.create({
 });
 
 // ---------------------------------------------------------------------------
-// Card 2 — Standings Card
-// ---------------------------------------------------------------------------
-
-const RANK_COLORS = [Colors.accent.gold, Colors.text.muted, '#8a6a3a'];
-const RANK_LABELS = ['1', '2', '3', '4', '5'];
-
-function StandingsCard({ round, tournamentName }: WinnerCardProps) {
-  const players = useStore((s) => s.players);
-
-  const playerIds = useMemo(() => {
-    const ids = new Set<string>();
-    round.matches.forEach((m) => { ids.add(m.aId); ids.add(m.bId); });
-    return Array.from(ids);
-  }, [round.matches]);
-
-  const standings = useMemo(
-    () => calculateStandings(round.matches, playerIds),
-    [round.matches, playerIds],
-  );
-
-  const dateStr = fmtDate(round.date);
-
-  return (
-    <View style={standStyles.card} collapsable={false}>
-      {/* Top bar */}
-      <View style={standStyles.topBar}>
-        <View>
-          <Text style={standStyles.tourName} numberOfLines={1}>{tournamentName.toUpperCase()}</Text>
-          <Text style={standStyles.roundLabel}>ROUND {round.n} · STANDINGS</Text>
-        </View>
-        <Text style={standStyles.appName}>MATCHDAY</Text>
-      </View>
-
-      {/* Divider */}
-      <View style={standStyles.divider} />
-
-      {/* Column headers */}
-      <View style={standStyles.tableHeader}>
-        <Text style={[standStyles.colLabel, standStyles.colPlayer]}>PLAYER</Text>
-        <Text style={standStyles.colLabel}>W</Text>
-        <Text style={standStyles.colLabel}>D</Text>
-        <Text style={standStyles.colLabel}>L</Text>
-        <Text style={standStyles.colLabel}>GF</Text>
-        <Text style={standStyles.colLabel}>GA</Text>
-        <Text style={standStyles.colLabel}>GD</Text>
-        <Text style={[standStyles.colLabel, { color: Colors.accent.green }]}>PTS</Text>
-      </View>
-
-      {/* Rows */}
-      {standings.map((s, idx) => {
-        const player = players.find((p) => p.id === s.playerId);
-        const isWinner = s.playerId === round.winner;
-        const rankColor = idx < RANK_COLORS.length ? RANK_COLORS[idx] : Colors.text.ghost;
-        const gdStr = s.gd > 0 ? `+${s.gd}` : `${s.gd}`;
-        const gdColor = s.gd > 0 ? Colors.accent.green : s.gd < 0 ? Colors.accent.red : Colors.text.muted;
-        return (
-          <View key={s.playerId} style={[standStyles.row, isWinner && standStyles.rowWinner]}>
-            {/* Rank dot */}
-            <View style={[standStyles.rankDot, { backgroundColor: rankColor }]}>
-              <Text style={standStyles.rankNum}>{RANK_LABELS[idx] ?? idx + 1}</Text>
-            </View>
-            {/* Avatar + name */}
-            <View style={standStyles.colPlayer}>
-              <View style={standStyles.playerInner}>
-                {player && <CardAvatar color={player.color} name={player.name} size={24} />}
-                <Text style={standStyles.playerName} numberOfLines={1}>{player?.name ?? '—'}</Text>
-              </View>
-            </View>
-            <Text style={standStyles.cell}>{s.wins}</Text>
-            <Text style={standStyles.cell}>{s.draws}</Text>
-            <Text style={standStyles.cell}>{s.losses}</Text>
-            <Text style={standStyles.cell}>{s.gf}</Text>
-            <Text style={standStyles.cell}>{s.ga}</Text>
-            <Text style={[standStyles.cell, { color: gdColor }]}>{gdStr}</Text>
-            <Text style={[standStyles.cell, standStyles.ptsCell]}>{s.pts}</Text>
-          </View>
-        );
-      })}
-
-      {/* Divider */}
-      <View style={standStyles.divider} />
-
-      {/* Footer */}
-      <View style={standStyles.footer}>
-        <Text style={standStyles.footerDate}>{dateStr}</Text>
-        <Text style={standStyles.footerApp}>matchday</Text>
-      </View>
-    </View>
-  );
-}
-
-const CELL_W = 30;
-
-const standStyles = StyleSheet.create({
-  card: {
-    width: CARD_W,
-    backgroundColor: '#0c0e10',
-    borderRadius: Radius.xl,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
-  },
-  topBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
-    paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.lg,
-    paddingBottom: Spacing.md,
-  },
-  tourName: {
-    fontFamily: FontFamily.displayBold,
-    fontSize: FontSize.lg,
-    color: Colors.text.primary,
-    letterSpacing: 0.5,
-  },
-  roundLabel: {
-    fontFamily: FontFamily.bodyBold,
-    fontSize: FontSize.xs,
-    color: Colors.text.placeholder,
-    letterSpacing: 1.5,
-    marginTop: 2,
-  },
-  appName: {
-    fontFamily: FontFamily.displayBold,
-    fontSize: FontSize.xs,
-    color: Colors.text.placeholder,
-    letterSpacing: 2,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: 'rgba(255,255,255,0.06)',
-  },
-  tableHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    backgroundColor: 'rgba(255,255,255,0.03)',
-  },
-  colLabel: {
-    fontFamily: FontFamily.bodyBold,
-    fontSize: 8,
-    color: Colors.text.placeholder,
-    letterSpacing: 0.8,
-    width: CELL_W,
-    textAlign: 'center',
-  },
-  colPlayer: {
-    flex: 1,
-    textAlign: 'left',
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.md,
-    paddingVertical: 9,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.04)',
-  },
-  rowWinner: {
-    backgroundColor: 'rgba(61,220,132,0.06)',
-  },
-  rankDot: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: Spacing.sm,
-    flexShrink: 0,
-  },
-  rankNum: {
-    fontFamily: FontFamily.displayBold,
-    fontSize: 9,
-    color: '#0c0e10',
-    lineHeight: 14,
-  },
-  playerInner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.xs,
-  },
-  playerName: {
-    fontFamily: FontFamily.bodySemiBold,
-    fontSize: FontSize.xs,
-    color: Colors.text.primary,
-    flexShrink: 1,
-  },
-  cell: {
-    fontFamily: FontFamily.body,
-    fontSize: FontSize.xs,
-    color: Colors.text.muted,
-    width: CELL_W,
-    textAlign: 'center',
-  },
-  ptsCell: {
-    fontFamily: FontFamily.displayBold,
-    fontSize: FontSize.sm,
-    color: Colors.accent.green,
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-  },
-  footerDate: {
-    fontFamily: FontFamily.body,
-    fontSize: FontSize.xs,
-    color: Colors.text.placeholder,
-  },
-  footerApp: {
-    fontFamily: FontFamily.displayBold,
-    fontSize: FontSize.xs,
-    color: Colors.text.placeholder,
-    letterSpacing: 1.5,
-  },
-});
-
-// ---------------------------------------------------------------------------
 // Main Modal
 // ---------------------------------------------------------------------------
 
 export function ShareRoundModal({ visible, onClose, round, tournamentName }: ShareRoundModalProps) {
-  const [variant, setVariant] = useState<Variant>('winner');
   const [loading, setLoading] = useState(false);
 
-  const winnerRef = useRef<View>(null);
-  const standingsRef = useRef<View>(null);
+  const cardRef = useRef<View>(null);
 
   useEffect(() => {
     if (!visible) setLoading(false);
   }, [visible]);
-
-  const activeRef = variant === 'winner' ? winnerRef : standingsRef;
 
   const capture = async (): Promise<string | null> => {
     if (Platform.OS === 'web') {
@@ -560,13 +332,13 @@ export function ShareRoundModal({ visible, onClose, round, tournamentName }: Sha
     }
     try {
       const { captureRef } = await import('react-native-view-shot') as { captureRef: CaptureRef };
-      const uri = await captureRef(activeRef, {
+      const uri = await captureRef(cardRef, {
         format: 'png',
         quality: 1.0,
         result: 'tmpfile',
       });
       return uri;
-    } catch {
+    } catch (e) {
       Alert.alert('Error', 'Could not capture image. Please try again.');
       return null;
     }
@@ -580,7 +352,7 @@ export function ShareRoundModal({ visible, onClose, round, tournamentName }: Sha
     setLoading(true);
     try {
       const MediaLibrary = await import('expo-media-library') as MediaLibraryModule;
-      const { status } = await MediaLibrary.requestPermissionsAsync();
+      const { status } = await MediaLibrary.requestPermissionsAsync(true);
       if (status !== 'granted') {
         Alert.alert('Permission required', 'Allow access to Photos to save the image.');
         return;
@@ -631,41 +403,14 @@ export function ShareRoundModal({ visible, onClose, round, tournamentName }: Sha
           </TouchableOpacity>
         </View>
 
-        {/* Variant pills */}
-        <View style={modalStyles.pills}>
-          <TouchableOpacity
-            style={[modalStyles.pill, variant === 'winner' && modalStyles.pillActive]}
-            onPress={() => setVariant('winner')}
-            activeOpacity={0.8}
-          >
-            <Text style={[modalStyles.pillText, variant === 'winner' && modalStyles.pillTextActive]}>
-              Winner Card
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[modalStyles.pill, variant === 'standings' && modalStyles.pillActive]}
-            onPress={() => setVariant('standings')}
-            activeOpacity={0.8}
-          >
-            <Text style={[modalStyles.pillText, variant === 'standings' && modalStyles.pillTextActive]}>
-              Standings Card
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Card preview — both rendered, only active visible for capture */}
+        {/* Card preview */}
         <ScrollView
           contentContainerStyle={modalStyles.previewScroll}
           showsVerticalScrollIndicator={false}
         >
-          <View style={[modalStyles.cardWrap, variant !== 'winner' && modalStyles.hidden]}>
-            <View ref={winnerRef} collapsable={false}>
+          <View collapsable={false} style={modalStyles.cardWrap}>
+            <View ref={cardRef} collapsable={false}>
               <WinnerCard round={round} tournamentName={tournamentName} />
-            </View>
-          </View>
-          <View style={[modalStyles.cardWrap, variant !== 'standings' && modalStyles.hidden]}>
-            <View ref={standingsRef} collapsable={false}>
-              <StandingsCard round={round} tournamentName={tournamentName} />
             </View>
           </View>
         </ScrollView>
@@ -736,32 +481,6 @@ const modalStyles = StyleSheet.create({
     fontSize: FontSize.lg,
     color: Colors.text.muted,
   },
-  pills: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
-    paddingHorizontal: Spacing.xl,
-    paddingVertical: Spacing.lg,
-  },
-  pill: {
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
-    borderRadius: Radius.full,
-    borderWidth: 1,
-    borderColor: Colors.border.strong,
-    backgroundColor: Colors.bg.elevated,
-  },
-  pillActive: {
-    backgroundColor: Colors.accent.green,
-    borderColor: Colors.accent.green,
-  },
-  pillText: {
-    fontFamily: FontFamily.bodySemiBold,
-    fontSize: FontSize.sm,
-    color: Colors.text.muted,
-  },
-  pillTextActive: {
-    color: Colors.bg.base,
-  },
   previewScroll: {
     flexGrow: 1,
     alignItems: 'center',
@@ -773,11 +492,6 @@ const modalStyles = StyleSheet.create({
     shadowOpacity: 0.5,
     shadowRadius: 24,
     elevation: 12,
-  },
-  hidden: {
-    position: 'absolute',
-    opacity: 0.001,
-    pointerEvents: 'none',
   },
   actions: {
     flexDirection: 'row',
