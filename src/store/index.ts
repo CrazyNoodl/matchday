@@ -51,6 +51,7 @@ const mmkvStorage = buildStorage();
 // ---------------------------------------------------------------------------
 interface AppState {
   // Tournament state
+  tournamentId: string;
   hasTournament: boolean;
   tournamentName: string;
   round: number;
@@ -121,6 +122,15 @@ interface Actions {
     matches: Match[];
     archivedRounds: ArchivedRound[];
     closedTournaments: ClosedTournament[];
+    tournamentId: string;
+    hasTournament: boolean;
+    tournamentName: string;
+    tournamentRanked: boolean;
+    tournamentRounds: number;
+    tournamentPlayers: string[];
+    round: number;
+    roundOpen: boolean;
+    roundPlayers: string[];
   }) => void;
   setViewingTournament: (t: ClosedTournament | null) => void;
   setShowNick: (v: boolean) => void;
@@ -151,6 +161,7 @@ export const useStore = create<AppState & Actions>()(
       // -----------------------------------------------------------------------
       // Initial state
       // -----------------------------------------------------------------------
+      tournamentId: '',
       hasTournament: false,
       tournamentName: '',
       round: 0,
@@ -183,6 +194,7 @@ export const useStore = create<AppState & Actions>()(
       // -----------------------------------------------------------------------
       startTournament: (name, playerIds, ranked, tournamentRounds = 0) =>
         set({
+          tournamentId: `tour-${Date.now()}`,
           hasTournament: true,
           tournamentName: name,
           round: 1,
@@ -293,7 +305,7 @@ export const useStore = create<AppState & Actions>()(
         const champPlayer = s.players.find((p) => p.id === champId);
 
         const closed: ClosedTournament = {
-          id: `tour-${Date.now()}`,
+          id: s.tournamentId || `tour-${Date.now()}`,
           name: s.tournamentName,
           date: new Date().toISOString(),
           rounds: [...s.archivedRounds],
@@ -306,6 +318,7 @@ export const useStore = create<AppState & Actions>()(
 
         set({
           closedTournaments: [...s.closedTournaments, closed],
+          tournamentId: '',
           hasTournament: false,
           tournamentName: '',
           round: 0,
@@ -373,12 +386,28 @@ export const useStore = create<AppState & Actions>()(
       applyCloudState: (pulled) => {
         const s = get();
         if (s.demoMode) return;
+        // If cloud is completely empty this is likely first sync — preserve local state
+        const hasCloudData =
+          pulled.players.length > 0 ||
+          pulled.teams.length > 0 ||
+          pulled.closedTournaments.length > 0 ||
+          pulled.hasTournament;
+        if (!hasCloudData) return;
         set({
-          players: pulled.players.length > 0 ? pulled.players : s.players,
-          teams: pulled.teams.length > 0 ? pulled.teams : s.teams,
+          players: pulled.players,
+          teams: pulled.teams,
           matches: pulled.matches,
-          archivedRounds: pulled.archivedRounds.length > 0 ? pulled.archivedRounds : s.archivedRounds,
-          closedTournaments: pulled.closedTournaments.length > 0 ? pulled.closedTournaments : s.closedTournaments,
+          archivedRounds: pulled.archivedRounds,
+          closedTournaments: pulled.closedTournaments,
+          tournamentId: pulled.tournamentId,
+          hasTournament: pulled.hasTournament,
+          tournamentName: pulled.tournamentName,
+          tournamentRanked: pulled.tournamentRanked,
+          tournamentRounds: pulled.tournamentRounds,
+          tournamentPlayers: pulled.tournamentPlayers,
+          round: pulled.round,
+          roundOpen: pulled.roundOpen,
+          roundPlayers: pulled.roundPlayers,
         });
       },
       setViewingTournament: (t) => set({ viewingTournament: t }),
@@ -497,6 +526,7 @@ export const useStore = create<AppState & Actions>()(
 
       resetStore: () => {
         set({
+          tournamentId: '',
           hasTournament: false,
           tournamentName: '',
           round: 0,
@@ -526,6 +556,7 @@ export const useStore = create<AppState & Actions>()(
       name: 'matchday-store',
       storage: createJSONStorage(() => mmkvStorage),
       partialize: (state) => ({
+        tournamentId: state.tournamentId,
         hasTournament: state.hasTournament,
         tournamentName: state.tournamentName,
         round: state.round,

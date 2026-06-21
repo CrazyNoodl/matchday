@@ -18,24 +18,75 @@ export function useSyncManager() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let subscription: any = null;
 
-    async function pull() {
+    // Returns true if cloud had data (so applyCloudState was applied)
+    async function pull(): Promise<boolean> {
       const pulled = await pullState();
-      if (!pulled) return;
+      if (!pulled) return false;
+      const hasCloudData =
+        pulled.players.length > 0 ||
+        pulled.teams.length > 0 ||
+        pulled.closedTournaments.length > 0 ||
+        pulled.hasTournament;
       applyingRef.current = true;
       applyCloudState(pulled);
       setTimeout(() => { applyingRef.current = false; }, 100);
+      return hasCloudData;
+    }
+
+    function buildPushPayload() {
+      const s = useStore.getState();
+      return {
+        tournamentId: s.tournamentId,
+        players: s.players,
+        teams: s.teams,
+        matches: s.matches,
+        archivedRounds: s.archivedRounds,
+        closedTournaments: s.closedTournaments,
+        tournament: {
+          name: s.tournamentName,
+          ranked: s.tournamentRanked,
+          roundsTarget: s.tournamentRounds,
+          playerIds: s.tournamentPlayers,
+          round: s.round,
+          roundOpen: s.roundOpen,
+          roundPlayers: s.roundPlayers,
+          hasTournament: s.hasTournament,
+        },
+      };
     }
 
     async function init() {
       if (!supabaseConfigured) { setSyncStatus('idle'); return; }
+
+      // Migration: ensure tournamentId is set for existing active tournaments
+      const currentState = useStore.getState();
+      if (currentState.hasTournament && !currentState.tournamentId) {
+        useStore.setState({ tournamentId: `tour-${Date.now()}` });
+      }
+
       setSyncStatus('syncing');
       try {
         userId = await getCurrentUserId();
         if (!userId) { setSyncStatus('idle'); return; }
 
-        await pull();
-        setSyncStatus('idle');
+        const cloudHadData = await pull();
 
+        // Bootstrap push: if Supabase was empty and there is local data, seed it now.
+        // This handles the first sync after install / login, and migration from
+        // pre-sync app versions that never pushed to Supabase.
+        if (!cloudHadData) {
+          const s = useStore.getState();
+          const hasLocalData =
+            s.players.length > 0 ||
+            s.teams.length > 0 ||
+            s.hasTournament ||
+            s.closedTournaments.length > 0;
+          if (!s.demoMode && hasLocalData) {
+            await pushState(buildPushPayload()).catch(() => {});
+          }
+        }
+
+        setSyncStatus('idle');
         subscription = subscribeToChanges(userId, () => { pull(); });
       } catch {
         setSyncStatus('error');
@@ -51,23 +102,7 @@ export function useSyncManager() {
 
       if (pushTimerRef.current) clearTimeout(pushTimerRef.current);
       pushTimerRef.current = setTimeout(() => {
-        pushState({
-          players: state.players,
-          teams: state.teams,
-          matches: state.matches,
-          archivedRounds: state.archivedRounds,
-          closedTournaments: state.closedTournaments,
-          tournament: {
-            name: state.tournamentName,
-            ranked: state.tournamentRanked,
-            roundsTarget: state.tournamentRounds,
-            playerIds: state.tournamentPlayers,
-            round: state.round,
-            roundOpen: state.roundOpen,
-            roundPlayers: state.roundPlayers,
-            hasTournament: state.hasTournament,
-          },
-        }).catch(() => setSyncStatus('error'));
+        pushState(buildPushPayload()).catch(() => setSyncStatus('error'));
       }, PUSH_DEBOUNCE_MS);
     });
 
