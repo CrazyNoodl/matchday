@@ -8,6 +8,7 @@ import {
   Animated,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useGoBack } from '@/utils/useGoBack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '@/store';
@@ -211,6 +212,7 @@ function EmptyArchive() {
 
 export default function ArchiveScreen() {
   const router = useRouter();
+  const goBack = useGoBack();
   const { t } = useTranslation();
   const store = useStore();
 
@@ -244,7 +246,7 @@ export default function ArchiveScreen() {
 
       <NavHeader
         title={t('archive.title')}
-        onBack={() => router.back()}
+        onBack={() => goBack()}
       />
 
       <ScrollView

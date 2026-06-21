@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useGoBack } from '@/utils/useGoBack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '@/store';
@@ -12,6 +13,7 @@ import { NavHeader } from '@/components/NavHeader';
 
 export default function LanguageScreen() {
   const router = useRouter();
+  const goBack = useGoBack();
   const { t } = useTranslation();
   const { language, setLanguage } = useStore();
 
@@ -23,7 +25,7 @@ export default function LanguageScreen() {
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
       <View style={styles.glow} pointerEvents="none" />
-      <NavHeader title={t('language.title')} onBack={() => router.back()} />
+      <NavHeader title={t('language.title')} onBack={() => goBack()} />
 
       <ScrollView
         style={styles.scroll}

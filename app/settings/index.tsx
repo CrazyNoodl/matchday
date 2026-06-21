@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Modal, Pressable, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useGoBack } from '@/utils/useGoBack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '@/store';
@@ -43,6 +44,7 @@ function SettingsRow({ icon, label, sub, onPress, right, chevron = true }: Setti
 
 export default function SettingsScreen() {
   const router = useRouter();
+  const goBack = useGoBack();
   const { t } = useTranslation();
   const store = useStore();
   const [showResetConfirm, setShowResetConfirm] = useState(false);
@@ -104,7 +106,7 @@ export default function SettingsScreen() {
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
       <View style={styles.glow} pointerEvents="none" />
-      <NavHeader title={t('settings.title')} onBack={() => router.back()} />
+      <NavHeader title={t('settings.title')} onBack={() => goBack()} />
 
       <ScrollView
         style={styles.scroll}

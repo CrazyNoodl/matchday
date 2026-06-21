@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useGoBack } from '@/utils/useGoBack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NavHeader } from '@/components/NavHeader';
 import { useStore } from '@/store';
@@ -22,6 +23,7 @@ const EXAMPLE_CSV = `Руслан,JUV,2,4,Артем,GAL
 
 export default function ImportRoundScreen() {
   const router = useRouter();
+  const goBack = useGoBack();
   const { players, teams, hasTournament, roundOpen, bulkImportMatches, tournamentName, round } = useStore();
 
   const [text, setText] = useState('');
@@ -60,15 +62,15 @@ export default function ImportRoundScreen() {
   const handleImport = () => {
     if (!parseResult || !canImport) return;
     bulkImportMatches(parseResult.matches);
-    router.back();
-    router.back();
+    goBack();
+    goBack();
   };
 
   const roundLabel = hasTournament ? `${tournamentName} · Round ${round}` : null;
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
-      <NavHeader title="Import Round" onBack={() => router.back()} />
+      <NavHeader title="Import Round" onBack={() => goBack()} />
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}

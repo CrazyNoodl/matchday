@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useGoBack } from '@/utils/useGoBack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '@/store';
@@ -76,6 +77,7 @@ function DayWinnerBanner({ winnerId, matchCount }: DayWinnerBannerProps) {
 
 export default function ArchiveDayScreen() {
   const router = useRouter();
+  const goBack = useGoBack();
   const { t } = useTranslation();
   const viewingRound = useStore((s) => s.viewingRound);
   const tournamentName = useStore((s) => s.viewingTournament?.name ?? s.tournamentName ?? '');
@@ -101,7 +103,7 @@ export default function ArchiveDayScreen() {
     return (
       <SafeAreaView style={styles.root} edges={['top']}>
         <View style={styles.glow} pointerEvents="none" />
-        <NavHeader title="" onBack={() => router.back()} />
+        <NavHeader title="" onBack={() => goBack()} />
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>{t('archive.noRoundData')}</Text>
         </View>
@@ -118,7 +120,7 @@ export default function ArchiveDayScreen() {
       {/* Header */}
       <NavHeader
         title=""
-        onBack={() => router.back()}
+        onBack={() => goBack()}
         rightElement={
           <TouchableOpacity
             style={styles.shareBtn}

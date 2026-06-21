@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useGoBack } from '@/utils/useGoBack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStore } from '@/store';
 import type { MediaItem } from '@/store/types';
@@ -32,6 +33,7 @@ import type { Match } from '@/store/types';
 export default function MatchDetailScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const goBack = useGoBack();
   const { id } = useLocalSearchParams<{ id: string }>();
   const store = useStore();
 
@@ -82,7 +84,7 @@ export default function MatchDetailScreen() {
     return (
       <SafeAreaView style={styles.root} edges={['top']}>
         <View style={styles.glow} pointerEvents="none" />
-        <NavHeader title={t('matchDetail.title')} onBack={() => router.back()} />
+        <NavHeader title={t('matchDetail.title')} onBack={() => goBack()} />
         <View style={styles.center}>
           {isLoading
             ? <ActivityIndicator color={Colors.accent.green} size="large" />
@@ -149,7 +151,7 @@ export default function MatchDetailScreen() {
   const handleDeleteMatch = () => {
     store.deleteMatch(match.id);
     store.setModal(null);
-    router.back();
+    goBack();
   };
 
   const handleAddMedia = async () => {
@@ -225,7 +227,7 @@ export default function MatchDetailScreen() {
 
       <NavHeader
         title={t('matchDetail.title')}
-        onBack={() => router.back()}
+        onBack={() => goBack()}
         rightElement={headerRight}
       />
 

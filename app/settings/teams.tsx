@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
+import { useGoBack } from '@/utils/useGoBack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStore } from '@/store';
 import { Colors } from '@/theme/colors';
@@ -29,6 +30,7 @@ const TEAM_COLORS = Colors.team;
 export default function TeamsScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const goBack = useGoBack();
   const store = useStore();
   const { teams, matches, archivedRounds, closedTournaments, addTeam, updateTeam, deleteTeam } = store;
 
@@ -122,7 +124,7 @@ export default function TeamsScreen() {
       <NavHeader
         title={t('teams.title')}
         subtitle={t('settings.data.teamsCount', { count: teams.length })}
-        onBack={() => router.back()}
+        onBack={() => goBack()}
         rightElement={
           <TouchableOpacity
             style={styles.addBtn}

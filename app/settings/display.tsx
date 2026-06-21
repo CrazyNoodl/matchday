@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, Switch } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useGoBack } from '@/utils/useGoBack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '@/store';
@@ -11,6 +12,7 @@ import { NavHeader } from '@/components/NavHeader';
 
 export default function DisplaySettingsScreen() {
   const router = useRouter();
+  const goBack = useGoBack();
   const { t } = useTranslation();
   const store = useStore();
   const { showNick, showTeamLogo } = store;
@@ -18,7 +20,7 @@ export default function DisplaySettingsScreen() {
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
       <View style={styles.glow} pointerEvents="none" />
-      <NavHeader title={t('settings.display.section')} onBack={() => router.back()} />
+      <NavHeader title={t('settings.display.section')} onBack={() => goBack()} />
 
       <ScrollView
         style={styles.scroll}

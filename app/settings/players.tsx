@@ -11,6 +11,7 @@ import {
   Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useGoBack } from '@/utils/useGoBack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStore } from '@/store';
 import { Colors } from '@/theme/colors';
@@ -27,6 +28,7 @@ const PLAYER_COLORS = Colors.player;
 
 export default function PlayersScreen() {
   const router = useRouter();
+  const goBack = useGoBack();
   const { t } = useTranslation();
   const store = useStore();
   const { players, teams, matches, archivedRounds, closedTournaments, addPlayer, updatePlayer, deletePlayer } = store;
@@ -113,7 +115,7 @@ export default function PlayersScreen() {
       <NavHeader
         title={t('players.title')}
         subtitle={t('settings.data.playersCount', { count: players.length })}
-        onBack={() => router.back()}
+        onBack={() => goBack()}
         rightElement={
           <TouchableOpacity
             style={styles.addBtn}

@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useGoBack } from '@/utils/useGoBack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NavHeader } from '@/components/NavHeader';
 import { Colors } from '@/theme/colors';
@@ -31,11 +32,12 @@ function DevRow({ icon, label, sub, onPress }: DevRowProps) {
 
 export default function DeveloperScreen() {
   const router = useRouter();
+  const goBack = useGoBack();
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
       <View style={styles.glow} pointerEvents="none" />
-      <NavHeader title="Developer Menu" onBack={() => router.back()} />
+      <NavHeader title="Developer Menu" onBack={() => goBack()} />
       <View style={styles.content}>
         <View style={styles.badge}>
           <Text style={styles.badgeText}>⚙️  INTERNAL</Text>

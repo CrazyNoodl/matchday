@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useGoBack } from '@/utils/useGoBack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStore } from '@/store';
 import { calculateStandings } from '@/utils/standings';
@@ -64,6 +65,7 @@ interface H2HPair {
 // ---------------------------------------------------------------------------
 export default function StatsScreen() {
   const router = useRouter();
+  const goBack = useGoBack();
   const [activeTab, setActiveTab] = useState<Tab>('ranking');
   const { t } = useTranslation();
 
@@ -166,7 +168,7 @@ export default function StatsScreen() {
       <View style={styles.headerContainer}>
         <TouchableOpacity
           style={styles.backBtn}
-          onPress={() => router.back()}
+          onPress={() => goBack()}
           activeOpacity={0.7}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >

@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useGoBack } from '@/utils/useGoBack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '@/store';
@@ -12,6 +13,7 @@ import { Avatar } from '@/components/Avatar';
 
 export default function TournamentsScreen() {
   const router = useRouter();
+  const goBack = useGoBack();
   const { t } = useTranslation();
   const store = useStore();
 
@@ -53,7 +55,7 @@ export default function TournamentsScreen() {
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
       <View style={styles.glow} pointerEvents="none" />
-      <NavHeader title={t('settings.tournament.label').toUpperCase()} onBack={() => router.back()} />
+      <NavHeader title={t('settings.tournament.label').toUpperCase()} onBack={() => goBack()} />
 
       <ScrollView
         style={styles.scroll}

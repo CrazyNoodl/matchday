@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useGoBack } from '@/utils/useGoBack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStore } from '@/store';
 import { calculateStandings } from '@/utils/standings';
@@ -81,6 +82,7 @@ const MEDALS: Record<number, { badgeColor: string; badgeBg: string; cardBorder: 
 
 export default function SeasonStatsScreen() {
   const router = useRouter();
+  const goBack = useGoBack();
   const { t } = useTranslation();
   const viewingTournament = useStore((s) => s.viewingTournament);
   const players = useStore((s) => s.players);
@@ -113,7 +115,7 @@ export default function SeasonStatsScreen() {
   if (!viewingTournament) {
     return (
       <SafeAreaView style={styles.root} edges={['top']}>
-        <NavHeader title={t('seasonStats.title')} onBack={() => router.back()} />
+        <NavHeader title={t('seasonStats.title')} onBack={() => goBack()} />
         <View style={styles.emptyWrap}>
           <Text style={styles.emptyText}>{t('seasonStats.noTournament')}</Text>
         </View>
@@ -170,7 +172,7 @@ export default function SeasonStatsScreen() {
       <View style={styles.glow} pointerEvents="none" />
 
       {/* Header */}
-      <NavHeader title={t('seasonStats.title')} onBack={() => router.back()} />
+      <NavHeader title={t('seasonStats.title')} onBack={() => goBack()} />
 
       <ScrollView
         style={styles.scroll}
