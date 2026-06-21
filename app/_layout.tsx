@@ -14,6 +14,7 @@ import {
   Sora_600SemiBold,
   Sora_700Bold,
 } from '@expo-google-fonts/sora';
+import React from 'react';
 import { Platform, View, ActivityIndicator, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Constants from 'expo-constants';
@@ -32,6 +33,86 @@ import { useSyncManager } from '@/supabase/useSyncManager';
 (TextInput as any).defaultProps = { ...((TextInput as any).defaultProps ?? {}), allowFontScaling: false };
 
 const BASE_URL: string = (Constants.expoConfig?.experiments as Record<string, string> | undefined)?.baseUrl ?? '';
+
+class AppErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean }
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error) {
+    console.error('[AppErrorBoundary]', error);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <View style={errorStyles.root}>
+          <Text style={errorStyles.emoji}>⚽</Text>
+          <Text style={errorStyles.title}>Щось пішло не так</Text>
+          <Text style={errorStyles.sub}>Спробуй перезавантажити сторінку</Text>
+          <TouchableOpacity
+            style={errorStyles.btn}
+            activeOpacity={0.8}
+            onPress={() => this.setState({ hasError: false })}
+          >
+            <Text style={errorStyles.btnText}>ПОВТОРИТИ</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+const errorStyles = StyleSheet.create({
+  root: {
+    flex: 1,
+    backgroundColor: Colors.bg.base,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 32,
+    gap: 12,
+  },
+  emoji: {
+    fontSize: 48,
+    marginBottom: 8,
+  },
+  title: {
+    fontFamily: FontFamily.displayBold,
+    fontSize: FontSize.lg,
+    color: Colors.text.primary,
+    textAlign: 'center',
+  },
+  sub: {
+    fontFamily: FontFamily.body,
+    fontSize: FontSize.sm,
+    color: Colors.text.muted,
+    textAlign: 'center',
+  },
+  btn: {
+    marginTop: 16,
+    paddingHorizontal: 24,
+    paddingVertical: 10,
+    borderRadius: 8,
+    backgroundColor: Colors.accent.green + '22',
+    borderWidth: 1,
+    borderColor: Colors.accent.green + '55',
+  },
+  btnText: {
+    fontFamily: FontFamily.displayBold,
+    fontSize: FontSize.sm,
+    color: Colors.accent.green,
+    letterSpacing: 1.2,
+  },
+});
 
 function SyncManager() {
   useSyncManager();
@@ -157,6 +238,7 @@ export default function RootLayout() {
   }
 
   return (
+    <AppErrorBoundary>
     <GestureHandlerRootView style={{ flex: 1 }}>
       {Platform.OS === 'web' && (
         <Head>
@@ -197,5 +279,6 @@ export default function RootLayout() {
       </Stack>
       <DemoBanner />
     </GestureHandlerRootView>
+    </AppErrorBoundary>
   );
 }

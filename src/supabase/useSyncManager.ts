@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useStore } from '@/store';
 import { ensureAnonymousSession } from './auth';
 import { pushState, pullState, subscribeToChanges } from './sync';
+import { supabaseConfigured } from './client';
 
 const PUSH_DEBOUNCE_MS = 2000;
 
@@ -28,6 +29,7 @@ export function useSyncManager() {
     }
 
     async function init() {
+      if (!supabaseConfigured) { setSyncStatus('idle'); return; }
       setSyncStatus('syncing');
       try {
         userId = await ensureAnonymousSession();
