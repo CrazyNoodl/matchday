@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useStore } from '@/store';
-import { ensureAnonymousSession } from './auth';
+import { getCurrentUserId } from './auth';
 import { pushState, pullState, subscribeToChanges } from './sync';
 import { supabaseConfigured } from './client';
 
@@ -10,7 +10,6 @@ export function useSyncManager() {
   const setSyncStatus = useStore((s) => s.setSyncStatus);
   const applyCloudState = useStore((s) => s.applyCloudState);
 
-  // Prevents push from firing while we're applying a cloud pull
   const applyingRef = useRef(false);
   const pushTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -24,7 +23,6 @@ export function useSyncManager() {
       if (!pulled) return;
       applyingRef.current = true;
       applyCloudState(pulled);
-      // Allow the state change to propagate before re-enabling push
       setTimeout(() => { applyingRef.current = false; }, 100);
     }
 
@@ -32,8 +30,8 @@ export function useSyncManager() {
       if (!supabaseConfigured) { setSyncStatus('idle'); return; }
       setSyncStatus('syncing');
       try {
-        userId = await ensureAnonymousSession();
-        if (!userId) { setSyncStatus('error'); return; }
+        userId = await getCurrentUserId();
+        if (!userId) { setSyncStatus('idle'); return; }
 
         await pull();
         setSyncStatus('idle');
@@ -46,7 +44,6 @@ export function useSyncManager() {
 
     init();
 
-    // Debounced push on every store mutation
     const unsubscribe = useStore.subscribe((state) => {
       if (applyingRef.current) return;
       if (state.demoMode) return;

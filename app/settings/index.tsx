@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Modal, Pressable, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useGoBack } from '@/utils/useGoBack';
@@ -10,6 +10,8 @@ import { Colors } from '@/theme/colors';
 import { FontFamily, FontSize } from '@/theme/typography';
 import { Radius, Spacing } from '@/theme/spacing';
 import { NavHeader } from '@/components/NavHeader';
+import { signOut } from '@/supabase/auth';
+import { supabase, supabaseConfigured } from '@/supabase/client';
 
 interface SettingsRowProps {
   icon: string;
@@ -48,8 +50,15 @@ export default function SettingsScreen() {
   const { t } = useTranslation();
   const store = useStore();
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [showSignOutConfirm, setShowSignOutConfirm] = useState(false);
   const [versionTaps, setVersionTaps] = useState(0);
   const [devUnlocked, setDevUnlocked] = useState(false);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!supabaseConfigured) return;
+    supabase.auth.getUser().then(({ data }) => setUserEmail(data.user?.email ?? null));
+  }, []);
 
   const { players, teams, showNick, showTeamLogo, hasTournament, tournamentName, language, archivedRounds, closedTournaments, demoMode } = store;
 
@@ -84,6 +93,17 @@ export default function SettingsScreen() {
     if (next >= 7) {
       setDevUnlocked(true);
       setVersionTaps(0);
+    }
+  };
+
+  const handleSignOut = () => setShowSignOutConfirm(true);
+
+  const confirmSignOut = async () => {
+    setShowSignOutConfirm(false);
+    try {
+      await signOut();
+    } catch (e) {
+      console.warn('[signOut]', e);
     }
   };
 
@@ -184,6 +204,28 @@ export default function SettingsScreen() {
           </View>
         </View>
 
+        {/* Account section */}
+        {supabaseConfigured && (
+          <View style={styles.section}>
+            <Text style={styles.sectionHeader}>ACCOUNT</Text>
+            <View style={styles.card}>
+              <SettingsRow
+                icon="✉️"
+                label={userEmail ?? '—'}
+                sub="Signed in"
+                chevron={false}
+              />
+              <View style={styles.divider} />
+              <SettingsRow
+                icon="🚪"
+                label="Sign Out"
+                chevron={false}
+                onPress={handleSignOut}
+              />
+            </View>
+          </View>
+        )}
+
         {/* Language section */}
         <View style={styles.section}>
           <Text style={styles.sectionHeader}>{t('settings.language.section')}</Text>
@@ -269,6 +311,39 @@ export default function SettingsScreen() {
 
         <View style={{ height: 40 }} />
       </ScrollView>
+
+      {/* Sign out confirmation dialog */}
+      <Modal
+        visible={showSignOutConfirm}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowSignOutConfirm(false)}
+        statusBarTranslucent
+      >
+        <View style={styles.dialogOverlay}>
+          <Pressable style={styles.dialogBackdrop} onPress={() => setShowSignOutConfirm(false)} />
+          <View style={styles.dialog}>
+            <Text style={styles.dialogTitle}>Sign Out</Text>
+            <Text style={styles.dialogDesc}>You will be signed out on this device.</Text>
+            <View style={styles.dialogButtons}>
+              <TouchableOpacity
+                style={styles.dialogCancelBtn}
+                onPress={() => setShowSignOutConfirm(false)}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.dialogCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.dialogConfirmBtn}
+                onPress={confirmSignOut}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.dialogConfirmText}>Sign Out</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       {/* Reset confirmation dialog */}
       <Modal

@@ -23,9 +23,12 @@ import { FontFamily, FontSize } from '@/theme/typography';
 import { useStore } from '@/store';
 import i18n from '@/i18n';
 import { useTranslation } from 'react-i18next';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'expo-router';
 import { useSyncManager } from '@/supabase/useSyncManager';
+import { supabase, supabaseConfigured } from '@/supabase/client';
+import { LoginScreen } from '@/components/LoginScreen';
+import type { Session } from '@supabase/supabase-js';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 (Text as any).defaultProps = { ...((Text as any).defaultProps ?? {}), allowFontScaling: false };
@@ -215,6 +218,18 @@ export default function RootLayout() {
     Sora_700Bold,
   });
 
+  // undefined = still checking, null = not logged in, Session = logged in
+  const [session, setSession] = useState<Session | null | undefined>(
+    supabaseConfigured ? undefined : null,
+  );
+
+  useEffect(() => {
+    if (!supabaseConfigured) return;
+    supabase.auth.getSession().then(({ data }) => setSession(data.session));
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => setSession(s));
+    return () => subscription.unsubscribe();
+  }, []);
+
   useEffect(() => {
     if (Platform.OS !== 'web' || !('serviceWorker' in navigator)) return;
     navigator.serviceWorker
@@ -222,7 +237,7 @@ export default function RootLayout() {
       .catch(() => {});
   }, []);
 
-  if (!fontsLoaded) {
+  if (!fontsLoaded || session === undefined) {
     return (
       <View
         style={{
@@ -234,6 +249,14 @@ export default function RootLayout() {
       >
         <ActivityIndicator color={Colors.accent.green} size="large" />
       </View>
+    );
+  }
+
+  if (supabaseConfigured && session === null) {
+    return (
+      <AppErrorBoundary>
+        <LoginScreen onSuccess={() => {/* session update via onAuthStateChange */}} />
+      </AppErrorBoundary>
     );
   }
 
