@@ -41,6 +41,7 @@
     "jest": "^30.4.2",
     "jest-expo": "~56.0.0",
     "storybook": "^10.4.6",
+    "test-renderer": "^1.2.0",
     "typescript": "~6.0.3",
     "vite": "^8.0.16"
   },
@@ -62,13 +63,28 @@
     "transform": {
       "^.+\\.[jt]sx?$": "babel-jest"
     },
+    "transformIgnorePatterns": [
+      "node_modules/(?!(jest-)?react-native|@react-native(-community)?|expo(nent)?|@expo(-google-fonts)?/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|native-base|react-native-svg|@supabase/.*)"
+    ],
     "moduleNameMapper": {
       "^@/(.*)$": "<rootDir>/src/$1"
     },
+    "setupFiles": [
+      "./node_modules/@react-native/jest-preset/jest/setup.js"
+    ],
     "testMatch": [
       "**/__tests__/**/*.test.ts",
       "**/__tests__/**/*.test.tsx"
-    ]
+    ],
+    "haste": {
+      "defaultPlatform": "ios",
+      "platforms": [
+        "android",
+        "ios",
+        "native"
+      ]
+    },
+    "resolver": "./node_modules/@react-native/jest-preset/jest/resolver.js"
   },
   "private": true
 }

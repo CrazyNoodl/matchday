@@ -7,7 +7,7 @@
  *  - Conflict: last_write_wins via updated_at timestamp
  */
 
-import { supabase } from './client';
+import { supabase, supabaseConfigured } from './client';
 import { getCurrentUserId } from './auth';
 import type { Player, Team, Match, ArchivedRound, ClosedTournament } from '../store/types';
 
@@ -480,6 +480,7 @@ export function subscribeToChanges(userId: string, onUpdate: () => void) {
 // ---------------------------------------------------------------------------
 
 export async function fetchMatchById(matchId: string): Promise<Match | null> {
+  if (!supabaseConfigured) return null;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const db = supabase as any;
   const { data, error } = await db

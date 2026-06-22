@@ -59,6 +59,7 @@ export interface ClosedTournament {
 }
 
 export interface RealDataBackup {
+  tournamentId: string;
   hasTournament: boolean;
   tournamentName: string;
   round: number;
@@ -86,6 +87,7 @@ export type Modal =
   | 'needEqual'
   | 'needBreakTie'
   | 'editStats'
+  | 'importStats'
   | 'editScore'
   | 'editTourName'
   | 'closeTour'

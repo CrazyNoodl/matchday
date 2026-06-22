@@ -282,10 +282,11 @@ export default function SettingsScreen() {
               icon="✨"
               label={t('demo.label')}
               sub={t('demo.desc')}
+              onPress={() => handleDemoToggle(!demoMode)}
               right={
                 <Switch
                   value={demoMode}
-                  onValueChange={handleDemoToggle}
+                  onValueChange={() => {}}
                   trackColor={{ false: Colors.bg.elevated, true: Colors.accent.yellow }}
                   thumbColor={Colors.text.primary}
                 />
