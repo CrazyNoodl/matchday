@@ -359,43 +359,39 @@ export default function MatchDetailScreen() {
           </View>
         </View>
 
-        {/* ── MATCH STATS ── */}
-        <View style={styles.sectionHeader}>
-          <SectionLabel label="MATCH STATS" />
-          <View style={styles.sectionHeaderRight}>
-            {hasMediaFiles ? (
-              <View style={styles.sourceBadgeBlue}>
-                <Text style={styles.sourceBadgeBlueText}>
-                  AI-read · from {match.media!.length} media file{match.media!.length !== 1 ? 's' : ''}
-                </Text>
+        {/* ── MATCH STATS — shown only after OCR import or manual edit ── */}
+        {hasStatsOverride && (
+          <>
+            <View style={styles.sectionHeader}>
+              <SectionLabel label="MATCH STATS" />
+              <View style={styles.sectionHeaderRight}>
+                <View style={styles.sourceBadgeBlue}>
+                  <Text style={styles.sourceBadgeBlueText}>AI-read</Text>
+                </View>
+                {isEditableMatch && (
+                  <TouchableOpacity onPress={openEditStats} hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}>
+                    <Text style={styles.editLink}>Edit</Text>
+                  </TouchableOpacity>
+                )}
               </View>
-            ) : hasStatsOverride ? (
-              <View style={styles.sourceBadgeMuted}>
-                <Text style={styles.sourceBadgeMutedText}>Edited manually</Text>
-              </View>
-            ) : null}
-            {isEditableMatch && (
-              <TouchableOpacity onPress={openEditStats} hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}>
-                <Text style={styles.editLink}>Edit</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        </View>
+            </View>
 
-        <View style={styles.statsCard}>
-          {mergedStats.map((stat) => {
-            const aLeads = stat.aVal >= stat.bVal;
-            return (
-              <StatsRow
-                key={stat.key}
-                label={stat.isPercent ? `${stat.label} %` : stat.label}
-                aValue={stat.aVal}
-                bValue={stat.bVal}
-                aWins={aLeads}
-              />
-            );
-          })}
-        </View>
+            <View style={styles.statsCard}>
+              {mergedStats.map((stat) => {
+                const aLeads = stat.aVal >= stat.bVal;
+                return (
+                  <StatsRow
+                    key={stat.key}
+                    label={stat.isPercent ? `${stat.label} %` : stat.label}
+                    aValue={stat.aVal}
+                    bValue={stat.bVal}
+                    aWins={aLeads}
+                  />
+                );
+              })}
+            </View>
+          </>
+        )}
 
         {/* ── MEDIA ── */}
         <View style={styles.sectionHeader}>

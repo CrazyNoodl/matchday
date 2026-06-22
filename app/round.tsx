@@ -3,6 +3,7 @@ import {
   View,
   Text,
   StyleSheet,
+  ActivityIndicator,
   ScrollView,
   TouchableOpacity,
   Modal,
@@ -31,6 +32,7 @@ import { MediaThumbnail } from '@/components/MediaThumbnail';
 import { Match, MediaItem } from '@/store/types';
 import { useTranslation } from 'react-i18next';
 import { uploadMediaItems } from '@/supabase/storage';
+import { extractStatsFromPhoto } from '@/utils/extractStats';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -60,6 +62,8 @@ interface AddMatchState {
   awayScore: number;
   media: MediaItem[];
   note: string;
+  pendingStats: Record<string, { a: number; b: number }> | null;
+  ocrScanning: boolean;
 }
 
 function initAddMatch(): AddMatchState {
@@ -73,6 +77,8 @@ function initAddMatch(): AddMatchState {
     awayScore: 0,
     media: [],
     note: '',
+    pendingStats: null,
+    ocrScanning: false,
   };
 }
 
@@ -263,6 +269,7 @@ export default function MatchdayScreen() {
       bScore: addMatch.awayScore,
       media: uploadedMedia.length > 0 ? uploadedMedia : undefined,
       note: addMatch.note.trim() || undefined,
+      statsOverride: addMatch.pendingStats ?? undefined,
     };
     store.addMatch(match);
     store.setModal(null);
@@ -274,17 +281,59 @@ export default function MatchdayScreen() {
       mediaTypes: ['images', 'videos'],
       allowsMultipleSelection: true,
       quality: 0.85,
+      base64: true,
     });
-    if (!result.canceled) {
-      const newItems: MediaItem[] = result.assets.map((a) => ({
-        uri: a.uri,
-        type: a.type === 'video' ? 'video' : 'image',
-      }));
-      setAddMatch((prev) => ({
-        ...prev,
-        media: [...prev.media, ...newItems].slice(0, 7),
-      }));
+    if (result.canceled) return;
+
+    const newItems: MediaItem[] = result.assets.map((a) => ({
+      uri: a.uri,
+      type: a.type === 'video' ? 'video' : 'image',
+    }));
+
+    setAddMatch((prev) => ({
+      ...prev,
+      media: [...prev.media, ...newItems].slice(0, 7),
+      ocrScanning: true,
+    }));
+
+    // Run OCR in background on all image assets
+    const imageAssets = result.assets.filter((a) => a.type !== 'video' && a.base64);
+    if (imageAssets.length === 0) {
+      setAddMatch((prev) => ({ ...prev, ocrScanning: false }));
+      return;
     }
+
+    (async () => {
+      try {
+        const rank = (c: string) => (c === 'high' ? 3 : c === 'medium' ? 2 : 1);
+        const map = new Map<string, { a: number; b: number }>();
+
+        for (const asset of imageAssets) {
+          const stats = await extractStatsFromPhoto(
+            asset.base64!,
+            asset.mimeType ?? 'image/jpeg',
+          );
+          for (const s of stats) {
+            const existing = map.get(s.key);
+            if (!existing || rank(s.confidence) > rank((existing as any).__conf ?? 'low')) {
+              map.set(s.key, { a: s.home, b: s.away, __conf: s.confidence } as any);
+            }
+          }
+        }
+
+        // Strip internal __conf field
+        const pendingStats: Record<string, { a: number; b: number }> = {};
+        map.forEach((v, k) => { pendingStats[k] = { a: v.a, b: v.b }; });
+
+        setAddMatch((prev) => ({
+          ...prev,
+          ocrScanning: false,
+          pendingStats: Object.keys(pendingStats).length > 0 ? pendingStats : null,
+        }));
+      } catch {
+        setAddMatch((prev) => ({ ...prev, ocrScanning: false }));
+      }
+    })();
   }, []);
 
   const handleRemoveMedia = useCallback((idx: number) => {
@@ -495,6 +544,19 @@ export default function MatchdayScreen() {
           )}
         </View>
       </ScrollView>
+      {addMatch.ocrScanning && (
+        <View style={sheetStyles.ocrStatus}>
+          <ActivityIndicator size="small" color={Colors.accent.blue} />
+          <Text style={sheetStyles.ocrStatusText}>Reading stats...</Text>
+        </View>
+      )}
+      {!addMatch.ocrScanning && addMatch.pendingStats && (
+        <View style={sheetStyles.ocrStatus}>
+          <Text style={sheetStyles.ocrFoundText}>
+            📊 {Object.keys(addMatch.pendingStats).length} stats found
+          </Text>
+        </View>
+      )}
     </View>
   );
 
@@ -1407,6 +1469,23 @@ const sheetStyles = StyleSheet.create({
     fontSize: FontSize.xs,
     color: Colors.text.muted,
     letterSpacing: 0.5,
+  },
+  ocrStatus: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    marginTop: Spacing.md,
+    paddingHorizontal: Spacing.xs,
+  },
+  ocrStatusText: {
+    fontFamily: FontFamily.body,
+    fontSize: FontSize.sm,
+    color: Colors.accent.blue,
+  },
+  ocrFoundText: {
+    fontFamily: FontFamily.bodySemiBold,
+    fontSize: FontSize.sm,
+    color: Colors.accent.green,
   },
   commentInput: {
     backgroundColor: Colors.bg.elevated,
