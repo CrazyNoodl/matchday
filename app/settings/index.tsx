@@ -286,7 +286,7 @@ export default function SettingsScreen() {
               right={
                 <Switch
                   value={demoMode}
-                  onValueChange={handleDemoToggle}
+                  onValueChange={() => {}}
                   trackColor={{ false: Colors.bg.elevated, true: Colors.accent.yellow }}
                   thumbColor={Colors.text.primary}
                 />

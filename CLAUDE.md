@@ -9,6 +9,38 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This project uses Expo SDK 56, React Native 0.85.3, React 19.2.3. APIs and component props differ from older versions.
 
+## Branch & Worktree Workflow
+
+All feature and bugfix work is isolated in git worktrees, branched from `dev`. Never branch from `main` directly.
+
+```
+main  ← stable releases only
+  └── dev  ← integration branch
+        ├── feature/<name>
+        ├── fix/<name>
+        └── test/<name>
+```
+
+**Start new work:**
+```bash
+./scripts/new-feature.sh <name> [fix|feature|test]
+# Creates ../matchday-wt-<name> with a fresh branch from dev + npm install
+# Open that directory in a new Claude Code tab — fully isolated
+```
+
+**Finish and merge:**
+```bash
+./scripts/finish-feature.sh <name>
+# Merges branch into dev, removes worktree, deletes local branch
+```
+
+**List active worktrees:**
+```bash
+git worktree list
+```
+
+Worktrees live at `../matchday-wt-<name>` (sibling of this directory). Each has its own `node_modules` and Metro cache.
+
 ## Commands
 
 ```bash
