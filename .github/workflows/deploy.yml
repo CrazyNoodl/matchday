@@ -31,6 +31,7 @@ jobs:
         env:
           EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          EXPO_PUBLIC_ANTHROPIC_PROXY_URL: ${{ secrets.ANTHROPIC_PROXY_URL }}
 
       - name: Patch dist for GitHub Pages SPA routing
         run: |
