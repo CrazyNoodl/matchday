@@ -9,6 +9,7 @@ import {
   Alert,
   Platform,
   ScrollView,
+  Switch,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 // Native-only modules loaded dynamically so web build doesn't crash
@@ -68,11 +69,43 @@ function fmtDate(iso: string): string {
 interface WinnerCardProps {
   round: ArchivedRound;
   tournamentName: string;
+  includeMatches?: boolean;
 }
 
 const CARD_W = 320;
 
-function WinnerCard({ round, tournamentName }: WinnerCardProps) {
+function MatchRow({ match, isLast }: { match: ArchivedRound['matches'][number]; isLast: boolean }) {
+  const players = useStore((s) => s.players);
+  const playerA = players.find((p) => p.id === match.aId);
+  const playerB = players.find((p) => p.id === match.bId);
+
+  const aWins = match.aScore > match.bScore;
+  const bWins = match.bScore > match.aScore;
+
+  return (
+    <View style={[winnerStyles.matchRow, !isLast && winnerStyles.matchRowBorder]}>
+      <View style={winnerStyles.matchSide}>
+        <CardAvatar color={playerA?.color ?? '#5d666b'} name={playerA?.name ?? '?'} size={22} />
+        <Text style={[winnerStyles.matchName, aWins && winnerStyles.matchNameWin]} numberOfLines={1}>
+          {playerA?.name ?? 'Unknown'}
+        </Text>
+      </View>
+      <Text style={winnerStyles.matchScore}>
+        <Text style={aWins && winnerStyles.matchScoreWin}>{match.aScore}</Text>
+        {' : '}
+        <Text style={bWins && winnerStyles.matchScoreWin}>{match.bScore}</Text>
+      </Text>
+      <View style={[winnerStyles.matchSide, winnerStyles.matchSideRight]}>
+        <Text style={[winnerStyles.matchName, winnerStyles.matchNameRight, bWins && winnerStyles.matchNameWin]} numberOfLines={1}>
+          {playerB?.name ?? 'Unknown'}
+        </Text>
+        <CardAvatar color={playerB?.color ?? '#5d666b'} name={playerB?.name ?? '?'} size={22} />
+      </View>
+    </View>
+  );
+}
+
+function WinnerCard({ round, tournamentName, includeMatches = false }: WinnerCardProps) {
   const players = useStore((s) => s.players);
 
   const playerIds = useMemo(() => {
@@ -160,6 +193,19 @@ function WinnerCard({ round, tournamentName }: WinnerCardProps) {
           </View>
         )}
       </View>
+
+      {/* All matches */}
+      {includeMatches && round.matches.length > 0 && (
+        <>
+          <View style={winnerStyles.divider} />
+          <View style={winnerStyles.matchesSection}>
+            <Text style={winnerStyles.matchesTitle}>ALL MATCHES</Text>
+            {round.matches.map((m, idx) => (
+              <MatchRow key={m.id} match={m} isLast={idx === round.matches.length - 1} />
+            ))}
+          </View>
+        </>
+      )}
 
       {/* Footer */}
       <View style={winnerStyles.divider} />
@@ -311,6 +357,57 @@ const winnerStyles = StyleSheet.create({
     fontSize: FontSize.xs,
     color: Colors.text.placeholder,
   },
+  matchesSection: {
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+  },
+  matchesTitle: {
+    fontFamily: FontFamily.bodyBold,
+    fontSize: FontSize.xs,
+    color: Colors.text.placeholder,
+    letterSpacing: 1.5,
+    marginBottom: Spacing.sm,
+  },
+  matchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 7,
+  },
+  matchRowBorder: {
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.06)',
+  },
+  matchSide: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+  },
+  matchSideRight: {
+    justifyContent: 'flex-end',
+  },
+  matchName: {
+    flexShrink: 1,
+    fontFamily: FontFamily.body,
+    fontSize: FontSize.xs,
+    color: Colors.text.muted,
+  },
+  matchNameRight: {
+    textAlign: 'right',
+  },
+  matchNameWin: {
+    fontFamily: FontFamily.bodySemiBold,
+    color: Colors.text.primary,
+  },
+  matchScore: {
+    fontFamily: FontFamily.displayBold,
+    fontSize: FontSize.sm,
+    color: Colors.text.secondary,
+    paddingHorizontal: Spacing.sm,
+  },
+  matchScoreWin: {
+    color: Colors.accent.green,
+  },
 });
 
 // ---------------------------------------------------------------------------
@@ -319,6 +416,7 @@ const winnerStyles = StyleSheet.create({
 
 export function ShareRoundModal({ visible, onClose, round, tournamentName }: ShareRoundModalProps) {
   const [loading, setLoading] = useState(false);
+  const [includeMatches, setIncludeMatches] = useState(false);
 
   const cardRef = useRef<View>(null);
 
@@ -440,10 +538,21 @@ export function ShareRoundModal({ visible, onClose, round, tournamentName }: Sha
         >
           <View collapsable={false} style={modalStyles.cardWrap}>
             <View ref={cardRef} collapsable={false}>
-              <WinnerCard round={round} tournamentName={tournamentName} />
+              <WinnerCard round={round} tournamentName={tournamentName} includeMatches={includeMatches} />
             </View>
           </View>
         </ScrollView>
+
+        {/* Options */}
+        <View style={modalStyles.optionRow}>
+          <Text style={modalStyles.optionLabel}>Include all matches</Text>
+          <Switch
+            value={includeMatches}
+            onValueChange={setIncludeMatches}
+            trackColor={{ false: Colors.bg.elevated, true: Colors.accent.green }}
+            thumbColor={Colors.text.primary}
+          />
+        </View>
 
         {/* Action buttons */}
         <View style={modalStyles.actions}>
@@ -522,6 +631,18 @@ const modalStyles = StyleSheet.create({
     shadowOpacity: 0.5,
     shadowRadius: 24,
     elevation: 12,
+  },
+  optionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.xl,
+    paddingTop: Spacing.lg,
+  },
+  optionLabel: {
+    fontFamily: FontFamily.body,
+    fontSize: FontSize.sm,
+    color: Colors.text.secondary,
   },
   actions: {
     flexDirection: 'row',

@@ -350,7 +350,7 @@ export async function pullState(): Promise<PulledState | null> {
     db.from('teams').select('*').eq('user_id', userId),
     db.from('tournaments').select('*').eq('user_id', userId).eq('status', 'active').limit(1),
     db.from('rounds').select('*').eq('user_id', userId),
-    db.from('matches').select('*').eq('user_id', userId),
+    db.from('matches').select('*').eq('user_id', userId).order('id', { ascending: true }),
     db.from('closed_tournaments').select('*').eq('user_id', userId),
   ]);
 
