@@ -87,6 +87,7 @@ export type Modal =
   | 'needEqual'
   | 'needBreakTie'
   | 'editStats'
+  | 'importStats'
   | 'editScore'
   | 'editTourName'
   | 'closeTour'
