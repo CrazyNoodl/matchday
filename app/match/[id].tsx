@@ -157,9 +157,9 @@ export default function MatchDetailScreen() {
   };
 
   const handleDeleteMatch = () => {
-    store.deleteMatch(match.id);
     store.setModal(null);
-    goBack();
+    store.deleteMatch(match.id);
+    router.replace('/matchday');
   };
 
   const [uploadingMedia, setUploadingMedia] = useState(false);
