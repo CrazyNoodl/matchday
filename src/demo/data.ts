@@ -82,6 +82,7 @@ const DEMO_CURRENT_MATCHES: Match[] = [
 // Full demo state snapshot (injected into the store)
 // ---------------------------------------------------------------------------
 export const DEMO_STATE = {
+  tournamentId: 'demo-tour-pl-s2',
   players: DEMO_PLAYERS,
   teams: DEMO_TEAMS,
 

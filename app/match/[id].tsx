@@ -26,6 +26,8 @@ import { TeamBadge } from '@/components/TeamBadge';
 import { SectionLabel } from '@/components/SectionLabel';
 import { StatsRow } from '@/components/StatsRow';
 import { generateMatchStats } from '@/utils/matchStats';
+import { extractStatsFromPhoto, type ExtractedStat } from '@/utils/extractStats';
+import { STAT_DEF_MAP, STAT_DEFINITIONS } from '@/utils/statDefinitions';
 import { useTranslation } from 'react-i18next';
 import { fetchMatchById } from '@/supabase/sync';
 import { uploadMediaItem, deleteMediaItem } from '@/supabase/storage';
@@ -52,16 +54,22 @@ export default function MatchDetailScreen() {
 
   const [remoteMatch, setRemoteMatch] = useState<Match | null>(null);
   const [remoteLoading, setRemoteLoading] = useState(false);
+  // Track if local store ever had this match — if yes, going undefined means it was
+  // deleted locally, so we must NOT re-fetch it from Supabase.
+  const hadLocalMatchRef = React.useRef(false);
+  if (localMatch) hadLocalMatchRef.current = true;
 
   // When local store doesn't have the match (direct link from another device),
   // try fetching it from Supabase once sync is done.
   useEffect(() => {
-    if (localMatch || syncStatus === 'syncing') return;
+    if (hadLocalMatchRef.current || localMatch || syncStatus === 'syncing') return;
     setRemoteLoading(true);
-    fetchMatchById(id).then((m) => {
-      setRemoteMatch(m);
-      setRemoteLoading(false);
-    });
+    fetchMatchById(id)
+      .then((m) => {
+        setRemoteMatch(m);
+        setRemoteLoading(false);
+      })
+      .catch(() => setRemoteLoading(false));
   }, [id, localMatch, syncStatus]);
 
   const match = localMatch ?? remoteMatch ?? undefined;
@@ -79,6 +87,10 @@ export default function MatchDetailScreen() {
   // Local state for note editing
   const [editingNote, setEditingNote] = useState(false);
   const [editNoteValue, setEditNoteValue] = useState('');
+
+  const [uploadingMedia, setUploadingMedia] = useState(false);
+  const [importingStats, setImportingStats] = useState(false);
+  const [importedStats, setImportedStats] = useState<ExtractedStat[] | null>(null);
 
   if (!match) {
     const isLoading = syncStatus === 'syncing' || remoteLoading;
@@ -109,18 +121,50 @@ export default function MatchDetailScreen() {
     ? (playerB?.nick ?? playerB?.name ?? 'Player B')
     : null;
 
-  // Generate base stats then merge with override
-  const baseStats = generateMatchStats(match.id, match.aScore, match.bScore);
-  const mergedStats = baseStats.map((stat) => {
-    const override = match.statsOverride?.[stat.key];
-    if (override) {
-      return { ...stat, aVal: override.a, bVal: override.b };
+  const hasStatsOverride = !!(match.statsOverride && Object.keys(match.statsOverride).length > 0);
+
+  // When OCR stats exist: show exactly what was extracted (ordered by STAT_DEFINITIONS, unknowns appended)
+  // When no OCR: show generated placeholder stats
+  const mergedStats = (() => {
+    if (hasStatsOverride && match.statsOverride) {
+      const override = match.statsOverride;
+      const ordered: { key: string; labelKey: string; label: string; aVal: number; bVal: number; isPercent: boolean }[] = [];
+      // First: known stats in canonical order
+      for (const def of STAT_DEFINITIONS) {
+        if (override[def.key] !== undefined) {
+          ordered.push({
+            key: def.key,
+            labelKey: def.labelKey,
+            label: def.labelKey,
+            aVal: override[def.key].a,
+            bVal: override[def.key].b,
+            isPercent: def.isPercent,
+          });
+        }
+      }
+      // Then: any unknown keys not in STAT_DEFINITIONS
+      for (const key of Object.keys(override)) {
+        if (!STAT_DEF_MAP[key]) {
+          ordered.push({
+            key,
+            labelKey: '',
+            label: key,
+            aVal: override[key].a,
+            bVal: override[key].b,
+            isPercent: false,
+          });
+        }
+      }
+      return ordered;
     }
-    return stat;
-  });
+    return generateMatchStats(match.id, match.aScore, match.bScore).map((s) => ({
+      ...s,
+      labelKey: STAT_DEF_MAP[s.key]?.labelKey ?? '',
+      label: s.label,
+    }));
+  })();
 
   const hasMediaFiles = match.media && match.media.length > 0;
-  const hasStatsOverride = match.statsOverride && Object.keys(match.statsOverride).length > 0;
 
   // Open edit score modal — pre-populate with current scores
   const openEditScore = () => {
@@ -150,12 +194,10 @@ export default function MatchDetailScreen() {
   };
 
   const handleDeleteMatch = () => {
-    store.deleteMatch(match.id);
     store.setModal(null);
-    goBack();
+    store.deleteMatch(match.id);
+    router.replace('/matchday');
   };
-
-  const [uploadingMedia, setUploadingMedia] = useState(false);
 
   const handleAddMedia = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -172,6 +214,59 @@ export default function MatchDetailScreen() {
       const newItem: MediaItem = { uri: remoteUrl ?? asset.uri, type };
       store.updateMatchMedia(match.id, [...(match.media ?? []), newItem]);
     }
+  };
+
+  const handleImportStats = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'] as any,
+      allowsMultipleSelection: true,
+      selectionLimit: 4,
+      quality: 0.85,
+      base64: true,
+    });
+    if (result.canceled || !result.assets.length) return;
+
+    setImportingStats(true);
+    try {
+      const allResults: ExtractedStat[][] = [];
+      for (const asset of result.assets) {
+        if (!asset.base64) continue;
+        const stats = await extractStatsFromPhoto(
+          asset.base64,
+          asset.mimeType ?? 'image/jpeg',
+        );
+        allResults.push(stats);
+      }
+      // Merge: prefer higher confidence when same key appears in multiple photos
+      const map = new Map<string, ExtractedStat>();
+      const rank = (c: ExtractedStat['confidence']) => (c === 'high' ? 3 : c === 'medium' ? 2 : 1);
+      for (const stats of allResults) {
+        for (const stat of stats) {
+          const existing = map.get(stat.key);
+          if (!existing || rank(stat.confidence) > rank(existing.confidence)) {
+            map.set(stat.key, stat);
+          }
+        }
+      }
+      setImportedStats(Array.from(map.values()));
+      store.setModal('importStats');
+    } catch (e: any) {
+      store.setModal('importStats');
+      setImportedStats(null);
+    } finally {
+      setImportingStats(false);
+    }
+  };
+
+  const handleApplyImportedStats = () => {
+    if (!importedStats) return;
+    const override: Record<string, { a: number; b: number }> = {};
+    for (const stat of importedStats) {
+      override[stat.key] = { a: stat.home, b: stat.away };
+    }
+    store.updateMatchStats(match.id, override);
+    store.setModal(null);
+    setImportedStats(null);
   };
 
   const handleDeleteMedia = async (idx: number) => {
@@ -303,60 +398,85 @@ export default function MatchDetailScreen() {
           </View>
         </View>
 
-        {/* ── MATCH STATS ── */}
-        <View style={styles.sectionHeader}>
-          <SectionLabel label="MATCH STATS" />
-          <View style={styles.sectionHeaderRight}>
-            {hasMediaFiles ? (
-              <View style={styles.sourceBadgeBlue}>
-                <Text style={styles.sourceBadgeBlueText}>
-                  AI-read · from {match.media!.length} media file{match.media!.length !== 1 ? 's' : ''}
-                </Text>
+        {/* ── MATCH STATS — shown only after OCR import or manual edit ── */}
+        {hasStatsOverride && (
+          <>
+            <View style={styles.sectionHeader}>
+              <SectionLabel label="MATCH STATS" />
+              <View style={styles.sectionHeaderRight}>
+                <View style={styles.sourceBadgeBlue}>
+                  <Text style={styles.sourceBadgeBlueText}>AI-read</Text>
+                </View>
+                {isEditableMatch && (
+                  <>
+                    <TouchableOpacity
+                      onPress={handleImportStats}
+                      disabled={importingStats}
+                      hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                    >
+                      {importingStats
+                        ? <ActivityIndicator size="small" color={Colors.text.muted} />
+                        : <Text style={styles.rescanLink}>Re-scan</Text>
+                      }
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={openEditStats} hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}>
+                      <Text style={styles.editLink}>Edit</Text>
+                    </TouchableOpacity>
+                  </>
+                )}
               </View>
-            ) : hasStatsOverride ? (
-              <View style={styles.sourceBadgeMuted}>
-                <Text style={styles.sourceBadgeMutedText}>Edited manually</Text>
-              </View>
-            ) : null}
-            {isEditableMatch && (
-              <TouchableOpacity onPress={openEditStats} hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}>
-                <Text style={styles.editLink}>Edit</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        </View>
+            </View>
 
-        <View style={styles.statsCard}>
-          {mergedStats.map((stat) => {
-            const aLeads = stat.aVal >= stat.bVal;
-            return (
-              <StatsRow
-                key={stat.key}
-                label={stat.isPercent ? `${stat.label} %` : stat.label}
-                aValue={stat.aVal}
-                bValue={stat.bVal}
-                aWins={aLeads}
-              />
-            );
-          })}
-        </View>
+            <View style={styles.statsCard}>
+              {mergedStats.map((stat) => {
+                const aLeads = stat.aVal >= stat.bVal;
+                const label = stat.labelKey ? t(stat.labelKey) : stat.label;
+                return (
+                  <StatsRow
+                    key={stat.key}
+                    label={stat.isPercent ? `${label} %` : label}
+                    aValue={stat.aVal}
+                    bValue={stat.bVal}
+                    aWins={aLeads}
+                  />
+                );
+              })}
+            </View>
+          </>
+        )}
 
         {/* ── MEDIA ── */}
         <View style={styles.sectionHeader}>
           <SectionLabel label="MEDIA" />
           {isEditableMatch && (
-            <TouchableOpacity
-              style={styles.addMediaBtn}
-              onPress={handleAddMedia}
-              activeOpacity={0.75}
-              disabled={uploadingMedia}
-              hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
-            >
-              {uploadingMedia
-                ? <ActivityIndicator size="small" color={Colors.accent.green} />
-                : <Text style={styles.addMediaBtnText}>+ Add</Text>
-              }
-            </TouchableOpacity>
+            <View style={styles.mediaActions}>
+              {!hasStatsOverride && (
+                <TouchableOpacity
+                  style={styles.importStatsBtn}
+                  onPress={handleImportStats}
+                  activeOpacity={0.75}
+                  disabled={importingStats}
+                  hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                >
+                  {importingStats
+                    ? <ActivityIndicator size="small" color={Colors.accent.blue} />
+                    : <Text style={styles.importStatsBtnText}>📊 Import stats</Text>
+                  }
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity
+                style={styles.addMediaBtn}
+                onPress={handleAddMedia}
+                activeOpacity={0.75}
+                disabled={uploadingMedia}
+                hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+              >
+                {uploadingMedia
+                  ? <ActivityIndicator size="small" color={Colors.accent.green} />
+                  : <Text style={styles.addMediaBtnText}>+ Add</Text>
+                }
+              </TouchableOpacity>
+            </View>
           )}
         </View>
 
@@ -573,6 +693,7 @@ export default function MatchDetailScreen() {
             >
               {mergedStats.map((stat) => {
                 const current = editValues[stat.key] ?? { a: stat.aVal, b: stat.bVal };
+                const label = stat.labelKey ? t(stat.labelKey) : stat.label;
                 return (
                   <View key={stat.key} style={styles.editStatRow}>
                     {/* Side A controls */}
@@ -595,7 +716,7 @@ export default function MatchDetailScreen() {
                     </View>
 
                     {/* Label */}
-                    <Text style={styles.editStatLabel}>{stat.label}</Text>
+                    <Text style={styles.editStatLabel}>{label}</Text>
 
                     {/* Side B controls */}
                     <View style={styles.editSideControls}>
@@ -684,6 +805,84 @@ export default function MatchDetailScreen() {
               >
                 <Text style={styles.saveBtnText}>{t('common.save')}</Text>
               </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* ── IMPORT STATS MODAL ── */}
+      <Modal
+        visible={modal === 'importStats'}
+        transparent
+        animationType="slide"
+        onRequestClose={() => { store.setModal(null); setImportedStats(null); }}
+      >
+        <View style={styles.sheetOverlay}>
+          <Pressable style={StyleSheet.absoluteFill} onPress={() => { store.setModal(null); setImportedStats(null); }} />
+          <View style={styles.sheet}>
+            <View style={styles.sheetHeader}>
+              <Text style={styles.sheetTitle}>IMPORT STATS</Text>
+              <Text style={styles.sheetSubtitle}>
+                {importedStats ? `${importedStats.length} stats found` : 'Scan failed'}
+              </Text>
+            </View>
+
+            {importedStats && importedStats.length > 0 ? (
+              <ScrollView style={styles.sheetScroll} showsVerticalScrollIndicator={false}>
+                {importedStats.map((stat, i) => {
+                  const aLeads = stat.home >= stat.away;
+                  const isLow = stat.confidence === 'low';
+                  const isMed = stat.confidence === 'medium';
+                  return (
+                    <View
+                      key={`${stat.key}-${i}`}
+                      style={[
+                        styles.importStatRow,
+                        isLow && styles.importStatRowLow,
+                        isMed && styles.importStatRowMed,
+                      ]}
+                    >
+                      {(isLow || isMed) && (
+                        <View style={[styles.importConfStripe, { backgroundColor: isLow ? '#ffa032' : Colors.accent.yellow }]} />
+                      )}
+                      <View style={styles.importStatContent}>
+                        <StatsRow
+                          label={stat.label}
+                          aValue={stat.home}
+                          bValue={stat.away}
+                          aWins={aLeads}
+                        />
+                      </View>
+                    </View>
+                  );
+                })}
+                <View style={{ height: 8 }} />
+              </ScrollView>
+            ) : (
+              <View style={styles.importErrorBody}>
+                <Text style={styles.importErrorText}>
+                  Could not extract stats from the selected photo. Try a clearer screenshot.
+                </Text>
+              </View>
+            )}
+
+            <View style={styles.sheetButtons}>
+              <TouchableOpacity
+                style={styles.cancelBtn}
+                onPress={() => { store.setModal(null); setImportedStats(null); }}
+                activeOpacity={0.75}
+              >
+                <Text style={styles.cancelBtnText}>Cancel</Text>
+              </TouchableOpacity>
+              {importedStats && importedStats.length > 0 && (
+                <TouchableOpacity
+                  style={styles.saveBtn}
+                  onPress={handleApplyImportedStats}
+                  activeOpacity={0.75}
+                >
+                  <Text style={styles.saveBtnText}>Apply</Text>
+                </TouchableOpacity>
+              )}
             </View>
           </View>
         </View>
@@ -897,6 +1096,11 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.sm,
     color: Colors.accent.blue,
+  },
+  rescanLink: {
+    fontFamily: FontFamily.bodySemiBold,
+    fontSize: FontSize.sm,
+    color: Colors.text.muted,
   },
 
   // Stats card
@@ -1153,6 +1357,60 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.base,
     color: Colors.bg.base,
+  },
+
+  // Media section actions
+  mediaActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  importStatsBtn: {
+    height: 26,
+    paddingHorizontal: 10,
+    borderRadius: Radius.sm,
+    borderWidth: 1,
+    borderColor: 'rgba(106,166,255,0.35)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  importStatsBtnText: {
+    fontFamily: FontFamily.bodySemiBold,
+    fontSize: FontSize.sm,
+    color: Colors.accent.blue,
+  },
+
+  // Import stats modal rows
+  importStatRow: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border.default,
+  },
+  importStatRowLow: {
+    backgroundColor: 'rgba(255,160,50,0.12)',
+  },
+  importStatRowMed: {
+    backgroundColor: 'rgba(246,195,80,0.07)',
+  },
+  importConfStripe: {
+    width: 3,
+  },
+  importStatContent: {
+    flex: 1,
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.sm,
+  },
+  importErrorBody: {
+    paddingHorizontal: Spacing['2xl'],
+    paddingVertical: Spacing.xl,
+  },
+  importErrorText: {
+    fontFamily: FontFamily.body,
+    fontSize: FontSize.sm,
+    color: Colors.text.muted,
+    textAlign: 'center',
+    lineHeight: 20,
   },
 
   // Add media button
