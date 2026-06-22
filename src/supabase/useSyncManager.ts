@@ -12,6 +12,7 @@ export function useSyncManager() {
 
   const applyingRef = useRef(false);
   const pushTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const prevDemoModeRef = useRef<boolean>(useStore.getState().demoMode);
 
   useEffect(() => {
     let userId: string | null = null;
@@ -87,7 +88,11 @@ export function useSyncManager() {
         }
 
         setSyncStatus('idle');
-        subscription = subscribeToChanges(userId, () => { pull(); });
+        subscription = subscribeToChanges(userId, () => {
+          // Skip real-time pulls while demo mode is active to avoid wasted
+          // network requests (applyCloudState would be a no-op anyway).
+          if (!useStore.getState().demoMode) pull();
+        });
       } catch {
         setSyncStatus('error');
       }
@@ -97,8 +102,32 @@ export function useSyncManager() {
 
     const unsubscribe = useStore.subscribe((state) => {
       if (applyingRef.current) return;
-      if (state.demoMode) return;
+
+      const wasDemo = prevDemoModeRef.current;
+      prevDemoModeRef.current = state.demoMode;
+
+      if (state.demoMode) {
+        // Cancel any pending push when entering demo mode so demo data
+        // never reaches Supabase via a lingering debounce timer.
+        if (pushTimerRef.current) {
+          clearTimeout(pushTimerRef.current);
+          pushTimerRef.current = null;
+        }
+        return;
+      }
+
       if (!userId) return;
+
+      if (wasDemo) {
+        // Just exited demo mode: pull the latest cloud state first so we
+        // don't overwrite changes made on another device while demo was active.
+        pull().then(() => {
+          if (!useStore.getState().demoMode) {
+            pushState(buildPushPayload()).catch(() => setSyncStatus('error'));
+          }
+        });
+        return;
+      }
 
       if (pushTimerRef.current) clearTimeout(pushTimerRef.current);
       pushTimerRef.current = setTimeout(() => {

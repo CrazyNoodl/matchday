@@ -59,6 +59,7 @@ export interface ClosedTournament {
 }
 
 export interface RealDataBackup {
+  tournamentId: string;
   hasTournament: boolean;
   tournamentName: string;
   round: number;
