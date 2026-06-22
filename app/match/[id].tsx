@@ -53,16 +53,22 @@ export default function MatchDetailScreen() {
 
   const [remoteMatch, setRemoteMatch] = useState<Match | null>(null);
   const [remoteLoading, setRemoteLoading] = useState(false);
+  // Track if local store ever had this match — if yes, going undefined means it was
+  // deleted locally, so we must NOT re-fetch it from Supabase.
+  const hadLocalMatchRef = React.useRef(false);
+  if (localMatch) hadLocalMatchRef.current = true;
 
   // When local store doesn't have the match (direct link from another device),
   // try fetching it from Supabase once sync is done.
   useEffect(() => {
-    if (localMatch || syncStatus === 'syncing') return;
+    if (hadLocalMatchRef.current || localMatch || syncStatus === 'syncing') return;
     setRemoteLoading(true);
-    fetchMatchById(id).then((m) => {
-      setRemoteMatch(m);
-      setRemoteLoading(false);
-    });
+    fetchMatchById(id)
+      .then((m) => {
+        setRemoteMatch(m);
+        setRemoteLoading(false);
+      })
+      .catch(() => setRemoteLoading(false));
   }, [id, localMatch, syncStatus]);
 
   const match = localMatch ?? remoteMatch ?? undefined;
