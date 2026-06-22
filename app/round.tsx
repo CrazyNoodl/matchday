@@ -64,6 +64,9 @@ interface AddMatchState {
   note: string;
   pendingStats: Record<string, { a: number; b: number }> | null;
   ocrScanning: boolean;
+  ocrStatus: 'idle' | 'scanning' | 'done' | 'error' | 'skipped';
+  // Assets kept for retry
+  ocrAssets: Array<{ base64: string; mimeType: string }>;
 }
 
 function initAddMatch(): AddMatchState {
@@ -79,6 +82,8 @@ function initAddMatch(): AddMatchState {
     note: '',
     pendingStats: null,
     ocrScanning: false,
+    ocrStatus: 'idle',
+    ocrAssets: [],
   };
 }
 
@@ -221,8 +226,16 @@ export default function MatchdayScreen() {
     ][step - 1] ?? '';
   };
 
+  const isMediaStep = useCallback((state: AddMatchState) => {
+    return tournamentRanked ? state.step === 3 : state.step === 4;
+  }, [tournamentRanked]);
+
   const canGoNext = useCallback((state: AddMatchState): boolean => {
     const { step } = state;
+    // Block Next while OCR is scanning or showing error (must retry or skip)
+    if (isMediaStep(state) && (state.ocrStatus === 'scanning' || state.ocrStatus === 'error')) {
+      return false;
+    }
     if (tournamentRanked) {
       if (step === 1) return !!state.homeId && !!state.awayId;
       return true;
@@ -231,7 +244,7 @@ export default function MatchdayScreen() {
       if (step === 2) return !!state.homeTeam && !!state.awayTeam;
       return true;
     }
-  }, [tournamentRanked]);
+  }, [tournamentRanked, isMediaStep]);
 
   const handleNext = useCallback(() => {
     setAddMatch((prev) => ({ ...prev, step: Math.min(prev.step + 1, totalSteps) }));
@@ -276,6 +289,58 @@ export default function MatchdayScreen() {
     setAddMatch(initAddMatch());
   }, [addMatch, players, store]);
 
+  const runOcr = useCallback(
+    async (assets: Array<{ base64: string; mimeType: string }>, isRetry = false) => {
+      setAddMatch((prev) => ({
+        ...prev,
+        ocrScanning: true,
+        ocrStatus: 'scanning',
+        ...(isRetry ? {} : { ocrAssets: assets }),
+      }));
+      try {
+        const rank = (c: string) => (c === 'high' ? 3 : c === 'medium' ? 2 : 1);
+        const map = new Map<string, { a: number; b: number; __conf: string }>();
+
+        for (const asset of assets) {
+          const stats = await extractStatsFromPhoto(asset.base64, asset.mimeType);
+          for (const s of stats) {
+            const existing = map.get(s.key);
+            if (!existing || rank(s.confidence) > rank(existing.__conf)) {
+              map.set(s.key, { a: s.home, b: s.away, __conf: s.confidence });
+            }
+          }
+        }
+
+        const pendingStats: Record<string, { a: number; b: number }> = {};
+        map.forEach((v, k) => { pendingStats[k] = { a: v.a, b: v.b }; });
+
+        setAddMatch((prev) => ({
+          ...prev,
+          ocrScanning: false,
+          ocrStatus: 'done',
+          pendingStats: Object.keys(pendingStats).length > 0 ? pendingStats : null,
+        }));
+      } catch {
+        if (isRetry) {
+          // Second failure — skip stats, unblock Next
+          setAddMatch((prev) => ({
+            ...prev,
+            ocrScanning: false,
+            ocrStatus: 'skipped',
+            pendingStats: null,
+          }));
+        } else {
+          setAddMatch((prev) => ({
+            ...prev,
+            ocrScanning: false,
+            ocrStatus: 'error',
+          }));
+        }
+      }
+    },
+    [],
+  );
+
   const handlePickMedia = useCallback(async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images', 'videos'],
@@ -290,51 +355,29 @@ export default function MatchdayScreen() {
       type: a.type === 'video' ? 'video' : 'image',
     }));
 
+    const imageAssets = result.assets
+      .filter((a) => a.type !== 'video' && a.base64)
+      .map((a) => ({ base64: a.base64!, mimeType: a.mimeType ?? 'image/jpeg' }));
+
     setAddMatch((prev) => ({
       ...prev,
       media: [...prev.media, ...newItems].slice(0, 7),
-      ocrScanning: true,
+      ocrStatus: imageAssets.length > 0 ? 'scanning' : 'idle',
     }));
 
-    // Run OCR in background on all image assets
-    const imageAssets = result.assets.filter((a) => a.type !== 'video' && a.base64);
-    if (imageAssets.length === 0) {
-      setAddMatch((prev) => ({ ...prev, ocrScanning: false }));
-      return;
+    if (imageAssets.length > 0) {
+      runOcr(imageAssets);
     }
+  }, [runOcr]);
 
-    (async () => {
-      try {
-        const rank = (c: string) => (c === 'high' ? 3 : c === 'medium' ? 2 : 1);
-        const map = new Map<string, { a: number; b: number }>();
-
-        for (const asset of imageAssets) {
-          const stats = await extractStatsFromPhoto(
-            asset.base64!,
-            asset.mimeType ?? 'image/jpeg',
-          );
-          for (const s of stats) {
-            const existing = map.get(s.key);
-            if (!existing || rank(s.confidence) > rank((existing as any).__conf ?? 'low')) {
-              map.set(s.key, { a: s.home, b: s.away, __conf: s.confidence } as any);
-            }
-          }
-        }
-
-        // Strip internal __conf field
-        const pendingStats: Record<string, { a: number; b: number }> = {};
-        map.forEach((v, k) => { pendingStats[k] = { a: v.a, b: v.b }; });
-
-        setAddMatch((prev) => ({
-          ...prev,
-          ocrScanning: false,
-          pendingStats: Object.keys(pendingStats).length > 0 ? pendingStats : null,
-        }));
-      } catch {
-        setAddMatch((prev) => ({ ...prev, ocrScanning: false }));
+  const handleRetryOcr = useCallback(() => {
+    setAddMatch((prev) => {
+      if (prev.ocrAssets.length > 0) {
+        runOcr(prev.ocrAssets, true);
       }
-    })();
-  }, []);
+      return prev;
+    });
+  }, [runOcr]);
 
   const handleRemoveMedia = useCallback((idx: number) => {
     setAddMatch((prev) => ({
@@ -544,17 +587,40 @@ export default function MatchdayScreen() {
           )}
         </View>
       </ScrollView>
-      {addMatch.ocrScanning && (
+      {addMatch.ocrStatus === 'scanning' && (
         <View style={sheetStyles.ocrStatus}>
           <ActivityIndicator size="small" color={Colors.accent.blue} />
-          <Text style={sheetStyles.ocrStatusText}>Reading stats...</Text>
+          <Text style={sheetStyles.ocrStatusText}>Reading stats from photos...</Text>
         </View>
       )}
-      {!addMatch.ocrScanning && addMatch.pendingStats && (
+      {addMatch.ocrStatus === 'done' && addMatch.pendingStats && (
         <View style={sheetStyles.ocrStatus}>
           <Text style={sheetStyles.ocrFoundText}>
-            📊 {Object.keys(addMatch.pendingStats).length} stats found
+            📊 {Object.keys(addMatch.pendingStats).length} stats detected
           </Text>
+        </View>
+      )}
+      {addMatch.ocrStatus === 'error' && (
+        <View style={sheetStyles.ocrError}>
+          <Text style={sheetStyles.ocrErrorText}>Failed to read stats</Text>
+          <TouchableOpacity
+            style={sheetStyles.ocrRetryBtn}
+            onPress={handleRetryOcr}
+            activeOpacity={0.75}
+          >
+            <Text style={sheetStyles.ocrRetryText}>Retry</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => setAddMatch((p) => ({ ...p, ocrStatus: 'skipped' }))}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Text style={sheetStyles.ocrSkipText}>Skip</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+      {addMatch.ocrStatus === 'skipped' && (
+        <View style={sheetStyles.ocrStatus}>
+          <Text style={sheetStyles.ocrSkippedText}>Stats skipped — add from match detail</Text>
         </View>
       )}
     </View>
@@ -1486,6 +1552,41 @@ const sheetStyles = StyleSheet.create({
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.sm,
     color: Colors.accent.green,
+  },
+  ocrError: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+    marginTop: Spacing.md,
+    paddingHorizontal: Spacing.xs,
+  },
+  ocrErrorText: {
+    fontFamily: FontFamily.body,
+    fontSize: FontSize.sm,
+    color: Colors.accent.red,
+    flex: 1,
+  },
+  ocrRetryBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: Radius.sm,
+    borderWidth: 1,
+    borderColor: Colors.accent.blue,
+  },
+  ocrRetryText: {
+    fontFamily: FontFamily.bodySemiBold,
+    fontSize: FontSize.sm,
+    color: Colors.accent.blue,
+  },
+  ocrSkipText: {
+    fontFamily: FontFamily.body,
+    fontSize: FontSize.sm,
+    color: Colors.text.muted,
+  },
+  ocrSkippedText: {
+    fontFamily: FontFamily.body,
+    fontSize: FontSize.sm,
+    color: Colors.text.placeholder,
   },
   commentInput: {
     backgroundColor: Colors.bg.elevated,
