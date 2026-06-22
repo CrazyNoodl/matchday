@@ -60,9 +60,12 @@ export function normalizeKey(raw: string): string {
   return KEY_ALIASES[lower] ?? raw;
 }
 
+// Local dev (Metro/standalone proxy) serves this at the relative path.
+// Production web builds (GitHub Pages has no backend) point it at the
+// deployed Cloudflare Worker via EXPO_PUBLIC_ANTHROPIC_PROXY_URL.
 const API_ENDPOINT =
   Platform.OS === 'web'
-    ? '/api/anthropic'
+    ? process.env.EXPO_PUBLIC_ANTHROPIC_PROXY_URL || '/api/anthropic'
     : 'https://api.anthropic.com/v1/messages';
 
 const ANTHROPIC_API_KEY = process.env.EXPO_PUBLIC_ANTHROPIC_API_KEY ?? '';
