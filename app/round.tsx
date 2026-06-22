@@ -252,6 +252,7 @@ export default function MatchdayScreen() {
 
   const handleBack = useCallback(() => {
     setAddMatch((prev) => {
+      if (prev.ocrStatus === 'scanning') return prev;
       if (prev.step <= 1) {
         store.setModal(null);
         return initAddMatch();
@@ -380,10 +381,10 @@ export default function MatchdayScreen() {
   }, [runOcr]);
 
   const handleRemoveMedia = useCallback((idx: number) => {
-    setAddMatch((prev) => ({
-      ...prev,
-      media: prev.media.filter((_, i) => i !== idx),
-    }));
+    setAddMatch((prev) => {
+      if (prev.ocrStatus === 'scanning') return prev;
+      return { ...prev, media: prev.media.filter((_, i) => i !== idx) };
+    });
   }, []);
 
   // ---- Render step content ----
@@ -572,7 +573,7 @@ export default function MatchdayScreen() {
             <MediaThumbnail
               key={idx}
               uri={item.uri}
-              onRemove={() => handleRemoveMedia(idx)}
+              onRemove={addMatch.ocrStatus === 'scanning' ? undefined : () => handleRemoveMedia(idx)}
             />
           ))}
           {addMatch.media.length < 7 && (
@@ -903,11 +904,20 @@ export default function MatchdayScreen() {
             {/* Actions */}
             <View style={sheetStyles.actions}>
               <TouchableOpacity
-                style={sheetStyles.backActionBtn}
+                style={[
+                  sheetStyles.backActionBtn,
+                  addMatch.ocrStatus === 'scanning' && sheetStyles.nextBtnDisabled,
+                ]}
                 onPress={handleBack}
+                disabled={addMatch.ocrStatus === 'scanning'}
                 activeOpacity={0.75}
               >
-                <Text style={sheetStyles.backActionText}>
+                <Text
+                  style={[
+                    sheetStyles.backActionText,
+                    addMatch.ocrStatus === 'scanning' && sheetStyles.nextBtnTextDisabled,
+                  ]}
+                >
                   {addMatch.step === 1 ? t('common.cancel') : t('common.back')}
                 </Text>
               </TouchableOpacity>
