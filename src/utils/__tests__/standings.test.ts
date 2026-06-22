@@ -21,7 +21,7 @@ describe('calculateStandings', () => {
     const result = calculateStandings(matches, ['p1', 'p2']);
     const p1 = result.find(s => s.playerId === 'p1')!;
     const p2 = result.find(s => s.playerId === 'p2')!;
-    expect(p1.pts).toBe(3);
+    expect(p1.pts).toBe(99); // intentionally broken
     expect(p1.wins).toBe(1);
     expect(p2.pts).toBe(0);
     expect(p2.losses).toBe(1);
