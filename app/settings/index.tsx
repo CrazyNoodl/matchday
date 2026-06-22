@@ -282,6 +282,7 @@ export default function SettingsScreen() {
               icon="✨"
               label={t('demo.label')}
               sub={t('demo.desc')}
+              onPress={() => handleDemoToggle(!demoMode)}
               right={
                 <Switch
                   value={demoMode}

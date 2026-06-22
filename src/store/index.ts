@@ -420,6 +420,7 @@ export const useStore = create<AppState & Actions>()(
         if (on === s.demoMode) return;
         if (on) {
           const backup: RealDataBackup = {
+            tournamentId: s.tournamentId,
             hasTournament: s.hasTournament,
             tournamentName: s.tournamentName,
             round: s.round,

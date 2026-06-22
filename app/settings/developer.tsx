@@ -54,6 +54,18 @@ export default function DeveloperScreen() {
             />
           </View>
         </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionHeader}>AI EXPERIMENTS</Text>
+          <View style={styles.card}>
+            <DevRow
+              icon="🔬"
+              label="OCR Lab"
+              sub="Extract match stats from a screenshot with Claude Vision"
+              onPress={() => router.push('/settings/ocr-lab')}
+            />
+          </View>
+        </View>
       </View>
     </SafeAreaView>
   );
