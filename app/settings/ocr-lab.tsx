@@ -8,7 +8,6 @@ import {
   Image,
   ActivityIndicator,
   Alert,
-  Platform,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -19,28 +18,13 @@ import { StatsRow } from '@/components/StatsRow';
 import { Colors } from '@/theme/colors';
 import { FontFamily, FontSize } from '@/theme/typography';
 import { Radius, Spacing } from '@/theme/spacing';
+import { extractStatsFromPhoto, type ExtractedStat } from '@/utils/extractStats';
 
 interface PhotoItem {
   uri: string;
   base64: string;
   mimeType: string;
 }
-
-interface ExtractedStat {
-  key: string;
-  label: string;
-  home: number;
-  away: number;
-  confidence: 'high' | 'medium' | 'low';
-}
-
-const ANTHROPIC_API_KEY = process.env.EXPO_PUBLIC_ANTHROPIC_API_KEY ?? '';
-// On web: use Metro's built-in proxy (same origin = no CORS).
-// On native: call Anthropic directly.
-const API_ENDPOINT =
-  Platform.OS === 'web'
-    ? '/api/anthropic'
-    : 'https://api.anthropic.com/v1/messages';
 
 function confidenceRank(c: ExtractedStat['confidence']): number {
   return c === 'high' ? 3 : c === 'medium' ? 2 : 1;
@@ -59,69 +43,6 @@ function mergeStatArrays(all: ExtractedStat[][]): ExtractedStat[] {
   return Array.from(map.values());
 }
 
-async function scanPhoto(photo: PhotoItem): Promise<ExtractedStat[]> {
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-    'anthropic-version': '2023-06-01',
-  };
-  // On native we include the key directly; on web the proxy injects it.
-  if (Platform.OS !== 'web') {
-    headers['x-api-key'] = ANTHROPIC_API_KEY;
-  }
-
-  const response = await fetch(API_ENDPOINT, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 2048,
-      messages: [
-        {
-          role: 'user',
-          content: [
-            {
-              type: 'image',
-              source: { type: 'base64', media_type: photo.mimeType, data: photo.base64 },
-            },
-            {
-              type: 'text',
-              text: `This is a screenshot of a football/soccer match statistics screen (EA FC, FIFA, or similar game). Extract ALL visible statistics.
-
-Return ONLY a raw JSON object (no markdown, no code block):
-{
-  "stats": [
-    { "key": "possession", "label": "Possession", "home": 52, "away": 48, "confidence": "high" }
-  ]
-}
-
-Rules:
-- "key": snake_case English identifier
-- "label": short English name (Shots, Fouls, Pass Accuracy, Corners, etc.)
-- "home": left team value as number only
-- "away": right team value as number only
-- "confidence": "high" = clearly readable, "medium" = slightly unclear, "low" = guessed/hard to read
-- The image may be rotated or photographed at an angle — extract what you can
-- Include EVERY stat row visible`,
-            },
-          ],
-        },
-      ],
-    }),
-  });
-
-  if (!response.ok) {
-    const errText = await response.text();
-    throw new Error(`API ${response.status}: ${errText.slice(0, 200)}`);
-  }
-
-  const data = await response.json();
-  const text: string = data.content?.[0]?.text ?? '';
-  const jsonMatch = text.match(/\{[\s\S]*\}/);
-  if (!jsonMatch) throw new Error('No JSON in response');
-  const parsed = JSON.parse(jsonMatch[0]);
-  if (!Array.isArray(parsed.stats)) throw new Error('Invalid response format');
-  return parsed.stats as ExtractedStat[];
-}
 
 function getBgColor(c: ExtractedStat['confidence']): string {
   if (c === 'low') return 'rgba(255,160,50,0.14)';
@@ -176,10 +97,6 @@ export default function OcrLabScreen() {
 
   const scanAll = async () => {
     if (photos.length === 0) return;
-    if (Platform.OS !== 'web' && !ANTHROPIC_API_KEY) {
-      Alert.alert('Missing API Key', 'Add EXPO_PUBLIC_ANTHROPIC_API_KEY to .env');
-      return;
-    }
     setScanning(true);
     setError(null);
     setStats(null);
@@ -187,7 +104,7 @@ export default function OcrLabScreen() {
       const allResults: ExtractedStat[][] = [];
       for (let i = 0; i < photos.length; i++) {
         setScanProgress(`Scanning ${i + 1} / ${photos.length}...`);
-        const result = await scanPhoto(photos[i]);
+        const result = await extractStatsFromPhoto(photos[i].base64, photos[i].mimeType);
         allResults.push(result);
       }
       setScanProgress(null);
@@ -201,7 +118,6 @@ export default function OcrLabScreen() {
   };
 
   const lowCount = stats?.filter((s) => s.confidence === 'low').length ?? 0;
-  const isWeb = Platform.OS === 'web';
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
@@ -213,17 +129,6 @@ export default function OcrLabScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Web proxy hint */}
-        {isWeb && (
-          <View style={styles.proxyHint}>
-            <Text style={styles.proxyHintText}>
-              {'Web mode: run '}
-              <Text style={styles.proxyHintCode}>node scripts/anthropic-proxy.js</Text>
-              {' in a separate terminal'}
-            </Text>
-          </View>
-        )}
-
         {/* Photo thumbnails row */}
         <View style={styles.thumbsRow}>
           {photos.map((photo, idx) => (
