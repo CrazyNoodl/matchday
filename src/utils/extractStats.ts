@@ -10,21 +10,49 @@ export interface ExtractedStat {
 
 // Known stat keys that map to the store's statsOverride format
 const KEY_ALIASES: Record<string, string> = {
-  possession: 'possession',
-  shots: 'shots',
-  shots_on_target: 'shotsOnTarget',
-  shots_on_goal: 'shotsOnTarget',
-  shotsontarget: 'shotsOnTarget',
-  shotsongoal: 'shotsOnTarget',
-  pass_accuracy: 'passAccuracy',
-  passing_accuracy: 'passAccuracy',
-  passaccuracy: 'passAccuracy',
-  passes: 'passes',
-  tackles: 'tackles',
-  fouls: 'fouls',
-  corners: 'corners',
-  offsides: 'offsides',
-  offside: 'offsides',
+  possession:           'possession',
+  timetoregin:          'timeToRegain',
+  timetoregain:         'timeToRegain',
+  timetoreginball:      'timeToRegain',
+  timetoregainball:     'timeToRegain',
+  shots:                'shots',
+  expectedgoals:        'expectedGoals',
+  xg:                   'expectedGoals',
+  passes:               'passes',
+  tackles:              'tackles',
+  successfultackles:    'successfulTackles',
+  interceptions:        'interceptions',
+  interception:         'interceptions',
+  saves:                'saves',
+  fouls:                'fouls',
+  offsides:             'offsides',
+  offside:              'offsides',
+  corners:              'corners',
+  freekicks:            'freekicks',
+  freekick:             'freekicks',
+  penaltyshots:         'penaltyShots',
+  penalties:            'penaltyShots',
+  penaltyattempts:      'penaltyShots',
+  yellowcards:          'yellowCards',
+  yellowcard:           'yellowCards',
+  redcards:             'redCards',
+  redcard:              'redCards',
+  breaksthroughcenter:  'breaksThroughCenter',
+  centerbreaks:         'breaksThroughCenter',
+  centrebreaks:         'breaksThroughCenter',
+  breaksthroughwing:    'breaksThroughWing',
+  wingbreaks:           'breaksThroughWing',
+  breaksthroughhigh:    'breaksThroughHigh',
+  highbreaks:           'breaksThroughHigh',
+  defbreakattempts:     'defBreakAttempts',
+  breakattempts:        'defBreakAttempts',
+  defensivebreaks:      'defBreakAttempts',
+  successfuldribbles:   'successfulDribbles',
+  dribbles:             'successfulDribbles',
+  dribblesuccess:       'successfulDribbles',
+  shotaccuracy:         'shotAccuracy',
+  passaccuracy:         'passAccuracy',
+  passingaccuracy:      'passAccuracy',
 };
 
 export function normalizeKey(raw: string): string {
@@ -39,7 +67,7 @@ const API_ENDPOINT =
 
 const ANTHROPIC_API_KEY = process.env.EXPO_PUBLIC_ANTHROPIC_API_KEY ?? '';
 
-const PROMPT = `This is a screenshot of a football/soccer match statistics screen (EA FC, FIFA, or similar). Extract ALL visible statistics.
+const PROMPT = `This is a screenshot of a football/soccer match statistics screen (EA FC, FIFA, or similar). The image may be rotated or photographed at an angle — extract what you can see.
 
 Return ONLY raw JSON, no markdown:
 {
@@ -48,17 +76,22 @@ Return ONLY raw JSON, no markdown:
   ]
 }
 
-Use these exact keys where applicable:
-- possession, shots, shots_on_target, pass_accuracy, passes, tackles, fouls, corners, offsides
+Use these exact keys (camelCase) where the stat matches:
+- possession, timeToRegain, shots, expectedGoals, passes
+- tackles, successfulTackles, interceptions, saves, fouls
+- offsides, corners, freekicks, penaltyShots
+- yellowCards, redCards
+- breaksThroughCenter, breaksThroughWing, breaksThroughHigh, defBreakAttempts
+- successfulDribbles, shotAccuracy, passAccuracy
 
 Rules:
-- "key": snake_case English (use exact keys above when they match)
-- "label": short English name
-- "home": left team value as number only (no % sign)
-- "away": right team value as number only
-- "confidence": "high" = clear, "medium" = slightly unclear, "low" = guessed/blurry
-- Image may be rotated or at an angle — extract what you can
-- Include EVERY stat row visible`;
+- "key": use exact keys above when they match; otherwise camelCase English
+- "label": short English name for the stat
+- "home": LEFT team value as number only (strip % sign, keep decimals like 4.4)
+- "away": RIGHT team value as number only
+- "confidence": "high" = clearly readable, "medium" = slightly unclear, "low" = guessed or blurry
+- Include EVERY stat row visible, even if uncertain
+- For percentage stats (possession, accuracy, dribbles): store the number without % sign`;
 
 export async function extractStatsFromPhoto(
   base64: string,
