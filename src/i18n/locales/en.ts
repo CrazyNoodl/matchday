@@ -248,7 +248,7 @@ const en = {
     about: {
       section: 'ABOUT',
       appName: 'Matchday',
-      version: 'Version 1.3.0',
+      version: 'Version {{version}}',
     },
     danger: {
       section: 'DANGER ZONE',

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Modal, Pressable, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
+import Constants from 'expo-constants';
 import { useGoBack } from '@/utils/useGoBack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -254,7 +255,7 @@ export default function SettingsScreen() {
                   ? '🛠  Developer mode on'
                   : versionTaps >= 4
                     ? `${7 - versionTaps} more taps to unlock dev menu`
-                    : t('settings.about.version')
+                    : t('settings.about.version', { version: Constants.expoConfig?.version ?? '' })
               }
               onPress={handleVersionTap}
               chevron={false}

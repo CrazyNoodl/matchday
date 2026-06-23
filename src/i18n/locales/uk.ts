@@ -248,7 +248,7 @@ const uk = {
     about: {
       section: 'ПРО ДОДАТОК',
       appName: 'Matchday',
-      version: 'Версія 1.2.0',
+      version: 'Версія {{version}}',
     },
     danger: {
       section: 'НЕБЕЗПЕЧНА ЗОНА',
