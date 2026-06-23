@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStore } from '@/store';
 import { calculateStandings } from '@/utils/standings';
 import { formatShortDate, formatYearShort } from '@/utils/dateFormat';
+import { getPlayerDisplayName } from '@/utils/playerDisplay';
 import { Colors } from '@/theme/colors';
 import { FontFamily, FontSize } from '@/theme/typography';
 import { Radius, Spacing } from '@/theme/spacing';
@@ -286,8 +287,7 @@ export default function SeasonStatsScreen() {
           standings.map((s, index) => {
             const rank = index + 1;
             const player = players.find((p) => p.id === s.playerId);
-            const displayName =
-              (showNick && player?.nick) ? player.nick : player?.name ?? '—';
+            const displayName = getPlayerDisplayName(player, showNick, '—');
             const subText = buildSubText(
               paramChip,
               s.wins,

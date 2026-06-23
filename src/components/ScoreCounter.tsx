@@ -10,6 +10,7 @@ import { FontFamily, FontSize } from '../theme/typography';
 import { Radius, Spacing } from '../theme/spacing';
 import { Avatar } from './Avatar';
 import { useStore } from '../store';
+import { getPlayerDisplayName } from '../utils/playerDisplay';
 
 interface ScoreCounterProps {
   playerId: string;
@@ -29,8 +30,7 @@ export function ScoreCounter({
   const player = useStore((s) => s.players.find((p) => p.id === playerId));
   const showNick = useStore((s) => s.showNick);
 
-  const displayName =
-    (showNick && player?.nick) ? player.nick : player?.name ?? 'Unknown';
+  const displayName = getPlayerDisplayName(player, showNick);
 
   return (
     <View style={styles.container}>

@@ -8,6 +8,7 @@ import { Radius, Spacing } from '../theme/spacing';
 import { Avatar } from './Avatar';
 import { FormChip } from './FormChip';
 import { getFormChips } from '../utils/standings';
+import { getPlayerDisplayName } from '../utils/playerDisplay';
 
 interface StandingCardProps {
   standing: Standing;
@@ -58,7 +59,7 @@ export function StandingCard({
       <View style={styles.info}>
         <View style={styles.nameRow}>
           <Text style={styles.name} numberOfLines={1}>
-            {(showNick && player?.nick) ? player.nick : player?.name ?? 'Unknown'}
+            {getPlayerDisplayName(player, showNick)}
           </Text>
           {isLeader && (
             <View style={styles.leaderBadge}>
