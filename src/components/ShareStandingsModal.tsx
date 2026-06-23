@@ -22,6 +22,7 @@ import { Colors } from '@/theme/colors';
 import { FontFamily, FontSize } from '@/theme/typography';
 import { Radius, Spacing } from '@/theme/spacing';
 import { CardAvatar } from '@/components/ShareRoundModal';
+import { STANDINGS_NUM_COLS, formatShareCardDate } from '@/utils/shareCard';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -36,28 +37,10 @@ interface ShareStandingsModalProps {
 }
 
 // ---------------------------------------------------------------------------
-// Formatting helpers
-// ---------------------------------------------------------------------------
-
-function fmtDate(): string {
-  const d = new Date();
-  return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-}
-
-// ---------------------------------------------------------------------------
 // Standings Card
 // ---------------------------------------------------------------------------
 
 const CARD_W = 320;
-
-const STANDINGS_NUM_COLS: { key: keyof Standing; label: string }[] = [
-  { key: 'played', label: 'P' },
-  { key: 'wins', label: 'W' },
-  { key: 'draws', label: 'D' },
-  { key: 'losses', label: 'L' },
-  { key: 'gf', label: 'GF' },
-  { key: 'ga', label: 'GA' },
-];
 
 function StandingsRow({ standing, isLeader, isLast }: { standing: Standing; isLeader: boolean; isLast: boolean }) {
   const player = useStore((s) => s.players.find((p) => p.id === standing.playerId));
@@ -100,7 +83,7 @@ interface StandingsCardProps {
 }
 
 function StandingsCard({ tournamentName, subtitle, standings }: StandingsCardProps) {
-  const dateStr = fmtDate();
+  const dateStr = formatShareCardDate();
 
   return (
     <View style={cardStyles.card} collapsable={false}>

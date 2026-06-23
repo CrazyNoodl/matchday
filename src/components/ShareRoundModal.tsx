@@ -24,6 +24,7 @@ import { calculateStandings, Standing } from '@/utils/standings';
 import { Colors } from '@/theme/colors';
 import { FontFamily, FontSize } from '@/theme/typography';
 import { Radius, Spacing } from '@/theme/spacing';
+import { STANDINGS_NUM_COLS, formatShareCardDate } from '@/utils/shareCard';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -69,15 +70,6 @@ export function CardAvatar({ teamCode, size }: { teamCode?: string; size: number
 }
 
 // ---------------------------------------------------------------------------
-// Formatting helpers
-// ---------------------------------------------------------------------------
-
-function fmtDate(iso: string): string {
-  const d = new Date(iso);
-  return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-}
-
-// ---------------------------------------------------------------------------
 // Winner Card
 // ---------------------------------------------------------------------------
 
@@ -89,15 +81,6 @@ interface WinnerCardProps {
 }
 
 const CARD_W = 320;
-
-const STANDINGS_NUM_COLS: { key: keyof Standing; label: string }[] = [
-  { key: 'played', label: 'P' },
-  { key: 'wins', label: 'W' },
-  { key: 'draws', label: 'D' },
-  { key: 'losses', label: 'L' },
-  { key: 'gf', label: 'GF' },
-  { key: 'ga', label: 'GA' },
-];
 
 function StandingsTableRow({
   standing,
@@ -190,7 +173,7 @@ function WinnerCard({ round, tournamentName, includeMatches = false, includeStan
   const isDraw = !round.winner;
 
   const glowColor = winner?.color ?? Colors.accent.green;
-  const dateStr = fmtDate(round.date);
+  const dateStr = formatShareCardDate(round.date);
 
   return (
     <View style={winnerStyles.card} collapsable={false}>
