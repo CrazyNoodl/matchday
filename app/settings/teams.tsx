@@ -22,6 +22,7 @@ import { Radius, Spacing } from '@/theme/spacing';
 import { NavHeader } from '@/components/NavHeader';
 import { TeamBadge } from '@/components/TeamBadge';
 import { EmptyState } from '@/components/EmptyState';
+import { GlowBackground } from '@/components/GlowBackground';
 import { Team } from '@/store/types';
 import { useTranslation } from 'react-i18next';
 import { uploadTeamLogo } from '@/supabase/storage';
@@ -139,7 +140,7 @@ export default function TeamsScreen() {
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
-      <View style={styles.glow} pointerEvents="none" />
+      <GlowBackground />
       <NavHeader
         title={t('teams.title')}
         subtitle={t('settings.data.teamsCount', { count: teams.length })}
@@ -381,16 +382,6 @@ export default function TeamsScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: Colors.bg.base },
-  glow: {
-    position: 'absolute',
-    width: 340,
-    height: 340,
-    top: -80,
-    left: -40,
-    borderRadius: 170,
-    backgroundColor: Colors.accent.green,
-    opacity: 0.06,
-  },
   addBtn: {
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.xs,

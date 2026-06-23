@@ -17,6 +17,7 @@ import { FontFamily, FontSize } from '@/theme/typography';
 import { Radius, Spacing } from '@/theme/spacing';
 import { NavHeader } from '@/components/NavHeader';
 import { Avatar } from '@/components/Avatar';
+import { GlowBackground } from '@/components/GlowBackground';
 import { ArchivedRound, ClosedTournament } from '@/store/types';
 
 // ---------------------------------------------------------------------------
@@ -242,7 +243,7 @@ export default function ArchiveScreen() {
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
-      <View style={styles.glow} pointerEvents="none" />
+      <GlowBackground />
 
       <NavHeader
         title={t('archive.title')}
@@ -283,16 +284,6 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: Colors.bg.base,
-  },
-  glow: {
-    position: 'absolute',
-    width: 340,
-    height: 340,
-    top: -80,
-    left: -40,
-    borderRadius: 170,
-    backgroundColor: Colors.accent.green,
-    opacity: 0.06,
   },
   scroll: {
     flex: 1,

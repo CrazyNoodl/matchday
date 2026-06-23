@@ -24,6 +24,7 @@ import { NavHeader } from '@/components/NavHeader';
 import { Avatar } from '@/components/Avatar';
 import { SectionLabel } from '@/components/SectionLabel';
 import { StatsRow } from '@/components/StatsRow';
+import { GlowBackground } from '@/components/GlowBackground';
 import { generateMatchStats } from '@/utils/matchStats';
 import { extractStatsFromPhoto, type ExtractedStat } from '@/utils/extractStats';
 import { STAT_DEF_MAP, STAT_DEFINITIONS } from '@/utils/statDefinitions';
@@ -139,7 +140,7 @@ export default function MatchDetailScreen() {
     const isLoading = syncStatus === 'syncing' || remoteLoading;
     return (
       <SafeAreaView style={styles.root} edges={['top']}>
-        <View style={styles.glow} pointerEvents="none" />
+        <GlowBackground />
         <NavHeader title={t('matchDetail.title')} onBack={() => goBack()} />
         <View style={styles.center}>
           {isLoading
@@ -324,7 +325,7 @@ export default function MatchDetailScreen() {
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
-      <View style={styles.glow} pointerEvents="none" />
+      <GlowBackground />
 
       <NavHeader
         title={t('matchDetail.title')}
@@ -931,16 +932,6 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: Colors.bg.base,
-  },
-  glow: {
-    position: 'absolute',
-    width: 340,
-    height: 340,
-    top: -80,
-    left: -40,
-    borderRadius: 170,
-    backgroundColor: Colors.accent.green,
-    opacity: 0.06,
   },
   center: {
     flex: 1,

@@ -29,6 +29,7 @@ import { ScoreCounter } from '@/components/ScoreCounter';
 import { SectionLabel } from '@/components/SectionLabel';
 import { EmptyState } from '@/components/EmptyState';
 import { MediaThumbnail } from '@/components/MediaThumbnail';
+import { GlowBackground } from '@/components/GlowBackground';
 import { Match, MediaItem } from '@/store/types';
 import { useTranslation } from 'react-i18next';
 import { uploadMediaItems } from '@/supabase/storage';
@@ -653,7 +654,7 @@ export default function MatchdayScreen() {
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
-      <View style={styles.glow} pointerEvents="none" />
+      <GlowBackground />
 
       {/* Header */}
       <View style={styles.header}>
@@ -1124,16 +1125,6 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: Colors.bg.base,
-  },
-  glow: {
-    position: 'absolute',
-    width: 340,
-    height: 340,
-    top: -80,
-    left: -40,
-    borderRadius: 170,
-    backgroundColor: Colors.accent.green,
-    opacity: 0.06,
   },
   header: {
     flexDirection: 'row',

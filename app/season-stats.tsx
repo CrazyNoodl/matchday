@@ -18,6 +18,7 @@ import { NavHeader } from '@/components/NavHeader';
 import { SectionLabel } from '@/components/SectionLabel';
 import { Avatar } from '@/components/Avatar';
 import { MatchCard } from '@/components/MatchCard';
+import { GlowBackground } from '@/components/GlowBackground';
 import type { ArchivedRound, Match } from '@/store/types';
 import { useTranslation } from 'react-i18next';
 
@@ -168,8 +169,7 @@ export default function SeasonStatsScreen() {
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
-      {/* Green glow */}
-      <View style={styles.glow} pointerEvents="none" />
+      <GlowBackground />
 
       {/* Header */}
       <NavHeader title={t('seasonStats.title')} onBack={() => goBack()} />
@@ -437,16 +437,6 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: Colors.bg.base,
-  },
-  glow: {
-    position: 'absolute',
-    width: 340,
-    height: 340,
-    top: -80,
-    left: -40,
-    borderRadius: 170,
-    backgroundColor: Colors.accent.green,
-    opacity: 0.06,
   },
   scroll: {
     flex: 1,

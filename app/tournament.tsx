@@ -19,6 +19,7 @@ import { FontFamily, FontSize } from '@/theme/typography';
 import { Radius, Spacing } from '@/theme/spacing';
 import { Avatar } from '@/components/Avatar';
 import { SectionLabel } from '@/components/SectionLabel';
+import { GlowBackground } from '@/components/GlowBackground';
 import { ShareStandingsModal } from '@/components/ShareStandingsModal';
 import { NewRoundModal } from '@/components/NewRoundModal';
 import { useTranslation } from 'react-i18next';
@@ -100,8 +101,7 @@ export default function TournamentScreen() {
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
-      {/* Green glow */}
-      <View style={styles.glow} pointerEvents="none" />
+      <GlowBackground />
 
       {/* Header */}
       <View style={styles.header}>
@@ -558,17 +558,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.bg.base,
   },
-  glow: {
-    position: 'absolute',
-    width: 340,
-    height: 340,
-    top: -80,
-    left: -40,
-    borderRadius: 170,
-    backgroundColor: Colors.accent.green,
-    opacity: 0.06,
-  },
-
   // ---- Header ----
   header: {
     flexDirection: 'row',

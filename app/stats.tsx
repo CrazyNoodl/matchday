@@ -17,6 +17,7 @@ import { Radius, Spacing } from '@/theme/spacing';
 import { Avatar } from '@/components/Avatar';
 import { NavHeader } from '@/components/NavHeader';
 import { SectionLabel } from '@/components/SectionLabel';
+import { GlowBackground } from '@/components/GlowBackground';
 import type { Match, Player } from '@/store/types';
 import { useTranslation } from 'react-i18next';
 
@@ -161,8 +162,7 @@ export default function StatsScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-      {/* Green glow */}
-      <View style={styles.glow} pointerEvents="none" />
+      <GlowBackground />
 
       {/* Custom two-line header */}
       <View style={styles.headerContainer}>
@@ -462,17 +462,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.bg.base,
   },
-  glow: {
-    position: 'absolute',
-    width: 340,
-    height: 340,
-    top: -80,
-    left: -40,
-    borderRadius: 170,
-    backgroundColor: Colors.accent.green,
-    opacity: 0.06,
-  },
-
   // Header
   headerContainer: {
     flexDirection: 'row',
