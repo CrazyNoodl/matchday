@@ -22,7 +22,6 @@ import { FontFamily, FontSize } from '@/theme/typography';
 import { Radius, Spacing } from '@/theme/spacing';
 import { NavHeader } from '@/components/NavHeader';
 import { Avatar } from '@/components/Avatar';
-import { TeamBadge } from '@/components/TeamBadge';
 import { SectionLabel } from '@/components/SectionLabel';
 import { StatsRow } from '@/components/StatsRow';
 import { generateMatchStats } from '@/utils/matchStats';
@@ -351,7 +350,6 @@ export default function MatchDetailScreen() {
             >
               {playerA?.nick ?? playerA?.name ?? 'Unknown'}
             </Text>
-            <TeamBadge teamCode={match.aTeam} size="xs" />
           </View>
 
           {/* Center score */}
@@ -394,7 +392,6 @@ export default function MatchDetailScreen() {
             >
               {playerB?.nick ?? playerB?.name ?? 'Unknown'}
             </Text>
-            <TeamBadge teamCode={match.bTeam} size="xs" />
           </View>
         </View>
 

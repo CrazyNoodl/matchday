@@ -307,7 +307,7 @@ const styles = StyleSheet.create({
   moreAvatar: {
     width: 30,
     height: 30,
-    borderRadius: 15,
+    borderRadius: 9,
     backgroundColor: Colors.bg.elevated,
     borderWidth: 2,
     borderColor: Colors.bg.surface,

@@ -12,7 +12,6 @@ import { Colors } from '../theme/colors';
 import { FontFamily, FontSize } from '../theme/typography';
 import { Radius, Spacing } from '../theme/spacing';
 import { Avatar } from './Avatar';
-import { TeamBadge } from './TeamBadge';
 
 interface MatchCardProps {
   match: Match;
@@ -46,12 +45,9 @@ export function MatchCard({ match, onPress, readonly = false }: MatchCardProps) 
       {/* Side A */}
       <View style={styles.side}>
         <Avatar playerId={match.aId} size="md" />
-        <View style={styles.playerInfo}>
-          <Text style={[styles.playerName, { color: aNameColor }]} numberOfLines={1}>
-            {playerA?.name ?? 'Unknown'}
-          </Text>
-          <TeamBadge teamCode={match.aTeam} size="xs" />
-        </View>
+        <Text style={[styles.playerName, { color: aNameColor }]} numberOfLines={1}>
+          {playerA?.name ?? 'Unknown'}
+        </Text>
       </View>
 
       {/* Score */}
@@ -67,17 +63,12 @@ export function MatchCard({ match, onPress, readonly = false }: MatchCardProps) 
 
       {/* Side B */}
       <View style={[styles.side, styles.sideRight]}>
-        <View style={[styles.playerInfo, styles.playerInfoRight]}>
-          <Text
-            style={[styles.playerName, { color: bNameColor, textAlign: 'right' }]}
-            numberOfLines={1}
-          >
-            {playerB?.name ?? 'Unknown'}
-          </Text>
-          <View style={styles.badgeRight}>
-            <TeamBadge teamCode={match.bTeam} size="xs" />
-          </View>
-        </View>
+        <Text
+          style={[styles.playerName, { color: bNameColor, textAlign: 'right' }]}
+          numberOfLines={1}
+        >
+          {playerB?.name ?? 'Unknown'}
+        </Text>
         <Avatar playerId={match.bId} size="md" />
       </View>
 
@@ -123,14 +114,8 @@ const styles = StyleSheet.create({
   sideRight: {
     justifyContent: 'flex-end',
   },
-  playerInfo: {
-    flex: 1,
-    gap: 3,
-  },
-  playerInfoRight: {
-    alignItems: 'flex-end',
-  },
   playerName: {
+    flex: 1,
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.base,
     lineHeight: 18,
@@ -153,9 +138,6 @@ const styles = StyleSheet.create({
     fontSize: FontSize.xl,
     color: Colors.text.ghost,
     lineHeight: 30,
-  },
-  badgeRight: {
-    alignItems: 'flex-end',
   },
   indicators: {
     width: '100%',

@@ -5,6 +5,7 @@ import { pushState, pullState, subscribeToChanges } from './sync';
 import { supabaseConfigured } from './client';
 
 const PUSH_DEBOUNCE_MS = 2000;
+const PULL_DEBOUNCE_MS = 400;
 
 export function useSyncManager() {
   const setSyncStatus = useStore((s) => s.setSyncStatus);
@@ -12,6 +13,8 @@ export function useSyncManager() {
 
   const applyingRef = useRef(false);
   const pushTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pullTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pushingRef = useRef(false);
   const prevDemoModeRef = useRef<boolean>(useStore.getState().demoMode);
 
   useEffect(() => {
@@ -32,6 +35,17 @@ export function useSyncManager() {
       applyCloudState(pulled);
       setTimeout(() => { applyingRef.current = false; }, 100);
       return hasCloudData;
+    }
+
+    async function runPush() {
+      pushingRef.current = true;
+      try {
+        await pushState(buildPushPayload());
+      } catch {
+        setSyncStatus('error');
+      } finally {
+        pushingRef.current = false;
+      }
     }
 
     function buildPushPayload() {
@@ -83,7 +97,7 @@ export function useSyncManager() {
             s.hasTournament ||
             s.closedTournaments.length > 0;
           if (!s.demoMode && hasLocalData) {
-            await pushState(buildPushPayload()).catch(() => {});
+            await runPush();
           }
         }
 
@@ -91,7 +105,17 @@ export function useSyncManager() {
         subscription = subscribeToChanges(userId, () => {
           // Skip real-time pulls while demo mode is active to avoid wasted
           // network requests (applyCloudState would be a no-op anyway).
-          if (!useStore.getState().demoMode) pull();
+          if (useStore.getState().demoMode) return;
+          // A push we triggered ourselves is in flight: it writes multiple
+          // tables sequentially, each firing its own realtime event. Pulling
+          // mid-push would read a partially-written DB state and stomp the
+          // local optimistic update (e.g. a just-added match). The push
+          // already reflects the latest local state, so skip until it's done.
+          if (pushingRef.current) return;
+          // Coalesce bursts of realtime events (one push can touch 5+ tables)
+          // into a single pull instead of one per table write.
+          if (pullTimerRef.current) clearTimeout(pullTimerRef.current);
+          pullTimerRef.current = setTimeout(() => { pull(); }, PULL_DEBOUNCE_MS);
         });
       } catch {
         setSyncStatus('error');
@@ -122,23 +146,20 @@ export function useSyncManager() {
         // Just exited demo mode: pull the latest cloud state first so we
         // don't overwrite changes made on another device while demo was active.
         pull().then(() => {
-          if (!useStore.getState().demoMode) {
-            pushState(buildPushPayload()).catch(() => setSyncStatus('error'));
-          }
+          if (!useStore.getState().demoMode) runPush();
         });
         return;
       }
 
       if (pushTimerRef.current) clearTimeout(pushTimerRef.current);
-      pushTimerRef.current = setTimeout(() => {
-        pushState(buildPushPayload()).catch(() => setSyncStatus('error'));
-      }, PUSH_DEBOUNCE_MS);
+      pushTimerRef.current = setTimeout(runPush, PUSH_DEBOUNCE_MS);
     });
 
     return () => {
       unsubscribe();
       subscription?.unsubscribe?.();
       if (pushTimerRef.current) clearTimeout(pushTimerRef.current);
+      if (pullTimerRef.current) clearTimeout(pullTimerRef.current);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

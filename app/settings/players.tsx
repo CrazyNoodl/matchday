@@ -148,7 +148,6 @@ export default function PlayersScreen() {
                   <Text style={styles.playerNick}>@{player.nick}</Text>
                 )}
               </View>
-              <TeamBadge teamCode={player.teamCode} size="xs" />
               <View style={styles.playerActions}>
                 <TouchableOpacity
                   style={styles.actionBtn}

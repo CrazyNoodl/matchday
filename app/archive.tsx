@@ -486,7 +486,7 @@ const styles = StyleSheet.create({
   roundAvatar: {
     width: 24,
     height: 24,
-    borderRadius: 12,
+    borderRadius: 8,
   },
   roundWinnerName: {
     fontFamily: FontFamily.bodySemiBold,

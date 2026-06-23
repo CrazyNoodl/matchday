@@ -41,6 +41,37 @@ export async function uploadMediaItem(
 }
 
 // ---------------------------------------------------------------------------
+// Upload a team logo, return public URL or null on failure
+// ---------------------------------------------------------------------------
+
+export async function uploadTeamLogo(localUri: string): Promise<string | null> {
+  const userId = await getCurrentUserId();
+  if (!userId) return null;
+
+  try {
+    const blob = await uriToBlob(localUri);
+    const path = `${userId}/team-logos/${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`;
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error } = await (supabase as any).storage
+      .from(BUCKET)
+      .upload(path, blob, { contentType: 'image/jpeg', upsert: false });
+
+    if (error) {
+      console.warn('[storage] team logo upload failed:', error.message);
+      return null;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data } = (supabase as any).storage.from(BUCKET).getPublicUrl(path);
+    return data?.publicUrl ?? null;
+  } catch (e) {
+    console.warn('[storage] team logo upload error:', e);
+    return null;
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Upload multiple items, return MediaItem[] with remote URLs
 // Items that fail upload are kept with their local URI as fallback
 // ---------------------------------------------------------------------------

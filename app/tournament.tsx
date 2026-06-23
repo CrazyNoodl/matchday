@@ -785,7 +785,7 @@ const styles = StyleSheet.create({
   tableAvatar: {
     width: 22,
     height: 22,
-    borderRadius: 11,
+    borderRadius: 7,
   },
   tablePlayerNames: {
     flex: 1,
