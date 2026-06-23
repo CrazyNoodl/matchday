@@ -570,37 +570,37 @@ export default function MatchdayScreen() {
       {addMatch.ocrStatus === 'scanning' && (
         <View style={sheetStyles.ocrStatus}>
           <ActivityIndicator size="small" color={Colors.accent.blue} />
-          <Text style={sheetStyles.ocrStatusText}>Reading stats from photos...</Text>
+          <Text style={sheetStyles.ocrStatusText}>{t('matchday.ocr.reading')}</Text>
         </View>
       )}
       {addMatch.ocrStatus === 'done' && addMatch.pendingStats && (
         <View style={sheetStyles.ocrStatus}>
           <Text style={sheetStyles.ocrFoundText}>
-            📊 {Object.keys(addMatch.pendingStats).length} stats detected
+            {t('matchday.ocr.detected', { count: Object.keys(addMatch.pendingStats).length })}
           </Text>
         </View>
       )}
       {addMatch.ocrStatus === 'error' && (
         <View style={sheetStyles.ocrError}>
-          <Text style={sheetStyles.ocrErrorText}>Failed to read stats</Text>
+          <Text style={sheetStyles.ocrErrorText}>{t('matchday.ocr.failed')}</Text>
           <TouchableOpacity
             style={sheetStyles.ocrRetryBtn}
             onPress={handleRetryOcr}
             activeOpacity={0.75}
           >
-            <Text style={sheetStyles.ocrRetryText}>Retry</Text>
+            <Text style={sheetStyles.ocrRetryText}>{t('matchday.ocr.retry')}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => setAddMatch((p) => ({ ...p, ocrStatus: 'skipped' }))}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
-            <Text style={sheetStyles.ocrSkipText}>Skip</Text>
+            <Text style={sheetStyles.ocrSkipText}>{t('matchday.ocr.skip')}</Text>
           </TouchableOpacity>
         </View>
       )}
       {addMatch.ocrStatus === 'skipped' && (
         <View style={sheetStyles.ocrStatus}>
-          <Text style={sheetStyles.ocrSkippedText}>Stats skipped — add from match detail</Text>
+          <Text style={sheetStyles.ocrSkippedText}>{t('matchday.ocr.skipped')}</Text>
         </View>
       )}
     </View>

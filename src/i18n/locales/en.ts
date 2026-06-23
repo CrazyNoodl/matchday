@@ -105,6 +105,14 @@ const en = {
       draw: 'DRAW',
       done: 'DONE',
     },
+    ocr: {
+      reading: 'Reading stats from photos...',
+      detected: '📊 {{count}} stats detected',
+      failed: 'Failed to read stats',
+      retry: 'Retry',
+      skip: 'Skip',
+      skipped: 'Stats skipped — add from match detail',
+    },
   },
 
   setup: {
