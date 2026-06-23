@@ -9,6 +9,14 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.6.2',
+    fixed: [
+      'Deleting a player no longer leaves dangling references in closed tournament standings',
+      'Newest match now consistently shows first across all round/tournament screens, and round order stays stable after sync',
+      "Add Match's Save button now shows a loading state instead of appearing frozen",
+    ],
+  },
+  {
     version: '1.6.1',
     fixed: [
       'A failed sync no longer gets mistaken for an empty cloud — fixes a rare case where real data could be wiped during sync',
