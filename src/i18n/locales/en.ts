@@ -105,6 +105,14 @@ const en = {
       draw: 'DRAW',
       done: 'DONE',
     },
+    ocr: {
+      reading: 'Reading stats from photos...',
+      detected: '📊 {{count}} stats detected',
+      failed: 'Failed to read stats',
+      retry: 'Retry',
+      skip: 'Skip',
+      skipped: 'Stats skipped — add from match detail',
+    },
   },
 
   setup: {
@@ -249,6 +257,13 @@ const en = {
       section: 'ABOUT',
       appName: 'Matchday',
       version: 'Version {{version}}',
+    },
+    changelog: {
+      title: "WHAT'S NEW",
+      added: 'ADDED',
+      fixed: 'FIXED',
+      notes: 'NOTES',
+      empty: 'No changelog entries yet.',
     },
     danger: {
       section: 'DANGER ZONE',

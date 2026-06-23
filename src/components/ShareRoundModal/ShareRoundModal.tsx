@@ -1,0 +1,831 @@
+import React, { useRef, useState, useMemo, useEffect } from 'react';
+import {
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  Modal,
+  TouchableOpacity,
+  ActivityIndicator,
+  Alert,
+  Platform,
+  ScrollView,
+  Switch,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+// Native-only modules loaded dynamically so web build doesn't crash
+type CaptureRef = typeof import('react-native-view-shot')['captureRef'];
+type MediaLibraryModule = typeof import('expo-media-library');
+type SharingModule = typeof import('expo-sharing');
+type Html2Canvas = typeof import('html2canvas').default;
+import { useStore } from '@/store';
+import { ArchivedRound } from '@/store/types';
+import { calculateStandings, Standing } from '@/utils/standings';
+import { Colors } from '@/theme/colors';
+import { FontFamily, FontSize } from '@/theme/typography';
+import { Radius, Spacing } from '@/theme/spacing';
+import { STANDINGS_NUM_COLS, formatShareCardDate } from '@/utils/shareCard';
+
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
+interface ShareRoundModalProps {
+  visible: boolean;
+  onClose: () => void;
+  round: ArchivedRound;
+  tournamentName: string;
+}
+
+// ---------------------------------------------------------------------------
+// Inline Avatar — mirrors src/components/Avatar.tsx (team logo, square,
+// 3-letter fallback) for use inside the share cards
+// ---------------------------------------------------------------------------
+
+export function CardAvatar({ teamCode, size }: { teamCode?: string; size: number }) {
+  const team = useStore((s) => s.teams.find((t) => t.code === teamCode));
+  const radius = Math.round(size * 0.3);
+  const baseStyle = { width: size, height: size, borderRadius: radius, overflow: 'hidden' as const };
+
+  if (!team) {
+    return <View style={[baseStyle, { backgroundColor: Colors.bg.elevated }]} />;
+  }
+
+  if (team.logo?.startsWith('http')) {
+    return (
+      <View style={baseStyle}>
+        <Image source={{ uri: team.logo }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
+      </View>
+    );
+  }
+
+  const label = team.short.slice(0, 3).toUpperCase();
+  return (
+    <View style={[baseStyle, { backgroundColor: team.color + '28', alignItems: 'center', justifyContent: 'center' }]}>
+      <Text style={{ fontFamily: FontFamily.bodySemiBold, fontSize: size * 0.28, color: team.color, textAlign: 'center', lineHeight: size - 4 }}>
+        {label}
+      </Text>
+    </View>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Winner Card
+// ---------------------------------------------------------------------------
+
+interface WinnerCardProps {
+  round: ArchivedRound;
+  tournamentName: string;
+  includeMatches?: boolean;
+  includeStandings?: boolean;
+}
+
+const CARD_W = 320;
+
+function StandingsTableRow({
+  standing,
+  isLeader,
+  isLast,
+}: {
+  standing: Standing;
+  isLeader: boolean;
+  isLast: boolean;
+}) {
+  const player = useStore((s) => s.players.find((p) => p.id === standing.playerId));
+
+  const gdColor =
+    standing.gd > 0 ? Colors.accent.green : standing.gd < 0 ? Colors.accent.red : Colors.text.muted;
+
+  return (
+    <View
+      style={[
+        winnerStyles.standingsRow,
+        !isLast && winnerStyles.matchRowBorder,
+        isLeader && winnerStyles.standingsRowLeader,
+      ]}
+    >
+      <View style={winnerStyles.standingsPlayerCol}>
+        <CardAvatar teamCode={player?.teamCode} size={20} />
+        <Text style={winnerStyles.standingsName} numberOfLines={1}>
+          {player?.name ?? 'Unknown'}
+        </Text>
+      </View>
+      {STANDINGS_NUM_COLS.map((col) => (
+        <Text key={col.key} style={[winnerStyles.standingsNumCol, winnerStyles.standingsCell]}>
+          {standing[col.key]}
+        </Text>
+      ))}
+      <Text style={[winnerStyles.standingsNumCol, winnerStyles.standingsCell, { color: gdColor }]}>
+        {standing.gd > 0 ? `+${standing.gd}` : standing.gd}
+      </Text>
+      <Text style={[winnerStyles.standingsNumCol, winnerStyles.standingsPts]}>{standing.pts}</Text>
+    </View>
+  );
+}
+
+function MatchRow({ match, isLast }: { match: ArchivedRound['matches'][number]; isLast: boolean }) {
+  const players = useStore((s) => s.players);
+  const playerA = players.find((p) => p.id === match.aId);
+  const playerB = players.find((p) => p.id === match.bId);
+
+  const aWins = match.aScore > match.bScore;
+  const bWins = match.bScore > match.aScore;
+
+  return (
+    <View style={[winnerStyles.matchRow, !isLast && winnerStyles.matchRowBorder]}>
+      <View style={winnerStyles.matchSide}>
+        <CardAvatar teamCode={playerA?.teamCode} size={22} />
+        <Text style={[winnerStyles.matchName, aWins && winnerStyles.matchNameWin]} numberOfLines={1}>
+          {playerA?.name ?? 'Unknown'}
+        </Text>
+      </View>
+      <Text style={winnerStyles.matchScore}>
+        <Text style={aWins && winnerStyles.matchScoreWin}>{match.aScore}</Text>
+        {' : '}
+        <Text style={bWins && winnerStyles.matchScoreWin}>{match.bScore}</Text>
+      </Text>
+      <View style={[winnerStyles.matchSide, winnerStyles.matchSideRight]}>
+        <Text style={[winnerStyles.matchName, winnerStyles.matchNameRight, bWins && winnerStyles.matchNameWin]} numberOfLines={1}>
+          {playerB?.name ?? 'Unknown'}
+        </Text>
+        <CardAvatar teamCode={playerB?.teamCode} size={22} />
+      </View>
+    </View>
+  );
+}
+
+function WinnerCard({ round, tournamentName, includeMatches = false, includeStandings = false }: WinnerCardProps) {
+  const players = useStore((s) => s.players);
+
+  const playerIds = useMemo(() => {
+    const ids = new Set<string>();
+    round.matches.forEach((m) => { ids.add(m.aId); ids.add(m.bId); });
+    return Array.from(ids);
+  }, [round.matches]);
+
+  const standings = useMemo(
+    () => calculateStandings(round.matches, playerIds),
+    [round.matches, playerIds],
+  );
+
+  const winner = players.find((p) => p.id === round.winner);
+  const winnerStats = standings.find((s) => s.playerId === round.winner);
+  const isDraw = !round.winner;
+
+  const glowColor = winner?.color ?? Colors.accent.green;
+  const dateStr = formatShareCardDate(round.date);
+
+  return (
+    <View style={winnerStyles.card} collapsable={false}>
+      {/* Glow */}
+      <View style={[winnerStyles.glow, { backgroundColor: glowColor }]} pointerEvents="none" />
+
+      {/* Top bar */}
+      <View style={winnerStyles.topBar}>
+        <Text style={winnerStyles.appName}>MATCHDAY</Text>
+        <Text style={winnerStyles.topDate}>{dateStr}</Text>
+      </View>
+
+      {/* Divider */}
+      <View style={winnerStyles.divider} />
+
+      {/* Hero section */}
+      <View style={winnerStyles.hero}>
+        {/* Diamond label */}
+        <Text style={winnerStyles.heroLabel}>
+          {isDraw ? '— MATCH DAY RESULT —' : '♦  ROUND WINNER  ♦'}
+        </Text>
+        <Text style={winnerStyles.heroMatchCount}>
+          {round.matches.length} {round.matches.length === 1 ? 'MATCH' : 'MATCHES'}
+        </Text>
+
+        {/* Avatar with glow ring */}
+        <View style={winnerStyles.avatarRing}>
+          {winner ? (
+            <CardAvatar teamCode={winner.teamCode} size={80} />
+          ) : (
+            <View style={[winnerStyles.drawCircle, { borderColor: glowColor + '44' }]}>
+              <Text style={winnerStyles.drawCircleText}>—</Text>
+            </View>
+          )}
+        </View>
+
+        {/* Name */}
+        <Text style={winnerStyles.heroName}>
+          {isDraw ? 'IT\'S A DRAW' : (winner?.name ?? '—').toUpperCase()}
+        </Text>
+
+        {/* Stats row */}
+        {winnerStats && (
+          <View style={winnerStyles.statsRow}>
+            <View style={winnerStyles.statItem}>
+              <Text style={[winnerStyles.statValue, { color: Colors.accent.green }]}>{winnerStats.wins}</Text>
+              <Text style={winnerStyles.statLabel}>W</Text>
+            </View>
+            <View style={winnerStyles.statDot} />
+            <View style={winnerStyles.statItem}>
+              <Text style={winnerStyles.statValue}>{winnerStats.draws}</Text>
+              <Text style={winnerStyles.statLabel}>D</Text>
+            </View>
+            <View style={winnerStyles.statDot} />
+            <View style={winnerStyles.statItem}>
+              <Text style={[winnerStyles.statValue, { color: Colors.accent.red }]}>{winnerStats.losses}</Text>
+              <Text style={winnerStyles.statLabel}>L</Text>
+            </View>
+            <View style={winnerStyles.statSep} />
+            <View style={winnerStyles.statItem}>
+              <Text style={winnerStyles.statValue}>{winnerStats.gf}<Text style={winnerStyles.statGA}>:{winnerStats.ga}</Text></Text>
+              <Text style={winnerStyles.statLabel}>Goals</Text>
+            </View>
+            <View style={winnerStyles.statDot} />
+            <View style={winnerStyles.statItem}>
+              <Text style={[winnerStyles.statValue, { color: Colors.accent.gold }]}>{winnerStats.pts}</Text>
+              <Text style={winnerStyles.statLabel}>PTS</Text>
+            </View>
+          </View>
+        )}
+      </View>
+
+      {/* Standings table */}
+      {includeStandings && standings.length > 0 && (
+        <>
+          <View style={winnerStyles.divider} />
+          <View style={winnerStyles.standingsSection}>
+            <View style={winnerStyles.standingsHeaderRow}>
+              <Text style={[winnerStyles.standingsHeaderCell, winnerStyles.standingsPlayerCol]}>
+                PLAYER
+              </Text>
+              {STANDINGS_NUM_COLS.map((col) => (
+                <Text key={col.key} style={[winnerStyles.standingsHeaderCell, winnerStyles.standingsNumCol]}>
+                  {col.label}
+                </Text>
+              ))}
+              <Text style={[winnerStyles.standingsHeaderCell, winnerStyles.standingsNumCol]}>GD</Text>
+              <Text style={[winnerStyles.standingsHeaderCell, winnerStyles.standingsNumCol]}>PTS</Text>
+            </View>
+            {standings.map((s, idx) => (
+              <StandingsTableRow
+                key={s.playerId}
+                standing={s}
+                isLeader={idx === 0}
+                isLast={idx === standings.length - 1}
+              />
+            ))}
+          </View>
+        </>
+      )}
+
+      {/* All matches */}
+      {includeMatches && round.matches.length > 0 && (
+        <>
+          <View style={winnerStyles.divider} />
+          <View style={winnerStyles.matchesSection}>
+            <Text style={winnerStyles.matchesTitle}>ALL MATCHES</Text>
+            {round.matches.map((m, idx) => (
+              <MatchRow key={m.id} match={m} isLast={idx === round.matches.length - 1} />
+            ))}
+          </View>
+        </>
+      )}
+
+      {/* Footer */}
+      <View style={winnerStyles.divider} />
+      <View style={winnerStyles.footer}>
+        <Text style={winnerStyles.footerTour} numberOfLines={1}>{tournamentName.toUpperCase()}</Text>
+        <Text style={winnerStyles.footerRound}>Round {round.n} · {round.matches.length} matches</Text>
+      </View>
+    </View>
+  );
+}
+
+const winnerStyles = StyleSheet.create({
+  card: {
+    width: CARD_W,
+    backgroundColor: '#0c0e10',
+    borderRadius: Radius.xl,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+  },
+  glow: {
+    position: 'absolute',
+    width: 260,
+    height: 260,
+    borderRadius: 130,
+    top: 30,
+    left: CARD_W / 2 - 130,
+    opacity: 0.12,
+  },
+  topBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+  },
+  appName: {
+    fontFamily: FontFamily.displayBold,
+    fontSize: FontSize.sm,
+    color: Colors.text.placeholder,
+    letterSpacing: 2.5,
+  },
+  topDate: {
+    fontFamily: FontFamily.body,
+    fontSize: FontSize.xs,
+    color: Colors.text.placeholder,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+  },
+  hero: {
+    alignItems: 'center',
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: 28,
+    gap: Spacing.md,
+  },
+  heroLabel: {
+    fontFamily: FontFamily.bodyBold,
+    fontSize: FontSize.xs,
+    color: Colors.accent.gold,
+    letterSpacing: 2,
+  },
+  heroMatchCount: {
+    fontFamily: FontFamily.bodySemiBold,
+    fontSize: FontSize.xs,
+    color: Colors.text.placeholder,
+    letterSpacing: 1,
+    marginTop: -Spacing.sm,
+  },
+  avatarRing: {
+    padding: 5,
+    borderRadius: 29,
+    marginVertical: Spacing.sm,
+  },
+  drawCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 24,
+    backgroundColor: Colors.bg.elevated,
+    borderWidth: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  drawCircleText: {
+    fontFamily: FontFamily.display,
+    fontSize: FontSize['2xl'],
+    color: Colors.text.muted,
+  },
+  heroName: {
+    fontFamily: FontFamily.displayBold,
+    fontSize: FontSize['3xl'],
+    color: Colors.text.primary,
+    letterSpacing: 1,
+    textAlign: 'center',
+  },
+  statsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+    marginTop: Spacing.xs,
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    borderRadius: Radius.lg,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+  },
+  statItem: {
+    alignItems: 'center',
+    minWidth: 28,
+  },
+  statValue: {
+    fontFamily: FontFamily.displayBold,
+    fontSize: FontSize.lg,
+    color: Colors.text.primary,
+  },
+  statGA: {
+    fontFamily: FontFamily.display,
+    fontSize: FontSize.base,
+    color: Colors.text.muted,
+  },
+  statLabel: {
+    fontFamily: FontFamily.bodyBold,
+    fontSize: 8,
+    color: Colors.text.placeholder,
+    letterSpacing: 0.8,
+    marginTop: 1,
+  },
+  statDot: {
+    width: 3,
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: Colors.text.placeholder,
+    marginBottom: 10,
+  },
+  statSep: {
+    width: 1,
+    height: 28,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    marginHorizontal: 4,
+  },
+  footer: {
+    alignItems: 'center',
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    gap: 3,
+  },
+  footerTour: {
+    fontFamily: FontFamily.displayBold,
+    fontSize: FontSize.sm,
+    color: Colors.text.secondary,
+    letterSpacing: 1,
+  },
+  footerRound: {
+    fontFamily: FontFamily.body,
+    fontSize: FontSize.xs,
+    color: Colors.text.placeholder,
+  },
+  matchesSection: {
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+  },
+  matchesTitle: {
+    fontFamily: FontFamily.bodyBold,
+    fontSize: FontSize.xs,
+    color: Colors.text.placeholder,
+    letterSpacing: 1.5,
+    marginBottom: Spacing.sm,
+  },
+  matchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 7,
+  },
+  matchRowBorder: {
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.06)',
+  },
+  matchSide: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+  },
+  matchSideRight: {
+    justifyContent: 'flex-end',
+  },
+  matchName: {
+    flexShrink: 1,
+    fontFamily: FontFamily.body,
+    fontSize: FontSize.xs,
+    color: Colors.text.muted,
+  },
+  matchNameRight: {
+    textAlign: 'right',
+  },
+  matchNameWin: {
+    fontFamily: FontFamily.bodySemiBold,
+    color: Colors.text.primary,
+  },
+  matchScore: {
+    fontFamily: FontFamily.displayBold,
+    fontSize: FontSize.sm,
+    color: Colors.text.secondary,
+    paddingHorizontal: Spacing.sm,
+  },
+  matchScoreWin: {
+    color: Colors.accent.green,
+  },
+  standingsSection: {
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+  },
+  standingsHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingBottom: Spacing.sm,
+  },
+  standingsHeaderCell: {
+    fontFamily: FontFamily.bodyBold,
+    fontSize: 9,
+    color: Colors.text.placeholder,
+    letterSpacing: 0.5,
+    textAlign: 'center',
+  },
+  standingsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 7,
+    marginHorizontal: -Spacing.sm,
+    paddingHorizontal: Spacing.sm,
+    borderRadius: Radius.sm,
+  },
+  standingsRowLeader: {
+    backgroundColor: Colors.accent.greenSubtle,
+  },
+  standingsPlayerCol: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  standingsName: {
+    flexShrink: 1,
+    fontFamily: FontFamily.bodySemiBold,
+    fontSize: FontSize.xs,
+    color: Colors.text.primary,
+  },
+  standingsNumCol: {
+    width: 24,
+    textAlign: 'center',
+  },
+  standingsCell: {
+    fontFamily: FontFamily.body,
+    fontSize: FontSize.xs,
+    color: Colors.text.secondary,
+  },
+  standingsPts: {
+    fontFamily: FontFamily.displayBold,
+    fontSize: FontSize.sm,
+    color: Colors.accent.green,
+  },
+});
+
+// ---------------------------------------------------------------------------
+// Main Modal
+// ---------------------------------------------------------------------------
+
+export function ShareRoundModal({ visible, onClose, round, tournamentName }: ShareRoundModalProps) {
+  const [loading, setLoading] = useState(false);
+  const [includeMatches, setIncludeMatches] = useState(false);
+  const [includeStandings, setIncludeStandings] = useState(false);
+
+  const cardRef = useRef<View>(null);
+
+  useEffect(() => {
+    if (!visible) setLoading(false);
+  }, [visible]);
+
+  const captureNative = async (): Promise<string | null> => {
+    try {
+      const { captureRef } = await import('react-native-view-shot') as { captureRef: CaptureRef };
+      return await captureRef(cardRef, { format: 'png', quality: 1.0, result: 'tmpfile' });
+    } catch {
+      Alert.alert('Error', 'Could not capture image. Please try again.');
+      return null;
+    }
+  };
+
+  const captureWeb = async (): Promise<Blob | null> => {
+    try {
+      const html2canvas = (await import('html2canvas')).default as Html2Canvas;
+      const element = cardRef.current as unknown as HTMLElement;
+      if (!element) return null;
+      const canvas = await html2canvas(element, {
+        backgroundColor: '#0c0e10',
+        scale: 2,
+        useCORS: true,
+        logging: false,
+      });
+      return new Promise((resolve) => {
+        canvas.toBlob((blob) => resolve(blob), 'image/png', 1.0);
+      });
+    } catch {
+      Alert.alert('Error', 'Could not capture image. Please try again.');
+      return null;
+    }
+  };
+
+  const handleSave = async () => {
+    setLoading(true);
+    try {
+      if (Platform.OS === 'web') {
+        const blob = await captureWeb();
+        if (!blob) return;
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `matchday-round-${round.n}.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } else {
+        const MediaLibrary = await import('expo-media-library') as MediaLibraryModule;
+        const { status } = await MediaLibrary.requestPermissionsAsync(true);
+        if (status !== 'granted') {
+          Alert.alert('Permission required', 'Allow access to Photos to save the image.');
+          return;
+        }
+        const uri = await captureNative();
+        if (!uri) return;
+        await MediaLibrary.saveToLibraryAsync(uri);
+        Alert.alert('Saved!', 'Image saved to your Photos.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleShare = async () => {
+    setLoading(true);
+    try {
+      if (Platform.OS === 'web') {
+        const blob = await captureWeb();
+        if (!blob) return;
+        const file = new File([blob], `matchday-round-${round.n}.png`, { type: 'image/png' });
+        if (navigator.canShare?.({ files: [file] })) {
+          await navigator.share({ files: [file], title: `Round ${round.n} · ${tournamentName}` });
+        } else if (navigator.share) {
+          await navigator.share({ title: `Round ${round.n} · ${tournamentName}`, text: 'Matchday results' });
+        }
+      } else {
+        const uri = await captureNative();
+        if (!uri) return;
+        const Sharing = await import('expo-sharing') as SharingModule;
+        const canShare = await Sharing.isAvailableAsync();
+        if (!canShare) {
+          Alert.alert('Not available', 'Sharing is not available on this device.');
+          return;
+        }
+        await Sharing.shareAsync(uri, { mimeType: 'image/png', dialogTitle: 'Share Round Results' });
+      }
+    } catch {
+      // user cancelled share dialog
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Modal
+      visible={visible}
+      animationType="slide"
+      statusBarTranslucent
+      onRequestClose={onClose}
+    >
+      <SafeAreaView style={modalStyles.root} edges={['top', 'bottom']}>
+        {/* Header */}
+        <View style={modalStyles.header}>
+          <Text style={modalStyles.title}>SHARE ROUND</Text>
+          <TouchableOpacity onPress={onClose} style={modalStyles.closeBtn} activeOpacity={0.7}>
+            <Text style={modalStyles.closeText}>✕</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Card preview */}
+        <ScrollView
+          contentContainerStyle={modalStyles.previewScroll}
+          showsVerticalScrollIndicator={false}
+        >
+          <View collapsable={false} style={modalStyles.cardWrap}>
+            <View ref={cardRef} collapsable={false}>
+              <WinnerCard
+                round={round}
+                tournamentName={tournamentName}
+                includeMatches={includeMatches}
+                includeStandings={includeStandings}
+              />
+            </View>
+          </View>
+        </ScrollView>
+
+        {/* Options */}
+        <View style={modalStyles.optionRow}>
+          <Text style={modalStyles.optionLabel}>Include standings</Text>
+          <Switch
+            value={includeStandings}
+            onValueChange={setIncludeStandings}
+            trackColor={{ false: Colors.bg.elevated, true: Colors.accent.green }}
+            thumbColor={Colors.text.primary}
+          />
+        </View>
+        <View style={modalStyles.optionRow}>
+          <Text style={modalStyles.optionLabel}>Include all matches</Text>
+          <Switch
+            value={includeMatches}
+            onValueChange={setIncludeMatches}
+            trackColor={{ false: Colors.bg.elevated, true: Colors.accent.green }}
+            thumbColor={Colors.text.primary}
+          />
+        </View>
+
+        {/* Action buttons */}
+        <View style={modalStyles.actions}>
+          <TouchableOpacity
+            style={[modalStyles.actionBtn, modalStyles.saveBtn]}
+            onPress={handleSave}
+            activeOpacity={0.8}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color={Colors.text.primary} size="small" />
+            ) : (
+              <Text style={modalStyles.actionText}>
+              {Platform.OS === 'web' ? '⬇  Download' : '💾  Save to Photos'}
+            </Text>
+            )}
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[modalStyles.actionBtn, modalStyles.shareBtn]}
+            onPress={handleShare}
+            activeOpacity={0.8}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color={Colors.bg.base} size="small" />
+            ) : (
+              <Text style={[modalStyles.actionText, { color: Colors.bg.base }]}>↗  Share</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    </Modal>
+  );
+}
+
+const modalStyles = StyleSheet.create({
+  root: {
+    flex: 1,
+    backgroundColor: Colors.bg.base,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.xl,
+    paddingTop: Spacing['2xl'],
+    paddingBottom: Spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border.default,
+  },
+  title: {
+    fontFamily: FontFamily.displayBold,
+    fontSize: FontSize.xl,
+    color: Colors.text.primary,
+    letterSpacing: 1,
+  },
+  closeBtn: {
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  closeText: {
+    fontFamily: FontFamily.bodySemiBold,
+    fontSize: FontSize.lg,
+    color: Colors.text.muted,
+  },
+  previewScroll: {
+    flexGrow: 1,
+    alignItems: 'center',
+    paddingVertical: Spacing.xl,
+  },
+  cardWrap: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.5,
+    shadowRadius: 24,
+    elevation: 12,
+  },
+  optionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.xl,
+    paddingTop: Spacing.lg,
+  },
+  optionLabel: {
+    fontFamily: FontFamily.body,
+    fontSize: FontSize.sm,
+    color: Colors.text.secondary,
+  },
+  actions: {
+    flexDirection: 'row',
+    gap: Spacing.md,
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.xl,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border.default,
+  },
+  actionBtn: {
+    flex: 1,
+    paddingVertical: Spacing.md,
+    borderRadius: Radius.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 48,
+  },
+  saveBtn: {
+    backgroundColor: Colors.bg.elevated,
+    borderWidth: 1,
+    borderColor: Colors.border.strong,
+  },
+  shareBtn: {
+    backgroundColor: Colors.accent.green,
+  },
+  actionText: {
+    fontFamily: FontFamily.bodySemiBold,
+    fontSize: FontSize.base,
+    color: Colors.text.primary,
+  },
+});

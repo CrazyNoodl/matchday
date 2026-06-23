@@ -20,6 +20,7 @@ import { Avatar } from '@/components/Avatar';
 import { SectionLabel } from '@/components/SectionLabel';
 import { MatchCard } from '@/components/MatchCard';
 import { ShareRoundModal, CardAvatar } from '@/components/ShareRoundModal';
+import { GlowBackground } from '@/components/GlowBackground';
 import { Match } from '@/store/types';
 
 const ROUND_TABLE_COLS = [
@@ -92,7 +93,7 @@ export default function ArchiveDayScreen() {
   if (!viewingRound) {
     return (
       <SafeAreaView style={styles.root} edges={['top']}>
-        <View style={styles.glow} pointerEvents="none" />
+        <GlowBackground />
         <NavHeader title="" onBack={() => goBack()} />
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>{t('archive.noRoundData')}</Text>
@@ -105,7 +106,7 @@ export default function ArchiveDayScreen() {
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
-      <View style={styles.glow} pointerEvents="none" />
+      <GlowBackground />
 
       {/* Header */}
       <NavHeader
@@ -247,16 +248,6 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: Colors.bg.base,
-  },
-  glow: {
-    position: 'absolute',
-    width: 340,
-    height: 340,
-    top: -80,
-    left: -40,
-    borderRadius: 170,
-    backgroundColor: Colors.accent.green,
-    opacity: 0.06,
   },
   scroll: {
     flex: 1,

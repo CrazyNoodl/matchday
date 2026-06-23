@@ -16,6 +16,7 @@ import { FontFamily, FontSize } from '@/theme/typography';
 import { Radius, Spacing } from '@/theme/spacing';
 import { Avatar } from '@/components/Avatar';
 import { NewRoundModal } from '@/components/NewRoundModal';
+import { GlowBackground } from '@/components/GlowBackground';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -81,7 +82,7 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
       {/* Green glow */}
-      <View style={styles.glow} pointerEvents="none" />
+      <GlowBackground />
 
       {/* Header */}
       <View style={styles.header}>
@@ -286,16 +287,6 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: Colors.bg.base,
-  },
-  glow: {
-    position: 'absolute',
-    width: 340,
-    height: 340,
-    top: -80,
-    left: -40,
-    borderRadius: 170,
-    backgroundColor: Colors.accent.green,
-    opacity: 0.06,
   },
   header: {
     flexDirection: 'row',

@@ -105,6 +105,14 @@ const fr = {
       draw: 'MATCH NUL',
       done: 'TERMINÉ',
     },
+    ocr: {
+      reading: 'Lecture des statistiques depuis les photos...',
+      detected: '📊 {{count}} statistiques détectées',
+      failed: 'Échec de la lecture des statistiques',
+      retry: 'Réessayer',
+      skip: 'Ignorer',
+      skipped: 'Statistiques ignorées — ajoutez-les depuis le détail du match',
+    },
   },
 
   setup: {
@@ -249,6 +257,13 @@ const fr = {
       section: 'À PROPOS',
       appName: 'Matchday',
       version: 'Version {{version}}',
+    },
+    changelog: {
+      title: 'NOUVEAUTÉS',
+      added: 'AJOUTÉ',
+      fixed: 'CORRIGÉ',
+      notes: 'NOTES',
+      empty: 'Aucune entrée pour le moment.',
     },
     danger: {
       section: 'ZONE DANGEREUSE',
