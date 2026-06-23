@@ -95,7 +95,11 @@ export default function SettingsScreen() {
     if (devUnlocked) return;
     const next = versionTaps + 1;
     setVersionTaps(next);
-    if (next >= 7) {
+    if (next === 3) {
+      router.push('/settings/changelog');
+      return;
+    }
+    if (next >= 10) {
       setDevUnlocked(true);
       setVersionTaps(0);
     }
@@ -254,8 +258,8 @@ export default function SettingsScreen() {
               sub={
                 devUnlocked
                   ? '🛠  Developer mode on'
-                  : versionTaps >= 4
-                    ? `${7 - versionTaps} more taps to unlock dev menu`
+                  : versionTaps >= 7
+                    ? `${10 - versionTaps} more taps to unlock dev menu`
                     : t('settings.about.version', { version: Constants.expoConfig?.version ?? '' })
               }
               onPress={handleVersionTap}

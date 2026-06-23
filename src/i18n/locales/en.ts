@@ -258,6 +258,13 @@ const en = {
       appName: 'Matchday',
       version: 'Version {{version}}',
     },
+    changelog: {
+      title: "WHAT'S NEW",
+      added: 'ADDED',
+      fixed: 'FIXED',
+      notes: 'NOTES',
+      empty: 'No changelog entries yet.',
+    },
     danger: {
       section: 'DANGER ZONE',
       resetAll: 'Reset All Data',

@@ -258,6 +258,13 @@ const uk = {
       appName: 'Matchday',
       version: 'Версія {{version}}',
     },
+    changelog: {
+      title: 'ЩО НОВОГО',
+      added: 'ДОДАНО',
+      fixed: 'ВИПРАВЛЕНО',
+      notes: 'ПРИМІТКИ',
+      empty: 'Записів поки немає.',
+    },
     danger: {
       section: 'НЕБЕЗПЕЧНА ЗОНА',
       resetAll: 'Скинути всі дані',
