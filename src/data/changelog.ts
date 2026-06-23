@@ -9,6 +9,12 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.6.1',
+    fixed: [
+      'A failed sync no longer gets mistaken for an empty cloud — fixes a rare case where real data could be wiped during sync',
+    ],
+  },
+  {
     version: '1.6.0',
     added: [
       "A 'What's New' screen — tap the app version 3 times in Settings to see it",
