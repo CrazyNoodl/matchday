@@ -153,7 +153,7 @@ const en = {
 
   tournament: {
     standings: 'TOURNAMENT STANDINGS',
-    headerSubtitle: 'Round {{round}} / {{total}} · Today · {{played}} rounds played',
+    headerSubtitle: 'Round {{round}} / {{total}} · {{date}} · {{played}} rounds played',
     noMatches: 'No matches played yet',
     currentMatchDay: 'CURRENT MATCH DAY',
     roundBadge: 'RND / {{n}}',
@@ -170,8 +170,14 @@ const en = {
       title: 'TOURNAMENT',
       done: 'Done',
       rename: 'Rename tournament',
+      shareStandings: 'Share standings',
+      shareStandingsSubtitle: 'Share the current table as an image',
       closeAndArchive: 'Close & archive',
       closeSubtitle: 'Lock standings & crown the winner',
+    },
+    shareStandings: {
+      title: 'SHARE STANDINGS',
+      roundLabel: 'Round {{round}} / {{total}}',
     },
     rename: {
       title: 'RENAME TOURNAMENT',
@@ -242,7 +248,7 @@ const en = {
     about: {
       section: 'ABOUT',
       appName: 'Matchday',
-      version: 'Version 1.3.0',
+      version: 'Version {{version}}',
     },
     danger: {
       section: 'DANGER ZONE',

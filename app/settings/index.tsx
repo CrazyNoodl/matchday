@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Modal, Pressable, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
+import Constants from 'expo-constants';
 import { useGoBack } from '@/utils/useGoBack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -50,6 +51,7 @@ export default function SettingsScreen() {
   const { t } = useTranslation();
   const store = useStore();
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
   const [showSignOutConfirm, setShowSignOutConfirm] = useState(false);
   const [versionTaps, setVersionTaps] = useState(0);
   const [devUnlocked, setDevUnlocked] = useState(false);
@@ -78,9 +80,11 @@ export default function SettingsScreen() {
     showTeamLogo === true &&
     language === 'en';
 
-  const handleReset = () => {
+  const handleReset = async () => {
     if (demoMode) store.setDemoMode(false);
-    store.resetStore();
+    setIsResetting(true);
+    await store.resetStore();
+    setIsResetting(false);
     setShowResetConfirm(false);
     router.dismissAll();
     router.replace('/');
@@ -251,7 +255,7 @@ export default function SettingsScreen() {
                   ? '🛠  Developer mode on'
                   : versionTaps >= 4
                     ? `${7 - versionTaps} more taps to unlock dev menu`
-                    : t('settings.about.version')
+                    : t('settings.about.version', { version: Constants.expoConfig?.version ?? '' })
               }
               onPress={handleVersionTap}
               chevron={false}
@@ -368,9 +372,10 @@ export default function SettingsScreen() {
                 <Text style={styles.dialogCancelText}>{t('settings.danger.cancel')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={styles.dialogConfirmBtn}
+                style={[styles.dialogConfirmBtn, isResetting && { opacity: 0.6 }]}
                 onPress={handleReset}
                 activeOpacity={0.8}
+                disabled={isResetting}
               >
                 <Text style={styles.dialogConfirmText}>{t('settings.danger.reset')}</Text>
               </TouchableOpacity>

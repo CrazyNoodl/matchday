@@ -22,7 +22,7 @@ export function TeamBadge({ teamCode, size = 'md', style }: TeamBadgeProps) {
   if (size === 'xs') {
     if (logo) {
       return (
-        <View style={[styles.xs, { borderColor: color + '55' }, style]}>
+        <View style={[styles.xs, styles.noBorder, style]}>
           <Image source={{ uri: logo }} style={styles.imageXs} resizeMode="cover" />
         </View>
       );
@@ -43,7 +43,7 @@ export function TeamBadge({ teamCode, size = 'md', style }: TeamBadgeProps) {
   if (size === 'lg') {
     if (logo) {
       return (
-        <View style={[styles.lg, { borderColor: color + '55' }, style]}>
+        <View style={[styles.lg, styles.noBorder, style]}>
           <Image source={{ uri: logo }} style={styles.imageLg} resizeMode="cover" />
         </View>
       );
@@ -64,7 +64,7 @@ export function TeamBadge({ teamCode, size = 'md', style }: TeamBadgeProps) {
   // md (default)
   if (logo) {
     return (
-      <View style={[styles.md, { borderColor: color + '55' }, style]}>
+      <View style={[styles.md, styles.noBorder, style]}>
         <Image source={{ uri: logo }} style={styles.imageMd} resizeMode="cover" />
       </View>
     );
@@ -111,6 +111,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     overflow: 'hidden',
   },
+  noBorder: { borderWidth: 0 },
   imageXs: { width: '100%', height: '100%' },
   imageMd: { width: '100%', height: '100%' },
   imageLg: { width: '100%', height: '100%' },

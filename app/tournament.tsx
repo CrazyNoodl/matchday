@@ -19,6 +19,8 @@ import { FontFamily, FontSize } from '@/theme/typography';
 import { Radius, Spacing } from '@/theme/spacing';
 import { Avatar } from '@/components/Avatar';
 import { SectionLabel } from '@/components/SectionLabel';
+import { ShareStandingsModal } from '@/components/ShareStandingsModal';
+import { NewRoundModal } from '@/components/NewRoundModal';
 import { useTranslation } from 'react-i18next';
 
 // ---------------------------------------------------------------------------
@@ -70,8 +72,7 @@ export default function TournamentScreen() {
   } = store;
 
   const [renameValue, setRenameValue] = useState('');
-  const [newRoundRanked, setNewRoundRanked] = useState(true);
-  const [newRoundPlayerIds, setNewRoundPlayerIds] = useState<Set<string>>(new Set());
+  const [shareStandingsVisible, setShareStandingsVisible] = useState(false);
   const { t } = useTranslation();
 
   // All ranked matches across all archived rounds + current open round (if ranked)
@@ -87,9 +88,15 @@ export default function TournamentScreen() {
 
   const rankedCompleted = archivedRounds.filter((r) => r.ranked).length;
   const rankedTotal = rankedCompleted + (roundOpen && tournamentRanked ? 1 : 0);
-  const rankedLimitReached = tournamentRounds > 0 && rankedCompleted >= tournamentRounds;
+  const roundsTarget = tournamentRounds > 0 ? tournamentRounds : rankedTotal;
 
-  const headerSubtitle = t('tournament.headerSubtitle', { round, total: rankedTotal, played: rankedCompleted });
+  const headerSubtitle = t('tournament.headerSubtitle', {
+    round: rankedTotal,
+    total: roundsTarget,
+    played: rankedCompleted,
+    date: formatDate(new Date().toISOString()),
+  });
+  const shareRoundLabel = t('tournament.shareStandings.roundLabel', { round: rankedTotal, total: roundsTarget });
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
@@ -319,14 +326,7 @@ export default function TournamentScreen() {
         ) : (
           <TouchableOpacity
             style={styles.ctaBtn}
-            onPress={() => {
-              setNewRoundRanked(!rankedLimitReached);
-              // Pre-select last round's players, or all tournamentPlayers for first round
-              const lastRound = archivedRounds[archivedRounds.length - 1];
-              const preSelected = lastRound?.players ?? tournamentPlayers;
-              setNewRoundPlayerIds(new Set(preSelected));
-              store.setModal('newRound');
-            }}
+            onPress={() => store.setModal('newRound')}
             activeOpacity={0.85}
           >
             <Text style={styles.ctaBtnText}>{t('tournament.newMatchDay')}</Text>
@@ -382,6 +382,25 @@ export default function TournamentScreen() {
                   <Text style={sheetStyles.rowIconText}>✎</Text>
                 </View>
                 <Text style={sheetStyles.rowLabel}>{t('tournament.sheet.rename')}</Text>
+                <Text style={sheetStyles.rowChevron}>›</Text>
+              </TouchableOpacity>
+
+              {/* Share standings */}
+              <TouchableOpacity
+                style={sheetStyles.row}
+                onPress={() => {
+                  store.setModal(null);
+                  setShareStandingsVisible(true);
+                }}
+                activeOpacity={0.8}
+              >
+                <View style={[sheetStyles.rowIcon, { backgroundColor: Colors.accent.greenSubtle }]}>
+                  <Text style={[sheetStyles.rowIconText, { color: Colors.accent.green }]}>↗</Text>
+                </View>
+                <View style={sheetStyles.rowLabelBlock}>
+                  <Text style={sheetStyles.rowLabel}>{t('tournament.sheet.shareStandings')}</Text>
+                  <Text style={sheetStyles.rowSubtitle}>{t('tournament.sheet.shareStandingsSubtitle')}</Text>
+                </View>
                 <Text style={sheetStyles.rowChevron}>›</Text>
               </TouchableOpacity>
 
@@ -517,127 +536,15 @@ export default function TournamentScreen() {
       </Modal>
 
       {/* ---- New Round Sheet ---- */}
-      <Modal
-        visible={modal === 'newRound'}
-        transparent
-        animationType="slide"
-        statusBarTranslucent
-        onRequestClose={() => store.setModal(null)}
-      >
-        <View style={sheetStyles.container}>
-          <Pressable style={sheetStyles.overlay} onPress={() => store.setModal(null)} />
-          <View style={sheetStyles.sheet}>
-            <View style={sheetStyles.handle} />
+      <NewRoundModal />
 
-            <Text style={newRoundStyles.title}>{t('tournament.newRound.title')}</Text>
-            <Text style={newRoundStyles.subtitle} numberOfLines={1}>
-              {t('tournament.newRound.subtitle', { name: tournamentName, round: round + 1 })}
-            </Text>
-
-            {/* Ranked toggle */}
-            <TouchableOpacity
-              style={[newRoundStyles.toggleRow, rankedLimitReached && newRoundStyles.toggleRowDisabled]}
-              onPress={() => !rankedLimitReached && setNewRoundRanked((v) => !v)}
-              activeOpacity={rankedLimitReached ? 1 : 0.8}
-            >
-              <View style={newRoundStyles.toggleLabelBlock}>
-                <Text style={[newRoundStyles.toggleLabel, rankedLimitReached && newRoundStyles.toggleLabelDisabled]}>
-                  {t('tournament.newRound.rankedLabel')}
-                </Text>
-                <Text style={newRoundStyles.toggleSub}>
-                  {rankedLimitReached
-                    ? t('tournament.newRound.rankedLimitReached', { count: tournamentRounds })
-                    : t('tournament.newRound.rankedSub')}
-                </Text>
-              </View>
-              <View style={[newRoundStyles.toggle, newRoundRanked && !rankedLimitReached && newRoundStyles.toggleOn]}>
-                <View
-                  style={[
-                    newRoundStyles.toggleKnob,
-                    newRoundRanked && !rankedLimitReached && newRoundStyles.toggleKnobOn,
-                  ]}
-                />
-              </View>
-            </TouchableOpacity>
-
-            {/* Players section */}
-            <Text style={newRoundStyles.playersLabel}>
-              {t('tournament.newRound.playersLabel', { count: newRoundPlayerIds.size })}
-            </Text>
-
-            <ScrollView
-              style={newRoundStyles.playersList}
-              showsVerticalScrollIndicator={false}
-            >
-              {players.map((player) => {
-                const selected = newRoundPlayerIds.has(player.id);
-                return (
-                  <TouchableOpacity
-                    key={player.id}
-                    style={[newRoundStyles.playerRow, selected && newRoundStyles.playerRowSelected]}
-                    onPress={() => {
-                      setNewRoundPlayerIds((prev) => {
-                        const next = new Set(prev);
-                        if (next.has(player.id)) {
-                          next.delete(player.id);
-                        } else {
-                          next.add(player.id);
-                        }
-                        return next;
-                      });
-                    }}
-                    activeOpacity={0.7}
-                  >
-                    <Avatar playerId={player.id} size="sm" />
-                    <View style={newRoundStyles.playerRowInfo}>
-                      <Text style={newRoundStyles.playerRowName}>{player.name}</Text>
-                      {player.nick ? (
-                        <Text style={newRoundStyles.playerRowNick}>@{player.nick}</Text>
-                      ) : null}
-                    </View>
-                    <View style={[newRoundStyles.checkbox, selected && newRoundStyles.checkboxOn]}>
-                      {selected && <Text style={newRoundStyles.checkmark}>✓</Text>}
-                    </View>
-                  </TouchableOpacity>
-                );
-              })}
-            </ScrollView>
-
-            {newRoundPlayerIds.size < 2 && (
-              <Text style={newRoundStyles.minPlayersHint}>
-                {t('tournament.newRound.minPlayers')}
-              </Text>
-            )}
-
-            <View style={newRoundStyles.actions}>
-              <TouchableOpacity
-                style={newRoundStyles.cancelBtn}
-                onPress={() => store.setModal(null)}
-                activeOpacity={0.75}
-              >
-                <Text style={newRoundStyles.cancelText}>{t('tournament.newRound.cancel')}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[newRoundStyles.startBtn, newRoundPlayerIds.size < 2 && newRoundStyles.startBtnDisabled]}
-                onPress={() => {
-                  if (newRoundPlayerIds.size < 2) return;
-                  store.startRound(newRoundRanked, Array.from(newRoundPlayerIds));
-                  store.setModal(null);
-                  router.push('/round');
-                }}
-                activeOpacity={0.85}
-                disabled={newRoundPlayerIds.size < 2}
-              >
-                <Text style={[newRoundStyles.startText, newRoundPlayerIds.size < 2 && newRoundStyles.startTextDisabled]}>
-                  {t('tournament.newRound.start')}
-                </Text>
-              </TouchableOpacity>
-            </View>
-
-            {Platform.OS === 'ios' && <View style={{ height: 16 }} />}
-          </View>
-        </View>
-      </Modal>
+      <ShareStandingsModal
+        visible={shareStandingsVisible}
+        onClose={() => setShareStandingsVisible(false)}
+        tournamentName={tournamentName || 'TOURNAMENT'}
+        subtitle={shareRoundLabel}
+        standings={standings}
+      />
     </SafeAreaView>
   );
 }
@@ -1267,195 +1174,3 @@ const dialogStyles = StyleSheet.create({
   },
 });
 
-// ---------------------------------------------------------------------------
-// New round styles
-// ---------------------------------------------------------------------------
-
-const newRoundStyles = StyleSheet.create({
-  title: {
-    fontFamily: FontFamily.displayBold,
-    fontSize: FontSize['2xl'],
-    color: Colors.text.primary,
-    letterSpacing: 0.5,
-    marginBottom: 3,
-  },
-  subtitle: {
-    fontFamily: FontFamily.body,
-    fontSize: FontSize.sm,
-    color: Colors.text.muted,
-    marginBottom: Spacing.xl,
-  },
-  toggleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.bg.elevated,
-    borderRadius: Radius.md,
-    borderWidth: 1,
-    borderColor: Colors.border.default,
-    padding: Spacing.lg,
-    gap: Spacing.lg,
-    marginBottom: Spacing.md,
-  },
-  toggleRowDisabled: {
-    opacity: 0.55,
-  },
-  toggleLabelBlock: {
-    flex: 1,
-    gap: 3,
-  },
-  toggleLabel: {
-    fontFamily: FontFamily.bodySemiBold,
-    fontSize: FontSize.base,
-    color: Colors.text.primary,
-  },
-  toggleLabelDisabled: {
-    color: Colors.text.muted,
-  },
-  toggleSub: {
-    fontFamily: FontFamily.body,
-    fontSize: FontSize.xs,
-    color: Colors.text.muted,
-  },
-  toggle: {
-    width: 46,
-    height: 26,
-    borderRadius: 13,
-    backgroundColor: Colors.bg.surface,
-    borderWidth: 1,
-    borderColor: Colors.border.medium,
-    justifyContent: 'center',
-    paddingHorizontal: 3,
-  },
-  toggleOn: {
-    backgroundColor: Colors.accent.green,
-    borderColor: Colors.accent.green,
-  },
-  toggleKnob: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: Colors.text.muted,
-    alignSelf: 'flex-start',
-  },
-  toggleKnobOn: {
-    backgroundColor: Colors.accent.greenDark,
-    alignSelf: 'flex-end',
-  },
-  playersLabel: {
-    fontFamily: FontFamily.bodyBold,
-    fontSize: FontSize.xs,
-    color: Colors.text.muted,
-    letterSpacing: 0.8,
-    marginTop: Spacing.md,
-    marginBottom: Spacing.sm,
-  },
-  playersList: {
-    maxHeight: 220,
-    marginBottom: Spacing.sm,
-  },
-  playerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: Spacing.sm,
-    paddingHorizontal: Spacing.md,
-    borderRadius: Radius.md,
-    gap: Spacing.md,
-    marginBottom: 4,
-    backgroundColor: Colors.bg.elevated,
-    borderWidth: 1,
-    borderColor: Colors.border.default,
-  },
-  playerRowSelected: {
-    borderColor: Colors.accent.greenBorder,
-    backgroundColor: Colors.accent.greenSubtle,
-  },
-  playerRowInfo: {
-    flex: 1,
-    gap: 1,
-  },
-  playerRowName: {
-    fontFamily: FontFamily.bodySemiBold,
-    fontSize: FontSize.sm,
-    color: Colors.text.primary,
-  },
-  playerRowNick: {
-    fontFamily: FontFamily.body,
-    fontSize: FontSize.xs,
-    color: Colors.text.muted,
-  },
-  checkbox: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    borderWidth: 1.5,
-    borderColor: Colors.border.strong,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-  },
-  checkboxOn: {
-    backgroundColor: Colors.accent.green,
-    borderColor: Colors.accent.green,
-  },
-  checkmark: {
-    fontFamily: FontFamily.bodyBold,
-    fontSize: 13,
-    color: Colors.accent.greenDark,
-    lineHeight: 16,
-  },
-  minPlayersHint: {
-    fontFamily: FontFamily.body,
-    fontSize: FontSize.xs,
-    color: Colors.accent.red,
-    textAlign: 'center',
-    marginBottom: Spacing.sm,
-  },
-  actions: {
-    flexDirection: 'row',
-    gap: Spacing.md,
-    marginTop: Spacing.sm,
-  },
-  cancelBtn: {
-    flex: 1,
-    backgroundColor: Colors.bg.elevated,
-    borderRadius: Radius.md,
-    paddingVertical: Spacing.lg,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: Colors.border.medium,
-  },
-  cancelText: {
-    fontFamily: FontFamily.displayBold,
-    fontSize: FontSize.base,
-    color: Colors.text.muted,
-    letterSpacing: 0.4,
-  },
-  startBtn: {
-    flex: 2,
-    backgroundColor: Colors.accent.green,
-    borderRadius: Radius.md,
-    paddingVertical: Spacing.lg,
-    alignItems: 'center',
-    shadowColor: Colors.accent.green,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.35,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-  startBtnDisabled: {
-    backgroundColor: Colors.bg.elevated,
-    borderWidth: 1,
-    borderColor: Colors.border.medium,
-    shadowOpacity: 0,
-    elevation: 0,
-  },
-  startText: {
-    fontFamily: FontFamily.displayBold,
-    fontSize: FontSize.base,
-    color: Colors.accent.greenDark,
-    letterSpacing: 0.6,
-  },
-  startTextDisabled: {
-    color: Colors.text.ghost,
-  },
-});

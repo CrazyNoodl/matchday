@@ -153,7 +153,7 @@ const fr = {
 
   tournament: {
     standings: 'CLASSEMENT DU TOURNOI',
-    headerSubtitle: 'Tour {{round}} / {{total}} · Aujourd\'hui · {{played}} tours joués',
+    headerSubtitle: 'Tour {{round}} / {{total}} · {{date}} · {{played}} tours joués',
     noMatches: 'Aucun match joué pour l\'instant',
     currentMatchDay: 'JOURNÉE EN COURS',
     roundBadge: 'TOUR / {{n}}',
@@ -170,8 +170,14 @@ const fr = {
       title: 'TOURNOI',
       done: 'Terminer',
       rename: 'Renommer le tournoi',
+      shareStandings: 'Partager le classement',
+      shareStandingsSubtitle: 'Partager le classement actuel en image',
       closeAndArchive: 'Clôturer et archiver',
       closeSubtitle: 'Figer le classement & couronner le vainqueur',
+    },
+    shareStandings: {
+      title: 'PARTAGER LE CLASSEMENT',
+      roundLabel: 'Tour {{round}} / {{total}}',
     },
     rename: {
       title: 'RENOMMER LE TOURNOI',
@@ -242,7 +248,7 @@ const fr = {
     about: {
       section: 'À PROPOS',
       appName: 'Matchday',
-      version: 'Version 1.2.0',
+      version: 'Version {{version}}',
     },
     danger: {
       section: 'ZONE DANGEREUSE',
