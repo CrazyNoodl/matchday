@@ -18,6 +18,7 @@ import { Avatar } from '@/components/Avatar';
 import { NavHeader } from '@/components/NavHeader';
 import { SectionLabel } from '@/components/SectionLabel';
 import { GlowBackground } from '@/components/GlowBackground';
+import { SegmentedControl } from '@/components/SegmentedControl';
 import type { Match, Player } from '@/store/types';
 import { useTranslation } from 'react-i18next';
 
@@ -184,34 +185,15 @@ export default function StatsScreen() {
 
       {/* Tab pills */}
       <View style={styles.tabRow}>
-        <TouchableOpacity
-          style={[styles.tabPill, activeTab === 'ranking' && styles.tabPillActive]}
-          onPress={() => setActiveTab('ranking')}
-          activeOpacity={0.8}
-        >
-          <Text
-            style={[
-              styles.tabLabel,
-              activeTab === 'ranking' ? styles.tabLabelActive : styles.tabLabelInactive,
-            ]}
-          >
-            {t('stats.ranking')}
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.tabPill, activeTab === 'h2h' && styles.tabPillActive]}
-          onPress={() => setActiveTab('h2h')}
-          activeOpacity={0.8}
-        >
-          <Text
-            style={[
-              styles.tabLabel,
-              activeTab === 'h2h' ? styles.tabLabelActive : styles.tabLabelInactive,
-            ]}
-          >
-            {t('stats.h2h')}
-          </Text>
-        </TouchableOpacity>
+        <SegmentedControl
+          variant="pill"
+          value={activeTab}
+          onChange={setActiveTab}
+          options={[
+            { value: 'ranking', label: t('stats.ranking') },
+            { value: 'h2h', label: t('stats.h2h') },
+          ]}
+        />
       </View>
 
       <ScrollView
@@ -505,35 +487,9 @@ const styles = StyleSheet.create({
 
   // Tab pills
   tabRow: {
-    flexDirection: 'row',
     marginHorizontal: Spacing.lg,
     marginTop: Spacing.lg,
     marginBottom: Spacing.sm,
-    backgroundColor: Colors.bg.elevated,
-    borderRadius: Radius.full,
-    padding: 3,
-    gap: 3,
-  },
-  tabPill: {
-    flex: 1,
-    paddingVertical: Spacing.sm,
-    borderRadius: Radius.full,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  tabPillActive: {
-    backgroundColor: Colors.accent.green,
-  },
-  tabLabel: {
-    fontFamily: FontFamily.bodySemiBold,
-    fontSize: FontSize.base,
-    letterSpacing: 0.2,
-  },
-  tabLabelActive: {
-    color: Colors.accent.greenDark,
-  },
-  tabLabelInactive: {
-    color: Colors.text.muted,
   },
 
   // Scroll

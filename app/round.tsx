@@ -30,6 +30,7 @@ import { SectionLabel } from '@/components/SectionLabel';
 import { EmptyState } from '@/components/EmptyState';
 import { MediaThumbnail } from '@/components/MediaThumbnail';
 import { GlowBackground } from '@/components/GlowBackground';
+import { SegmentedControl } from '@/components/SegmentedControl';
 import { Match, MediaItem } from '@/store/types';
 import { useTranslation } from 'react-i18next';
 import { uploadMediaItems } from '@/supabase/storage';
@@ -692,30 +693,14 @@ export default function MatchdayScreen() {
 
       {/* Standings toggle */}
       <View style={styles.toggleContainer}>
-        <View style={styles.segmented}>
-          <TouchableOpacity
-            style={[styles.seg, standingsView === 'table' && styles.segActive]}
-            onPress={() => setStandingsView('table')}
-            activeOpacity={0.8}
-          >
-            <Text
-              style={[styles.segText, standingsView === 'table' && styles.segTextActive]}
-            >
-              {t('matchday.table')}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.seg, standingsView === 'cards' && styles.segActive]}
-            onPress={() => setStandingsView('cards')}
-            activeOpacity={0.8}
-          >
-            <Text
-              style={[styles.segText, standingsView === 'cards' && styles.segTextActive]}
-            >
-              {t('matchday.cards')}
-            </Text>
-          </TouchableOpacity>
-        </View>
+        <SegmentedControl
+          value={standingsView}
+          onChange={setStandingsView}
+          options={[
+            { value: 'table', label: t('matchday.table') },
+            { value: 'cards', label: t('matchday.cards') },
+          ]}
+        />
       </View>
 
       <ScrollView
@@ -1199,34 +1184,6 @@ const styles = StyleSheet.create({
   toggleContainer: {
     paddingHorizontal: Spacing.xl,
     paddingVertical: Spacing.md,
-  },
-  segmented: {
-    flexDirection: 'row',
-    backgroundColor: Colors.bg.elevated,
-    borderRadius: Radius.lg,
-    padding: 3,
-    alignSelf: 'flex-start',
-  },
-  seg: {
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm - 1,
-    borderRadius: Radius.md,
-  },
-  segActive: {
-    backgroundColor: Colors.bg.surface,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.3,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  segText: {
-    fontFamily: FontFamily.bodySemiBold,
-    fontSize: FontSize.sm,
-    color: Colors.text.muted,
-  },
-  segTextActive: {
-    color: Colors.text.primary,
   },
   scroll: {
     flex: 1,
