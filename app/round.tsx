@@ -161,6 +161,7 @@ export default function MatchdayScreen() {
 
   const [standingsView, setStandingsView] = useState<StandingsView>('table');
   const [addMatch, setAddMatch] = useState<AddMatchState>(initAddMatch());
+  const [isSavingMatch, setIsSavingMatch] = useState(false);
   const [localWinnerId, setLocalWinnerId] = useState<string | null>(null);
 
   const standings = useMemo(
@@ -270,31 +271,36 @@ export default function MatchdayScreen() {
 
   const handleSaveMatch = useCallback(async () => {
     if (!addMatch.homeId || !addMatch.awayId) return;
-    const homePlayer = players.find((p) => p.id === addMatch.homeId);
-    const awayPlayer = players.find((p) => p.id === addMatch.awayId);
-    const hTeam = addMatch.homeTeam || homePlayer?.teamCode || 'UNK';
-    const aTeam = addMatch.awayTeam || awayPlayer?.teamCode || 'UNK';
+    setIsSavingMatch(true);
+    try {
+      const homePlayer = players.find((p) => p.id === addMatch.homeId);
+      const awayPlayer = players.find((p) => p.id === addMatch.awayId);
+      const hTeam = addMatch.homeTeam || homePlayer?.teamCode || 'UNK';
+      const aTeam = addMatch.awayTeam || awayPlayer?.teamCode || 'UNK';
 
-    // Upload local media to Supabase Storage before saving
-    const uploadedMedia = addMatch.media.length > 0
-      ? await uploadMediaItems(addMatch.media)
-      : [];
+      // Upload local media to Supabase Storage before saving
+      const uploadedMedia = addMatch.media.length > 0
+        ? await uploadMediaItems(addMatch.media)
+        : [];
 
-    const match: Match = {
-      id: `match-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-      aId: addMatch.homeId,
-      bId: addMatch.awayId,
-      aTeam: hTeam,
-      bTeam: aTeam,
-      aScore: addMatch.homeScore,
-      bScore: addMatch.awayScore,
-      media: uploadedMedia.length > 0 ? uploadedMedia : undefined,
-      note: addMatch.note.trim() || undefined,
-      statsOverride: addMatch.pendingStats ?? undefined,
-    };
-    store.addMatch(match);
-    store.setModal(null);
-    setAddMatch(initAddMatch());
+      const match: Match = {
+        id: `match-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        aId: addMatch.homeId,
+        bId: addMatch.awayId,
+        aTeam: hTeam,
+        bTeam: aTeam,
+        aScore: addMatch.homeScore,
+        bScore: addMatch.awayScore,
+        media: uploadedMedia.length > 0 ? uploadedMedia : undefined,
+        note: addMatch.note.trim() || undefined,
+        statsOverride: addMatch.pendingStats ?? undefined,
+      };
+      store.addMatch(match);
+      store.setModal(null);
+      setAddMatch(initAddMatch());
+    } finally {
+      setIsSavingMatch(false);
+    }
   }, [addMatch, players, store]);
 
   const runOcr = useCallback(
@@ -905,11 +911,16 @@ export default function MatchdayScreen() {
                 </TouchableOpacity>
               ) : (
                 <TouchableOpacity
-                  style={sheetStyles.nextBtn}
+                  style={[sheetStyles.nextBtn, isSavingMatch && sheetStyles.nextBtnDisabled]}
                   onPress={handleSaveMatch}
+                  disabled={isSavingMatch}
                   activeOpacity={0.85}
                 >
-                  <Text style={sheetStyles.nextBtnText}>{t('matchday.saveMatch')}</Text>
+                  {isSavingMatch ? (
+                    <ActivityIndicator size="small" color={Colors.accent.greenDark} />
+                  ) : (
+                    <Text style={sheetStyles.nextBtnText}>{t('matchday.saveMatch')}</Text>
+                  )}
                 </TouchableOpacity>
               )}
             </View>
