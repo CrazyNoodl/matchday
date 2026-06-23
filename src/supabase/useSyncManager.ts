@@ -22,10 +22,20 @@ export function useSyncManager() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let subscription: any = null;
 
-    // Returns true if cloud had data (so applyCloudState was applied)
-    async function pull(): Promise<boolean> {
-      const pulled = await pullState();
-      if (!pulled) return false;
+    // 'failed': the query errored — caller must NOT treat this as an empty
+    //   cloud, since that would trigger a bootstrap push that deletes real
+    //   cloud rows missing from a local state we never actually compared.
+    // 'empty': query succeeded and the cloud genuinely has nothing for this user.
+    // 'has-data': query succeeded and applyCloudState() was applied.
+    async function pull(): Promise<'failed' | 'empty' | 'has-data'> {
+      let pulled: Awaited<ReturnType<typeof pullState>>;
+      try {
+        pulled = await pullState();
+      } catch {
+        setSyncStatus('error');
+        return 'failed';
+      }
+      if (!pulled) return 'empty';
       const hasCloudData =
         pulled.players.length > 0 ||
         pulled.teams.length > 0 ||
@@ -34,7 +44,7 @@ export function useSyncManager() {
       applyingRef.current = true;
       applyCloudState(pulled);
       setTimeout(() => { applyingRef.current = false; }, 100);
-      return hasCloudData;
+      return hasCloudData ? 'has-data' : 'empty';
     }
 
     async function runPush() {
@@ -84,12 +94,20 @@ export function useSyncManager() {
         userId = await getCurrentUserId();
         if (!userId) { setSyncStatus('idle'); return; }
 
-        const cloudHadData = await pull();
+        const pullResult = await pull();
+
+        // The initial pull failed (network blip, RLS error, etc.) — we have
+        // no reliable read of cloud state, so we must not guess. Bail out
+        // without bootstrapping or subscribing; a later mutation's debounced
+        // push, or the next app start, will retry the pull from scratch.
+        if (pullResult === 'failed') {
+          return;
+        }
 
         // Bootstrap push: if Supabase was empty and there is local data, seed it now.
         // This handles the first sync after install / login, and migration from
         // pre-sync app versions that never pushed to Supabase.
-        if (!cloudHadData) {
+        if (pullResult === 'empty') {
           const s = useStore.getState();
           const hasLocalData =
             s.players.length > 0 ||

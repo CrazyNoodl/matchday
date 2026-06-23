@@ -338,14 +338,7 @@ export async function pullState(): Promise<PulledState | null> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const db = supabase as any;
 
-  const [
-    { data: playersData },
-    { data: teamsData },
-    { data: activeTournamentRows },
-    { data: allRounds },
-    { data: allMatches },
-    { data: closedTourRows },
-  ] = await Promise.all([
+  const results = await Promise.all([
     db.from('players').select('*').eq('user_id', userId),
     db.from('teams').select('*').eq('user_id', userId),
     db.from('tournaments').select('*').eq('user_id', userId).eq('status', 'active').limit(1),
@@ -353,6 +346,24 @@ export async function pullState(): Promise<PulledState | null> {
     db.from('matches').select('*').eq('user_id', userId).order('id', { ascending: true }),
     db.from('closed_tournaments').select('*').eq('user_id', userId),
   ]);
+
+  // A failed query (network blip, RLS error, etc.) must NOT be treated as
+  // "the cloud has no data" — that would make the caller apply an empty
+  // state over real local data, and could later push that emptiness back
+  // up and delete real cloud rows. Surface failures by throwing instead.
+  const failed = results.find((r) => r.error);
+  if (failed) {
+    throw new Error(`pullState: query failed — ${failed.error?.message ?? 'unknown error'}`);
+  }
+
+  const [
+    { data: playersData },
+    { data: teamsData },
+    { data: activeTournamentRows },
+    { data: allRounds },
+    { data: allMatches },
+    { data: closedTourRows },
+  ] = results;
 
   const activeTournament = ((activeTournamentRows ?? []) as Record<string, unknown>[])[0] ?? null;
   const rounds = (allRounds ?? []) as Record<string, unknown>[];
