@@ -213,7 +213,7 @@ export default function ArchiveDayScreen() {
           </View>
         ) : (
           <View style={styles.matchList}>
-            {matches.map((m: Match) => (
+            {[...matches].reverse().map((m: Match) => (
               <TouchableOpacity
                 key={m.id}
                 activeOpacity={0.75}

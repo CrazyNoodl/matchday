@@ -356,7 +356,7 @@ export default function SeasonStatsScreen() {
                   <Text style={styles.roundEmptyText}>—</Text>
                 </View>
               ) : (
-                round.matches.map((m) => (
+                [...round.matches].reverse().map((m) => (
                   <TouchableOpacity
                     key={m.id}
                     onPress={() => handleMatchPress(m.id)}
