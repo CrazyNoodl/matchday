@@ -19,23 +19,12 @@ import { NavHeader } from '@/components/NavHeader';
 import { GlowBackground } from '@/components/GlowBackground';
 import { RoundCard } from '@/components/RoundCard';
 import { ArchivedRound, ClosedTournament } from '@/store/types';
+import { formatShortDate, formatYearShort } from '@/utils/dateFormat';
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
-function formatFCYear(dateStr: string): string {
-  const d = new Date(dateStr);
-  return String(d.getFullYear()).slice(-2);
-}
-
-function formatRoundDate(dateStr: string): string {
-  const d = new Date(dateStr);
-  const dd = String(d.getDate()).padStart(2, '0');
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  const yy = String(d.getFullYear()).slice(-2);
-  return `${dd}/${mm}/${yy}`;
-}
 
 // ---------------------------------------------------------------------------
 // Round row inside an expanded tournament card
@@ -53,7 +42,7 @@ function RoundRow({ round, onPress }: RoundRowProps) {
     <RoundCard
       variant="row"
       n={round.n}
-      dateText={formatRoundDate(round.date)}
+      dateText={formatShortDate(round.date)}
       matchCountText={t('archive.roundMatches', { count: round.matches.length })}
       winnerId={round.winner}
       winnerName={winner?.nick ?? winner?.name ?? '—'}
@@ -87,7 +76,7 @@ function ClosedTournamentCard({
   const d = new Date(tournament.date);
   const fullYear = d.getFullYear();
   const shortYear = String(fullYear + 1).slice(-2);
-  const year = formatFCYear(tournament.date);
+  const year = formatYearShort(tournament.date);
   const seasonSubtitle = t('archive.season', {
     year1: fullYear,
     year2: shortYear,

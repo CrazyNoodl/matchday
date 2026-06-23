@@ -14,6 +14,7 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStore } from '@/store';
 import { calculateStandings } from '@/utils/standings';
+import { formatShortDate } from '@/utils/dateFormat';
 import { Colors } from '@/theme/colors';
 import { FontFamily, FontSize } from '@/theme/typography';
 import { Radius, Spacing } from '@/theme/spacing';
@@ -43,14 +44,6 @@ const TOUR_TABLE_COLS = [
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-
-function formatDate(isoString: string): string {
-  const d = new Date(isoString);
-  const dd = String(d.getDate()).padStart(2, '0');
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  const yy = String(d.getFullYear()).slice(2);
-  return `${dd}/${mm}/${yy}`;
-}
 
 // ---------------------------------------------------------------------------
 // Screen
@@ -96,7 +89,7 @@ export default function TournamentScreen() {
     round: rankedTotal,
     total: roundsTarget,
     played: rankedCompleted,
-    date: formatDate(new Date().toISOString()),
+    date: formatShortDate(new Date().toISOString()),
   });
   const shareRoundLabel = t('tournament.shareStandings.roundLabel', { round: rankedTotal, total: roundsTarget });
 
@@ -266,7 +259,7 @@ export default function TournamentScreen() {
               <RoundCard
                 key={r.id}
                 n={r.n}
-                dateText={formatDate(r.date)}
+                dateText={formatShortDate(r.date)}
                 matchCountText={t('tournament.roundMatches', { count: r.games })}
                 winnerId={roundWinner?.id}
                 winnerName={roundWinner ? (roundWinner.nick ?? roundWinner.name) : '—'}

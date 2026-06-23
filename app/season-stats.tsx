@@ -11,6 +11,7 @@ import { useGoBack } from '@/utils/useGoBack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStore } from '@/store';
 import { calculateStandings } from '@/utils/standings';
+import { formatShortDate, formatYearShort } from '@/utils/dateFormat';
 import { Colors } from '@/theme/colors';
 import { FontFamily, FontSize } from '@/theme/typography';
 import { Radius, Spacing } from '@/theme/spacing';
@@ -34,18 +35,6 @@ type ParamChip = 'wdl' | 'gd' | 'gfa';
 // Helpers
 // ---------------------------------------------------------------------------
 
-function formatFCYear(dateStr: string): string {
-  const d = new Date(dateStr);
-  return String(d.getFullYear()).slice(-2);
-}
-
-function formatRoundDate(dateStr: string): string {
-  const d = new Date(dateStr);
-  const dd = String(d.getDate()).padStart(2, '0');
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  const yy = String(d.getFullYear()).slice(-2);
-  return `${dd}/${mm}/${yy}`;
-}
 
 function filterRounds(
   rounds: ArchivedRound[],
@@ -155,7 +144,7 @@ export default function SeasonStatsScreen() {
   const fullYear = d.getFullYear();
   const shortYear = String(fullYear + 1).slice(-2);
   const seasonSubtitle = t('seasonStats.seasonSubtitle', { year1: fullYear, year2: shortYear });
-  const fcYear = formatFCYear(viewingTournament.date);
+  const fcYear = formatYearShort(viewingTournament.date);
 
   const includeFilters: { key: IncludeFilter; label: string }[] = [
     { key: 'Rated', label: t('seasonStats.rated') },
@@ -347,7 +336,7 @@ export default function SeasonStatsScreen() {
                   <Text style={styles.roundHeaderTitle}>
                     {t('matchday.round', { n: round.n })}
                   </Text>
-                  <Text style={styles.roundHeaderDate}>{formatRoundDate(round.date)}</Text>
+                  <Text style={styles.roundHeaderDate}>{formatShortDate(round.date)}</Text>
                 </View>
                 {!round.ranked && (
                   <View style={styles.friendlyTag}>
