@@ -11,6 +11,7 @@ import { Colors } from '@/theme/colors';
 import { FontFamily, FontSize } from '@/theme/typography';
 import { Radius, Spacing } from '@/theme/spacing';
 import { NavHeader } from '@/components/NavHeader';
+import { GlowBackground } from '@/components/GlowBackground';
 import { signOut } from '@/supabase/auth';
 import { supabase, supabaseConfigured } from '@/supabase/client';
 
@@ -94,7 +95,11 @@ export default function SettingsScreen() {
     if (devUnlocked) return;
     const next = versionTaps + 1;
     setVersionTaps(next);
-    if (next >= 7) {
+    if (next === 3) {
+      router.push('/settings/changelog');
+      return;
+    }
+    if (next >= 10) {
       setDevUnlocked(true);
       setVersionTaps(0);
     }
@@ -129,7 +134,7 @@ export default function SettingsScreen() {
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
-      <View style={styles.glow} pointerEvents="none" />
+      <GlowBackground />
       <NavHeader title={t('settings.title')} onBack={() => goBack()} />
 
       <ScrollView
@@ -253,8 +258,8 @@ export default function SettingsScreen() {
               sub={
                 devUnlocked
                   ? '🛠  Developer mode on'
-                  : versionTaps >= 4
-                    ? `${7 - versionTaps} more taps to unlock dev menu`
+                  : versionTaps >= 7
+                    ? `${10 - versionTaps} more taps to unlock dev menu`
                     : t('settings.about.version', { version: Constants.expoConfig?.version ?? '' })
               }
               onPress={handleVersionTap}
@@ -391,16 +396,6 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: Colors.bg.base,
-  },
-  glow: {
-    position: 'absolute',
-    width: 340,
-    height: 340,
-    top: -80,
-    left: -40,
-    borderRadius: 170,
-    backgroundColor: Colors.accent.green,
-    opacity: 0.06,
   },
   scroll: { flex: 1 },
   scrollContent: {

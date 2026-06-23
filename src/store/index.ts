@@ -154,6 +154,36 @@ function initials(name: string): string {
 }
 
 // ---------------------------------------------------------------------------
+// Helper — patch a single match wherever it lives (current matches + archived rounds)
+// ---------------------------------------------------------------------------
+function patchMatchEverywhere(
+  s: Pick<AppState, 'matches' | 'archivedRounds'>,
+  id: string,
+  patch: Partial<Match>,
+): Pick<AppState, 'matches' | 'archivedRounds'> {
+  return {
+    matches: s.matches.map((m) => (m.id === id ? { ...m, ...patch } : m)),
+    archivedRounds: s.archivedRounds.map((r) => ({
+      ...r,
+      matches: r.matches.map((m) => (m.id === id ? { ...m, ...patch } : m)),
+    })),
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Helper — collect every match across current round, archived rounds, and closed tournaments
+// ---------------------------------------------------------------------------
+function collectAllMatches(
+  s: Pick<AppState, 'matches' | 'archivedRounds' | 'closedTournaments'>,
+): Match[] {
+  return [
+    ...s.matches,
+    ...s.archivedRounds.flatMap((r) => r.matches),
+    ...s.closedTournaments.flatMap((t) => t.rounds.flatMap((r) => r.matches)),
+  ];
+}
+
+// ---------------------------------------------------------------------------
 // Store
 // ---------------------------------------------------------------------------
 export const useStore = create<AppState & Actions>()(
@@ -224,48 +254,16 @@ export const useStore = create<AppState & Actions>()(
         set((s) => ({ matches: s.matches.filter((m) => m.id !== id) })),
 
       updateMatchScore: (id, aScore, bScore) =>
-        set((s) => ({
-          matches: s.matches.map((m) =>
-            m.id === id ? { ...m, aScore, bScore } : m,
-          ),
-          archivedRounds: s.archivedRounds.map((r) => ({
-            ...r,
-            matches: r.matches.map((m) =>
-              m.id === id ? { ...m, aScore, bScore } : m,
-            ),
-          })),
-        })),
+        set((s) => patchMatchEverywhere(s, id, { aScore, bScore })),
 
       updateMatchMedia: (id, media) =>
-        set((s) => ({
-          matches: s.matches.map((m) => (m.id === id ? { ...m, media } : m)),
-          archivedRounds: s.archivedRounds.map((r) => ({
-            ...r,
-            matches: r.matches.map((m) => (m.id === id ? { ...m, media } : m)),
-          })),
-        })),
+        set((s) => patchMatchEverywhere(s, id, { media })),
 
       updateMatchNote: (id, note) =>
-        set((s) => ({
-          matches: s.matches.map((m) => (m.id === id ? { ...m, note } : m)),
-          archivedRounds: s.archivedRounds.map((r) => ({
-            ...r,
-            matches: r.matches.map((m) => (m.id === id ? { ...m, note } : m)),
-          })),
-        })),
+        set((s) => patchMatchEverywhere(s, id, { note })),
 
       updateMatchStats: (id, stats) =>
-        set((s) => ({
-          matches: s.matches.map((m) =>
-            m.id === id ? { ...m, statsOverride: stats } : m,
-          ),
-          archivedRounds: s.archivedRounds.map((r) => ({
-            ...r,
-            matches: r.matches.map((m) =>
-              m.id === id ? { ...m, statsOverride: stats } : m,
-            ),
-          })),
-        })),
+        set((s) => patchMatchEverywhere(s, id, { statsOverride: stats })),
 
       finishRound: () => {
         const s = get();
@@ -346,11 +344,7 @@ export const useStore = create<AppState & Actions>()(
 
       deletePlayer: (id) => {
         const s = get();
-        const allMatches = [
-          ...s.matches,
-          ...s.archivedRounds.flatMap((r) => r.matches),
-          ...s.closedTournaments.flatMap((t) => t.rounds.flatMap((r) => r.matches)),
-        ];
+        const allMatches = collectAllMatches(s);
         if (allMatches.some((m) => m.aId === id || m.bId === id)) return;
         set({ players: s.players.filter((p) => p.id !== id) });
       },
@@ -368,11 +362,7 @@ export const useStore = create<AppState & Actions>()(
 
       deleteTeam: (code) => {
         const s = get();
-        const allMatches = [
-          ...s.matches,
-          ...s.archivedRounds.flatMap((r) => r.matches),
-          ...s.closedTournaments.flatMap((t) => t.rounds.flatMap((r) => r.matches)),
-        ];
+        const allMatches = collectAllMatches(s);
         if (allMatches.some((m) => m.aTeam === code || m.bTeam === code)) return;
         set({ teams: s.teams.filter((t) => t.code !== code) });
       },

@@ -14,11 +14,14 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStore } from '@/store';
 import { calculateStandings } from '@/utils/standings';
+import { formatShortDate } from '@/utils/dateFormat';
 import { Colors } from '@/theme/colors';
 import { FontFamily, FontSize } from '@/theme/typography';
 import { Radius, Spacing } from '@/theme/spacing';
 import { Avatar } from '@/components/Avatar';
 import { SectionLabel } from '@/components/SectionLabel';
+import { GlowBackground } from '@/components/GlowBackground';
+import { RoundCard } from '@/components/RoundCard';
 import { ShareStandingsModal } from '@/components/ShareStandingsModal';
 import { NewRoundModal } from '@/components/NewRoundModal';
 import { useTranslation } from 'react-i18next';
@@ -41,14 +44,6 @@ const TOUR_TABLE_COLS = [
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-
-function formatDate(isoString: string): string {
-  const d = new Date(isoString);
-  const dd = String(d.getDate()).padStart(2, '0');
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  const yy = String(d.getFullYear()).slice(2);
-  return `${dd}/${mm}/${yy}`;
-}
 
 // ---------------------------------------------------------------------------
 // Screen
@@ -94,14 +89,13 @@ export default function TournamentScreen() {
     round: rankedTotal,
     total: roundsTarget,
     played: rankedCompleted,
-    date: formatDate(new Date().toISOString()),
+    date: formatShortDate(new Date().toISOString()),
   });
   const shareRoundLabel = t('tournament.shareStandings.roundLabel', { round: rankedTotal, total: roundsTarget });
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
-      {/* Green glow */}
-      <View style={styles.glow} pointerEvents="none" />
+      <GlowBackground />
 
       {/* Header */}
       <View style={styles.header}>
@@ -262,50 +256,19 @@ export default function TournamentScreen() {
           [...archivedRounds].reverse().map((r) => {
             const roundWinner = players.find((p) => p.id === r.winner);
             return (
-              <TouchableOpacity
+              <RoundCard
                 key={r.id}
-                style={styles.roundRow}
+                n={r.n}
+                dateText={formatShortDate(r.date)}
+                matchCountText={t('tournament.roundMatches', { count: r.games })}
+                winnerId={roundWinner?.id}
+                winnerName={roundWinner ? (roundWinner.nick ?? roundWinner.name) : '—'}
+                friendlyLabel={!r.ranked ? t('common.friendly') : undefined}
                 onPress={() => {
                   store.setViewingRound(r);
                   router.push('/archive-day');
                 }}
-                activeOpacity={0.8}
-              >
-                {/* Round number badge */}
-                <View style={styles.roundNumBadge}>
-                  <Text style={styles.roundNumBadgeText}>{r.n}</Text>
-                </View>
-
-                {/* Date + match count */}
-                <View style={styles.roundMeta}>
-                  <Text style={styles.roundDate}>{formatDate(r.date)}</Text>
-                  <Text style={styles.roundMatchCount}>{t('tournament.roundMatches', { count: r.games })}</Text>
-                </View>
-
-                {/* Winner */}
-                <View style={styles.roundWinnerBlock}>
-                  {roundWinner ? (
-                    <>
-                      <Avatar playerId={roundWinner.id} size="sm" />
-                      <Text style={styles.roundWinnerName} numberOfLines={1}>
-                        {roundWinner.nick ?? roundWinner.name}
-                      </Text>
-                    </>
-                  ) : (
-                    <Text style={styles.roundWinnerName}>—</Text>
-                  )}
-                </View>
-
-                {/* Friendly badge */}
-                {!r.ranked && (
-                  <View style={styles.friendlyBadge}>
-                    <Text style={styles.friendlyBadgeText}>{t('common.friendly')}</Text>
-                  </View>
-                )}
-
-                {/* Chevron */}
-                <Text style={styles.roundChevron}>›</Text>
-              </TouchableOpacity>
+              />
             );
           })
         )}
@@ -558,17 +521,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.bg.base,
   },
-  glow: {
-    position: 'absolute',
-    width: 340,
-    height: 340,
-    top: -80,
-    left: -40,
-    borderRadius: 170,
-    backgroundColor: Colors.accent.green,
-    opacity: 0.06,
-  },
-
   // ---- Header ----
   header: {
     flexDirection: 'row',
@@ -821,79 +773,6 @@ const styles = StyleSheet.create({
     fontSize: FontSize.base,
     color: Colors.text.muted,
   },
-  roundRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.bg.surface,
-    borderRadius: Radius.md,
-    borderWidth: 1,
-    borderColor: Colors.border.default,
-    padding: Spacing.md,
-    marginBottom: Spacing.sm,
-    gap: Spacing.md,
-  },
-  roundNumBadge: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: Colors.bg.elevated,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-  },
-  roundNumBadgeText: {
-    fontFamily: FontFamily.displayBold,
-    fontSize: FontSize.base,
-    color: Colors.text.secondary,
-  },
-  roundMeta: {
-    gap: 2,
-    width: 60,
-    flexShrink: 0,
-  },
-  roundDate: {
-    fontFamily: FontFamily.bodySemiBold,
-    fontSize: FontSize.xs,
-    color: Colors.text.secondary,
-  },
-  roundMatchCount: {
-    fontFamily: FontFamily.body,
-    fontSize: FontSize.xs,
-    color: Colors.text.muted,
-  },
-  roundWinnerBlock: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-  },
-  roundWinnerName: {
-    fontFamily: FontFamily.bodySemiBold,
-    fontSize: FontSize.sm,
-    color: Colors.text.primary,
-    flex: 1,
-  },
-  friendlyBadge: {
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 2,
-    borderRadius: Radius.xs,
-    backgroundColor: Colors.bg.elevated,
-    borderWidth: 1,
-    borderColor: Colors.border.medium,
-  },
-  friendlyBadgeText: {
-    fontFamily: FontFamily.bodyBold,
-    fontSize: FontSize.xs,
-    color: Colors.text.muted,
-    letterSpacing: 0.4,
-  },
-  roundChevron: {
-    fontFamily: FontFamily.display,
-    fontSize: FontSize.xl,
-    color: Colors.text.muted,
-    lineHeight: 24,
-  },
-
   // ---- Bottom CTA ----
   bottomBar: {
     position: 'absolute',
