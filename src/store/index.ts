@@ -11,6 +11,7 @@ import {
   RealDataBackup,
 } from './types';
 import { ParsedMatch } from '../utils/importRound';
+import { deleteMediaItem } from '../supabase/storage';
 import { DEMO_STATE } from '../demo/data';
 import { calculateStandings, isTopTied } from '../utils/standings';
 import { Colors } from '../theme/colors';
@@ -137,7 +138,7 @@ interface Actions {
   setShowTeamLogo: (v: boolean) => void;
   setLanguage: (lang: string) => void;
   setDemoMode: (on: boolean) => void;
-  resetStore: () => void;
+  resetStore: () => Promise<void>;
   bulkImportMatches: (parsed: ParsedMatch[]) => void;
 }
 
@@ -525,7 +526,27 @@ export const useStore = create<AppState & Actions>()(
         });
       },
 
-      resetStore: () => {
+      resetStore: async () => {
+        const s = get();
+        const matchUris = [
+          ...s.matches,
+          ...s.archivedRounds.flatMap((r) => r.matches),
+          ...s.closedTournaments.flatMap((t) => t.rounds.flatMap((r) => r.matches)),
+          ...(s.realDataBackup?.matches ?? []),
+          ...(s.realDataBackup?.archivedRounds.flatMap((r) => r.matches) ?? []),
+          ...(s.realDataBackup?.closedTournaments.flatMap((t) => t.rounds.flatMap((r) => r.matches)) ?? []),
+        ].flatMap((m) => m.media ?? []).map((media) => media.uri);
+        const playerPhotoUris = [
+          ...s.players,
+          ...(s.realDataBackup?.players ?? []),
+        ].map((p) => p.photo).filter((uri): uri is string => !!uri);
+        const teamLogoUris = [
+          ...s.teams,
+          ...(s.realDataBackup?.teams ?? []),
+        ].map((t) => t.logo).filter((uri): uri is string => !!uri);
+
+        const mediaUris = [...new Set([...matchUris, ...playerPhotoUris, ...teamLogoUris])];
+
         set({
           tournamentId: '',
           hasTournament: false,
@@ -551,6 +572,8 @@ export const useStore = create<AppState & Actions>()(
           viewingRound: null,
           viewingTournament: null,
         });
+
+        await Promise.all(mediaUris.map((uri) => deleteMediaItem(uri)));
       },
     }),
     {

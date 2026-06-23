@@ -153,7 +153,7 @@ const uk = {
 
   tournament: {
     standings: 'ТАБЛИЦЯ ТУРНІРУ',
-    headerSubtitle: 'Раунд {{round}} / {{total}} · Сьогодні · {{played}} раундів зіграно',
+    headerSubtitle: 'Раунд {{round}} / {{total}} · {{date}} · {{played}} раундів зіграно',
     noMatches: 'Ще жодного матчу не зіграно',
     currentMatchDay: 'ПОТОЧНИЙ ІГРОВИЙ ДЕНЬ',
     roundBadge: 'РНД / {{n}}',
@@ -170,8 +170,14 @@ const uk = {
       title: 'ТУРНІР',
       done: 'Готово',
       rename: 'Перейменувати турнір',
+      shareStandings: 'Поділитись таблицею',
+      shareStandingsSubtitle: 'Поділитись поточною таблицею як зображенням',
       closeAndArchive: 'Закрити та архівувати',
       closeSubtitle: 'Зафіксувати таблицю та визначити переможця',
+    },
+    shareStandings: {
+      title: 'ПОДІЛИТИСЬ ТАБЛИЦЕЮ',
+      roundLabel: 'Раунд {{round}} / {{total}}',
     },
     rename: {
       title: 'ПЕРЕЙМЕНУВАТИ ТУРНІР',

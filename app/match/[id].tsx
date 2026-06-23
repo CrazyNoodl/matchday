@@ -195,7 +195,7 @@ export default function MatchDetailScreen() {
   const handleDeleteMatch = () => {
     store.setModal(null);
     store.deleteMatch(match.id);
-    router.replace('/matchday');
+    router.replace('/round');
   };
 
   const handleAddMedia = async () => {

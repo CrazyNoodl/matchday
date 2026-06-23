@@ -50,6 +50,7 @@ export default function SettingsScreen() {
   const { t } = useTranslation();
   const store = useStore();
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
   const [showSignOutConfirm, setShowSignOutConfirm] = useState(false);
   const [versionTaps, setVersionTaps] = useState(0);
   const [devUnlocked, setDevUnlocked] = useState(false);
@@ -78,9 +79,11 @@ export default function SettingsScreen() {
     showTeamLogo === true &&
     language === 'en';
 
-  const handleReset = () => {
+  const handleReset = async () => {
     if (demoMode) store.setDemoMode(false);
-    store.resetStore();
+    setIsResetting(true);
+    await store.resetStore();
+    setIsResetting(false);
     setShowResetConfirm(false);
     router.dismissAll();
     router.replace('/');
@@ -368,9 +371,10 @@ export default function SettingsScreen() {
                 <Text style={styles.dialogCancelText}>{t('settings.danger.cancel')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={styles.dialogConfirmBtn}
+                style={[styles.dialogConfirmBtn, isResetting && { opacity: 0.6 }]}
                 onPress={handleReset}
                 activeOpacity={0.8}
+                disabled={isResetting}
               >
                 <Text style={styles.dialogConfirmText}>{t('settings.danger.reset')}</Text>
               </TouchableOpacity>
