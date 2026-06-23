@@ -6,12 +6,12 @@ import {
   StyleSheet,
   ViewStyle,
 } from 'react-native';
-import { useStore } from '../store';
-import { Match } from '../store/types';
-import { Colors } from '../theme/colors';
-import { FontFamily, FontSize } from '../theme/typography';
-import { Radius, Spacing } from '../theme/spacing';
-import { Avatar } from './Avatar';
+import { useStore } from '../../store';
+import { Match } from '../../store/types';
+import { Colors } from '../../theme/colors';
+import { FontFamily, FontSize } from '../../theme/typography';
+import { Radius, Spacing } from '../../theme/spacing';
+import { Avatar } from '../Avatar';
 
 interface MatchCardProps {
   match: Match;

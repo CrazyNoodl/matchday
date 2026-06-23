@@ -6,9 +6,9 @@ import {
   StyleSheet,
   Platform,
 } from 'react-native';
-import { Colors } from '../theme/colors';
-import { FontFamily, FontSize } from '../theme/typography';
-import { Spacing } from '../theme/spacing';
+import { Colors } from '../../theme/colors';
+import { FontFamily, FontSize } from '../../theme/typography';
+import { Spacing } from '../../theme/spacing';
 
 interface NavHeaderProps {
   title: string;

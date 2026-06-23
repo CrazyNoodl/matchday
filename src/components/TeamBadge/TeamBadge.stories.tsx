@@ -2,8 +2,8 @@ import React, { useEffect } from 'react';
 import type { Meta, StoryObj, Decorator } from '@storybook/react';
 import { View } from 'react-native';
 import { TeamBadge } from './TeamBadge';
-import { useStore } from '../store';
-import { Colors } from '../theme/colors';
+import { useStore } from '../../store';
+import { Colors } from '../../theme/colors';
 
 // Seed the store with representative teams before each story renders.
 // The store uses localStorage on web so this is safe in Storybook.

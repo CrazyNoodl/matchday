@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet, ViewStyle } from 'react-native';
-import { useStore } from '../store';
-import { FontFamily, FontSize } from '../theme/typography';
-import { Radius } from '../theme/spacing';
+import { useStore } from '../../store';
+import { FontFamily, FontSize } from '../../theme/typography';
+import { Radius } from '../../theme/spacing';
 
 type BadgeSize = 'xs' | 'md' | 'lg';
 

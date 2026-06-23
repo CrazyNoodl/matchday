@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { FontFamily, FontSize } from '../theme/typography';
+import { FontFamily, FontSize } from '../../theme/typography';
 
 type Result = 'W' | 'D' | 'L';
 

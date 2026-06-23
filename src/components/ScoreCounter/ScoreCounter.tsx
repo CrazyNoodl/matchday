@@ -5,12 +5,12 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from 'react-native';
-import { Colors } from '../theme/colors';
-import { FontFamily, FontSize } from '../theme/typography';
-import { Radius, Spacing } from '../theme/spacing';
-import { Avatar } from './Avatar';
-import { useStore } from '../store';
-import { getPlayerDisplayName } from '../utils/playerDisplay';
+import { Colors } from '../../theme/colors';
+import { FontFamily, FontSize } from '../../theme/typography';
+import { Radius, Spacing } from '../../theme/spacing';
+import { Avatar } from '../Avatar';
+import { useStore } from '../../store';
+import { getPlayerDisplayName } from '../../utils/playerDisplay';
 
 interface ScoreCounterProps {
   playerId: string;

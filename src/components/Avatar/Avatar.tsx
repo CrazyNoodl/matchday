@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet, ViewStyle } from 'react-native';
-import { useStore } from '../store';
-import { Colors } from '../theme/colors';
-import { FontFamily, FontSize } from '../theme/typography';
+import { useStore } from '../../store';
+import { Colors } from '../../theme/colors';
+import { FontFamily, FontSize } from '../../theme/typography';
 
 type AvatarSize = 'sm' | 'md' | 'lg' | 'xl';
 

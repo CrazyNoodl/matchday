@@ -1,7 +1,7 @@
 import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import { EmptyState } from './EmptyState';
-import { Colors } from '../theme/colors';
+import { Colors } from '../../theme/colors';
 
 const meta = {
   title: 'Components/EmptyState',

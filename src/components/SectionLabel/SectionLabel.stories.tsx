@@ -2,8 +2,8 @@ import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import { View } from 'react-native';
 import { SectionLabel } from './SectionLabel';
-import { Colors } from '../theme/colors';
-import { Spacing } from '../theme/spacing';
+import { Colors } from '../../theme/colors';
+import { Spacing } from '../../theme/spacing';
 
 const meta = {
   title: 'Components/SectionLabel',

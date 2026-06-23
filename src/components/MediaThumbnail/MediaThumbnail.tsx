@@ -7,9 +7,9 @@ import {
   StyleSheet,
   ViewStyle,
 } from 'react-native';
-import { Colors } from '../theme/colors';
-import { FontFamily, FontSize } from '../theme/typography';
-import { Radius } from '../theme/spacing';
+import { Colors } from '../../theme/colors';
+import { FontFamily, FontSize } from '../../theme/typography';
+import { Radius } from '../../theme/spacing';
 
 interface MediaThumbnailProps {
   uri?: string;

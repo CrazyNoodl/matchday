@@ -1,14 +1,14 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { useStore } from '../store';
-import { Standing } from '../utils/standings';
-import { Colors } from '../theme/colors';
-import { FontFamily, FontSize } from '../theme/typography';
-import { Radius, Spacing } from '../theme/spacing';
-import { Avatar } from './Avatar';
-import { FormChip } from './FormChip';
-import { getFormChips } from '../utils/standings';
-import { getPlayerDisplayName } from '../utils/playerDisplay';
+import { useStore } from '../../store';
+import { Standing } from '../../utils/standings';
+import { Colors } from '../../theme/colors';
+import { FontFamily, FontSize } from '../../theme/typography';
+import { Radius, Spacing } from '../../theme/spacing';
+import { Avatar } from '../Avatar';
+import { FormChip } from '../FormChip';
+import { getFormChips } from '../../utils/standings';
+import { getPlayerDisplayName } from '../../utils/playerDisplay';
 
 interface StandingCardProps {
   standing: Standing;
