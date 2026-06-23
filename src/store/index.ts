@@ -346,6 +346,7 @@ export const useStore = create<AppState & Actions>()(
         const s = get();
         const allMatches = collectAllMatches(s);
         if (allMatches.some((m) => m.aId === id || m.bId === id)) return;
+        if (s.closedTournaments.some((t) => t.players.includes(id))) return;
         set({ players: s.players.filter((p) => p.id !== id) });
       },
 
