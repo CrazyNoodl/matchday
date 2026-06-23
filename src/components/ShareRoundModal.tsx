@@ -2,6 +2,7 @@ import React, { useRef, useState, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
+  Image,
   StyleSheet,
   Modal,
   TouchableOpacity,
@@ -19,7 +20,7 @@ type SharingModule = typeof import('expo-sharing');
 type Html2Canvas = typeof import('html2canvas').default;
 import { useStore } from '@/store';
 import { ArchivedRound } from '@/store/types';
-import { calculateStandings } from '@/utils/standings';
+import { calculateStandings, Standing } from '@/utils/standings';
 import { Colors } from '@/theme/colors';
 import { FontFamily, FontSize } from '@/theme/typography';
 import { Radius, Spacing } from '@/theme/spacing';
@@ -36,18 +37,32 @@ interface ShareRoundModalProps {
 }
 
 // ---------------------------------------------------------------------------
-// Inline Avatar — pure (no store dep) for use inside the share cards
+// Inline Avatar — mirrors src/components/Avatar.tsx (team logo, square,
+// 3-letter fallback) for use inside the share cards
 // ---------------------------------------------------------------------------
 
-function CardAvatar({ color, name, size }: { color: string; name: string; size: number }) {
-  const parts = name.trim().split(/\s+/);
-  const init = parts.length >= 2
-    ? (parts[0][0] + parts[1][0]).toUpperCase()
-    : name.slice(0, 2).toUpperCase();
+export function CardAvatar({ teamCode, size }: { teamCode?: string; size: number }) {
+  const team = useStore((s) => s.teams.find((t) => t.code === teamCode));
+  const radius = Math.round(size * 0.3);
+  const baseStyle = { width: size, height: size, borderRadius: radius, overflow: 'hidden' as const };
+
+  if (!team) {
+    return <View style={[baseStyle, { backgroundColor: Colors.bg.elevated }]} />;
+  }
+
+  if (team.logo?.startsWith('http')) {
+    return (
+      <View style={baseStyle}>
+        <Image source={{ uri: team.logo }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
+      </View>
+    );
+  }
+
+  const label = team.short.slice(0, 3).toUpperCase();
   return (
-    <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: color, alignItems: 'center', justifyContent: 'center' }}>
-      <Text style={{ fontFamily: FontFamily.bodySemiBold, fontSize: size * 0.32, color: '#0c0e10', textAlign: 'center', lineHeight: size }}>
-        {init}
+    <View style={[baseStyle, { backgroundColor: team.color + '28', alignItems: 'center', justifyContent: 'center' }]}>
+      <Text style={{ fontFamily: FontFamily.bodySemiBold, fontSize: size * 0.28, color: team.color, textAlign: 'center', lineHeight: size - 4 }}>
+        {label}
       </Text>
     </View>
   );
@@ -70,9 +85,60 @@ interface WinnerCardProps {
   round: ArchivedRound;
   tournamentName: string;
   includeMatches?: boolean;
+  includeStandings?: boolean;
 }
 
 const CARD_W = 320;
+
+const STANDINGS_NUM_COLS: { key: keyof Standing; label: string }[] = [
+  { key: 'played', label: 'P' },
+  { key: 'wins', label: 'W' },
+  { key: 'draws', label: 'D' },
+  { key: 'losses', label: 'L' },
+  { key: 'gf', label: 'GF' },
+  { key: 'ga', label: 'GA' },
+];
+
+function StandingsTableRow({
+  standing,
+  isLeader,
+  isLast,
+}: {
+  standing: Standing;
+  isLeader: boolean;
+  isLast: boolean;
+}) {
+  const player = useStore((s) => s.players.find((p) => p.id === standing.playerId));
+
+  const gdColor =
+    standing.gd > 0 ? Colors.accent.green : standing.gd < 0 ? Colors.accent.red : Colors.text.muted;
+
+  return (
+    <View
+      style={[
+        winnerStyles.standingsRow,
+        !isLast && winnerStyles.matchRowBorder,
+        isLeader && winnerStyles.standingsRowLeader,
+      ]}
+    >
+      <View style={winnerStyles.standingsPlayerCol}>
+        <CardAvatar teamCode={player?.teamCode} size={20} />
+        <Text style={winnerStyles.standingsName} numberOfLines={1}>
+          {player?.name ?? 'Unknown'}
+        </Text>
+      </View>
+      {STANDINGS_NUM_COLS.map((col) => (
+        <Text key={col.key} style={[winnerStyles.standingsNumCol, winnerStyles.standingsCell]}>
+          {standing[col.key]}
+        </Text>
+      ))}
+      <Text style={[winnerStyles.standingsNumCol, winnerStyles.standingsCell, { color: gdColor }]}>
+        {standing.gd > 0 ? `+${standing.gd}` : standing.gd}
+      </Text>
+      <Text style={[winnerStyles.standingsNumCol, winnerStyles.standingsPts]}>{standing.pts}</Text>
+    </View>
+  );
+}
 
 function MatchRow({ match, isLast }: { match: ArchivedRound['matches'][number]; isLast: boolean }) {
   const players = useStore((s) => s.players);
@@ -85,7 +151,7 @@ function MatchRow({ match, isLast }: { match: ArchivedRound['matches'][number]; 
   return (
     <View style={[winnerStyles.matchRow, !isLast && winnerStyles.matchRowBorder]}>
       <View style={winnerStyles.matchSide}>
-        <CardAvatar color={playerA?.color ?? '#5d666b'} name={playerA?.name ?? '?'} size={22} />
+        <CardAvatar teamCode={playerA?.teamCode} size={22} />
         <Text style={[winnerStyles.matchName, aWins && winnerStyles.matchNameWin]} numberOfLines={1}>
           {playerA?.name ?? 'Unknown'}
         </Text>
@@ -99,13 +165,13 @@ function MatchRow({ match, isLast }: { match: ArchivedRound['matches'][number]; 
         <Text style={[winnerStyles.matchName, winnerStyles.matchNameRight, bWins && winnerStyles.matchNameWin]} numberOfLines={1}>
           {playerB?.name ?? 'Unknown'}
         </Text>
-        <CardAvatar color={playerB?.color ?? '#5d666b'} name={playerB?.name ?? '?'} size={22} />
+        <CardAvatar teamCode={playerB?.teamCode} size={22} />
       </View>
     </View>
   );
 }
 
-function WinnerCard({ round, tournamentName, includeMatches = false }: WinnerCardProps) {
+function WinnerCard({ round, tournamentName, includeMatches = false, includeStandings = false }: WinnerCardProps) {
   const players = useStore((s) => s.players);
 
   const playerIds = useMemo(() => {
@@ -146,11 +212,14 @@ function WinnerCard({ round, tournamentName, includeMatches = false }: WinnerCar
         <Text style={winnerStyles.heroLabel}>
           {isDraw ? '— MATCH DAY RESULT —' : '♦  ROUND WINNER  ♦'}
         </Text>
+        <Text style={winnerStyles.heroMatchCount}>
+          {round.matches.length} {round.matches.length === 1 ? 'MATCH' : 'MATCHES'}
+        </Text>
 
         {/* Avatar with glow ring */}
-        <View style={[winnerStyles.avatarRing, { borderColor: glowColor + '66' }]}>
+        <View style={winnerStyles.avatarRing}>
           {winner ? (
-            <CardAvatar color={winner.color} name={winner.name} size={80} />
+            <CardAvatar teamCode={winner.teamCode} size={80} />
           ) : (
             <View style={[winnerStyles.drawCircle, { borderColor: glowColor + '44' }]}>
               <Text style={winnerStyles.drawCircleText}>—</Text>
@@ -193,6 +262,35 @@ function WinnerCard({ round, tournamentName, includeMatches = false }: WinnerCar
           </View>
         )}
       </View>
+
+      {/* Standings table */}
+      {includeStandings && standings.length > 0 && (
+        <>
+          <View style={winnerStyles.divider} />
+          <View style={winnerStyles.standingsSection}>
+            <View style={winnerStyles.standingsHeaderRow}>
+              <Text style={[winnerStyles.standingsHeaderCell, winnerStyles.standingsPlayerCol]}>
+                PLAYER
+              </Text>
+              {STANDINGS_NUM_COLS.map((col) => (
+                <Text key={col.key} style={[winnerStyles.standingsHeaderCell, winnerStyles.standingsNumCol]}>
+                  {col.label}
+                </Text>
+              ))}
+              <Text style={[winnerStyles.standingsHeaderCell, winnerStyles.standingsNumCol]}>GD</Text>
+              <Text style={[winnerStyles.standingsHeaderCell, winnerStyles.standingsNumCol]}>PTS</Text>
+            </View>
+            {standings.map((s, idx) => (
+              <StandingsTableRow
+                key={s.playerId}
+                standing={s}
+                isLeader={idx === 0}
+                isLast={idx === standings.length - 1}
+              />
+            ))}
+          </View>
+        </>
+      )}
 
       {/* All matches */}
       {includeMatches && round.matches.length > 0 && (
@@ -269,16 +367,22 @@ const winnerStyles = StyleSheet.create({
     color: Colors.accent.gold,
     letterSpacing: 2,
   },
+  heroMatchCount: {
+    fontFamily: FontFamily.bodySemiBold,
+    fontSize: FontSize.xs,
+    color: Colors.text.placeholder,
+    letterSpacing: 1,
+    marginTop: -Spacing.sm,
+  },
   avatarRing: {
     padding: 5,
-    borderRadius: 999,
-    borderWidth: 2,
+    borderRadius: 29,
     marginVertical: Spacing.sm,
   },
   drawCircle: {
     width: 80,
     height: 80,
-    borderRadius: 40,
+    borderRadius: 24,
     backgroundColor: Colors.bg.elevated,
     borderWidth: 2,
     alignItems: 'center',
@@ -408,6 +512,59 @@ const winnerStyles = StyleSheet.create({
   matchScoreWin: {
     color: Colors.accent.green,
   },
+  standingsSection: {
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+  },
+  standingsHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingBottom: Spacing.sm,
+  },
+  standingsHeaderCell: {
+    fontFamily: FontFamily.bodyBold,
+    fontSize: 9,
+    color: Colors.text.placeholder,
+    letterSpacing: 0.5,
+    textAlign: 'center',
+  },
+  standingsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 7,
+    marginHorizontal: -Spacing.sm,
+    paddingHorizontal: Spacing.sm,
+    borderRadius: Radius.sm,
+  },
+  standingsRowLeader: {
+    backgroundColor: Colors.accent.greenSubtle,
+  },
+  standingsPlayerCol: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  standingsName: {
+    flexShrink: 1,
+    fontFamily: FontFamily.bodySemiBold,
+    fontSize: FontSize.xs,
+    color: Colors.text.primary,
+  },
+  standingsNumCol: {
+    width: 24,
+    textAlign: 'center',
+  },
+  standingsCell: {
+    fontFamily: FontFamily.body,
+    fontSize: FontSize.xs,
+    color: Colors.text.secondary,
+  },
+  standingsPts: {
+    fontFamily: FontFamily.displayBold,
+    fontSize: FontSize.sm,
+    color: Colors.accent.green,
+  },
 });
 
 // ---------------------------------------------------------------------------
@@ -417,6 +574,7 @@ const winnerStyles = StyleSheet.create({
 export function ShareRoundModal({ visible, onClose, round, tournamentName }: ShareRoundModalProps) {
   const [loading, setLoading] = useState(false);
   const [includeMatches, setIncludeMatches] = useState(false);
+  const [includeStandings, setIncludeStandings] = useState(false);
 
   const cardRef = useRef<View>(null);
 
@@ -538,12 +696,26 @@ export function ShareRoundModal({ visible, onClose, round, tournamentName }: Sha
         >
           <View collapsable={false} style={modalStyles.cardWrap}>
             <View ref={cardRef} collapsable={false}>
-              <WinnerCard round={round} tournamentName={tournamentName} includeMatches={includeMatches} />
+              <WinnerCard
+                round={round}
+                tournamentName={tournamentName}
+                includeMatches={includeMatches}
+                includeStandings={includeStandings}
+              />
             </View>
           </View>
         </ScrollView>
 
         {/* Options */}
+        <View style={modalStyles.optionRow}>
+          <Text style={modalStyles.optionLabel}>Include standings</Text>
+          <Switch
+            value={includeStandings}
+            onValueChange={setIncludeStandings}
+            trackColor={{ false: Colors.bg.elevated, true: Colors.accent.green }}
+            thumbColor={Colors.text.primary}
+          />
+        </View>
         <View style={modalStyles.optionRow}>
           <Text style={modalStyles.optionLabel}>Include all matches</Text>
           <Switch

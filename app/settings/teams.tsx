@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -24,6 +24,7 @@ import { TeamBadge } from '@/components/TeamBadge';
 import { EmptyState } from '@/components/EmptyState';
 import { Team } from '@/store/types';
 import { useTranslation } from 'react-i18next';
+import { uploadTeamLogo } from '@/supabase/storage';
 
 const TEAM_COLORS = Colors.team;
 
@@ -44,22 +45,31 @@ export default function TeamsScreen() {
   const [formShort, setFormShort] = useState('');
   const [formColor, setFormColor] = useState<string>(TEAM_COLORS[0]);
   const [formLogo, setFormLogo] = useState<string | undefined>(undefined);
+  const [logoUploading, setLogoUploading] = useState(false);
+  // Bumped every time a different team's edit form is opened, so an
+  // in-flight upload from a form the user already left can't write its
+  // result into whichever form happens to be open when it resolves.
+  const editSessionRef = useRef(0);
 
   const openCreate = useCallback(() => {
+    editSessionRef.current += 1;
     setEditingTeam(null);
     setFormName('');
     setFormShort('');
     setFormColor(TEAM_COLORS[teams.length % TEAM_COLORS.length]);
     setFormLogo(undefined);
+    setLogoUploading(false);
     setShowEdit(true);
   }, [teams.length]);
 
   const openEdit = useCallback((team: Team) => {
+    editSessionRef.current += 1;
     setEditingTeam(team);
     setFormName(team.name);
     setFormShort(team.short);
     setFormColor(team.color);
     setFormLogo(team.logo);
+    setLogoUploading(false);
     setShowEdit(true);
   }, []);
 
@@ -70,9 +80,18 @@ export default function TeamsScreen() {
       aspect: [1, 1],
       quality: 0.8,
     });
-    if (!result.canceled && result.assets[0]) {
-      setFormLogo(result.assets[0].uri);
-    }
+    if (result.canceled || !result.assets[0]) return;
+
+    const session = editSessionRef.current;
+    const localUri = result.assets[0].uri;
+    setFormLogo(localUri);
+    setLogoUploading(true);
+    const remoteUrl = await uploadTeamLogo(localUri);
+    if (editSessionRef.current !== session) return; // user moved to a different team's form
+    setLogoUploading(false);
+    // Local file:// URIs aren't visible to other devices and aren't
+    // guaranteed to survive app restarts — only keep the remote URL.
+    if (remoteUrl) setFormLogo(remoteUrl);
   }, []);
 
   const handleSave = useCallback(() => {
@@ -94,7 +113,7 @@ export default function TeamsScreen() {
       });
     }
     setShowEdit(false);
-  }, [formName, formShort, formColor, editingTeam, addTeam, updateTeam]);
+  }, [formName, formShort, formColor, formLogo, editingTeam, addTeam, updateTeam]);
 
   const handleDelete = useCallback((code: string) => {
     const allMatches = [
@@ -278,19 +297,21 @@ export default function TeamsScreen() {
             <TouchableOpacity
               style={[
                 styles.saveBtn,
-                (!formName.trim() || !formShort.trim()) && styles.saveBtnDisabled,
+                (!formName.trim() || !formShort.trim() || logoUploading) && styles.saveBtnDisabled,
               ]}
               onPress={handleSave}
-              disabled={!formName.trim() || !formShort.trim()}
+              disabled={!formName.trim() || !formShort.trim() || logoUploading}
               activeOpacity={0.85}
             >
               <Text
                 style={[
                   styles.saveBtnText,
-                  (!formName.trim() || !formShort.trim()) && styles.saveBtnTextDisabled,
+                  (!formName.trim() || !formShort.trim() || logoUploading) && styles.saveBtnTextDisabled,
                 ]}
               >
-                {editingTeam ? t('common.save').toUpperCase() : 'ADD TEAM'}
+                {logoUploading
+                  ? 'UPLOADING...'
+                  : editingTeam ? t('common.save').toUpperCase() : 'ADD TEAM'}
               </Text>
             </TouchableOpacity>
           </View>

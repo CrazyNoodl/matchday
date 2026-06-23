@@ -17,7 +17,7 @@ export function TeamBadge({ teamCode, size = 'md', style }: TeamBadgeProps) {
 
   const label = team?.short ?? teamCode.slice(0, 3).toUpperCase();
   const color = team?.color ?? '#5d666b';
-  const logo = team?.logo;
+  const logo = team?.logo?.startsWith('http') ? team.logo : undefined;
 
   if (size === 'xs') {
     if (logo) {
@@ -117,16 +117,22 @@ const styles = StyleSheet.create({
   textXs: {
     fontFamily: FontFamily.bodyBold,
     fontSize: FontSize.xs,
+    lineHeight: 16,
     letterSpacing: 0.4,
+    textAlign: 'center',
   },
   textMd: {
     fontFamily: FontFamily.bodyBold,
     fontSize: FontSize.xs,
+    lineHeight: 28,
     letterSpacing: 0.4,
+    textAlign: 'center',
   },
   textLg: {
     fontFamily: FontFamily.bodyBold,
     fontSize: FontSize.sm,
+    lineHeight: 32,
     letterSpacing: 0.4,
+    textAlign: 'center',
   },
 });

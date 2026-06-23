@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet, ViewStyle } from 'react-native';
+import { View, Text, Image, StyleSheet, ViewStyle } from 'react-native';
 import { useStore } from '../store';
+import { Colors } from '../theme/colors';
 import { FontFamily, FontSize } from '../theme/typography';
 
 type AvatarSize = 'sm' | 'md' | 'lg' | 'xl';
@@ -10,6 +11,13 @@ const SIZES: Record<AvatarSize, number> = {
   md: 40,
   lg: 44,
   xl: 50,
+};
+
+const RADII: Record<AvatarSize, number> = {
+  sm: 9,
+  md: 12,
+  lg: 13,
+  xl: 15,
 };
 
 const FONT_SIZES: Record<AvatarSize, number> = {
@@ -27,40 +35,40 @@ interface AvatarProps {
 
 export function Avatar({ playerId, size = 'md', style }: AvatarProps) {
   const player = useStore((s) => s.players.find((p) => p.id === playerId));
+  const team = useStore((s) => s.teams.find((t) => t.code === player?.teamCode));
 
   const dim = SIZES[size];
+  const radius = RADII[size];
   const fontSize = FONT_SIZES[size];
 
-  const name = player?.name ?? '??';
-  const color = player?.color ?? '#5d666b';
+  const baseStyle = [
+    styles.base,
+    { width: dim, height: dim, borderRadius: radius },
+    style,
+  ];
 
-  const parts = name.trim().split(/\s+/);
-  const init =
-    parts.length >= 2
-      ? (parts[0][0] + parts[1][0]).toUpperCase()
-      : name.slice(0, 2).toUpperCase();
+  if (!team) {
+    return <View style={[...baseStyle, { backgroundColor: Colors.bg.elevated }]} />;
+  }
+
+  if (team.logo?.startsWith('http')) {
+    return (
+      <View style={baseStyle}>
+        <Image source={{ uri: team.logo }} style={styles.image} resizeMode="cover" />
+      </View>
+    );
+  }
+
+  const label = team.short.slice(0, 3).toUpperCase();
+  const color = team.color;
 
   return (
-    <View
-      style={[
-        styles.base,
-        {
-          width: dim,
-          height: dim,
-          borderRadius: dim / 2,
-          backgroundColor: color,
-        },
-        style,
-      ]}
-    >
+    <View style={[...baseStyle, { backgroundColor: color + '28' }]}>
       <Text
-        style={[
-          styles.text,
-          { fontSize, lineHeight: dim },
-        ]}
+        style={[styles.text, { color, fontSize, lineHeight: dim - 4 }]}
         numberOfLines={1}
       >
-        {init}
+        {label}
       </Text>
     </View>
   );
@@ -72,8 +80,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     overflow: 'hidden',
   },
+  image: {
+    width: '100%',
+    height: '100%',
+  },
   text: {
-    color: '#0c0e10',
     fontFamily: FontFamily.bodySemiBold,
     textAlign: 'center',
   },

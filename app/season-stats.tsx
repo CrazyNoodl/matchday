@@ -528,7 +528,7 @@ const styles = StyleSheet.create({
   champAvatarWrap: {
     borderWidth: 2,
     borderColor: Colors.accent.gold,
-    borderRadius: 30,
+    borderRadius: 19,
     padding: 2,
   },
   champAvatar: {
