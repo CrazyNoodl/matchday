@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -88,7 +88,7 @@ function initAddMatch(): AddMatchState {
 }
 
 // ---- Confetti Piece ----
-function ConfettiPiece({ delay }: { delay: number }) {
+const ConfettiPiece = React.memo(function ConfettiPiece({ delay }: { delay: number }) {
   const anim = useRef(new Animated.Value(0)).current;
   const x = useRef(Math.random() * SCREEN_WIDTH).current;
   const COLORS = [
@@ -136,7 +136,7 @@ function ConfettiPiece({ delay }: { delay: number }) {
       }}
     />
   );
-}
+});
 
 export default function MatchdayScreen() {
   const router = useRouter();
@@ -160,18 +160,22 @@ export default function MatchdayScreen() {
   const [addMatch, setAddMatch] = useState<AddMatchState>(initAddMatch());
   const [localWinnerId, setLocalWinnerId] = useState<string | null>(null);
 
-  const standings = calculateStandings(matches, roundPlayers);
+  const standings = useMemo(
+    () => calculateStandings(matches, roundPlayers),
+    [matches, roundPlayers],
+  );
 
-  const tournamentPlayerList = players.filter((p) =>
-    roundPlayers.includes(p.id),
+  const tournamentPlayerList = useMemo(
+    () => players.filter((p) => roundPlayers.includes(p.id)),
+    [players, roundPlayers],
   );
 
   // ---- Match validation ----
-  const allPlayedEqual = (() => {
+  const allPlayedEqual = useMemo(() => {
     if (standings.length === 0) return true;
     const counts = standings.map((s) => s.played);
     return counts.every((c) => c === counts[0]);
-  })();
+  }, [standings]);
 
   const handleFinishPress = useCallback(() => {
     if (matches.length === 0) {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -91,40 +91,12 @@ export default function MatchDetailScreen() {
   const [importingStats, setImportingStats] = useState(false);
   const [importedStats, setImportedStats] = useState<ExtractedStat[] | null>(null);
 
-  if (!match) {
-    const isLoading = syncStatus === 'syncing' || remoteLoading;
-    return (
-      <SafeAreaView style={styles.root} edges={['top']}>
-        <View style={styles.glow} pointerEvents="none" />
-        <NavHeader title={t('matchDetail.title')} onBack={() => goBack()} />
-        <View style={styles.center}>
-          {isLoading
-            ? <ActivityIndicator color={Colors.accent.green} size="large" />
-            : <Text style={styles.emptyText}>{t('matchDetail.noData')}</Text>
-          }
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  const playerA = players.find((p) => p.id === match.aId);
-  const playerB = players.find((p) => p.id === match.bId);
-
-  const aWins = match.aScore > match.bScore;
-  const bWins = match.bScore > match.aScore;
-  const isDraw = match.aScore === match.bScore;
-
-  const winnerName = aWins
-    ? (playerA?.nick ?? playerA?.name ?? 'Player A')
-    : bWins
-    ? (playerB?.nick ?? playerB?.name ?? 'Player B')
-    : null;
-
-  const hasStatsOverride = !!(match.statsOverride && Object.keys(match.statsOverride).length > 0);
+  const hasStatsOverride = !!(match?.statsOverride && Object.keys(match.statsOverride).length > 0);
 
   // When OCR stats exist: show exactly what was extracted (ordered by STAT_DEFINITIONS, unknowns appended)
   // When no OCR: show generated placeholder stats
-  const mergedStats = (() => {
+  const mergedStats = useMemo(() => {
+    if (!match) return [];
     if (hasStatsOverride && match.statsOverride) {
       const override = match.statsOverride;
       const ordered: { key: string; labelKey: string; label: string; aVal: number; bVal: number; isPercent: boolean }[] = [];
@@ -161,7 +133,36 @@ export default function MatchDetailScreen() {
       labelKey: STAT_DEF_MAP[s.key]?.labelKey ?? '',
       label: s.label,
     }));
-  })();
+  }, [match, hasStatsOverride]);
+
+  if (!match) {
+    const isLoading = syncStatus === 'syncing' || remoteLoading;
+    return (
+      <SafeAreaView style={styles.root} edges={['top']}>
+        <View style={styles.glow} pointerEvents="none" />
+        <NavHeader title={t('matchDetail.title')} onBack={() => goBack()} />
+        <View style={styles.center}>
+          {isLoading
+            ? <ActivityIndicator color={Colors.accent.green} size="large" />
+            : <Text style={styles.emptyText}>{t('matchDetail.noData')}</Text>
+          }
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  const playerA = players.find((p) => p.id === match.aId);
+  const playerB = players.find((p) => p.id === match.bId);
+
+  const aWins = match.aScore > match.bScore;
+  const bWins = match.bScore > match.aScore;
+  const isDraw = match.aScore === match.bScore;
+
+  const winnerName = aWins
+    ? (playerA?.nick ?? playerA?.name ?? 'Player A')
+    : bWins
+    ? (playerB?.nick ?? playerB?.name ?? 'Player B')
+    : null;
 
   const hasMediaFiles = match.media && match.media.length > 0;
 
