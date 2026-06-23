@@ -31,6 +31,7 @@ import { EmptyState } from '@/components/EmptyState';
 import { MediaThumbnail } from '@/components/MediaThumbnail';
 import { GlowBackground } from '@/components/GlowBackground';
 import { SegmentedControl } from '@/components/SegmentedControl';
+import { TeamPickerRow } from '@/components/TeamPickerRow';
 import { Match, MediaItem } from '@/store/types';
 import { useTranslation } from 'react-i18next';
 import { uploadMediaItems } from '@/supabase/storage';
@@ -479,48 +480,20 @@ export default function MatchdayScreen() {
         <Text style={sheetStyles.stepHint}>
           {t('matchday.pickTeam', { name: homePl?.name ?? 'Home' })}
         </Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={sheetStyles.teamPicker}>
-          {teams.map((t) => (
-            <TouchableOpacity
-              key={t.code}
-              style={[
-                sheetStyles.teamPickItem,
-                addMatch.homeTeam === t.code && {
-                  borderColor: t.color + '88',
-                  backgroundColor: t.color + '22',
-                },
-              ]}
-              onPress={() => setAddMatch((p) => ({ ...p, homeTeam: t.code }))}
-              activeOpacity={0.8}
-            >
-              <TeamBadge teamCode={t.code} size="md" />
-              <Text style={sheetStyles.teamPickName} numberOfLines={1}>{t.short}</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+        <TeamPickerRow
+          teams={teams}
+          selectedCode={addMatch.homeTeam}
+          onSelect={(code) => setAddMatch((p) => ({ ...p, homeTeam: code }))}
+        />
 
         <Text style={[sheetStyles.stepHint, { marginTop: Spacing.lg }]}>
           {t('matchday.pickTeam', { name: awayPl?.name ?? 'Away' })}
         </Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={sheetStyles.teamPicker}>
-          {teams.map((t) => (
-            <TouchableOpacity
-              key={t.code}
-              style={[
-                sheetStyles.teamPickItem,
-                addMatch.awayTeam === t.code && {
-                  borderColor: t.color + '88',
-                  backgroundColor: t.color + '22',
-                },
-              ]}
-              onPress={() => setAddMatch((p) => ({ ...p, awayTeam: t.code }))}
-              activeOpacity={0.8}
-            >
-              <TeamBadge teamCode={t.code} size="md" />
-              <Text style={sheetStyles.teamPickName} numberOfLines={1}>{t.short}</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+        <TeamPickerRow
+          teams={teams}
+          selectedCode={addMatch.awayTeam}
+          onSelect={(code) => setAddMatch((p) => ({ ...p, awayTeam: code }))}
+        />
       </View>
     );
   };
@@ -1419,26 +1392,6 @@ const sheetStyles = StyleSheet.create({
     fontSize: FontSize.xs,
     color: Colors.accent.blue,
     letterSpacing: 0.5,
-  },
-  teamPicker: {
-    flexGrow: 0,
-  },
-  teamPickItem: {
-    alignItems: 'center',
-    backgroundColor: Colors.bg.elevated,
-    borderRadius: Radius.md,
-    borderWidth: 1,
-    borderColor: Colors.border.default,
-    padding: Spacing.md,
-    marginRight: Spacing.sm,
-    gap: Spacing.xs,
-    width: 72,
-  },
-  teamPickName: {
-    fontFamily: FontFamily.bodyBold,
-    fontSize: FontSize.xs,
-    color: Colors.text.secondary,
-    textAlign: 'center',
   },
   scoreRow: {
     flexDirection: 'row',
