@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
   Pressable,
   TextInput,
   ActivityIndicator,
+  Dimensions,
 } from 'react-native';
 import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import * as ImagePicker from 'expo-image-picker';
@@ -93,6 +94,11 @@ export default function MatchDetailScreen() {
   const [uploadingMedia, setUploadingMedia] = useState(false);
   const [importingStats, setImportingStats] = useState(false);
   const [importedStats, setImportedStats] = useState<ExtractedStat[] | null>(null);
+  const [showClearStats, setShowClearStats] = useState(false);
+  const [showSwapSides, setShowSwapSides] = useState(false);
+  const [showStatsMenu, setShowStatsMenu] = useState(false);
+  const [statsMenuPos, setStatsMenuPos] = useState({ top: 0, right: 0 });
+  const statsMenuBtnRef = useRef<View>(null);
 
   const hasStatsOverride = !!(match?.statsOverride && Object.keys(match.statsOverride).length > 0);
 
@@ -229,6 +235,8 @@ export default function MatchDetailScreen() {
     });
     if (result.canceled || !result.assets.length) return;
 
+    const noExistingMedia = !match.media?.length;
+
     setImportingStats(true);
     try {
       const allResults: ExtractedStat[][] = [];
@@ -253,12 +261,36 @@ export default function MatchDetailScreen() {
       }
       setImportedStats(Array.from(map.values()));
       store.setModal('importStats');
+
+      // If match had no media, save the stat photos there automatically
+      if (noExistingMedia) {
+        Promise.all(
+          result.assets.map(async (asset) => {
+            const remoteUrl = await uploadMediaItem(asset.uri, 'image');
+            return { uri: remoteUrl ?? asset.uri, type: 'image' as const };
+          }),
+        ).then((items) => {
+          store.updateMatchMedia(match.id, items);
+        }).catch(() => {});
+      }
     } catch (e: any) {
       store.setModal('importStats');
       setImportedStats(null);
     } finally {
       setImportingStats(false);
     }
+  };
+
+  const handleClearStats = () => setShowClearStats(true);
+
+  const handleSwapSides = () => setShowSwapSides(true);
+
+  const openStatsMenu = () => {
+    statsMenuBtnRef.current?.measureInWindow((x, y, _w, h) => {
+      const screenWidth = Dimensions.get('window').width;
+      setStatsMenuPos({ top: y + h + 6, right: screenWidth - x - _w });
+      setShowStatsMenu(true);
+    });
   };
 
   const handleApplyImportedStats = () => {
@@ -382,6 +414,14 @@ export default function MatchDetailScreen() {
             <Text style={styles.heroResult}>
               {isDraw ? t('matchday.draw') : `${winnerName} won`}
             </Text>
+            {isEditableMatch && (
+              <TouchableOpacity
+                onPress={handleSwapSides}
+                hitSlop={{ top: 6, bottom: 6, left: 12, right: 12 }}
+              >
+                <Text style={styles.swapBtnText}>⇄ swap sides</Text>
+              </TouchableOpacity>
+            )}
           </View>
 
           {/* Side B */}
@@ -409,21 +449,13 @@ export default function MatchDetailScreen() {
                   <Text style={styles.sourceBadgeBlueText}>AI-read</Text>
                 </View>
                 {isEditableMatch && (
-                  <>
-                    <TouchableOpacity
-                      onPress={handleImportStats}
-                      disabled={importingStats}
-                      hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
-                    >
-                      {importingStats
-                        ? <ActivityIndicator size="small" color={Colors.text.muted} />
-                        : <Text style={styles.rescanLink}>Re-scan</Text>
-                      }
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={openEditStats} hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}>
-                      <Text style={styles.editLink}>Edit</Text>
-                    </TouchableOpacity>
-                  </>
+                  <TouchableOpacity
+                    ref={statsMenuBtnRef}
+                    onPress={openStatsMenu}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  >
+                    <Text style={styles.statsMenuDots}>···</Text>
+                  </TouchableOpacity>
                 )}
               </View>
             </View>
@@ -791,74 +823,168 @@ export default function MatchDetailScreen() {
       <Sheet
         visible={modal === 'importStats'}
         onClose={() => { store.setModal(null); setImportedStats(null); }}
+        snapToMax
       >
-          <View style={styles.sheet}>
-            <View style={styles.sheetHeader}>
-              <Text style={styles.sheetTitle}>IMPORT STATS</Text>
-              <Text style={styles.sheetSubtitle}>
-                {importedStats ? `${importedStats.length} stats found` : 'Scan failed'}
-              </Text>
-            </View>
+        <View style={styles.sheetHeader}>
+          <Text style={styles.sheetTitle}>IMPORT STATS</Text>
+          <Text style={styles.sheetSubtitle}>
+            {importedStats ? `${importedStats.length} stats found` : 'Scan failed'}
+          </Text>
+        </View>
 
-            {importedStats && importedStats.length > 0 ? (
-              <BottomSheetScrollView style={styles.sheetScroll} showsVerticalScrollIndicator={false}>
-                {importedStats.map((stat, i) => {
-                  const aLeads = stat.home >= stat.away;
-                  const isLow = stat.confidence === 'low';
-                  const isMed = stat.confidence === 'medium';
-                  return (
-                    <View
-                      key={`${stat.key}-${i}`}
-                      style={[
-                        styles.importStatRow,
-                        isLow && styles.importStatRowLow,
-                        isMed && styles.importStatRowMed,
-                      ]}
-                    >
-                      {(isLow || isMed) && (
-                        <View style={[styles.importConfStripe, { backgroundColor: isLow ? '#ffa032' : Colors.accent.yellow }]} />
-                      )}
-                      <View style={styles.importStatContent}>
-                        <StatsRow
-                          label={stat.label}
-                          aValue={stat.home}
-                          bValue={stat.away}
-                          aWins={aLeads}
-                        />
-                      </View>
-                    </View>
-                  );
-                })}
-                <View style={{ height: 8 }} />
-              </BottomSheetScrollView>
-            ) : (
-              <View style={styles.importErrorBody}>
-                <Text style={styles.importErrorText}>
-                  Could not extract stats from the selected photo. Try a clearer screenshot.
-                </Text>
-              </View>
-            )}
-
-            <View style={styles.sheetButtons}>
-              <TouchableOpacity
-                style={styles.cancelBtn}
-                onPress={() => { store.setModal(null); setImportedStats(null); }}
-                activeOpacity={0.75}
-              >
-                <Text style={styles.cancelBtnText}>Cancel</Text>
-              </TouchableOpacity>
-              {importedStats && importedStats.length > 0 && (
-                <TouchableOpacity
-                  style={styles.saveBtn}
-                  onPress={handleApplyImportedStats}
-                  activeOpacity={0.75}
+        {importedStats && importedStats.length > 0 ? (
+          <BottomSheetScrollView style={styles.sheetScrollFlex} showsVerticalScrollIndicator={false}>
+            {importedStats.map((stat, i) => {
+              const aLeads = stat.home >= stat.away;
+              const isLow = stat.confidence === 'low';
+              const isMed = stat.confidence === 'medium';
+              return (
+                <View
+                  key={`${stat.key}-${i}`}
+                  style={[
+                    styles.importStatRow,
+                    isLow && styles.importStatRowLow,
+                    isMed && styles.importStatRowMed,
+                  ]}
                 >
-                  <Text style={styles.saveBtnText}>Apply</Text>
-                </TouchableOpacity>
-              )}
+                  {(isLow || isMed) && (
+                    <View style={[styles.importConfStripe, { backgroundColor: isLow ? '#ffa032' : Colors.accent.yellow }]} />
+                  )}
+                  <View style={styles.importStatContent}>
+                    <StatsRow
+                      label={stat.label}
+                      aValue={stat.home}
+                      bValue={stat.away}
+                      aWins={aLeads}
+                    />
+                  </View>
+                </View>
+              );
+            })}
+            <View style={{ height: 8 }} />
+          </BottomSheetScrollView>
+        ) : (
+          <View style={styles.importErrorBody}>
+            <Text style={styles.importErrorText}>
+              Could not extract stats from the selected photo. Try a clearer screenshot.
+            </Text>
+          </View>
+        )}
+
+        <View style={styles.sheetButtons}>
+          <TouchableOpacity
+            style={styles.cancelBtn}
+            onPress={() => { store.setModal(null); setImportedStats(null); }}
+            activeOpacity={0.75}
+          >
+            <Text style={styles.cancelBtnText}>Cancel</Text>
+          </TouchableOpacity>
+          {importedStats && importedStats.length > 0 && (
+            <TouchableOpacity
+              style={styles.saveBtn}
+              onPress={handleApplyImportedStats}
+              activeOpacity={0.75}
+            >
+              <Text style={styles.saveBtnText}>Apply</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      </Sheet>
+
+      {/* ── STATS CONTEXT MENU ── */}
+      <Modal
+        visible={showStatsMenu}
+        transparent
+        animationType="none"
+        onRequestClose={() => setShowStatsMenu(false)}
+        statusBarTranslucent
+      >
+        <Pressable style={StyleSheet.absoluteFill} onPress={() => setShowStatsMenu(false)} />
+        <View style={[styles.statsMenuDropdown, { top: statsMenuPos.top, right: statsMenuPos.right }]}>
+          <TouchableOpacity
+            style={styles.statsMenuItem}
+            disabled={importingStats}
+            onPress={() => { setShowStatsMenu(false); handleImportStats(); }}
+          >
+            {importingStats
+              ? <ActivityIndicator size="small" color={Colors.text.muted} />
+              : <Text style={styles.statsMenuItemText}>Re-scan</Text>
+            }
+          </TouchableOpacity>
+          <View style={styles.statsMenuSep} />
+          <TouchableOpacity
+            style={styles.statsMenuItem}
+            onPress={() => { setShowStatsMenu(false); openEditStats(); }}
+          >
+            <Text style={styles.statsMenuItemText}>Edit</Text>
+          </TouchableOpacity>
+          <View style={styles.statsMenuSep} />
+          <TouchableOpacity
+            style={styles.statsMenuItem}
+            onPress={() => { setShowStatsMenu(false); handleClearStats(); }}
+          >
+            <Text style={[styles.statsMenuItemText, { color: Colors.accent.red }]}>Clear</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
+
+      {/* ── CLEAR STATS DIALOG ── */}
+      <Modal
+        visible={showClearStats}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowClearStats(false)}
+        statusBarTranslucent
+      >
+        <View style={styles.dialogOverlay}>
+          <Pressable style={StyleSheet.absoluteFill} onPress={() => setShowClearStats(false)} />
+          <View style={styles.dialog}>
+            <Text style={styles.dialogTitle}>CLEAR STATS</Text>
+            <Text style={styles.dialogDesc}>Remove all match statistics?</Text>
+            <View style={styles.dialogActions}>
+              <TouchableOpacity style={styles.dialogCancel} onPress={() => setShowClearStats(false)} activeOpacity={0.75}>
+                <Text style={styles.dialogCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.dialogConfirm}
+                onPress={() => { store.updateMatchStats(match.id, undefined); setShowClearStats(false); }}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.dialogConfirmText}>Clear</Text>
+              </TouchableOpacity>
             </View>
           </View>
-      </Sheet>
+        </View>
+      </Modal>
+
+      {/* ── SWAP SIDES DIALOG ── */}
+      <Modal
+        visible={showSwapSides}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowSwapSides(false)}
+        statusBarTranslucent
+      >
+        <View style={styles.dialogOverlay}>
+          <Pressable style={StyleSheet.absoluteFill} onPress={() => setShowSwapSides(false)} />
+          <View style={styles.dialog}>
+            <Text style={styles.dialogTitle}>SWAP SIDES</Text>
+            <Text style={styles.dialogDesc}>Switch who played home and away? Stats will be mirrored.</Text>
+            <View style={styles.dialogActions}>
+              <TouchableOpacity style={styles.dialogCancel} onPress={() => setShowSwapSides(false)} activeOpacity={0.75}>
+                <Text style={styles.dialogCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.dialogConfirm}
+                onPress={() => { store.swapMatchSides(match.id); setShowSwapSides(false); }}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.dialogConfirmText}>Swap</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       {/* ── DELETE MATCH MODAL ── */}
       <Modal
@@ -1063,6 +1189,51 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.sm,
     color: Colors.text.muted,
+  },
+  clearLink: {
+    fontFamily: FontFamily.bodySemiBold,
+    fontSize: FontSize.sm,
+    color: Colors.accent.red,
+  },
+  statsMenuDots: {
+    fontFamily: FontFamily.displayBold,
+    fontSize: FontSize.lg,
+    color: Colors.text.muted,
+    letterSpacing: 1,
+    lineHeight: 20,
+  },
+  statsMenuDropdown: {
+    position: 'absolute',
+    backgroundColor: Colors.bg.elevated,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: Colors.border.strong,
+    minWidth: 130,
+    overflow: 'hidden',
+  },
+  statsMenuItem: {
+    paddingVertical: 11,
+    paddingHorizontal: Spacing.lg,
+  },
+  statsMenuItemText: {
+    fontFamily: FontFamily.bodySemiBold,
+    fontSize: FontSize.sm,
+    color: Colors.text.primary,
+  },
+  statsMenuSep: {
+    height: 1,
+    backgroundColor: Colors.border.default,
+  },
+  swapBtnText: {
+    fontFamily: FontFamily.body,
+    fontSize: FontSize.xs,
+    color: Colors.text.muted,
+    letterSpacing: 0.3,
+  },
+  sheetScrollFlex: {
+    flex: 1,
+    paddingHorizontal: Spacing['2xl'],
+    paddingTop: Spacing.md,
   },
 
   // Stats card
@@ -1502,5 +1673,66 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.base,
     color: '#fff',
+  },
+  dialogOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.75)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: Spacing['2xl'],
+  },
+  dialog: {
+    backgroundColor: Colors.bg.surface,
+    borderRadius: Radius['2xl'],
+    borderWidth: 1,
+    borderColor: Colors.border.medium,
+    padding: Spacing['2xl'],
+    width: '100%',
+    gap: Spacing.md,
+    alignItems: 'center',
+  },
+  dialogTitle: {
+    fontFamily: FontFamily.displayBold,
+    fontSize: FontSize.xl,
+    color: Colors.text.primary,
+    letterSpacing: 0.5,
+  },
+  dialogDesc: {
+    fontFamily: FontFamily.body,
+    fontSize: FontSize.base,
+    color: Colors.text.muted,
+    textAlign: 'center',
+  },
+  dialogActions: {
+    flexDirection: 'row',
+    gap: Spacing.md,
+    width: '100%',
+  },
+  dialogCancel: {
+    flex: 1,
+    backgroundColor: Colors.bg.elevated,
+    borderRadius: Radius.md,
+    paddingVertical: Spacing.md,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Colors.border.medium,
+  },
+  dialogCancelText: {
+    fontFamily: FontFamily.bodySemiBold,
+    fontSize: FontSize.base,
+    color: Colors.text.muted,
+  },
+  dialogConfirm: {
+    flex: 1,
+    backgroundColor: Colors.accent.red,
+    borderRadius: Radius.md,
+    paddingVertical: Spacing.md,
+    alignItems: 'center',
+  },
+  dialogConfirmText: {
+    fontFamily: FontFamily.displayBold,
+    fontSize: FontSize.base,
+    color: '#fff',
+    letterSpacing: 0.3,
   },
 });

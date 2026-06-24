@@ -96,8 +96,9 @@ interface Actions {
   updateMatchScore: (id: string, aScore: number, bScore: number) => void;
   updateMatchStats: (
     id: string,
-    stats: Record<string, { a: number; b: number }>,
+    stats: Record<string, { a: number; b: number }> | undefined,
   ) => void;
+  swapMatchSides: (id: string) => void;
   finishRound: () => void;
   closeTournament: () => void;
   renameTournament: (name: string) => void;
@@ -264,6 +265,22 @@ export const useStore = create<AppState & Actions>()(
 
       updateMatchStats: (id, stats) =>
         set((s) => patchMatchEverywhere(s, id, { statsOverride: stats })),
+
+      swapMatchSides: (id) =>
+        set((s) => {
+          const match =
+            s.matches.find((m) => m.id === id) ??
+            s.archivedRounds.flatMap((r) => r.matches).find((m) => m.id === id);
+          if (!match) return s;
+          return patchMatchEverywhere(s, id, {
+            aId: match.bId,
+            bId: match.aId,
+            aTeam: match.bTeam,
+            bTeam: match.aTeam,
+            aScore: match.bScore,
+            bScore: match.aScore,
+          });
+        }),
 
       finishRound: () => {
         const s = get();
