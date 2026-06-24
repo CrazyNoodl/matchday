@@ -698,8 +698,8 @@ export default function MatchDetailScreen() {
       </Modal>
 
       {/* ── EDIT STATS MODAL ── */}
-      <Sheet visible={modal === 'editStats'} onClose={() => store.setModal(null)}>
-          <View style={styles.sheet}>
+      <Sheet visible={modal === 'editStats'} onClose={() => store.setModal(null)} snapToMax>
+          <View style={styles.sheetFlex}>
             {/* Sheet header */}
             <View style={styles.sheetHeader}>
               <Text style={styles.sheetTitle}>EDIT STATS</Text>
@@ -707,7 +707,7 @@ export default function MatchDetailScreen() {
             </View>
 
             <BottomSheetScrollView
-              style={styles.sheetScroll}
+              style={styles.sheetScrollFlex}
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
             >
@@ -1322,6 +1322,11 @@ const makeStyles = (colors: AppColors) => StyleSheet.create({
   // Edit stats sheet
   sheet: {
     backgroundColor: colors.bg.sheet,
+    paddingBottom: 32,
+  },
+  sheetFlex: {
+    flex: 1,
+    backgroundColor: Colors.bg.sheet,
     paddingBottom: 32,
   },
   sheetHeader: {
