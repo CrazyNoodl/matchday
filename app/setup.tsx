@@ -16,7 +16,7 @@ import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStore } from '@/store';
-import { Colors } from '@/theme/colors';
+import { Colors, useColors, AppColors } from '@/theme';
 import { FontFamily, FontSize } from '@/theme/typography';
 import { Radius, Spacing } from '@/theme/spacing';
 import { Avatar } from '@/components/Avatar';
@@ -30,6 +30,8 @@ const PLAYER_COLORS = Colors.player;
 export default function SetupScreen() {
   const router = useRouter();
   const store = useStore();
+  const colors = useColors();
+  const styles = makeStyles(colors);
   const { players, teams, addTeam, deleteTeam, addPlayer } = store;
   const { t } = useTranslation();
 
@@ -175,7 +177,7 @@ export default function SetupScreen() {
             value={tournamentName}
             onChangeText={setTournamentName}
             placeholder={t('setup.tournamentNamePlaceholder')}
-            placeholderTextColor={Colors.text.placeholder}
+            placeholderTextColor={colors.text.placeholder}
             returnKeyType="done"
             autoCorrect={false}
           />
@@ -326,7 +328,7 @@ export default function SetupScreen() {
                 value={newPlayerName}
                 onChangeText={setNewPlayerName}
                 placeholder={t('setup.form.playerNamePlaceholder')}
-                placeholderTextColor={Colors.text.placeholder}
+                placeholderTextColor={colors.text.placeholder}
                 autoFocus
                 autoCorrect={false}
               />
@@ -338,7 +340,7 @@ export default function SetupScreen() {
                 value={newPlayerNick}
                 onChangeText={setNewPlayerNick}
                 placeholder={t('setup.form.nicknamePlaceholder')}
-                placeholderTextColor={Colors.text.placeholder}
+                placeholderTextColor={colors.text.placeholder}
                 autoCorrect={false}
               />
             </View>
@@ -519,7 +521,7 @@ export default function SetupScreen() {
                 value={newTeamName}
                 onChangeText={setNewTeamName}
                 placeholder={t('setup.teamNamePlaceholder')}
-                placeholderTextColor={Colors.text.placeholder}
+                placeholderTextColor={colors.text.placeholder}
                 returnKeyType="done"
                 onSubmitEditing={handleAddTeam}
                 autoCorrect={false}
@@ -559,10 +561,10 @@ export default function SetupScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: AppColors) => StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: Colors.bg.base,
+    backgroundColor: colors.bg.base,
   },
   flex: {
     flex: 1,
@@ -573,7 +575,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border.default,
+    borderBottomColor: colors.border.default,
   },
   backBtn: {
     width: 40,
@@ -584,7 +586,7 @@ const styles = StyleSheet.create({
   backChevron: {
     fontFamily: FontFamily.display,
     fontSize: FontSize['2xl'],
-    color: Colors.text.secondary,
+    color: colors.text.secondary,
     lineHeight: 28,
   },
   headerCenter: {
@@ -595,13 +597,13 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize.xl,
-    color: Colors.text.primary,
+    color: colors.text.primary,
     letterSpacing: 0.3,
   },
   headerSubtitle: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.xs,
-    color: Colors.text.muted,
+    color: colors.text.muted,
   },
   headerRight: {
     width: 40,
@@ -618,23 +620,23 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.sm,
   },
   input: {
-    backgroundColor: Colors.bg.surface,
+    backgroundColor: colors.bg.surface,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: Colors.border.default,
+    borderColor: colors.border.default,
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.md,
-    color: Colors.text.primary,
+    color: colors.text.primary,
   },
   optionRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.bg.surface,
+    backgroundColor: colors.bg.surface,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: Colors.border.default,
+    borderColor: colors.border.default,
     padding: Spacing.lg,
     gap: Spacing.md,
   },
@@ -645,20 +647,20 @@ const styles = StyleSheet.create({
   optionLabel: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.base,
-    color: Colors.text.primary,
+    color: colors.text.primary,
   },
   optionDesc: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.xs,
-    color: Colors.text.muted,
+    color: colors.text.muted,
   },
   stepperRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.bg.surface,
+    backgroundColor: colors.bg.surface,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: Colors.border.default,
+    borderColor: colors.border.default,
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
     gap: Spacing.md,
@@ -669,7 +671,7 @@ const styles = StyleSheet.create({
   stepperDesc: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.xs,
-    color: Colors.text.muted,
+    color: colors.text.muted,
   },
   stepper: {
     flexDirection: 'row',
@@ -680,24 +682,24 @@ const styles = StyleSheet.create({
     width: 34,
     height: 34,
     borderRadius: Radius.sm,
-    backgroundColor: Colors.accent.greenSubtle,
+    backgroundColor: colors.accent.greenSubtle,
     borderWidth: 1,
-    borderColor: Colors.accent.greenBorder,
+    borderColor: colors.accent.greenBorder,
     alignItems: 'center',
     justifyContent: 'center',
   },
   stepperBtnDisabled: {
-    backgroundColor: Colors.bg.elevated,
-    borderColor: Colors.border.medium,
+    backgroundColor: colors.bg.elevated,
+    borderColor: colors.border.medium,
   },
   stepperBtnText: {
     fontFamily: FontFamily.bodyBold,
     fontSize: FontSize.lg,
-    color: Colors.accent.green,
+    color: colors.accent.green,
     lineHeight: 22,
   },
   stepperBtnTextDisabled: {
-    color: Colors.text.ghost,
+    color: colors.text.ghost,
   },
   stepperValue: {
     width: 44,
@@ -706,7 +708,7 @@ const styles = StyleSheet.create({
   stepperValueText: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize.xl,
-    color: Colors.text.primary,
+    color: colors.text.primary,
     letterSpacing: 0.5,
   },
   playersList: {
@@ -715,16 +717,16 @@ const styles = StyleSheet.create({
   playerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.bg.surface,
+    backgroundColor: colors.bg.surface,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: Colors.border.default,
+    borderColor: colors.border.default,
     padding: Spacing.md,
     gap: Spacing.md,
   },
   playerRowSelected: {
-    backgroundColor: Colors.accent.greenSubtle,
-    borderColor: Colors.accent.greenBorder,
+    backgroundColor: colors.accent.greenSubtle,
+    borderColor: colors.accent.greenBorder,
   },
   playerInfo: {
     flex: 1,
@@ -733,12 +735,12 @@ const styles = StyleSheet.create({
   playerName: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.base,
-    color: Colors.text.primary,
+    color: colors.text.primary,
   },
   playerNick: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.xs,
-    color: Colors.text.muted,
+    color: colors.text.muted,
   },
   teamChip: {
     padding: 2,
@@ -748,16 +750,16 @@ const styles = StyleSheet.create({
     height: 24,
     borderRadius: 12,
     borderWidth: 1.5,
-    borderColor: Colors.border.strong,
+    borderColor: colors.border.strong,
     alignItems: 'center',
     justifyContent: 'center',
   },
   checkCircleSelected: {
-    backgroundColor: Colors.accent.green,
-    borderColor: Colors.accent.green,
+    backgroundColor: colors.accent.green,
+    borderColor: colors.accent.green,
   },
   checkMark: {
-    color: Colors.accent.greenDark,
+    color: colors.accent.greenDark,
     fontSize: FontSize.sm,
     fontFamily: FontFamily.bodyBold,
     lineHeight: 16,
@@ -765,10 +767,10 @@ const styles = StyleSheet.create({
   manageTeamsRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.bg.surface,
+    backgroundColor: colors.bg.surface,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: Colors.border.default,
+    borderColor: colors.border.default,
     padding: Spacing.md,
     gap: Spacing.sm,
     marginTop: Spacing.xs,
@@ -780,12 +782,12 @@ const styles = StyleSheet.create({
     flex: 1,
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.base,
-    color: Colors.text.secondary,
+    color: colors.text.secondary,
   },
   manageTeamsChevron: {
     fontFamily: FontFamily.display,
     fontSize: FontSize.xl,
-    color: Colors.text.muted,
+    color: colors.text.muted,
     lineHeight: 24,
   },
   // Bottom CTA
@@ -794,32 +796,32 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: Colors.bg.base,
+    backgroundColor: colors.bg.base,
     paddingHorizontal: Spacing.xl,
     paddingTop: Spacing.md,
     paddingBottom: Platform.OS === 'ios' ? 32 : Spacing.xl,
     borderTopWidth: 1,
-    borderTopColor: Colors.border.default,
+    borderTopColor: colors.border.default,
   },
   startBtn: {
-    backgroundColor: Colors.accent.green,
+    backgroundColor: colors.accent.green,
     borderRadius: Radius.lg,
     paddingVertical: Spacing.lg,
     alignItems: 'center',
   },
   startBtnDisabled: {
-    backgroundColor: Colors.bg.elevated,
+    backgroundColor: colors.bg.elevated,
     borderWidth: 1,
-    borderColor: Colors.border.medium,
+    borderColor: colors.border.medium,
   },
   startBtnText: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize.lg,
-    color: Colors.accent.greenDark,
+    color: colors.accent.greenDark,
     letterSpacing: 0.8,
   },
   startBtnTextDisabled: {
-    color: Colors.text.ghost,
+    color: colors.text.ghost,
   },
   // Modals
   overlay: {
@@ -831,7 +833,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: Colors.bg.sheet,
+    backgroundColor: colors.bg.sheet,
     borderTopLeftRadius: Radius['3xl'],
     borderTopRightRadius: Radius['3xl'],
     paddingHorizontal: Spacing.xl,
@@ -846,14 +848,14 @@ const styles = StyleSheet.create({
     width: 40,
     height: 4,
     borderRadius: 2,
-    backgroundColor: Colors.border.strong,
+    backgroundColor: colors.border.strong,
     alignSelf: 'center',
     marginBottom: Spacing.xl,
   },
   sheetTitle: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize['2xl'],
-    color: Colors.text.primary,
+    color: colors.text.primary,
     letterSpacing: 0.5,
     textAlign: 'center',
     marginBottom: Spacing.lg,
@@ -867,10 +869,10 @@ const styles = StyleSheet.create({
   },
   teamGridItem: {
     flex: 1,
-    backgroundColor: Colors.bg.elevated,
+    backgroundColor: colors.bg.elevated,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: Colors.border.default,
+    borderColor: colors.border.default,
     padding: Spacing.md,
     alignItems: 'center',
     gap: Spacing.xs,
@@ -878,16 +880,16 @@ const styles = StyleSheet.create({
   teamGridName: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.sm,
-    color: Colors.text.primary,
+    color: colors.text.primary,
     textAlign: 'center',
   },
   teamGridCode: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.xs,
-    color: Colors.text.muted,
+    color: colors.text.muted,
   },
   doneBtn: {
-    backgroundColor: Colors.accent.green,
+    backgroundColor: colors.accent.green,
     borderRadius: Radius.md,
     paddingVertical: Spacing.lg,
     alignItems: 'center',
@@ -896,17 +898,17 @@ const styles = StyleSheet.create({
   doneBtnText: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize.base,
-    color: Colors.accent.greenDark,
+    color: colors.accent.greenDark,
     letterSpacing: 0.5,
   },
   // Manage teams
   teamListRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.bg.elevated,
+    backgroundColor: colors.bg.elevated,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: Colors.border.default,
+    borderColor: colors.border.default,
     padding: Spacing.md,
     gap: Spacing.md,
     marginBottom: Spacing.sm,
@@ -914,26 +916,26 @@ const styles = StyleSheet.create({
   teamListName: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.base,
-    color: Colors.text.primary,
+    color: colors.text.primary,
   },
   teamListCode: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.xs,
-    color: Colors.text.muted,
+    color: colors.text.muted,
     marginTop: 2,
   },
   removeTeamBtn: {
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: Colors.accent.redSubtle,
+    backgroundColor: colors.accent.redSubtle,
     alignItems: 'center',
     justifyContent: 'center',
   },
   removeTeamIcon: {
     fontFamily: FontFamily.bodyBold,
     fontSize: FontSize.lg,
-    color: Colors.accent.red,
+    color: colors.accent.red,
     lineHeight: 22,
     textAlign: 'center',
   },
@@ -944,36 +946,36 @@ const styles = StyleSheet.create({
   },
   addTeamInput: {
     flex: 1,
-    backgroundColor: Colors.bg.elevated,
+    backgroundColor: colors.bg.elevated,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: Colors.border.default,
+    borderColor: colors.border.default,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.md,
     fontFamily: FontFamily.body,
     fontSize: FontSize.base,
-    color: Colors.text.primary,
+    color: colors.text.primary,
   },
   addTeamBtn: {
-    backgroundColor: Colors.accent.green,
+    backgroundColor: colors.accent.green,
     borderRadius: Radius.md,
     paddingHorizontal: Spacing.lg,
     alignItems: 'center',
     justifyContent: 'center',
   },
   addTeamBtnDisabled: {
-    backgroundColor: Colors.bg.elevated,
+    backgroundColor: colors.bg.elevated,
     borderWidth: 1,
-    borderColor: Colors.border.medium,
+    borderColor: colors.border.medium,
   },
   addTeamBtnText: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize.sm,
-    color: Colors.accent.greenDark,
+    color: colors.accent.greenDark,
     letterSpacing: 0.5,
   },
   addTeamBtnTextDisabled: {
-    color: Colors.text.ghost,
+    color: colors.text.ghost,
   },
   // Add player form styles
   addPlayerFormGroup: {
@@ -983,27 +985,27 @@ const styles = StyleSheet.create({
   addPlayerFormLabel: {
     fontFamily: FontFamily.bodyBold,
     fontSize: FontSize.xs,
-    color: Colors.text.muted,
+    color: colors.text.muted,
     letterSpacing: 1,
   },
   addPlayerInput: {
-    backgroundColor: Colors.bg.elevated,
+    backgroundColor: colors.bg.elevated,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: Colors.border.default,
+    borderColor: colors.border.default,
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
     fontFamily: FontFamily.body,
     fontSize: FontSize.base,
-    color: Colors.text.primary,
+    color: colors.text.primary,
   },
   addPlayerTeamPicker: { flexGrow: 0 },
   addPlayerTeamItem: {
     alignItems: 'center',
-    backgroundColor: Colors.bg.elevated,
+    backgroundColor: colors.bg.elevated,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: Colors.border.default,
+    borderColor: colors.border.default,
     padding: Spacing.md,
     marginRight: Spacing.sm,
     gap: Spacing.xs,
@@ -1012,7 +1014,7 @@ const styles = StyleSheet.create({
   addPlayerTeamName: {
     fontFamily: FontFamily.bodyBold,
     fontSize: FontSize.xs,
-    color: Colors.text.secondary,
+    color: colors.text.secondary,
     textAlign: 'center',
   },
   addPlayerColorPicker: {
@@ -1036,25 +1038,25 @@ const styles = StyleSheet.create({
   },
   addPlayerCancelBtn: {
     flex: 1,
-    backgroundColor: Colors.bg.elevated,
+    backgroundColor: colors.bg.elevated,
     borderRadius: Radius.md,
     paddingVertical: Spacing.lg,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: Colors.border.medium,
+    borderColor: colors.border.medium,
   },
   addPlayerCancelText: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize.base,
-    color: Colors.text.muted,
+    color: colors.text.muted,
     letterSpacing: 0.5,
   },
   doneBtnDisabled: {
-    backgroundColor: Colors.bg.elevated,
+    backgroundColor: colors.bg.elevated,
     borderWidth: 1,
-    borderColor: Colors.border.medium,
+    borderColor: colors.border.medium,
   },
   doneBtnTextDisabled: {
-    color: Colors.text.ghost,
+    color: colors.text.ghost,
   },
 });

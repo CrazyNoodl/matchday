@@ -7,7 +7,8 @@ import {
   StyleSheet,
   ViewStyle,
 } from 'react-native';
-import { styles, THUMB_WIDTH } from './MediaThumbnail.styles';
+import { useColors } from '../../theme';
+import { makeStyles, THUMB_WIDTH } from './MediaThumbnail.styles';
 
 interface MediaThumbnailProps {
   uri?: string;
@@ -16,6 +17,8 @@ interface MediaThumbnailProps {
 }
 
 export function MediaThumbnail({ uri, onRemove, style }: MediaThumbnailProps) {
+  const colors = useColors();
+  const styles = makeStyles(colors);
   return (
     <View style={[styles.container, style]}>
       {uri ? (
@@ -27,7 +30,7 @@ export function MediaThumbnail({ uri, onRemove, style }: MediaThumbnailProps) {
       ) : (
         // Hatched placeholder
         <View style={styles.placeholder}>
-          <HatchPattern />
+          <HatchPattern hatchLineStyle={styles.hatchLine} />
         </View>
       )}
 
@@ -47,7 +50,7 @@ export function MediaThumbnail({ uri, onRemove, style }: MediaThumbnailProps) {
 }
 
 // Simple hatched background using diagonal lines via nested views
-function HatchPattern() {
+function HatchPattern({ hatchLineStyle }: { hatchLineStyle: object }) {
   const lines = Array.from({ length: 12 });
   return (
     <View style={StyleSheet.absoluteFill}>
@@ -55,7 +58,7 @@ function HatchPattern() {
         <View
           key={i}
           style={[
-            styles.hatchLine,
+            hatchLineStyle,
             {
               top: i * 14 - 28,
               left: -THUMB_WIDTH,

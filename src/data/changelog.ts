@@ -9,6 +9,24 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.6.6',
+    added: [
+      'Light theme — toggle between dark and light appearance in Settings → Display',
+    ],
+    fixed: [
+      'Stats screen showed raw translation keys instead of text due to a duplicate locale block (#27)',
+      'Edit stats sheet now scrolls fully instead of clipping the stat list at the bottom (#32)',
+    ],
+  },
+  {
+    version: '1.6.5',
+    fixed: [
+      'Demo mode toggle in Settings now responds to tapping directly on the switch (was silently ignored)',
+      'Demo mode confirmation replaced with an in-app dialog matching the player/team delete style',
+      'Keyboard no longer pops up automatically when opening the tournament screen',
+    ],
+  },
+  {
     version: '1.6.4',
     added: [
       'Swap match sides in stats import — flips home/away teams and scores with one tap',

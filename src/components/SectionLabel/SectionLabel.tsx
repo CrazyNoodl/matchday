@@ -1,6 +1,7 @@
 import React from 'react';
 import { Text, StyleSheet, TextStyle } from 'react-native';
-import { Colors } from '../../theme/colors';
+import { useColors } from '../../theme';
+import type { AppColors } from '../../theme';
 import { FontFamily, FontSize } from '../../theme/typography';
 
 interface SectionLabelProps {
@@ -9,6 +10,8 @@ interface SectionLabelProps {
 }
 
 export function SectionLabel({ label, style }: SectionLabelProps) {
+  const colors = useColors();
+  const styles = makeStyles(colors);
   return (
     <Text style={[styles.label, style]}>
       {label.toUpperCase()}
@@ -16,12 +19,12 @@ export function SectionLabel({ label, style }: SectionLabelProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: AppColors) => StyleSheet.create({
   label: {
     fontFamily: FontFamily.bodyBold,
     fontSize: FontSize.sm,
     letterSpacing: 1.2,
-    color: Colors.text.placeholder,
+    color: colors.text.placeholder,
     textTransform: 'uppercase',
   },
 });

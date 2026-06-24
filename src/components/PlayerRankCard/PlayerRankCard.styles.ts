@@ -1,20 +1,20 @@
 import { StyleSheet } from 'react-native';
-import { Colors } from '@/theme/colors';
+import type { AppColors } from '@/theme';
 import { FontFamily, FontSize } from '@/theme/typography';
 import { Radius, Spacing } from '@/theme/spacing';
 
-export const styles = StyleSheet.create({
+export const makeStyles = (colors: AppColors) => StyleSheet.create({
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.bg.surface,
+    backgroundColor: colors.bg.surface,
     borderRadius: Radius.xl,
     borderWidth: 1,
     padding: Spacing.lg,
     gap: Spacing.md,
   },
   cardEmphasized: {
-    backgroundColor: Colors.accent.greenSubtle,
+    backgroundColor: colors.accent.greenSubtle,
   },
   medalBadge: {
     width: 32,
@@ -43,12 +43,12 @@ export const styles = StyleSheet.create({
   name: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.md,
-    color: Colors.text.primary,
+    color: colors.text.primary,
   },
   subText: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.xs,
-    color: Colors.text.muted,
+    color: colors.text.muted,
   },
   ptsBlock: {
     alignItems: 'center',
@@ -58,13 +58,13 @@ export const styles = StyleSheet.create({
   ptsNumber: {
     fontFamily: FontFamily.display,
     fontSize: FontSize['3xl'],
-    color: Colors.text.primary,
+    color: colors.text.primary,
     lineHeight: 34,
   },
   ptsLabel: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.xs,
-    color: Colors.text.muted,
+    color: colors.text.muted,
     letterSpacing: 0.8,
     marginTop: -2,
   },

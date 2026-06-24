@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet, ViewStyle } from 'react-native';
 import { useStore } from '../../store';
-import { Colors } from '../../theme/colors';
+import { useColors } from '../../theme';
 import { FontFamily, FontSize } from '../../theme/typography';
 
 type AvatarSize = 'sm' | 'md' | 'lg' | 'xl';
@@ -34,6 +34,7 @@ interface AvatarProps {
 }
 
 export function Avatar({ playerId, size = 'md', style }: AvatarProps) {
+  const colors = useColors();
   const player = useStore((s) => s.players.find((p) => p.id === playerId));
   const team = useStore((s) => s.teams.find((t) => t.code === player?.teamCode));
 
@@ -48,7 +49,7 @@ export function Avatar({ playerId, size = 'md', style }: AvatarProps) {
   ];
 
   if (!team) {
-    return <View style={[...baseStyle, { backgroundColor: Colors.bg.elevated }]} />;
+    return <View style={[...baseStyle, { backgroundColor: colors.bg.elevated }]} />;
   }
 
   if (team.logo?.startsWith('http')) {

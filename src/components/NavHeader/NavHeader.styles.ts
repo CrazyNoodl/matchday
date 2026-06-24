@@ -1,15 +1,15 @@
 import { StyleSheet, Platform } from 'react-native';
-import { Colors } from '../../theme/colors';
+import type { AppColors } from '../../theme';
 import { FontFamily, FontSize } from '../../theme/typography';
 import { Spacing } from '../../theme/spacing';
 
-export const styles = StyleSheet.create({
+export const makeStyles = (colors: AppColors) => StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.bg.surface,
+    backgroundColor: colors.bg.surface,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border.default,
+    borderBottomColor: colors.border.default,
     paddingHorizontal: Spacing.lg,
     paddingTop: Platform.OS === 'ios' ? 0 : Spacing.sm,
     paddingBottom: Spacing.md,
@@ -34,14 +34,14 @@ export const styles = StyleSheet.create({
   title: {
     fontFamily: FontFamily.display,
     fontSize: FontSize.xl,
-    color: Colors.text.primary,
+    color: colors.text.primary,
     letterSpacing: 0.3,
     textAlign: 'center',
   },
   subtitle: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.xs,
-    color: Colors.text.muted,
+    color: colors.text.muted,
     textAlign: 'center',
   },
   backBtn: {
@@ -53,7 +53,7 @@ export const styles = StyleSheet.create({
   chevron: {
     fontFamily: FontFamily.display,
     fontSize: FontSize['2xl'],
-    color: Colors.text.secondary,
+    color: colors.text.secondary,
     lineHeight: 28,
     marginTop: -2,
   },

@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Colors } from '../../theme/colors';
+import { useColors } from '../../theme';
+import type { AppColors } from '../../theme';
 import { FontFamily, FontSize } from '../../theme/typography';
 import { Radius } from '../../theme/spacing';
 
@@ -25,59 +26,60 @@ interface BadgeConfig {
   borderColor?: string;
 }
 
-const CONFIG: Record<BadgeType, BadgeConfig> = {
+const makeConfig = (colors: AppColors): Record<BadgeType, BadgeConfig> => ({
   live: {
     label: 'LIVE',
-    bg: Colors.accent.greenSubtle,
-    textColor: Colors.accent.green,
-    borderColor: Colors.accent.greenBorder,
+    bg: colors.accent.greenSubtle,
+    textColor: colors.accent.green,
+    borderColor: colors.accent.greenBorder,
   },
   soon: {
     label: 'SOON',
-    bg: Colors.accent.blueSubtle,
-    textColor: Colors.accent.blue,
+    bg: colors.accent.blueSubtle,
+    textColor: colors.accent.blue,
     borderColor: 'rgba(106,166,255,0.28)',
   },
   leader: {
     label: 'LEADER',
-    bg: Colors.accent.greenSubtle,
-    textColor: Colors.accent.green,
-    borderColor: Colors.accent.greenBorder,
+    bg: colors.accent.greenSubtle,
+    textColor: colors.accent.green,
+    borderColor: colors.accent.greenBorder,
   },
   editing: {
     label: 'EDITING',
-    bg: Colors.accent.blueSubtle,
-    textColor: Colors.accent.blue,
+    bg: colors.accent.blueSubtle,
+    textColor: colors.accent.blue,
     borderColor: 'rgba(106,166,255,0.28)',
   },
   archived: {
     label: 'ARCHIVED',
     bg: 'rgba(255,255,255,0.05)',
-    textColor: Colors.text.muted,
-    borderColor: Colors.border.default,
+    textColor: colors.text.muted,
+    borderColor: colors.border.default,
   },
   friendly: {
     label: 'FRIENDLY',
-    bg: Colors.accent.blueSubtle,
-    textColor: Colors.accent.blue,
+    bg: colors.accent.blueSubtle,
+    textColor: colors.accent.blue,
     borderColor: 'rgba(106,166,255,0.28)',
   },
   auto: {
     label: 'AUTO',
     bg: 'rgba(255,255,255,0.05)',
-    textColor: Colors.text.muted,
-    borderColor: Colors.border.default,
+    textColor: colors.text.muted,
+    borderColor: colors.border.default,
   },
   ranked: {
     label: 'RANKED',
-    bg: Colors.accent.greenSubtle,
-    textColor: Colors.accent.green,
-    borderColor: Colors.accent.greenBorder,
+    bg: colors.accent.greenSubtle,
+    textColor: colors.accent.green,
+    borderColor: colors.accent.greenBorder,
   },
-};
+});
 
 export function StatusBadge({ type }: StatusBadgeProps) {
-  const cfg = CONFIG[type];
+  const colors = useColors();
+  const cfg = makeConfig(colors)[type];
 
   return (
     <View

@@ -7,7 +7,7 @@ import BottomSheet, {
 } from '@gorhom/bottom-sheet';
 import { ReduceMotion } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Colors } from '@/theme/colors';
+import { useColors } from '@/theme';
 
 // Force sheet open/close animations to play even when the device has
 // "Reduce Motion" enabled — otherwise the sheet opens with no visible
@@ -38,12 +38,15 @@ interface SheetProps {
 // declarative `index` prop — the declarative path was unreliable for
 // closing the sheet from a button (e.g. Cancel) in this app.
 export function Sheet({ visible, onClose, children, snapToMax }: SheetProps) {
+  const colors = useColors();
   const ref = useRef<BottomSheet>(null);
   const [height, setHeight] = useState(MIN_HEIGHT);
   const { bottom: bottomInset } = useSafeAreaInsets();
+  const [everOpened, setEverOpened] = useState(false);
 
   useEffect(() => {
     if (visible) {
+      setEverOpened(true);
       ref.current?.snapToIndex(0);
     } else {
       ref.current?.close();
@@ -78,11 +81,11 @@ export function Sheet({ visible, onClose, children, snapToMax }: SheetProps) {
       keyboardBehavior="interactive"
       keyboardBlurBehavior="restore"
       backdropComponent={renderBackdrop}
-      backgroundStyle={{ backgroundColor: Colors.bg.sheet }}
-      handleIndicatorStyle={{ backgroundColor: Colors.border.strong }}
+      backgroundStyle={{ backgroundColor: colors.bg.sheet }}
+      handleIndicatorStyle={{ backgroundColor: colors.border.strong }}
       onClose={onClose}
     >
-      {snapToMax ? children : <BottomSheetView onLayout={handleLayout}>{children}</BottomSheetView>}
+      {everOpened && (snapToMax ? children : <BottomSheetView onLayout={handleLayout}>{children}</BottomSheetView>)}
     </BottomSheet>
   );
 }

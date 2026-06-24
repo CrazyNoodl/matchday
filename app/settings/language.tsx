@@ -6,13 +6,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '@/store';
 import i18n, { LANGUAGES, Language } from '@/i18n';
-import { Colors } from '@/theme/colors';
+import { useColors, AppColors } from '@/theme';
 import { FontFamily, FontSize } from '@/theme/typography';
 import { Radius, Spacing } from '@/theme/spacing';
 import { NavHeader } from '@/components/NavHeader';
 import { GlowBackground } from '@/components/GlowBackground';
 
 export default function LanguageScreen() {
+  const colors = useColors();
+  const styles = makeStyles(colors);
   const router = useRouter();
   const goBack = useGoBack();
   const { t } = useTranslation();
@@ -67,10 +69,10 @@ export default function LanguageScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: AppColors) => StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: Colors.bg.base,
+    backgroundColor: colors.bg.base,
   },
   scroll: { flex: 1 },
   scrollContent: {
@@ -79,10 +81,10 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   card: {
-    backgroundColor: Colors.bg.surface,
+    backgroundColor: colors.bg.surface,
     borderRadius: Radius.xl,
     borderWidth: 1,
-    borderColor: Colors.border.default,
+    borderColor: colors.border.default,
     overflow: 'hidden',
   },
   row: {
@@ -97,7 +99,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: Radius.sm,
-    backgroundColor: Colors.bg.elevated,
+    backgroundColor: colors.bg.elevated,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -111,31 +113,31 @@ const styles = StyleSheet.create({
   nativeName: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.base,
-    color: Colors.text.primary,
+    color: colors.text.primary,
   },
   translatedName: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.xs,
-    color: Colors.text.muted,
+    color: colors.text.muted,
   },
   checkContainer: {
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: Colors.accent.greenSubtle,
+    backgroundColor: colors.accent.greenSubtle,
     borderWidth: 1,
-    borderColor: Colors.accent.greenBorder,
+    borderColor: colors.accent.greenBorder,
     alignItems: 'center',
     justifyContent: 'center',
   },
   checkMark: {
     fontSize: 14,
-    color: Colors.accent.green,
+    color: colors.accent.green,
     fontFamily: FontFamily.bodyBold,
   },
   divider: {
     height: 1,
-    backgroundColor: Colors.border.default,
+    backgroundColor: colors.border.default,
     marginLeft: 44 + Spacing.lg + Spacing.md,
   },
 });

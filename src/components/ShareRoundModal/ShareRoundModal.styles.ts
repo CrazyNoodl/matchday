@@ -1,11 +1,11 @@
 import { StyleSheet } from 'react-native';
-import { Colors } from '@/theme/colors';
+import type { AppColors } from '@/theme';
 import { FontFamily, FontSize } from '@/theme/typography';
 import { Radius, Spacing } from '@/theme/spacing';
 
 export const CARD_W = 320;
 
-export const winnerStyles = StyleSheet.create({
+export const makeWinnerStyles = (colors: AppColors) => StyleSheet.create({
   card: {
     width: CARD_W,
     backgroundColor: '#0c0e10',
@@ -33,13 +33,13 @@ export const winnerStyles = StyleSheet.create({
   appName: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize.sm,
-    color: Colors.text.placeholder,
+    color: colors.text.placeholder,
     letterSpacing: 2.5,
   },
   topDate: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.xs,
-    color: Colors.text.placeholder,
+    color: colors.text.placeholder,
   },
   divider: {
     height: 1,
@@ -54,13 +54,13 @@ export const winnerStyles = StyleSheet.create({
   heroLabel: {
     fontFamily: FontFamily.bodyBold,
     fontSize: FontSize.xs,
-    color: Colors.accent.gold,
+    color: colors.accent.gold,
     letterSpacing: 2,
   },
   heroMatchCount: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.xs,
-    color: Colors.text.placeholder,
+    color: colors.text.placeholder,
     letterSpacing: 1,
     marginTop: -Spacing.sm,
   },
@@ -73,7 +73,7 @@ export const winnerStyles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 24,
-    backgroundColor: Colors.bg.elevated,
+    backgroundColor: colors.bg.elevated,
     borderWidth: 2,
     alignItems: 'center',
     justifyContent: 'center',
@@ -81,12 +81,12 @@ export const winnerStyles = StyleSheet.create({
   drawCircleText: {
     fontFamily: FontFamily.display,
     fontSize: FontSize['2xl'],
-    color: Colors.text.muted,
+    color: colors.text.muted,
   },
   heroName: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize['3xl'],
-    color: Colors.text.primary,
+    color: colors.text.primary,
     letterSpacing: 1,
     textAlign: 'center',
   },
@@ -107,17 +107,17 @@ export const winnerStyles = StyleSheet.create({
   statValue: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize.lg,
-    color: Colors.text.primary,
+    color: colors.text.primary,
   },
   statGA: {
     fontFamily: FontFamily.display,
     fontSize: FontSize.base,
-    color: Colors.text.muted,
+    color: colors.text.muted,
   },
   statLabel: {
     fontFamily: FontFamily.bodyBold,
     fontSize: 8,
-    color: Colors.text.placeholder,
+    color: colors.text.placeholder,
     letterSpacing: 0.8,
     marginTop: 1,
   },
@@ -125,7 +125,7 @@ export const winnerStyles = StyleSheet.create({
     width: 3,
     height: 3,
     borderRadius: 2,
-    backgroundColor: Colors.text.placeholder,
+    backgroundColor: colors.text.placeholder,
     marginBottom: 10,
   },
   statSep: {
@@ -143,13 +143,13 @@ export const winnerStyles = StyleSheet.create({
   footerTour: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize.sm,
-    color: Colors.text.secondary,
+    color: colors.text.secondary,
     letterSpacing: 1,
   },
   footerRound: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.xs,
-    color: Colors.text.placeholder,
+    color: colors.text.placeholder,
   },
   matchesSection: {
     paddingHorizontal: Spacing.lg,
@@ -158,7 +158,7 @@ export const winnerStyles = StyleSheet.create({
   matchesTitle: {
     fontFamily: FontFamily.bodyBold,
     fontSize: FontSize.xs,
-    color: Colors.text.placeholder,
+    color: colors.text.placeholder,
     letterSpacing: 1.5,
     marginBottom: Spacing.sm,
   },
@@ -184,23 +184,23 @@ export const winnerStyles = StyleSheet.create({
     flexShrink: 1,
     fontFamily: FontFamily.body,
     fontSize: FontSize.xs,
-    color: Colors.text.muted,
+    color: colors.text.muted,
   },
   matchNameRight: {
     textAlign: 'right',
   },
   matchNameWin: {
     fontFamily: FontFamily.bodySemiBold,
-    color: Colors.text.primary,
+    color: colors.text.primary,
   },
   matchScore: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize.sm,
-    color: Colors.text.secondary,
+    color: colors.text.secondary,
     paddingHorizontal: Spacing.sm,
   },
   matchScoreWin: {
-    color: Colors.accent.green,
+    color: colors.accent.green,
   },
   standingsSection: {
     paddingHorizontal: Spacing.lg,
@@ -214,7 +214,7 @@ export const winnerStyles = StyleSheet.create({
   standingsHeaderCell: {
     fontFamily: FontFamily.bodyBold,
     fontSize: 9,
-    color: Colors.text.placeholder,
+    color: colors.text.placeholder,
     letterSpacing: 0.5,
     textAlign: 'center',
   },
@@ -227,7 +227,7 @@ export const winnerStyles = StyleSheet.create({
     borderRadius: Radius.sm,
   },
   standingsRowLeader: {
-    backgroundColor: Colors.accent.greenSubtle,
+    backgroundColor: colors.accent.greenSubtle,
   },
   standingsPlayerCol: {
     flex: 1,
@@ -239,7 +239,7 @@ export const winnerStyles = StyleSheet.create({
     flexShrink: 1,
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.xs,
-    color: Colors.text.primary,
+    color: colors.text.primary,
   },
   standingsNumCol: {
     width: 24,
@@ -248,19 +248,19 @@ export const winnerStyles = StyleSheet.create({
   standingsCell: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.xs,
-    color: Colors.text.secondary,
+    color: colors.text.secondary,
   },
   standingsPts: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize.sm,
-    color: Colors.accent.green,
+    color: colors.accent.green,
   },
 });
 
-export const modalStyles = StyleSheet.create({
+export const makeModalStyles = (colors: AppColors) => StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: Colors.bg.base,
+    backgroundColor: colors.bg.base,
   },
   header: {
     flexDirection: 'row',
@@ -270,12 +270,12 @@ export const modalStyles = StyleSheet.create({
     paddingTop: Spacing['2xl'],
     paddingBottom: Spacing.lg,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border.default,
+    borderBottomColor: colors.border.default,
   },
   title: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize.xl,
-    color: Colors.text.primary,
+    color: colors.text.primary,
     letterSpacing: 1,
   },
   closeBtn: {
@@ -287,7 +287,7 @@ export const modalStyles = StyleSheet.create({
   closeText: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.lg,
-    color: Colors.text.muted,
+    color: colors.text.muted,
   },
   previewScroll: {
     flexGrow: 1,
@@ -311,7 +311,7 @@ export const modalStyles = StyleSheet.create({
   optionLabel: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.sm,
-    color: Colors.text.secondary,
+    color: colors.text.secondary,
   },
   actions: {
     flexDirection: 'row',
@@ -319,7 +319,7 @@ export const modalStyles = StyleSheet.create({
     paddingHorizontal: Spacing.xl,
     paddingVertical: Spacing.xl,
     borderTopWidth: 1,
-    borderTopColor: Colors.border.default,
+    borderTopColor: colors.border.default,
   },
   actionBtn: {
     flex: 1,
@@ -330,16 +330,16 @@ export const modalStyles = StyleSheet.create({
     minHeight: 48,
   },
   saveBtn: {
-    backgroundColor: Colors.bg.elevated,
+    backgroundColor: colors.bg.elevated,
     borderWidth: 1,
-    borderColor: Colors.border.strong,
+    borderColor: colors.border.strong,
   },
   shareBtn: {
-    backgroundColor: Colors.accent.green,
+    backgroundColor: colors.accent.green,
   },
   actionText: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.base,
-    color: Colors.text.primary,
+    color: colors.text.primary,
   },
 });

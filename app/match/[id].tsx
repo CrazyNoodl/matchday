@@ -19,7 +19,7 @@ import { useGoBack } from '@/utils/useGoBack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStore } from '@/store';
 import type { MediaItem } from '@/store/types';
-import { Colors } from '@/theme/colors';
+import { useColors, AppColors } from '@/theme';
 import { FontFamily, FontSize } from '@/theme/typography';
 import { Radius, Spacing } from '@/theme/spacing';
 import { NavHeader } from '@/components/NavHeader';
@@ -42,6 +42,8 @@ export default function MatchDetailScreen() {
   const goBack = useGoBack();
   const { id } = useLocalSearchParams<{ id: string }>();
   const store = useStore();
+  const colors = useColors();
+  const styles = makeStyles(colors);
 
   const { matches, archivedRounds, closedTournaments, players, modal, syncStatus } = store;
   const isCurrentRoundMatch = matches.some((m) => m.id === id);
@@ -152,7 +154,7 @@ export default function MatchDetailScreen() {
         <NavHeader title={t('matchDetail.title')} onBack={() => goBack()} />
         <View style={styles.center}>
           {isLoading
-            ? <ActivityIndicator color={Colors.accent.green} size="large" />
+            ? <ActivityIndicator color={colors.accent.green} size="large" />
             : <Text style={styles.emptyText}>{t('matchDetail.noData')}</Text>
           }
         </View>
@@ -394,7 +396,7 @@ export default function MatchDetailScreen() {
               <Text
                 style={[
                   styles.heroScoreNum,
-                  aWins && { color: Colors.accent.green },
+                  aWins && { color: colors.accent.green },
                   (!aWins && !isDraw) && { color: '#7c8388' },
                 ]}
               >
@@ -404,7 +406,7 @@ export default function MatchDetailScreen() {
               <Text
                 style={[
                   styles.heroScoreNum,
-                  bWins && { color: Colors.accent.green },
+                  bWins && { color: colors.accent.green },
                   (!bWins && !isDraw) && { color: '#7c8388' },
                 ]}
               >
@@ -492,7 +494,7 @@ export default function MatchDetailScreen() {
                   hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
                 >
                   {importingStats
-                    ? <ActivityIndicator size="small" color={Colors.accent.blue} />
+                    ? <ActivityIndicator size="small" color={colors.accent.blue} />
                     : <Text style={styles.importStatsBtnText}>📊 Import stats</Text>
                   }
                 </TouchableOpacity>
@@ -505,7 +507,7 @@ export default function MatchDetailScreen() {
                 hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
               >
                 {uploadingMedia
-                  ? <ActivityIndicator size="small" color={Colors.accent.green} />
+                  ? <ActivityIndicator size="small" color={colors.accent.green} />
                   : <Text style={styles.addMediaBtnText}>+ Add</Text>
                 }
               </TouchableOpacity>
@@ -696,8 +698,8 @@ export default function MatchDetailScreen() {
       </Modal>
 
       {/* ── EDIT STATS MODAL ── */}
-      <Sheet visible={modal === 'editStats'} onClose={() => store.setModal(null)}>
-          <View style={styles.sheet}>
+      <Sheet visible={modal === 'editStats'} onClose={() => store.setModal(null)} snapToMax>
+          <View style={styles.sheetFlex}>
             {/* Sheet header */}
             <View style={styles.sheetHeader}>
               <Text style={styles.sheetTitle}>EDIT STATS</Text>
@@ -705,7 +707,7 @@ export default function MatchDetailScreen() {
             </View>
 
             <BottomSheetScrollView
-              style={styles.sheetScroll}
+              style={styles.sheetScrollFlex}
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
             >
@@ -793,7 +795,7 @@ export default function MatchDetailScreen() {
                 value={editNoteValue}
                 onChangeText={setEditNoteValue}
                 placeholder="Write something about this match..."
-                placeholderTextColor={Colors.text.placeholder}
+                placeholderTextColor={colors.text.placeholder}
                 multiline
                 autoFocus
                 maxLength={500}
@@ -848,7 +850,7 @@ export default function MatchDetailScreen() {
                   ]}
                 >
                   {(isLow || isMed) && (
-                    <View style={[styles.importConfStripe, { backgroundColor: isLow ? '#ffa032' : Colors.accent.yellow }]} />
+                    <View style={[styles.importConfStripe, { backgroundColor: isLow ? '#ffa032' : colors.accent.yellow }]} />
                   )}
                   <View style={styles.importStatContent}>
                     <StatsRow
@@ -907,7 +909,7 @@ export default function MatchDetailScreen() {
             onPress={() => { setShowStatsMenu(false); handleImportStats(); }}
           >
             {importingStats
-              ? <ActivityIndicator size="small" color={Colors.text.muted} />
+              ? <ActivityIndicator size="small" color={colors.text.muted} />
               : <Text style={styles.statsMenuItemText}>Re-scan</Text>
             }
           </TouchableOpacity>
@@ -923,7 +925,7 @@ export default function MatchDetailScreen() {
             style={styles.statsMenuItem}
             onPress={() => { setShowStatsMenu(false); handleClearStats(); }}
           >
-            <Text style={[styles.statsMenuItemText, { color: Colors.accent.red }]}>Clear</Text>
+            <Text style={[styles.statsMenuItemText, { color: colors.accent.red }]}>Clear</Text>
           </TouchableOpacity>
         </View>
       </Modal>
@@ -1027,10 +1029,10 @@ export default function MatchDetailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: AppColors) => StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: Colors.bg.base,
+    backgroundColor: colors.bg.base,
   },
   center: {
     flex: 1,
@@ -1040,7 +1042,7 @@ const styles = StyleSheet.create({
   emptyText: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.base,
-    color: Colors.text.muted,
+    color: colors.text.muted,
   },
 
   // Header actions
@@ -1054,20 +1056,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: Radius.sm,
     borderWidth: 1,
-    borderColor: Colors.border.strong,
+    borderColor: colors.border.strong,
     alignItems: 'center',
     justifyContent: 'center',
   },
   editBtnText: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.sm,
-    color: Colors.text.secondary,
+    color: colors.text.secondary,
   },
   deleteBtn: {
     width: 32,
     height: 32,
     borderRadius: Radius.full,
-    backgroundColor: Colors.accent.redSubtle,
+    backgroundColor: colors.accent.redSubtle,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1103,12 +1105,12 @@ const styles = StyleSheet.create({
   heroName: {
     fontFamily: FontFamily.display,
     fontSize: FontSize.base,
-    color: Colors.text.primary,
+    color: colors.text.primary,
     textAlign: 'center',
     letterSpacing: 0.3,
   },
   heroNameLoser: {
-    color: Colors.text.muted,
+    color: colors.text.muted,
   },
   heroCenter: {
     alignItems: 'center',
@@ -1123,7 +1125,7 @@ const styles = StyleSheet.create({
   heroScoreNum: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize['5xl'],
-    color: Colors.text.secondary,
+    color: colors.text.secondary,
     lineHeight: FontSize['5xl'] + 8,
     minWidth: 36,
     textAlign: 'center',
@@ -1131,13 +1133,13 @@ const styles = StyleSheet.create({
   heroColon: {
     fontFamily: FontFamily.displayBold,
     fontSize: 30,
-    color: Colors.text.placeholder,
+    color: colors.text.placeholder,
     lineHeight: 40,
   },
   heroResult: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.sm,
-    color: Colors.accent.green,
+    color: colors.accent.green,
     textAlign: 'center',
   },
 
@@ -1158,56 +1160,56 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: Radius.full,
-    backgroundColor: Colors.accent.blueSubtle,
+    backgroundColor: colors.accent.blueSubtle,
     borderWidth: 1,
     borderColor: 'rgba(106,166,255,0.25)',
   },
   sourceBadgeBlueText: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.xs,
-    color: Colors.accent.blue,
+    color: colors.accent.blue,
   },
   sourceBadgeMuted: {
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: Radius.full,
-    backgroundColor: Colors.bg.elevated,
+    backgroundColor: colors.bg.elevated,
     borderWidth: 1,
-    borderColor: Colors.border.medium,
+    borderColor: colors.border.medium,
   },
   sourceBadgeMutedText: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.xs,
-    color: Colors.text.muted,
+    color: colors.text.muted,
   },
   editLink: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.sm,
-    color: Colors.accent.blue,
+    color: colors.accent.blue,
   },
   rescanLink: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.sm,
-    color: Colors.text.muted,
+    color: colors.text.muted,
   },
   clearLink: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.sm,
-    color: Colors.accent.red,
+    color: colors.accent.red,
   },
   statsMenuDots: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize.lg,
-    color: Colors.text.muted,
+    color: colors.text.muted,
     letterSpacing: 1,
     lineHeight: 20,
   },
   statsMenuDropdown: {
     position: 'absolute',
-    backgroundColor: Colors.bg.elevated,
+    backgroundColor: colors.bg.elevated,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: Colors.border.strong,
+    borderColor: colors.border.strong,
     minWidth: 130,
     overflow: 'hidden',
   },
@@ -1218,16 +1220,16 @@ const styles = StyleSheet.create({
   statsMenuItemText: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.sm,
-    color: Colors.text.primary,
+    color: colors.text.primary,
   },
   statsMenuSep: {
     height: 1,
-    backgroundColor: Colors.border.default,
+    backgroundColor: colors.border.default,
   },
   swapBtnText: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.xs,
-    color: Colors.text.muted,
+    color: colors.text.muted,
     letterSpacing: 0.3,
   },
   sheetScrollFlex: {
@@ -1238,10 +1240,10 @@ const styles = StyleSheet.create({
 
   // Stats card
   statsCard: {
-    backgroundColor: Colors.bg.surface,
+    backgroundColor: colors.bg.surface,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: Colors.border.default,
+    borderColor: colors.border.default,
     padding: Spacing.lg,
     gap: 2,
   },
@@ -1260,9 +1262,9 @@ const styles = StyleSheet.create({
     height: 118,
     borderRadius: Radius.sm,
     overflow: 'hidden',
-    backgroundColor: Colors.bg.media,
+    backgroundColor: colors.bg.media,
     borderWidth: 1,
-    borderColor: Colors.border.medium,
+    borderColor: colors.border.medium,
   },
   mediaImage: {
     width: 90,
@@ -1283,14 +1285,14 @@ const styles = StyleSheet.create({
     borderRadius: Radius.sm,
     borderWidth: 1,
     borderStyle: 'dashed',
-    borderColor: Colors.border.medium,
+    borderColor: colors.border.medium,
     alignItems: 'center',
     justifyContent: 'center',
   },
   mediaEmptyText: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.sm,
-    color: Colors.text.placeholder,
+    color: colors.text.placeholder,
   },
 
   // Commentary
@@ -1304,7 +1306,7 @@ const styles = StyleSheet.create({
   noteText: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.base,
-    color: Colors.text.secondary,
+    color: colors.text.secondary,
     lineHeight: 22,
   },
   noNoteRow: {
@@ -1314,12 +1316,17 @@ const styles = StyleSheet.create({
   noNoteText: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.sm,
-    color: Colors.text.placeholder,
+    color: colors.text.placeholder,
   },
 
   // Edit stats sheet
   sheet: {
-    backgroundColor: Colors.bg.sheet,
+    backgroundColor: colors.bg.sheet,
+    paddingBottom: 32,
+  },
+  sheetFlex: {
+    flex: 1,
+    backgroundColor: colors.bg.sheet,
     paddingBottom: 32,
   },
   sheetHeader: {
@@ -1330,18 +1337,18 @@ const styles = StyleSheet.create({
     paddingTop: Spacing['2xl'],
     paddingBottom: Spacing.lg,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border.default,
+    borderBottomColor: colors.border.default,
   },
   sheetTitle: {
     fontFamily: FontFamily.display,
     fontSize: FontSize.xl,
-    color: Colors.text.primary,
+    color: colors.text.primary,
     letterSpacing: 0.5,
   },
   sheetSubtitle: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.sm,
-    color: Colors.text.muted,
+    color: colors.text.muted,
     textAlign: 'right',
   },
   sheetScroll: {
@@ -1366,7 +1373,7 @@ const styles = StyleSheet.create({
   scoreEditName: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.sm,
-    color: Colors.text.muted,
+    color: colors.text.muted,
     textAlign: 'center',
   },
   scoreEditControls: {
@@ -1377,14 +1384,14 @@ const styles = StyleSheet.create({
   scoreEditVal: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize['4xl'],
-    color: Colors.text.primary,
+    color: colors.text.primary,
     minWidth: 48,
     textAlign: 'center',
   },
   scoreEditColon: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize['3xl'],
-    color: Colors.text.placeholder,
+    color: colors.text.placeholder,
     paddingHorizontal: Spacing.sm,
   },
 
@@ -1406,7 +1413,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: Spacing.sm,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border.default,
+    borderBottomColor: colors.border.default,
     gap: Spacing.sm,
   },
   editSideControls: {
@@ -1420,29 +1427,29 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: Radius.sm,
-    backgroundColor: Colors.bg.elevated,
+    backgroundColor: colors.bg.elevated,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: Colors.border.medium,
+    borderColor: colors.border.medium,
   },
   stepBtnText: {
     fontFamily: FontFamily.bodyBold,
     fontSize: FontSize.md,
-    color: Colors.text.primary,
+    color: colors.text.primary,
     lineHeight: 20,
   },
   editStatVal: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize.md,
-    color: Colors.text.primary,
+    color: colors.text.primary,
     minWidth: 28,
     textAlign: 'center',
   },
   editStatLabel: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.xs,
-    color: Colors.text.muted,
+    color: colors.text.muted,
     textAlign: 'center',
     width: 70,
   },
@@ -1459,27 +1466,27 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: Colors.border.strong,
+    borderColor: colors.border.strong,
     alignItems: 'center',
     justifyContent: 'center',
   },
   cancelBtnText: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.base,
-    color: Colors.text.secondary,
+    color: colors.text.secondary,
   },
   saveBtn: {
     flex: 1,
     height: 48,
     borderRadius: Radius.md,
-    backgroundColor: Colors.accent.green,
+    backgroundColor: colors.accent.green,
     alignItems: 'center',
     justifyContent: 'center',
   },
   saveBtnText: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.base,
-    color: Colors.bg.base,
+    color: colors.bg.base,
   },
 
   // Media section actions
@@ -1500,7 +1507,7 @@ const styles = StyleSheet.create({
   importStatsBtnText: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.sm,
-    color: Colors.accent.blue,
+    color: colors.accent.blue,
   },
 
   // Import stats modal rows
@@ -1508,7 +1515,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'stretch',
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border.default,
+    borderBottomColor: colors.border.default,
   },
   importStatRowLow: {
     backgroundColor: 'rgba(255,160,50,0.12)',
@@ -1531,7 +1538,7 @@ const styles = StyleSheet.create({
   importErrorText: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.sm,
-    color: Colors.text.muted,
+    color: colors.text.muted,
     textAlign: 'center',
     lineHeight: 20,
   },
@@ -1542,14 +1549,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     borderRadius: Radius.sm,
     borderWidth: 1,
-    borderColor: Colors.accent.greenBorder,
+    borderColor: colors.accent.greenBorder,
     alignItems: 'center',
     justifyContent: 'center',
   },
   addMediaBtnText: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.sm,
-    color: Colors.accent.green,
+    color: colors.accent.green,
   },
 
   // Media delete button
@@ -1578,21 +1585,21 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.sm,
   },
   noteInput: {
-    backgroundColor: Colors.bg.elevated,
+    backgroundColor: colors.bg.elevated,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: Colors.border.strong,
+    borderColor: colors.border.strong,
     padding: Spacing.lg,
     fontFamily: FontFamily.body,
     fontSize: FontSize.base,
-    color: Colors.text.primary,
+    color: colors.text.primary,
     minHeight: 120,
     textAlignVertical: 'top',
   },
   noteCharCount: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.xs,
-    color: Colors.text.placeholder,
+    color: colors.text.placeholder,
     textAlign: 'right',
     marginTop: 4,
   },
@@ -1606,10 +1613,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing['2xl'],
   },
   delDialog: {
-    backgroundColor: Colors.bg.elevated,
+    backgroundColor: colors.bg.elevated,
     borderRadius: Radius['2xl'],
     borderWidth: 1,
-    borderColor: Colors.border.strong,
+    borderColor: colors.border.strong,
     padding: Spacing['2xl'],
     width: '100%',
     alignItems: 'center',
@@ -1619,7 +1626,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: Radius.full,
-    backgroundColor: Colors.accent.redSubtle,
+    backgroundColor: colors.accent.redSubtle,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: Spacing.xs,
@@ -1630,14 +1637,14 @@ const styles = StyleSheet.create({
   delTitle: {
     fontFamily: FontFamily.display,
     fontSize: FontSize.xl,
-    color: Colors.text.primary,
+    color: colors.text.primary,
     letterSpacing: 0.5,
     textAlign: 'center',
   },
   delDesc: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.sm,
-    color: Colors.text.muted,
+    color: colors.text.muted,
     textAlign: 'center',
     lineHeight: 20,
   },
@@ -1652,20 +1659,20 @@ const styles = StyleSheet.create({
     height: 44,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: Colors.border.strong,
+    borderColor: colors.border.strong,
     alignItems: 'center',
     justifyContent: 'center',
   },
   delCancelText: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.base,
-    color: Colors.text.secondary,
+    color: colors.text.secondary,
   },
   delConfirmBtn: {
     flex: 1,
     height: 44,
     borderRadius: Radius.md,
-    backgroundColor: Colors.accent.red,
+    backgroundColor: colors.accent.red,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1682,10 +1689,10 @@ const styles = StyleSheet.create({
     padding: Spacing['2xl'],
   },
   dialog: {
-    backgroundColor: Colors.bg.surface,
+    backgroundColor: colors.bg.surface,
     borderRadius: Radius['2xl'],
     borderWidth: 1,
-    borderColor: Colors.border.medium,
+    borderColor: colors.border.medium,
     padding: Spacing['2xl'],
     width: '100%',
     gap: Spacing.md,
@@ -1694,13 +1701,13 @@ const styles = StyleSheet.create({
   dialogTitle: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize.xl,
-    color: Colors.text.primary,
+    color: colors.text.primary,
     letterSpacing: 0.5,
   },
   dialogDesc: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.base,
-    color: Colors.text.muted,
+    color: colors.text.muted,
     textAlign: 'center',
   },
   dialogActions: {
@@ -1710,21 +1717,21 @@ const styles = StyleSheet.create({
   },
   dialogCancel: {
     flex: 1,
-    backgroundColor: Colors.bg.elevated,
+    backgroundColor: colors.bg.elevated,
     borderRadius: Radius.md,
     paddingVertical: Spacing.md,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: Colors.border.medium,
+    borderColor: colors.border.medium,
   },
   dialogCancelText: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.base,
-    color: Colors.text.muted,
+    color: colors.text.muted,
   },
   dialogConfirm: {
     flex: 1,
-    backgroundColor: Colors.accent.red,
+    backgroundColor: colors.accent.red,
     borderRadius: Radius.md,
     paddingVertical: Spacing.md,
     alignItems: 'center',

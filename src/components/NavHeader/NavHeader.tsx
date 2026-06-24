@@ -4,7 +4,8 @@ import {
   Text,
   TouchableOpacity,
 } from 'react-native';
-import { styles } from './NavHeader.styles';
+import { useColors } from '../../theme';
+import { makeStyles } from './NavHeader.styles';
 
 interface NavHeaderProps {
   title: string;
@@ -19,6 +20,8 @@ export function NavHeader({
   onBack,
   rightElement,
 }: NavHeaderProps) {
+  const colors = useColors();
+  const styles = makeStyles(colors);
   return (
     <View style={styles.header}>
       {/* Left: back button or spacer */}

@@ -2,7 +2,8 @@ import React from 'react';
 import { ScrollView, Text, TouchableOpacity } from 'react-native';
 import { TeamBadge } from '@/components/TeamBadge';
 import { Team } from '@/store/types';
-import { styles } from './TeamPickerRow.styles';
+import { makeStyles } from './TeamPickerRow.styles';
+import { useColors } from '@/theme';
 
 interface TeamPickerRowProps {
   teams: Team[];
@@ -11,6 +12,8 @@ interface TeamPickerRowProps {
 }
 
 export function TeamPickerRow({ teams, selectedCode, onSelect }: TeamPickerRowProps) {
+  const colors = useColors();
+  const styles = makeStyles(colors);
   return (
     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.picker}>
       {teams.map((t) => (

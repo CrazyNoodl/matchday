@@ -14,7 +14,7 @@ import { ParsedMatch } from '../utils/importRound';
 import { deleteMediaItem } from '../supabase/storage';
 import { DEMO_STATE } from '../demo/data';
 import { calculateStandings, isTopTied } from '../utils/standings';
-import { Colors } from '../theme/colors';
+import { Colors, ColorScheme } from '../theme/colors';
 
 // ---------------------------------------------------------------------------
 // Storage adapter — MMKV on native, localStorage on web
@@ -33,15 +33,26 @@ const buildStorage = () => {
       },
     };
   }
-  // Native: lazy-import MMKV so the module doesn't crash on web
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const { createMMKV } = require('react-native-mmkv') as typeof import('react-native-mmkv');
-  const mmkv = createMMKV({ id: 'matchday-store' });
-  return {
-    getItem: (name: string): string | null => mmkv.getString(name) ?? null,
-    setItem: (name: string, value: string): void => mmkv.set(name, value),
-    removeItem: (name: string): void => { mmkv.remove(name); },
-  };
+  // Native: lazy-import MMKV so the module doesn't crash on web.
+  // Falls back to an in-memory store if the native module isn't available
+  // (e.g. Jest/Storybook, which have no real native runtime).
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { createMMKV } = require('react-native-mmkv') as typeof import('react-native-mmkv');
+    const mmkv = createMMKV({ id: 'matchday-store' });
+    return {
+      getItem: (name: string): string | null => mmkv.getString(name) ?? null,
+      setItem: (name: string, value: string): void => mmkv.set(name, value),
+      removeItem: (name: string): void => { mmkv.remove(name); },
+    };
+  } catch {
+    const memory = new Map<string, string>();
+    return {
+      getItem: (name: string): string | null => memory.get(name) ?? null,
+      setItem: (name: string, value: string): void => { memory.set(name, value); },
+      removeItem: (name: string): void => { memory.delete(name); },
+    };
+  }
 };
 
 const mmkvStorage = buildStorage();
@@ -70,6 +81,7 @@ interface AppState {
   teams: Team[];
   showNick: boolean;
   showTeamLogo: boolean;
+  colorScheme: ColorScheme;
   language: string;
   demoMode: boolean;
   realDataBackup: RealDataBackup | null;
@@ -137,6 +149,7 @@ interface Actions {
   setViewingTournament: (t: ClosedTournament | null) => void;
   setShowNick: (v: boolean) => void;
   setShowTeamLogo: (v: boolean) => void;
+  setColorScheme: (scheme: ColorScheme) => void;
   setLanguage: (lang: string) => void;
   setDemoMode: (on: boolean) => void;
   resetStore: () => Promise<void>;
@@ -210,6 +223,7 @@ export const useStore = create<AppState & Actions>()(
       teams: [],
       showNick: true,
       showTeamLogo: true,
+      colorScheme: 'dark' as ColorScheme,
       language: 'en',
       demoMode: false,
       realDataBackup: null,
@@ -422,6 +436,7 @@ export const useStore = create<AppState & Actions>()(
       setViewingTournament: (t) => set({ viewingTournament: t }),
       setShowNick: (v) => set({ showNick: v }),
       setShowTeamLogo: (v) => set({ showTeamLogo: v }),
+      setColorScheme: (scheme) => set({ colorScheme: scheme }),
       setLanguage: (lang) => set({ language: lang }),
 
       setDemoMode: (on) => {
@@ -572,6 +587,7 @@ export const useStore = create<AppState & Actions>()(
           teams: [],
           showNick: true,
           showTeamLogo: true,
+          colorScheme: 'dark' as ColorScheme,
           language: 'en',
           demoMode: false,
           realDataBackup: null,
@@ -604,6 +620,7 @@ export const useStore = create<AppState & Actions>()(
         teams: state.teams,
         showNick: state.showNick,
         showTeamLogo: state.showTeamLogo,
+        colorScheme: state.colorScheme,
         language: state.language,
         demoMode: state.demoMode,
         realDataBackup: state.realDataBackup,

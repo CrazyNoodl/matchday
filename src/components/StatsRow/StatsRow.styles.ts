@@ -1,9 +1,9 @@
 import { StyleSheet } from 'react-native';
-import { Colors } from '../../theme/colors';
+import type { AppColors } from '../../theme';
 import { FontFamily, FontSize } from '../../theme/typography';
 import { Spacing } from '../../theme/spacing';
 
-export const styles = StyleSheet.create({
+export const makeStyles = (colors: AppColors) => StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -25,7 +25,7 @@ export const styles = StyleSheet.create({
   barHalf: {
     flex: 1,
     height: 6,
-    backgroundColor: Colors.bg.elevated,
+    backgroundColor: colors.bg.elevated,
     borderRadius: 3,
     overflow: 'hidden',
   },
@@ -42,7 +42,7 @@ export const styles = StyleSheet.create({
   label: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.xs,
-    color: Colors.text.muted,
+    color: colors.text.muted,
     textAlign: 'center',
     minWidth: 60,
   },

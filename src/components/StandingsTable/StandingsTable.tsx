@@ -1,10 +1,10 @@
 import React from 'react';
 import { View, Text, ScrollView, type StyleProp, type ViewStyle } from 'react-native';
-import { Colors } from '@/theme/colors';
+import { useColors, type AppColors } from '@/theme';
 import { Avatar } from '@/components/Avatar';
 import { Standing } from '@/utils/standings';
 import { Player } from '@/store/types';
-import { styles } from './StandingsTable.styles';
+import { makeStyles } from './StandingsTable.styles';
 
 export type StandingsColumnKey =
   | 'played' | 'wins' | 'draws' | 'losses' | 'gf' | 'ga' | 'gd' | 'pts'
@@ -26,7 +26,7 @@ interface StandingsTableProps {
   style?: StyleProp<ViewStyle>;
 }
 
-function getColumnValue(s: Standing, key: StandingsColumnKey): { text: string; color?: string } {
+function getColumnValue(s: Standing, key: StandingsColumnKey, colors: AppColors): { text: string; color?: string } {
   switch (key) {
     case 'played': return { text: String(s.played) };
     case 'wins': return { text: String(s.wins) };
@@ -36,7 +36,7 @@ function getColumnValue(s: Standing, key: StandingsColumnKey): { text: string; c
     case 'ga': return { text: String(s.ga) };
     case 'gd': return {
       text: s.gd > 0 ? `+${s.gd}` : String(s.gd),
-      color: s.gd > 0 ? Colors.accent.green : s.gd < 0 ? Colors.accent.red : Colors.text.muted,
+      color: s.gd > 0 ? colors.accent.green : s.gd < 0 ? colors.accent.red : colors.text.muted,
     };
     case 'pts': return { text: String(s.pts) };
     case 'gfPerGame': return { text: s.played > 0 ? (s.gf / s.played).toFixed(1) : '—' };
@@ -53,6 +53,8 @@ export function StandingsTable({
   compact,
   style,
 }: StandingsTableProps) {
+  const colors = useColors();
+  const styles = makeStyles(colors);
   if (standings.length === 0) {
     return (
       <View style={[styles.container, style]}>
@@ -130,7 +132,7 @@ export function StandingsTable({
                 return (
                   <View key={s.playerId} style={[styles.row, isLeader && styles.rowLeader]}>
                     {columns.map((col) => {
-                      const { text, color } = getColumnValue(s, col.key);
+                      const { text, color } = getColumnValue(s, col.key, colors);
                       const isPerGame = col.key === 'gfPerGame' || col.key === 'gaPerGame';
                       return (
                         <Text

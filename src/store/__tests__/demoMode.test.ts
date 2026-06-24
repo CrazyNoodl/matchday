@@ -120,6 +120,22 @@ describe('demo mode — store isolation', () => {
     expect(useStore.getState()).toBe(before); // same reference = no set() called
   });
 
+  // Regression: Switch.onValueChange passes the new boolean value directly (not a
+  // negation of the current state). setDemoMode(true) must enable when currently off,
+  // and setDemoMode(false) must disable when currently on — not just toggle blindly.
+  it('setDemoMode(true) enables demo when called with explicit boolean from Switch.onValueChange', () => {
+    expect(useStore.getState().demoMode).toBe(false);
+    useStore.getState().setDemoMode(true);
+    expect(useStore.getState().demoMode).toBe(true);
+  });
+
+  it('setDemoMode(false) disables demo when called with explicit boolean from Switch.onValueChange', () => {
+    useStore.getState().setDemoMode(true);
+    expect(useStore.getState().demoMode).toBe(true);
+    useStore.getState().setDemoMode(false);
+    expect(useStore.getState().demoMode).toBe(false);
+  });
+
   it('applyCloudState is blocked while demo mode is active', () => {
     useStore.getState().setDemoMode(true);
 

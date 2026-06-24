@@ -1,9 +1,9 @@
 import { StyleSheet } from 'react-native';
-import { Colors } from '../../theme/colors';
+import type { AppColors } from '../../theme';
 import { FontFamily, FontSize } from '../../theme/typography';
 import { Radius, Spacing } from '../../theme/spacing';
 
-export const styles = StyleSheet.create({
+export const makeStyles = (colors: AppColors) => StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
@@ -14,13 +14,13 @@ export const styles = StyleSheet.create({
   name: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.md,
-    color: Colors.text.primary,
+    color: colors.text.primary,
     textAlign: 'center',
   },
   score: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize.score,
-    color: Colors.accent.green,
+    color: colors.accent.green,
     lineHeight: FontSize.score + 8,
     textAlign: 'center',
   },
@@ -32,9 +32,9 @@ export const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: Radius.md,
-    backgroundColor: Colors.bg.elevated,
+    backgroundColor: colors.bg.elevated,
     borderWidth: 1,
-    borderColor: Colors.border.medium,
+    borderColor: colors.border.medium,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -44,11 +44,11 @@ export const styles = StyleSheet.create({
   btnText: {
     fontFamily: FontFamily.bodyBold,
     fontSize: FontSize.xl,
-    color: Colors.text.primary,
+    color: colors.text.primary,
     lineHeight: 28,
     textAlign: 'center',
   },
   btnTextDisabled: {
-    color: Colors.text.muted,
+    color: colors.text.muted,
   },
 });

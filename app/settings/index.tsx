@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Modal, Pressable, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Modal, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import Constants from 'expo-constants';
 import { useGoBack } from '@/utils/useGoBack';
@@ -7,7 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '@/store';
 import { LANGUAGES } from '@/i18n';
-import { Colors } from '@/theme/colors';
+import { useColors, AppColors } from '@/theme';
 import { FontFamily, FontSize } from '@/theme/typography';
 import { Radius, Spacing } from '@/theme/spacing';
 import { NavHeader } from '@/components/NavHeader';
@@ -25,6 +25,8 @@ interface SettingsRowProps {
 }
 
 function SettingsRow({ icon, label, sub, onPress, right, chevron = true }: SettingsRowProps) {
+  const colors = useColors();
+  const styles = makeStyles(colors);
   const Row = onPress ? TouchableOpacity : View;
   return (
     <Row
@@ -47,6 +49,8 @@ function SettingsRow({ icon, label, sub, onPress, right, chevron = true }: Setti
 }
 
 export default function SettingsScreen() {
+  const colors = useColors();
+  const styles = makeStyles(colors);
   const router = useRouter();
   const goBack = useGoBack();
   const { t } = useTranslation();
@@ -54,6 +58,7 @@ export default function SettingsScreen() {
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
   const [showSignOutConfirm, setShowSignOutConfirm] = useState(false);
+  const [showDemoConfirm, setShowDemoConfirm] = useState(false);
   const [versionTaps, setVersionTaps] = useState(0);
   const [devUnlocked, setDevUnlocked] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
@@ -63,7 +68,7 @@ export default function SettingsScreen() {
     supabase.auth.getUser().then(({ data }) => setUserEmail(data.user?.email ?? null));
   }, []);
 
-  const { players, teams, showNick, showTeamLogo, hasTournament, tournamentName, language, archivedRounds, closedTournaments, demoMode } = store;
+  const { players, teams, showNick, showTeamLogo, colorScheme, hasTournament, tournamentName, language, archivedRounds, closedTournaments, demoMode } = store;
 
   const currentLang = LANGUAGES.find((l) => l.code === language) ?? LANGUAGES[0];
 
@@ -118,18 +123,18 @@ export default function SettingsScreen() {
 
   const handleDemoToggle = (on: boolean) => {
     if (on && hasTournament) {
-      Alert.alert(
-        t('demo.label'),
-        t('demo.replaceWarning'),
-        [
-          { text: t('common.cancel'), style: 'cancel' },
-          { text: t('demo.enable'), onPress: () => { store.setDemoMode(true); router.dismissAll(); router.replace('/'); } },
-        ],
-      );
+      setShowDemoConfirm(true);
       return;
     }
     store.setDemoMode(on);
     if (on) { router.dismissAll(); router.replace('/'); }
+  };
+
+  const confirmEnableDemo = () => {
+    setShowDemoConfirm(false);
+    store.setDemoMode(true);
+    router.dismissAll();
+    router.replace('/');
   };
 
   return (
@@ -179,6 +184,30 @@ export default function SettingsScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionHeader}>{t('settings.display.section')}</Text>
           <View style={styles.card}>
+            {/* Theme toggle */}
+            <View style={styles.themeRow}>
+              <TouchableOpacity
+                style={[styles.themeBtn, colorScheme === 'dark' && styles.themeBtnActive]}
+                onPress={() => store.setColorScheme('dark')}
+                activeOpacity={0.75}
+              >
+                <Text style={styles.themeBtnIcon}>🌙</Text>
+                <Text style={[styles.themeBtnLabel, colorScheme === 'dark' && styles.themeBtnLabelActive]}>
+                  {t('settings.display.themeDark', 'Темна')}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.themeBtn, colorScheme === 'light' && styles.themeBtnActive]}
+                onPress={() => store.setColorScheme('light')}
+                activeOpacity={0.75}
+              >
+                <Text style={styles.themeBtnIcon}>☀️</Text>
+                <Text style={[styles.themeBtnLabel, colorScheme === 'light' && styles.themeBtnLabelActive]}>
+                  {t('settings.display.themeLight', 'Світла')}
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.divider} />
             <SettingsRow
               icon="🏷"
               label={t('settings.display.showNicknames')}
@@ -188,8 +217,8 @@ export default function SettingsScreen() {
                 <Switch
                   value={showNick}
                   onValueChange={store.setShowNick}
-                  trackColor={{ false: Colors.bg.elevated, true: Colors.accent.green }}
-                  thumbColor={Colors.text.primary}
+                  trackColor={{ false: colors.bg.elevated, true: colors.accent.green }}
+                  thumbColor={colors.text.primary}
                 />
               }
               chevron={false}
@@ -204,8 +233,8 @@ export default function SettingsScreen() {
                 <Switch
                   value={showTeamLogo}
                   onValueChange={store.setShowTeamLogo}
-                  trackColor={{ false: Colors.bg.elevated, true: Colors.accent.green }}
-                  thumbColor={Colors.text.primary}
+                  trackColor={{ false: colors.bg.elevated, true: colors.accent.green }}
+                  thumbColor={colors.text.primary}
                 />
               }
               chevron={false}
@@ -271,7 +300,7 @@ export default function SettingsScreen() {
         {/* Developer section */}
         {devUnlocked && (
           <View style={styles.section}>
-            <Text style={[styles.sectionHeader, { color: Colors.accent.blue }]}>DEVELOPER</Text>
+            <Text style={[styles.sectionHeader, { color: colors.accent.blue }]}>DEVELOPER</Text>
             <View style={styles.card}>
               <SettingsRow
                 icon="⚙️"
@@ -295,9 +324,9 @@ export default function SettingsScreen() {
               right={
                 <Switch
                   value={demoMode}
-                  onValueChange={() => {}}
-                  trackColor={{ false: Colors.bg.elevated, true: Colors.accent.yellow }}
-                  thumbColor={Colors.text.primary}
+                  onValueChange={(v) => handleDemoToggle(v)}
+                  trackColor={{ false: colors.bg.elevated, true: colors.accent.yellow }}
+                  thumbColor={colors.text.primary}
                 />
               }
               chevron={false}
@@ -355,6 +384,39 @@ export default function SettingsScreen() {
         </View>
       </Modal>
 
+      {/* Demo mode confirmation dialog */}
+      <Modal
+        visible={showDemoConfirm}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowDemoConfirm(false)}
+        statusBarTranslucent
+      >
+        <View style={styles.dialogOverlay}>
+          <Pressable style={styles.dialogBackdrop} onPress={() => setShowDemoConfirm(false)} />
+          <View style={styles.dialog}>
+            <Text style={styles.dialogTitle}>{t('demo.label').toUpperCase()}</Text>
+            <Text style={styles.dialogDesc}>{t('demo.replaceWarning')}</Text>
+            <View style={styles.dialogButtons}>
+              <TouchableOpacity
+                style={styles.dialogCancelBtn}
+                onPress={() => setShowDemoConfirm(false)}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.dialogCancelText}>{t('common.cancel')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.dialogConfirmBtn, { backgroundColor: colors.accent.yellow }]}
+                onPress={confirmEnableDemo}
+                activeOpacity={0.8}
+              >
+                <Text style={[styles.dialogConfirmText, { color: '#000' }]}>{t('demo.enable').toUpperCase()}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       {/* Reset confirmation dialog */}
       <Modal
         visible={showResetConfirm}
@@ -392,10 +454,10 @@ export default function SettingsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: AppColors) => StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: Colors.bg.base,
+    backgroundColor: colors.bg.base,
   },
   scroll: { flex: 1 },
   scrollContent: {
@@ -410,15 +472,15 @@ const styles = StyleSheet.create({
   sectionHeader: {
     fontFamily: FontFamily.bodyBold,
     fontSize: FontSize.xs,
-    color: Colors.text.placeholder,
+    color: colors.text.placeholder,
     letterSpacing: 1.2,
     paddingLeft: Spacing.xs,
   },
   card: {
-    backgroundColor: Colors.bg.surface,
+    backgroundColor: colors.bg.surface,
     borderRadius: Radius.xl,
     borderWidth: 1,
-    borderColor: Colors.border.default,
+    borderColor: colors.border.default,
     overflow: 'hidden',
   },
   row: {
@@ -433,7 +495,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: Radius.sm,
-    backgroundColor: Colors.bg.elevated,
+    backgroundColor: colors.bg.elevated,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -447,22 +509,22 @@ const styles = StyleSheet.create({
   rowLabel: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.base,
-    color: Colors.text.primary,
+    color: colors.text.primary,
   },
   rowSub: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.xs,
-    color: Colors.text.muted,
+    color: colors.text.muted,
   },
   chevron: {
     fontFamily: FontFamily.display,
     fontSize: FontSize.xl,
-    color: Colors.text.muted,
+    color: colors.text.muted,
     lineHeight: 24,
   },
   divider: {
     height: 1,
-    backgroundColor: Colors.border.default,
+    backgroundColor: colors.border.default,
     marginLeft: 56 + Spacing.lg,
   },
   resetBtn: {
@@ -474,16 +536,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   resetBtnDisabled: {
-    backgroundColor: Colors.bg.elevated,
-    borderColor: Colors.border.default,
+    backgroundColor: colors.bg.elevated,
+    borderColor: colors.border.default,
   },
   resetBtnText: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.base,
-    color: Colors.accent.red,
+    color: colors.accent.red,
   },
   resetBtnTextDisabled: {
-    color: Colors.text.ghost,
+    color: colors.text.ghost,
   },
   dialogOverlay: {
     flex: 1,
@@ -495,10 +557,10 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.7)',
   },
   dialog: {
-    backgroundColor: Colors.bg.surface,
+    backgroundColor: colors.bg.surface,
     borderRadius: Radius['2xl'],
     borderWidth: 1,
-    borderColor: Colors.border.default,
+    borderColor: colors.border.default,
     padding: Spacing['2xl'],
     marginHorizontal: Spacing['2xl'],
     gap: Spacing.md,
@@ -506,13 +568,13 @@ const styles = StyleSheet.create({
   dialogTitle: {
     fontFamily: FontFamily.display,
     fontSize: FontSize.xl,
-    color: Colors.text.primary,
+    color: colors.text.primary,
     textAlign: 'center',
   },
   dialogDesc: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.sm,
-    color: Colors.text.muted,
+    color: colors.text.muted,
     textAlign: 'center',
     lineHeight: 18,
   },
@@ -526,24 +588,54 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.md,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: Colors.border.strong,
+    borderColor: colors.border.strong,
     alignItems: 'center',
   },
   dialogCancelText: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.base,
-    color: Colors.text.secondary,
+    color: colors.text.secondary,
   },
   dialogConfirmBtn: {
     flex: 1,
     paddingVertical: Spacing.md,
     borderRadius: Radius.md,
-    backgroundColor: Colors.accent.red,
+    backgroundColor: colors.accent.red,
     alignItems: 'center',
   },
   dialogConfirmText: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.base,
     color: '#fff',
+  },
+  themeRow: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+    padding: Spacing.lg,
+  },
+  themeBtn: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: Spacing.lg,
+    borderRadius: Radius.lg,
+    backgroundColor: colors.bg.elevated,
+    borderWidth: 1,
+    borderColor: colors.border.default,
+    gap: 6,
+  },
+  themeBtnActive: {
+    borderColor: colors.accent.green,
+    backgroundColor: colors.accent.greenSubtle,
+  },
+  themeBtnIcon: {
+    fontSize: 22,
+  },
+  themeBtnLabel: {
+    fontFamily: FontFamily.bodySemiBold,
+    fontSize: FontSize.sm,
+    color: colors.text.muted,
+  },
+  themeBtnLabelActive: {
+    color: colors.accent.green,
   },
 });

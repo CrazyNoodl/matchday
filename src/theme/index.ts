@@ -1,13 +1,19 @@
-export { Colors } from './colors';
+export { Colors, DarkColors, LightColors, colorsByScheme } from './colors';
+export type { ColorScheme, AppColors } from './colors';
 export { FontFamily, FontSize } from './typography';
 export { Radius, Spacing } from './spacing';
+export { ThemeProvider, useColors } from './ThemeContext';
 
-import { Colors } from './colors';
+import { AppColors } from './colors';
 
-export const sectionLabel = {
+export const makeSectionLabel = (colors: AppColors) => ({
   fontSize: 11,
   fontWeight: '700' as const,
   letterSpacing: 1.2,
-  color: Colors.text.placeholder,
+  color: colors.text.placeholder,
   textTransform: 'uppercase' as const,
-};
+});
+
+// Legacy default (dark) — used where dynamic theming isn't needed
+import { DarkColors } from './colors';
+export const sectionLabel = makeSectionLabel(DarkColors);

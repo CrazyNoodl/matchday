@@ -14,7 +14,7 @@ import { useRouter } from 'expo-router';
 import { useGoBack } from '@/utils/useGoBack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStore } from '@/store';
-import { Colors } from '@/theme/colors';
+import { Colors, useColors, AppColors } from '@/theme';
 import { FontFamily, FontSize } from '@/theme/typography';
 import { Radius, Spacing } from '@/theme/spacing';
 import { NavHeader } from '@/components/NavHeader';
@@ -32,6 +32,8 @@ export default function PlayersScreen() {
   const router = useRouter();
   const goBack = useGoBack();
   const { t } = useTranslation();
+  const colors = useColors();
+  const styles = makeStyles(colors);
   const store = useStore();
   const { players, teams, matches, archivedRounds, closedTournaments, addPlayer, updatePlayer, deletePlayer } = store;
 
@@ -189,7 +191,7 @@ export default function PlayersScreen() {
                 value={formName}
                 onChangeText={setFormName}
                 placeholder={t('setup.form.playerNamePlaceholder')}
-                placeholderTextColor={Colors.text.placeholder}
+                placeholderTextColor={colors.text.placeholder}
                 autoCorrect={false}
               />
             </View>
@@ -201,7 +203,7 @@ export default function PlayersScreen() {
                 value={formNick}
                 onChangeText={setFormNick}
                 placeholder={t('setup.form.nicknamePlaceholder')}
-                placeholderTextColor={Colors.text.placeholder}
+                placeholderTextColor={colors.text.placeholder}
                 autoCorrect={false}
               />
             </View>
@@ -339,20 +341,20 @@ export default function PlayersScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: Colors.bg.base },
+const makeStyles = (colors: AppColors) => StyleSheet.create({
+  root: { flex: 1, backgroundColor: colors.bg.base },
   addBtn: {
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.xs,
     borderRadius: Radius.full,
-    backgroundColor: Colors.accent.greenSubtle,
+    backgroundColor: colors.accent.greenSubtle,
     borderWidth: 1,
-    borderColor: Colors.accent.greenBorder,
+    borderColor: colors.accent.greenBorder,
   },
   addBtnText: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.sm,
-    color: Colors.accent.green,
+    color: colors.accent.green,
   },
   scroll: { flex: 1 },
   scrollContent: {
@@ -363,10 +365,10 @@ const styles = StyleSheet.create({
   playerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.bg.surface,
+    backgroundColor: colors.bg.surface,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: Colors.border.default,
+    borderColor: colors.border.default,
     padding: Spacing.md,
     gap: Spacing.md,
   },
@@ -377,12 +379,12 @@ const styles = StyleSheet.create({
   playerName: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.base,
-    color: Colors.text.primary,
+    color: colors.text.primary,
   },
   playerNick: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.xs,
-    color: Colors.text.muted,
+    color: colors.text.muted,
   },
   playerActions: {
     flexDirection: 'row',
@@ -392,15 +394,15 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: Radius.sm,
-    backgroundColor: Colors.bg.elevated,
+    backgroundColor: colors.bg.elevated,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: Colors.border.medium,
+    borderColor: colors.border.medium,
   },
   deleteBtn: {
-    backgroundColor: Colors.accent.redSubtle,
-    borderColor: Colors.accent.red + '44',
+    backgroundColor: colors.accent.redSubtle,
+    borderColor: colors.accent.red + '44',
   },
   editIcon: {
     fontSize: 14,
@@ -408,12 +410,12 @@ const styles = StyleSheet.create({
   deleteIcon: {
     fontFamily: FontFamily.bodyBold,
     fontSize: FontSize.xl,
-    color: Colors.accent.red,
+    color: colors.accent.red,
     lineHeight: 22,
   },
   // Sheet
   sheet: {
-    backgroundColor: Colors.bg.sheet,
+    backgroundColor: colors.bg.sheet,
     paddingHorizontal: Spacing.xl,
     paddingTop: Spacing.lg,
     paddingBottom: Platform.OS === 'ios' ? 32 : Spacing['2xl'],
@@ -421,7 +423,7 @@ const styles = StyleSheet.create({
   sheetTitle: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize['2xl'],
-    color: Colors.text.primary,
+    color: colors.text.primary,
     letterSpacing: 0.5,
     textAlign: 'center',
     marginBottom: Spacing.xl,
@@ -433,27 +435,27 @@ const styles = StyleSheet.create({
   formLabel: {
     fontFamily: FontFamily.bodyBold,
     fontSize: FontSize.xs,
-    color: Colors.text.muted,
+    color: colors.text.muted,
     letterSpacing: 1,
   },
   input: {
-    backgroundColor: Colors.bg.elevated,
+    backgroundColor: colors.bg.elevated,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: Colors.border.default,
+    borderColor: colors.border.default,
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
     fontFamily: FontFamily.body,
     fontSize: FontSize.base,
-    color: Colors.text.primary,
+    color: colors.text.primary,
   },
   teamPicker: { flexGrow: 0 },
   teamPickItem: {
     alignItems: 'center',
-    backgroundColor: Colors.bg.elevated,
+    backgroundColor: colors.bg.elevated,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: Colors.border.default,
+    borderColor: colors.border.default,
     padding: Spacing.md,
     marginRight: Spacing.sm,
     gap: Spacing.xs,
@@ -462,7 +464,7 @@ const styles = StyleSheet.create({
   teamPickName: {
     fontFamily: FontFamily.bodyBold,
     fontSize: FontSize.xs,
-    color: Colors.text.secondary,
+    color: colors.text.secondary,
     textAlign: 'center',
   },
   colorPicker: {
@@ -486,39 +488,39 @@ const styles = StyleSheet.create({
   },
   cancelBtn: {
     flex: 1,
-    backgroundColor: Colors.bg.elevated,
+    backgroundColor: colors.bg.elevated,
     borderRadius: Radius.md,
     paddingVertical: Spacing.lg,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: Colors.border.medium,
+    borderColor: colors.border.medium,
   },
   cancelBtnText: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize.base,
-    color: Colors.text.muted,
+    color: colors.text.muted,
     letterSpacing: 0.5,
   },
   saveBtn: {
     flex: 2,
-    backgroundColor: Colors.accent.green,
+    backgroundColor: colors.accent.green,
     borderRadius: Radius.md,
     paddingVertical: Spacing.lg,
     alignItems: 'center',
   },
   saveBtnDisabled: {
-    backgroundColor: Colors.bg.elevated,
+    backgroundColor: colors.bg.elevated,
     borderWidth: 1,
-    borderColor: Colors.border.medium,
+    borderColor: colors.border.medium,
   },
   saveBtnText: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize.base,
-    color: Colors.accent.greenDark,
+    color: colors.accent.greenDark,
     letterSpacing: 0.5,
   },
   saveBtnTextDisabled: {
-    color: Colors.text.ghost,
+    color: colors.text.ghost,
   },
   // Dialog
   dialogOverlay: {
@@ -529,10 +531,10 @@ const styles = StyleSheet.create({
     padding: Spacing['2xl'],
   },
   dialog: {
-    backgroundColor: Colors.bg.surface,
+    backgroundColor: colors.bg.surface,
     borderRadius: Radius['2xl'],
     borderWidth: 1,
-    borderColor: Colors.border.medium,
+    borderColor: colors.border.medium,
     padding: Spacing['2xl'],
     width: '100%',
     gap: Spacing.md,
@@ -541,13 +543,13 @@ const styles = StyleSheet.create({
   dialogTitle: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize.xl,
-    color: Colors.text.primary,
+    color: colors.text.primary,
     letterSpacing: 0.5,
   },
   dialogDesc: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.base,
-    color: Colors.text.muted,
+    color: colors.text.muted,
     textAlign: 'center',
   },
   dialogActions: {
@@ -557,21 +559,21 @@ const styles = StyleSheet.create({
   },
   dialogCancel: {
     flex: 1,
-    backgroundColor: Colors.bg.elevated,
+    backgroundColor: colors.bg.elevated,
     borderRadius: Radius.md,
     paddingVertical: Spacing.md,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: Colors.border.medium,
+    borderColor: colors.border.medium,
   },
   dialogCancelText: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.base,
-    color: Colors.text.muted,
+    color: colors.text.muted,
   },
   dialogConfirm: {
     flex: 1,
-    backgroundColor: Colors.accent.red,
+    backgroundColor: colors.accent.red,
     borderRadius: Radius.md,
     paddingVertical: Spacing.md,
     alignItems: 'center',
