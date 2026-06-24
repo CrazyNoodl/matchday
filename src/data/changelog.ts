@@ -13,6 +13,10 @@ export const CHANGELOG: ChangelogEntry[] = [
     added: [
       'Light theme — toggle between dark and light appearance in Settings → Display',
     ],
+    fixed: [
+      'Stats screen showed raw translation keys instead of text due to a duplicate locale block (#27)',
+      'Edit stats sheet now scrolls fully instead of clipping the stat list at the bottom (#32)',
+    ],
   },
   {
     version: '1.6.5',
