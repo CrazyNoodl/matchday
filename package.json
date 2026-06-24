@@ -1,6 +1,6 @@
 {
   "name": "matchday",
-  "version": "1.6.3",
+  "version": "1.6.4",
   "main": "expo-router/entry",
   "dependencies": {
     "@expo-google-fonts/saira-condensed": "^0.4.1",

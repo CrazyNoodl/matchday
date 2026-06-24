@@ -60,26 +60,31 @@ export default function ArchiveDayScreen() {
   const goBack = useGoBack();
   const { t } = useTranslation();
   const viewingRound = useStore((s) => s.viewingRound);
+  // Re-derive from live archivedRounds so edits (swap, stats) reflect immediately.
+  // Falls back to the snapshot for closed-tournament rounds (not in archivedRounds).
+  const liveRound = useStore((s) =>
+    viewingRound ? s.archivedRounds.find((r) => r.id === viewingRound.id) ?? viewingRound : null,
+  );
   const tournamentName = useStore((s) => s.viewingTournament?.name ?? s.tournamentName ?? '');
   const players = useStore((s) => s.players);
   const [shareVisible, setShareVisible] = useState(false);
 
   const playerIds = useMemo(() => {
-    if (!viewingRound) return [];
+    if (!liveRound) return [];
     const ids = new Set<string>();
-    for (const m of viewingRound.matches) {
+    for (const m of liveRound.matches) {
       ids.add(m.aId);
       ids.add(m.bId);
     }
     return Array.from(ids);
-  }, [viewingRound]);
+  }, [liveRound]);
 
   const standings = useMemo(
-    () => (viewingRound ? calculateStandings(viewingRound.matches, playerIds) : []),
-    [viewingRound, playerIds],
+    () => (liveRound ? calculateStandings(liveRound.matches, playerIds) : []),
+    [liveRound, playerIds],
   );
 
-  if (!viewingRound) {
+  if (!liveRound) {
     return (
       <SafeAreaView style={styles.root} edges={['top']}>
         <GlowBackground />
@@ -91,7 +96,7 @@ export default function ArchiveDayScreen() {
     );
   }
 
-  const { winner, matches } = viewingRound;
+  const { winner, matches } = liveRound;
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
@@ -177,11 +182,11 @@ export default function ArchiveDayScreen() {
         <View style={{ height: 48 }} />
       </ScrollView>
 
-      {viewingRound && (
+      {liveRound && (
         <ShareRoundModal
           visible={shareVisible}
           onClose={() => setShareVisible(false)}
-          round={viewingRound}
+          round={liveRound}
           tournamentName={tournamentName}
         />
       )}

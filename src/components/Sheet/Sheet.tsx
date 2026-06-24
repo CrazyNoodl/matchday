@@ -6,6 +6,7 @@ import BottomSheet, {
   type BottomSheetBackdropProps,
 } from '@gorhom/bottom-sheet';
 import { ReduceMotion } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '@/theme/colors';
 
 // Force sheet open/close animations to play even when the device has
@@ -20,6 +21,7 @@ interface SheetProps {
   visible: boolean;
   onClose: () => void;
   children: React.ReactNode;
+  snapToMax?: boolean;
 }
 
 // Sizes itself to its actual content height via onLayout, rather than a
@@ -35,9 +37,10 @@ interface SheetProps {
 // Open/close are driven imperatively via ref (snapToIndex/close), not the
 // declarative `index` prop — the declarative path was unreliable for
 // closing the sheet from a button (e.g. Cancel) in this app.
-export function Sheet({ visible, onClose, children }: SheetProps) {
+export function Sheet({ visible, onClose, children, snapToMax }: SheetProps) {
   const ref = useRef<BottomSheet>(null);
   const [height, setHeight] = useState(MIN_HEIGHT);
+  const { bottom: bottomInset } = useSafeAreaInsets();
 
   useEffect(() => {
     if (visible) {
@@ -49,8 +52,8 @@ export function Sheet({ visible, onClose, children }: SheetProps) {
 
   const handleLayout = useCallback((event: LayoutChangeEvent) => {
     const measured = event.nativeEvent.layout.height;
-    setHeight(Math.min(Math.max(measured, MIN_HEIGHT), MAX_HEIGHT));
-  }, []);
+    setHeight(Math.min(Math.max(measured + bottomInset, MIN_HEIGHT), MAX_HEIGHT));
+  }, [bottomInset]);
 
   const renderBackdrop = useCallback(
     (props: BottomSheetBackdropProps) => (
@@ -68,7 +71,7 @@ export function Sheet({ visible, onClose, children }: SheetProps) {
     <BottomSheet
       ref={ref}
       index={-1}
-      snapPoints={[height]}
+      snapPoints={[snapToMax ? MAX_HEIGHT : height]}
       enableDynamicSizing={false}
       animationConfigs={ANIMATION_CONFIGS}
       enablePanDownToClose
@@ -79,7 +82,7 @@ export function Sheet({ visible, onClose, children }: SheetProps) {
       handleIndicatorStyle={{ backgroundColor: Colors.border.strong }}
       onClose={onClose}
     >
-      <BottomSheetView onLayout={handleLayout}>{children}</BottomSheetView>
+      {snapToMax ? children : <BottomSheetView onLayout={handleLayout}>{children}</BottomSheetView>}
     </BottomSheet>
   );
 }

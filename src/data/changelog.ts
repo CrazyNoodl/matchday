@@ -9,6 +9,19 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.6.4',
+    added: [
+      'Swap match sides in stats import — flips home/away teams and scores with one tap',
+      'Context menu (⋯) on imported stats: Re-scan, Edit, or Clear without leaving the sheet',
+      'Stat photos are automatically saved to the match media gallery when the match has no photos yet (#13)',
+    ],
+    fixed: [
+      'Stats import sheet no longer closes when scrolling through long stat lists',
+      'Sheet height no longer clips content on devices with a home indicator',
+      'Archived round screen now reflects swaps and edits immediately without navigating away',
+    ],
+  },
+  {
     version: '1.6.3',
     fixed: [
       'Bottom sheets (New Match Day, Add Match, Edit Score/Stats, etc.) now swipe down to dismiss and size themselves to fit their content',
