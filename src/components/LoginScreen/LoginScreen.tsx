@@ -9,15 +9,17 @@ import {
   Platform,
   ScrollView,
 } from 'react-native';
-import { Colors } from '@/theme/colors';
+import { useColors } from '@/theme';
 import { signInWithEmail, signUpWithEmail } from '@/supabase/auth';
-import { styles } from './LoginScreen.styles';
+import { makeStyles } from './LoginScreen.styles';
 
 interface Props {
   onSuccess: () => void;
 }
 
 export function LoginScreen({ onSuccess }: Props) {
+  const colors = useColors();
+  const styles = makeStyles(colors);
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -83,7 +85,7 @@ export function LoginScreen({ onSuccess }: Props) {
             value={email}
             onChangeText={setEmail}
             placeholder="your@email.com"
-            placeholderTextColor={Colors.text.muted}
+            placeholderTextColor={colors.text.muted}
             keyboardType="email-address"
             autoCapitalize="none"
             autoCorrect={false}
@@ -95,7 +97,7 @@ export function LoginScreen({ onSuccess }: Props) {
             value={password}
             onChangeText={setPassword}
             placeholder="••••••••"
-            placeholderTextColor={Colors.text.muted}
+            placeholderTextColor={colors.text.muted}
             secureTextEntry
           />
 
@@ -106,7 +108,7 @@ export function LoginScreen({ onSuccess }: Props) {
             disabled={loading}
           >
             {loading ? (
-              <ActivityIndicator color={Colors.bg.base} size="small" />
+              <ActivityIndicator color={colors.bg.base} size="small" />
             ) : (
               <Text style={styles.btnText}>
                 {mode === 'signin' ? 'SIGN IN' : 'CREATE ACCOUNT'}

@@ -13,7 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { NavHeader } from '@/components/NavHeader';
 import { useStore } from '@/store';
 import { parseRoundText } from '@/utils/importRound';
-import { Colors } from '@/theme/colors';
+import { useColors, AppColors } from '@/theme';
 import { FontFamily, FontSize } from '@/theme/typography';
 import { Radius, Spacing } from '@/theme/spacing';
 
@@ -25,6 +25,8 @@ export default function ImportRoundScreen() {
   const router = useRouter();
   const goBack = useGoBack();
   const { players, teams, hasTournament, roundOpen, bulkImportMatches, tournamentName, round } = useStore();
+  const colors = useColors();
+  const styles = makeStyles(colors);
 
   const [text, setText] = useState('');
 
@@ -146,7 +148,7 @@ export default function ImportRoundScreen() {
             value={text}
             onChangeText={setText}
             placeholder={EXAMPLE_CSV}
-            placeholderTextColor={Colors.text.ghost}
+            placeholderTextColor={colors.text.ghost}
             multiline
             autoCorrect={false}
             autoCapitalize="none"
@@ -253,10 +255,10 @@ export default function ImportRoundScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: AppColors) => StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: Colors.bg.base,
+    backgroundColor: colors.bg.base,
   },
   scroll: { flex: 1 },
   scrollContent: {
@@ -281,21 +283,21 @@ const styles = StyleSheet.create({
   warnTitle: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.base,
-    color: Colors.accent.red,
+    color: colors.accent.red,
   },
   warnDesc: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.sm,
-    color: Colors.text.muted,
+    color: colors.text.muted,
     lineHeight: 17,
   },
   statusCard: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.md,
-    backgroundColor: Colors.accent.greenSubtle,
+    backgroundColor: colors.accent.greenSubtle,
     borderWidth: 1,
-    borderColor: Colors.accent.greenBorder,
+    borderColor: colors.accent.greenBorder,
     borderRadius: Radius.xl,
     padding: Spacing.lg,
   },
@@ -303,12 +305,12 @@ const styles = StyleSheet.create({
   statusTitle: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.base,
-    color: Colors.accent.green,
+    color: colors.accent.green,
   },
   statusDesc: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.xs,
-    color: Colors.text.muted,
+    color: colors.text.muted,
     marginTop: 2,
   },
 
@@ -317,34 +319,34 @@ const styles = StyleSheet.create({
   sectionHeader: {
     fontFamily: FontFamily.bodyBold,
     fontSize: FontSize.xs,
-    color: Colors.text.placeholder,
+    color: colors.text.placeholder,
     letterSpacing: 1.2,
     paddingLeft: Spacing.xs,
   },
 
   // Format hint
   hintCard: {
-    backgroundColor: Colors.bg.surface,
+    backgroundColor: colors.bg.surface,
     borderRadius: Radius.xl,
     borderWidth: 1,
-    borderColor: Colors.border.default,
+    borderColor: colors.border.default,
     padding: Spacing.lg,
     gap: Spacing.sm,
   },
   hintLine: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.sm,
-    color: Colors.text.secondary,
+    color: colors.text.secondary,
   },
   hintBold: {
     fontFamily: FontFamily.bodySemiBold,
-    color: Colors.text.primary,
+    color: colors.text.primary,
   },
   hintCode: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.xs,
-    color: Colors.accent.blue,
-    backgroundColor: Colors.bg.elevated,
+    color: colors.accent.blue,
+    backgroundColor: colors.bg.elevated,
     borderRadius: Radius.sm,
     paddingHorizontal: Spacing.sm,
     paddingVertical: Spacing.xs,
@@ -352,12 +354,12 @@ const styles = StyleSheet.create({
   },
   hintDivider: {
     height: 1,
-    backgroundColor: Colors.border.default,
+    backgroundColor: colors.border.default,
   },
   hintNote: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.xs,
-    color: Colors.text.placeholder,
+    color: colors.text.placeholder,
     fontStyle: 'italic',
     lineHeight: 16,
   },
@@ -372,19 +374,19 @@ const styles = StyleSheet.create({
   clearBtn: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.xs,
-    color: Colors.accent.red,
+    color: colors.accent.red,
     letterSpacing: 0.8,
     paddingRight: Spacing.xs,
   },
   input: {
-    backgroundColor: Colors.bg.surface,
+    backgroundColor: colors.bg.surface,
     borderRadius: Radius.xl,
     borderWidth: 1,
-    borderColor: Colors.border.default,
+    borderColor: colors.border.default,
     padding: Spacing.lg,
     fontFamily: FontFamily.body,
     fontSize: FontSize.sm,
-    color: Colors.text.primary,
+    color: colors.text.primary,
     minHeight: 160,
     textAlignVertical: 'top',
     lineHeight: 20,
@@ -402,12 +404,12 @@ const styles = StyleSheet.create({
   errorsTitle: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.sm,
-    color: Colors.accent.red,
+    color: colors.accent.red,
   },
   errorLine: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.xs,
-    color: Colors.text.muted,
+    color: colors.text.muted,
     lineHeight: 16,
   },
 
@@ -423,19 +425,19 @@ const styles = StyleSheet.create({
   newPlayersTitle: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.sm,
-    color: Colors.accent.yellow,
+    color: colors.accent.yellow,
   },
   newPlayerName: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.sm,
-    color: Colors.text.secondary,
+    color: colors.text.secondary,
   },
 
   // Unknown teams
   warnTeamCard: {
-    backgroundColor: Colors.bg.elevated,
+    backgroundColor: colors.bg.elevated,
     borderWidth: 1,
-    borderColor: Colors.border.default,
+    borderColor: colors.border.default,
     borderRadius: Radius.xl,
     padding: Spacing.lg,
     gap: Spacing.sm,
@@ -443,27 +445,27 @@ const styles = StyleSheet.create({
   warnTeamTitle: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.sm,
-    color: Colors.text.secondary,
+    color: colors.text.secondary,
   },
   warnTeamCode: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.xs,
-    color: Colors.text.muted,
+    color: colors.text.muted,
   },
 
   // Match list
   matchesCard: {
-    backgroundColor: Colors.bg.surface,
+    backgroundColor: colors.bg.surface,
     borderRadius: Radius.xl,
     borderWidth: 1,
-    borderColor: Colors.border.default,
+    borderColor: colors.border.default,
     padding: Spacing.lg,
     gap: Spacing.sm,
   },
   matchesTitle: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.sm,
-    color: Colors.accent.green,
+    color: colors.accent.green,
     marginBottom: Spacing.xs,
   },
   matchRow: {
@@ -472,19 +474,19 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
     paddingVertical: Spacing.xs,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border.default,
+    borderBottomColor: colors.border.default,
   },
   matchNum: {
     fontFamily: FontFamily.display,
     fontSize: FontSize.sm,
-    color: Colors.text.ghost,
+    color: colors.text.ghost,
     width: 18,
     textAlign: 'right',
   },
   matchPlayer: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.sm,
-    color: Colors.text.primary,
+    color: colors.text.primary,
     flex: 1,
   },
   matchPlayerB: {
@@ -493,13 +495,13 @@ const styles = StyleSheet.create({
   matchTeam: {
     fontFamily: FontFamily.display,
     fontSize: FontSize.xs,
-    color: Colors.text.muted,
+    color: colors.text.muted,
     letterSpacing: 0.5,
   },
   matchScore: {
     fontFamily: FontFamily.display,
     fontSize: FontSize.md,
-    color: Colors.accent.green,
+    color: colors.accent.green,
     minWidth: 36,
     textAlign: 'center',
   },
@@ -510,25 +512,25 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing['2xl'],
     paddingTop: Spacing.md,
     borderTopWidth: 1,
-    borderTopColor: Colors.border.default,
-    backgroundColor: Colors.bg.base,
+    borderTopColor: colors.border.default,
+    backgroundColor: colors.bg.base,
   },
   importBtn: {
-    backgroundColor: Colors.accent.green,
+    backgroundColor: colors.accent.green,
     borderRadius: Radius.xl,
     paddingVertical: Spacing.md,
     alignItems: 'center',
   },
   importBtnDisabled: {
-    backgroundColor: Colors.bg.elevated,
+    backgroundColor: colors.bg.elevated,
   },
   importBtnText: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize.md,
-    color: Colors.bg.base,
+    color: colors.bg.base,
     letterSpacing: 1,
   },
   importBtnTextDisabled: {
-    color: Colors.text.ghost,
+    color: colors.text.ghost,
   },
 });

@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text } from 'react-native';
-import { Colors } from '../../theme/colors';
-import { styles } from './StatsRow.styles';
+import { useColors } from '../../theme';
+import { makeStyles } from './StatsRow.styles';
 
 interface StatsRowProps {
   label: string;
@@ -11,17 +11,19 @@ interface StatsRowProps {
 }
 
 export function StatsRow({ label, aValue, bValue, aWins }: StatsRowProps) {
+  const colors = useColors();
+  const styles = makeStyles(colors);
   const total = aValue + bValue;
   const aRatio = total > 0 ? aValue / total : 0.5;
   const bRatio = total > 0 ? bValue / total : 0.5;
 
-  const aBarColor = aWins ? Colors.accent.green : Colors.text.ghost;
-  const bBarColor = !aWins ? Colors.accent.green : Colors.text.ghost;
+  const aBarColor = aWins ? colors.accent.green : colors.text.ghost;
+  const bBarColor = !aWins ? colors.accent.green : colors.text.ghost;
 
   return (
     <View style={styles.row}>
       {/* A value */}
-      <Text style={[styles.value, { color: aWins ? Colors.text.primary : Colors.text.muted }]}>
+      <Text style={[styles.value, { color: aWins ? colors.text.primary : colors.text.muted }]}>
         {aValue}
       </Text>
 
@@ -60,7 +62,7 @@ export function StatsRow({ label, aValue, bValue, aWins }: StatsRowProps) {
       </View>
 
       {/* B value */}
-      <Text style={[styles.value, { color: !aWins ? Colors.text.primary : Colors.text.muted }]}>
+      <Text style={[styles.value, { color: !aWins ? colors.text.primary : colors.text.muted }]}>
         {bValue}
       </Text>
     </View>

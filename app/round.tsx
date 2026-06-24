@@ -18,7 +18,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { useStore } from '@/store';
 import { calculateStandings, isTopTied } from '@/utils/standings';
-import { Colors } from '@/theme/colors';
+import { Colors, useColors, AppColors } from '@/theme';
 import { FontFamily, FontSize } from '@/theme/typography';
 import { Radius, Spacing } from '@/theme/spacing';
 import { Avatar } from '@/components/Avatar';
@@ -147,6 +147,12 @@ export default function MatchdayScreen() {
     selectedMatchId,
     teams,
   } = store;
+
+  const colors = useColors();
+  const styles = makeStyles(colors);
+  const sheetStyles = makeSheetStyles(colors);
+  const dialogStyles = makeDialogStyles(colors);
+  const winnerStyles = makeWinnerStyles(colors);
 
   const [standingsView, setStandingsView] = useState<StandingsView>('table');
   const [addMatch, setAddMatch] = useState<AddMatchState>(initAddMatch());
@@ -443,7 +449,7 @@ export default function MatchdayScreen() {
               <Text
                 style={[
                   sheetStyles.playerChipName,
-                  isUsed && { color: Colors.text.primary },
+                  isUsed && { color: colors.text.primary },
                 ]}
                 numberOfLines={1}
               >
@@ -506,7 +512,7 @@ export default function MatchdayScreen() {
       : aScore > hScore ? t('matchday.awayWin')
       : t('matchday.draw');
     const resultColor =
-      hScore === aScore ? Colors.text.muted : Colors.accent.green;
+      hScore === aScore ? colors.text.muted : colors.accent.green;
 
     return (
       <View style={sheetStyles.stepContent}>
@@ -564,7 +570,7 @@ export default function MatchdayScreen() {
       </ScrollView>
       {addMatch.ocrStatus === 'scanning' && (
         <View style={sheetStyles.ocrStatus}>
-          <ActivityIndicator size="small" color={Colors.accent.blue} />
+          <ActivityIndicator size="small" color={colors.accent.blue} />
           <Text style={sheetStyles.ocrStatusText}>{t('matchday.ocr.reading')}</Text>
         </View>
       )}
@@ -609,7 +615,7 @@ export default function MatchdayScreen() {
         value={addMatch.note}
         onChangeText={(v) => setAddMatch((p) => ({ ...p, note: v }))}
         placeholder={t('matchday.commentaryPlaceholder')}
-        placeholderTextColor={Colors.text.placeholder}
+        placeholderTextColor={colors.text.placeholder}
         multiline
         numberOfLines={5}
         textAlignVertical="top"
@@ -835,7 +841,7 @@ export default function MatchdayScreen() {
                   activeOpacity={0.85}
                 >
                   {isSavingMatch ? (
-                    <ActivityIndicator size="small" color={Colors.accent.greenDark} />
+                    <ActivityIndicator size="small" color={colors.accent.greenDark} />
                   ) : (
                     <Text style={sheetStyles.nextBtnText}>{t('matchday.saveMatch')}</Text>
                   )}
@@ -930,7 +936,7 @@ export default function MatchdayScreen() {
       >
         <View style={dialogStyles.overlay}>
           <View style={dialogStyles.dialog}>
-            <Text style={[dialogStyles.dialogIcon, { color: Colors.accent.red }]}>🗑</Text>
+            <Text style={[dialogStyles.dialogIcon, { color: colors.accent.red }]}>🗑</Text>
             <Text style={dialogStyles.dialogTitle}>{t('matchday.dialogs.deleteTitle')}</Text>
             <Text style={dialogStyles.dialogDesc}>
               {t('matchday.dialogs.deleteDesc')}
@@ -944,7 +950,7 @@ export default function MatchdayScreen() {
                 <Text style={dialogStyles.cancelText}>{t('matchday.dialogs.cancel')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[dialogStyles.confirmBtn, { backgroundColor: Colors.accent.red }]}
+                style={[dialogStyles.confirmBtn, { backgroundColor: colors.accent.red }]}
                 onPress={() => {
                   if (selectedMatchId) {
                     store.deleteMatch(selectedMatchId);
@@ -1007,10 +1013,10 @@ export default function MatchdayScreen() {
 }
 
 // ---- Main screen styles ----
-const styles = StyleSheet.create({
+const makeStyles = (colors: AppColors) => StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: Colors.bg.base,
+    backgroundColor: colors.bg.base,
   },
   header: {
     flexDirection: 'row',
@@ -1018,7 +1024,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border.default,
+    borderBottomColor: colors.border.default,
   },
   backBtn: {
     width: 40,
@@ -1029,7 +1035,7 @@ const styles = StyleSheet.create({
   backChevron: {
     fontFamily: FontFamily.display,
     fontSize: FontSize['2xl'],
-    color: Colors.text.secondary,
+    color: colors.text.secondary,
     lineHeight: 28,
   },
   headerCenter: {
@@ -1040,13 +1046,13 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize.xl,
-    color: Colors.text.primary,
+    color: colors.text.primary,
     letterSpacing: 0.3,
   },
   headerSubtitle: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.xs,
-    color: Colors.text.muted,
+    color: colors.text.muted,
   },
   headerRight: {
     flexDirection: 'row',
@@ -1059,9 +1065,9 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: Colors.bg.elevated,
+    backgroundColor: colors.bg.elevated,
     borderWidth: 1,
-    borderColor: Colors.border.medium,
+    borderColor: colors.border.medium,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1073,13 +1079,13 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.xs + 2,
     borderRadius: Radius.full,
     borderWidth: 1,
-    borderColor: Colors.accent.yellow,
+    borderColor: colors.accent.yellow,
     backgroundColor: 'rgba(246,195,80,0.12)',
   },
   finishBtnText: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize.sm,
-    color: Colors.accent.yellow,
+    color: colors.accent.yellow,
     letterSpacing: 0.5,
   },
   toggleContainer: {
@@ -1109,11 +1115,11 @@ const styles = StyleSheet.create({
     right: Spacing.xl,
   },
   fabBtn: {
-    backgroundColor: Colors.accent.green,
+    backgroundColor: colors.accent.green,
     borderRadius: Radius.lg,
     paddingVertical: Spacing.lg,
     alignItems: 'center',
-    shadowColor: Colors.accent.green,
+    shadowColor: colors.accent.green,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
     shadowRadius: 12,
@@ -1122,15 +1128,15 @@ const styles = StyleSheet.create({
   fabText: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize.lg,
-    color: Colors.accent.greenDark,
+    color: colors.accent.greenDark,
     letterSpacing: 0.8,
   },
 });
 
 // ---- Sheet styles ----
-const sheetStyles = StyleSheet.create({
+const makeSheetStyles = (colors: AppColors) => StyleSheet.create({
   sheet: {
-    backgroundColor: Colors.bg.sheet,
+    backgroundColor: colors.bg.sheet,
     paddingHorizontal: Spacing.xl,
     paddingTop: Spacing.lg,
   },
@@ -1143,10 +1149,10 @@ const sheetStyles = StyleSheet.create({
     flex: 1,
     height: 3,
     borderRadius: 2,
-    backgroundColor: Colors.bg.elevated,
+    backgroundColor: colors.bg.elevated,
   },
   progressSegmentFilled: {
-    backgroundColor: Colors.accent.green,
+    backgroundColor: colors.accent.green,
   },
   stepTitleRow: {
     flexDirection: 'row',
@@ -1157,14 +1163,14 @@ const sheetStyles = StyleSheet.create({
   stepTitle: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize['2xl'],
-    color: Colors.text.primary,
+    color: colors.text.primary,
     letterSpacing: 0.4,
     flex: 1,
   },
   stepIndicator: {
     fontFamily: FontFamily.bodyBold,
     fontSize: FontSize.xs,
-    color: Colors.text.muted,
+    color: colors.text.muted,
     letterSpacing: 0.8,
   },
   contentScroll: {
@@ -1179,7 +1185,7 @@ const sheetStyles = StyleSheet.create({
   stepHint: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.sm,
-    color: Colors.text.muted,
+    color: colors.text.muted,
     letterSpacing: 0.3,
   },
   playerChips: {
@@ -1188,49 +1194,49 @@ const sheetStyles = StyleSheet.create({
   playerChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.bg.elevated,
+    backgroundColor: colors.bg.elevated,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: Colors.border.default,
+    borderColor: colors.border.default,
     padding: Spacing.md,
     gap: Spacing.md,
   },
   playerChipHome: {
-    backgroundColor: Colors.accent.greenSubtle,
-    borderColor: Colors.accent.greenBorder,
+    backgroundColor: colors.accent.greenSubtle,
+    borderColor: colors.accent.greenBorder,
   },
   playerChipAway: {
-    backgroundColor: Colors.accent.blueSubtle,
-    borderColor: Colors.accent.blue + '44',
+    backgroundColor: colors.accent.blueSubtle,
+    borderColor: colors.accent.blue + '44',
   },
   playerChipName: {
     flex: 1,
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.base,
-    color: Colors.text.muted,
+    color: colors.text.muted,
   },
   homeLabel: {
     paddingHorizontal: Spacing.sm,
     paddingVertical: 2,
     borderRadius: Radius.xs,
-    backgroundColor: Colors.accent.greenSubtle,
+    backgroundColor: colors.accent.greenSubtle,
   },
   homeLabelText: {
     fontFamily: FontFamily.bodyBold,
     fontSize: FontSize.xs,
-    color: Colors.accent.green,
+    color: colors.accent.green,
     letterSpacing: 0.5,
   },
   awayLabel: {
     paddingHorizontal: Spacing.sm,
     paddingVertical: 2,
     borderRadius: Radius.xs,
-    backgroundColor: Colors.accent.blueSubtle,
+    backgroundColor: colors.accent.blueSubtle,
   },
   awayLabelText: {
     fontFamily: FontFamily.bodyBold,
     fontSize: FontSize.xs,
-    color: Colors.accent.blue,
+    color: colors.accent.blue,
     letterSpacing: 0.5,
   },
   scoreRow: {
@@ -1246,12 +1252,12 @@ const sheetStyles = StyleSheet.create({
   scoreDividerText: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize.xl,
-    color: Colors.text.ghost,
+    color: colors.text.ghost,
   },
   resultPill: {
     paddingHorizontal: Spacing.sm,
     paddingVertical: 3,
-    backgroundColor: Colors.bg.elevated,
+    backgroundColor: colors.bg.elevated,
     borderRadius: Radius.xs,
   },
   resultLabel: {
@@ -1273,8 +1279,8 @@ const sheetStyles = StyleSheet.create({
     borderRadius: Radius.sm,
     borderWidth: 1,
     borderStyle: 'dashed',
-    borderColor: Colors.border.strong,
-    backgroundColor: Colors.bg.elevated,
+    borderColor: colors.border.strong,
+    backgroundColor: colors.bg.elevated,
     alignItems: 'center',
     justifyContent: 'center',
     gap: Spacing.xs,
@@ -1282,13 +1288,13 @@ const sheetStyles = StyleSheet.create({
   addMediaIcon: {
     fontFamily: FontFamily.bodyBold,
     fontSize: FontSize['2xl'],
-    color: Colors.text.muted,
+    color: colors.text.muted,
     lineHeight: 28,
   },
   addMediaText: {
     fontFamily: FontFamily.bodyBold,
     fontSize: FontSize.xs,
-    color: Colors.text.muted,
+    color: colors.text.muted,
     letterSpacing: 0.5,
   },
   ocrStatus: {
@@ -1301,12 +1307,12 @@ const sheetStyles = StyleSheet.create({
   ocrStatusText: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.sm,
-    color: Colors.accent.blue,
+    color: colors.accent.blue,
   },
   ocrFoundText: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.sm,
-    color: Colors.accent.green,
+    color: colors.accent.green,
   },
   ocrError: {
     flexDirection: 'row',
@@ -1318,7 +1324,7 @@ const sheetStyles = StyleSheet.create({
   ocrErrorText: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.sm,
-    color: Colors.accent.red,
+    color: colors.accent.red,
     flex: 1,
   },
   ocrRetryBtn: {
@@ -1326,32 +1332,32 @@ const sheetStyles = StyleSheet.create({
     paddingVertical: 5,
     borderRadius: Radius.sm,
     borderWidth: 1,
-    borderColor: Colors.accent.blue,
+    borderColor: colors.accent.blue,
   },
   ocrRetryText: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.sm,
-    color: Colors.accent.blue,
+    color: colors.accent.blue,
   },
   ocrSkipText: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.sm,
-    color: Colors.text.muted,
+    color: colors.text.muted,
   },
   ocrSkippedText: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.sm,
-    color: Colors.text.placeholder,
+    color: colors.text.placeholder,
   },
   commentInput: {
-    backgroundColor: Colors.bg.elevated,
+    backgroundColor: colors.bg.elevated,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: Colors.border.default,
+    borderColor: colors.border.default,
     padding: Spacing.lg,
     fontFamily: FontFamily.body,
     fontSize: FontSize.base,
-    color: Colors.text.primary,
+    color: colors.text.primary,
     minHeight: 120,
   },
   actions: {
@@ -1361,44 +1367,44 @@ const sheetStyles = StyleSheet.create({
   },
   backActionBtn: {
     flex: 1,
-    backgroundColor: Colors.bg.elevated,
+    backgroundColor: colors.bg.elevated,
     borderRadius: Radius.md,
     paddingVertical: Spacing.lg,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: Colors.border.medium,
+    borderColor: colors.border.medium,
   },
   backActionText: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize.base,
-    color: Colors.text.muted,
+    color: colors.text.muted,
     letterSpacing: 0.5,
   },
   nextBtn: {
     flex: 2,
-    backgroundColor: Colors.accent.green,
+    backgroundColor: colors.accent.green,
     borderRadius: Radius.md,
     paddingVertical: Spacing.lg,
     alignItems: 'center',
   },
   nextBtnDisabled: {
-    backgroundColor: Colors.bg.elevated,
+    backgroundColor: colors.bg.elevated,
     borderWidth: 1,
-    borderColor: Colors.border.medium,
+    borderColor: colors.border.medium,
   },
   nextBtnText: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize.base,
-    color: Colors.accent.greenDark,
+    color: colors.accent.greenDark,
     letterSpacing: 0.5,
   },
   nextBtnTextDisabled: {
-    color: Colors.text.ghost,
+    color: colors.text.ghost,
   },
 });
 
 // ---- Dialog styles ----
-const dialogStyles = StyleSheet.create({
+const makeDialogStyles = (colors: AppColors) => StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.75)',
@@ -1407,10 +1413,10 @@ const dialogStyles = StyleSheet.create({
     padding: Spacing['2xl'],
   },
   dialog: {
-    backgroundColor: Colors.bg.surface,
+    backgroundColor: colors.bg.surface,
     borderRadius: Radius['2xl'],
     borderWidth: 1,
-    borderColor: Colors.border.medium,
+    borderColor: colors.border.medium,
     padding: Spacing['2xl'],
     width: '100%',
     gap: Spacing.md,
@@ -1422,14 +1428,14 @@ const dialogStyles = StyleSheet.create({
   dialogTitle: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize['2xl'],
-    color: Colors.text.primary,
+    color: colors.text.primary,
     letterSpacing: 0.5,
     textAlign: 'center',
   },
   dialogDesc: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.base,
-    color: Colors.text.muted,
+    color: colors.text.muted,
     textAlign: 'center',
     lineHeight: 20,
   },
@@ -1441,21 +1447,21 @@ const dialogStyles = StyleSheet.create({
   },
   cancelBtn: {
     flex: 1,
-    backgroundColor: Colors.bg.elevated,
+    backgroundColor: colors.bg.elevated,
     borderRadius: Radius.md,
     paddingVertical: Spacing.md,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: Colors.border.medium,
+    borderColor: colors.border.medium,
   },
   cancelText: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.base,
-    color: Colors.text.muted,
+    color: colors.text.muted,
   },
   confirmBtn: {
     flex: 1,
-    backgroundColor: Colors.accent.green,
+    backgroundColor: colors.accent.green,
     borderRadius: Radius.md,
     paddingVertical: Spacing.md,
     alignItems: 'center',
@@ -1463,7 +1469,7 @@ const dialogStyles = StyleSheet.create({
   confirmText: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize.base,
-    color: Colors.accent.greenDark,
+    color: colors.accent.greenDark,
     letterSpacing: 0.3,
   },
   equalRow: {
@@ -1471,7 +1477,7 @@ const dialogStyles = StyleSheet.create({
     alignItems: 'center',
     gap: Spacing.sm,
     width: '100%',
-    backgroundColor: Colors.bg.elevated,
+    backgroundColor: colors.bg.elevated,
     borderRadius: Radius.sm,
     padding: Spacing.sm,
   },
@@ -1479,17 +1485,17 @@ const dialogStyles = StyleSheet.create({
     flex: 1,
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.base,
-    color: Colors.text.primary,
+    color: colors.text.primary,
   },
   equalCount: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.sm,
-    color: Colors.text.muted,
+    color: colors.text.muted,
   },
 });
 
 // ---- Winner styles ----
-const winnerStyles = StyleSheet.create({
+const makeWinnerStyles = (colors: AppColors) => StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.85)',
@@ -1505,7 +1511,7 @@ const winnerStyles = StyleSheet.create({
   matchDayLabel: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize.sm,
-    color: Colors.accent.gold,
+    color: colors.accent.gold,
     letterSpacing: 2,
   },
   trophyEmoji: {
@@ -1514,18 +1520,18 @@ const winnerStyles = StyleSheet.create({
   winnerName: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize['4xl'],
-    color: Colors.accent.green,
+    color: colors.accent.green,
     letterSpacing: 1,
     textAlign: 'center',
   },
   winnerRecord: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.base,
-    color: Colors.text.muted,
+    color: colors.text.muted,
     letterSpacing: 0.5,
   },
   doneBtn: {
-    backgroundColor: Colors.accent.green,
+    backgroundColor: colors.accent.green,
     borderRadius: Radius.lg,
     paddingHorizontal: Spacing['3xl'],
     paddingVertical: Spacing.lg,
@@ -1534,7 +1540,7 @@ const winnerStyles = StyleSheet.create({
   doneBtnText: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize.lg,
-    color: Colors.accent.greenDark,
+    color: colors.accent.greenDark,
     letterSpacing: 0.8,
   },
 });

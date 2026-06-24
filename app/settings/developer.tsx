@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { useGoBack } from '@/utils/useGoBack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NavHeader } from '@/components/NavHeader';
-import { Colors } from '@/theme/colors';
+import { useColors, AppColors } from '@/theme';
 import { FontFamily, FontSize } from '@/theme/typography';
 import { Radius, Spacing } from '@/theme/spacing';
 
@@ -16,6 +16,8 @@ interface DevRowProps {
 }
 
 function DevRow({ icon, label, sub, onPress }: DevRowProps) {
+  const colors = useColors();
+  const styles = makeStyles(colors);
   return (
     <TouchableOpacity style={styles.row} onPress={onPress} activeOpacity={0.8}>
       <View style={styles.rowIcon}>
@@ -33,6 +35,8 @@ function DevRow({ icon, label, sub, onPress }: DevRowProps) {
 export default function DeveloperScreen() {
   const router = useRouter();
   const goBack = useGoBack();
+  const colors = useColors();
+  const styles = makeStyles(colors);
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
@@ -71,10 +75,10 @@ export default function DeveloperScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: AppColors) => StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: Colors.bg.base,
+    backgroundColor: colors.bg.base,
   },
   glow: {
     position: 'absolute',
@@ -83,7 +87,7 @@ const styles = StyleSheet.create({
     top: -60,
     right: -60,
     borderRadius: 150,
-    backgroundColor: Colors.accent.blue,
+    backgroundColor: colors.accent.blue,
     opacity: 0.05,
   },
   content: {
@@ -104,7 +108,7 @@ const styles = StyleSheet.create({
   badgeText: {
     fontFamily: FontFamily.bodyBold,
     fontSize: FontSize.xs,
-    color: Colors.accent.blue,
+    color: colors.accent.blue,
     letterSpacing: 1.2,
   },
   section: {
@@ -113,15 +117,15 @@ const styles = StyleSheet.create({
   sectionHeader: {
     fontFamily: FontFamily.bodyBold,
     fontSize: FontSize.xs,
-    color: Colors.text.placeholder,
+    color: colors.text.placeholder,
     letterSpacing: 1.2,
     paddingLeft: Spacing.xs,
   },
   card: {
-    backgroundColor: Colors.bg.surface,
+    backgroundColor: colors.bg.surface,
     borderRadius: Radius.xl,
     borderWidth: 1,
-    borderColor: Colors.border.default,
+    borderColor: colors.border.default,
     overflow: 'hidden',
   },
   row: {
@@ -136,7 +140,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: Radius.sm,
-    backgroundColor: Colors.bg.elevated,
+    backgroundColor: colors.bg.elevated,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -150,17 +154,17 @@ const styles = StyleSheet.create({
   rowLabel: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.base,
-    color: Colors.text.primary,
+    color: colors.text.primary,
   },
   rowSub: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.xs,
-    color: Colors.text.muted,
+    color: colors.text.muted,
   },
   chevron: {
     fontFamily: FontFamily.display,
     fontSize: FontSize.xl,
-    color: Colors.text.muted,
+    color: colors.text.muted,
     lineHeight: 24,
   },
 });

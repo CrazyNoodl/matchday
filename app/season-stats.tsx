@@ -13,7 +13,7 @@ import { useStore } from '@/store';
 import { calculateStandings } from '@/utils/standings';
 import { formatShortDate, formatYearShort } from '@/utils/dateFormat';
 import { getPlayerDisplayName } from '@/utils/playerDisplay';
-import { Colors } from '@/theme/colors';
+import { useColors, AppColors } from '@/theme';
 import { FontFamily, FontSize } from '@/theme/typography';
 import { Radius, Spacing } from '@/theme/spacing';
 import { NavHeader } from '@/components/NavHeader';
@@ -47,28 +47,6 @@ function filterRounds(
 }
 
 // ---------------------------------------------------------------------------
-// Medal config
-// ---------------------------------------------------------------------------
-
-const MEDALS: Record<number, { badgeColor: string; badgeBg: string; cardBorder: string }> = {
-  1: {
-    badgeColor: Colors.accent.gold,
-    badgeBg: 'rgba(255,212,94,0.18)',
-    cardBorder: Colors.accent.goldBorder,
-  },
-  2: {
-    badgeColor: Colors.text.secondary,
-    badgeBg: 'rgba(200,205,210,0.16)',
-    cardBorder: Colors.border.default,
-  },
-  3: {
-    badgeColor: '#d08a4a',
-    badgeBg: 'rgba(205,127,50,0.16)',
-    cardBorder: Colors.border.default,
-  },
-};
-
-// ---------------------------------------------------------------------------
 // Screen
 // ---------------------------------------------------------------------------
 
@@ -76,6 +54,27 @@ export default function SeasonStatsScreen() {
   const router = useRouter();
   const goBack = useGoBack();
   const { t } = useTranslation();
+  const colors = useColors();
+  const styles = makeStyles(colors);
+
+  const MEDALS: Record<number, { badgeColor: string; badgeBg: string; cardBorder: string }> = {
+    1: {
+      badgeColor: colors.accent.gold,
+      badgeBg: 'rgba(255,212,94,0.18)',
+      cardBorder: colors.accent.goldBorder,
+    },
+    2: {
+      badgeColor: colors.text.secondary,
+      badgeBg: 'rgba(200,205,210,0.16)',
+      cardBorder: colors.border.default,
+    },
+    3: {
+      badgeColor: '#d08a4a',
+      badgeBg: 'rgba(205,127,50,0.16)',
+      cardBorder: colors.border.default,
+    },
+  };
+
   const viewingTournament = useStore((s) => s.viewingTournament);
   const players = useStore((s) => s.players);
   const showNick = useStore((s) => s.showNick);
@@ -310,7 +309,7 @@ export default function SeasonStatsScreen() {
                 subText={subText}
                 points={s.pts}
                 pointsLabel={t('seasonStats.pts')}
-                pointsColor={rank === 1 ? Colors.accent.green : undefined}
+                pointsColor={rank === 1 ? colors.accent.green : undefined}
                 emphasized={rank === 1}
               />
             );
@@ -380,10 +379,10 @@ export default function SeasonStatsScreen() {
 // Styles
 // ---------------------------------------------------------------------------
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: AppColors) => StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: Colors.bg.base,
+    backgroundColor: colors.bg.base,
   },
   scroll: {
     flex: 1,
@@ -402,13 +401,13 @@ const styles = StyleSheet.create({
   tourName: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize['2xl'],
-    color: Colors.text.primary,
+    color: colors.text.primary,
     letterSpacing: 0.3,
   },
   tourSubtitle: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.sm,
-    color: Colors.text.muted,
+    color: colors.text.muted,
   },
 
   // Include filter row
@@ -421,7 +420,7 @@ const styles = StyleSheet.create({
   filterLabel: {
     fontFamily: FontFamily.bodyBold,
     fontSize: FontSize.sm,
-    color: Colors.text.muted,
+    color: colors.text.muted,
     letterSpacing: 0.8,
     textTransform: 'uppercase',
   },
@@ -430,31 +429,31 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
   },
   filterChip: {
-    backgroundColor: Colors.bg.surface,
+    backgroundColor: colors.bg.surface,
     borderRadius: Radius.full,
     borderWidth: 1,
-    borderColor: Colors.border.default,
+    borderColor: colors.border.default,
     paddingHorizontal: Spacing.md,
     paddingVertical: 5,
   },
   filterChipActive: {
-    backgroundColor: Colors.accent.green,
-    borderColor: Colors.accent.green,
+    backgroundColor: colors.accent.green,
+    borderColor: colors.accent.green,
   },
   filterChipText: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.sm,
-    color: Colors.text.muted,
+    color: colors.text.muted,
   },
   filterChipTextActive: {
-    color: Colors.accent.greenDark,
+    color: colors.accent.greenDark,
   },
 
   // Champion hero card
   champCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.bg.surface,
+    backgroundColor: colors.bg.surface,
     borderRadius: Radius.xl,
     borderWidth: 1,
     borderColor: 'rgba(255,212,94,0.30)',
@@ -464,7 +463,7 @@ const styles = StyleSheet.create({
   },
   champAvatarWrap: {
     borderWidth: 2,
-    borderColor: Colors.accent.gold,
+    borderColor: colors.accent.gold,
     borderRadius: 19,
     padding: 2,
   },
@@ -478,25 +477,25 @@ const styles = StyleSheet.create({
   champBadgeLabel: {
     fontFamily: FontFamily.bodyBold,
     fontSize: FontSize.xs,
-    color: Colors.accent.green,
+    color: colors.accent.green,
     letterSpacing: 0.8,
     textTransform: 'uppercase',
   },
   champName: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize['3xl'],
-    color: Colors.text.primary,
+    color: colors.text.primary,
     letterSpacing: 0.3,
     lineHeight: 34,
   },
   champMeta: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.sm,
-    color: Colors.text.muted,
+    color: colors.text.muted,
   },
   champDiamond: {
     fontSize: 36,
-    color: Colors.accent.gold,
+    color: colors.accent.gold,
   },
 
   // Totals row
@@ -507,10 +506,10 @@ const styles = StyleSheet.create({
   },
   totalCard: {
     flex: 1,
-    backgroundColor: Colors.bg.surface,
+    backgroundColor: colors.bg.surface,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: Colors.border.default,
+    borderColor: colors.border.default,
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.sm,
     alignItems: 'center',
@@ -519,16 +518,16 @@ const styles = StyleSheet.create({
   totalValue: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize.xl,
-    color: Colors.text.primary,
+    color: colors.text.primary,
     lineHeight: 24,
   },
   totalValueGreen: {
-    color: Colors.accent.green,
+    color: colors.accent.green,
   },
   totalLabel: {
     fontFamily: FontFamily.bodyBold,
     fontSize: FontSize.xs,
-    color: Colors.text.muted,
+    color: colors.text.muted,
     letterSpacing: 0.8,
   },
 
@@ -545,24 +544,24 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
   },
   paramChip: {
-    backgroundColor: Colors.bg.surface,
+    backgroundColor: colors.bg.surface,
     borderRadius: Radius.full,
     borderWidth: 1,
-    borderColor: Colors.border.default,
+    borderColor: colors.border.default,
     paddingHorizontal: Spacing.md,
     paddingVertical: 5,
   },
   paramChipActive: {
-    borderColor: Colors.accent.greenBorder,
-    backgroundColor: Colors.accent.greenSubtle,
+    borderColor: colors.accent.greenBorder,
+    backgroundColor: colors.accent.greenSubtle,
   },
   paramChipText: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.sm,
-    color: Colors.text.muted,
+    color: colors.text.muted,
   },
   paramChipTextActive: {
-    color: Colors.accent.green,
+    color: colors.accent.green,
   },
 
   // Ranking cards
@@ -575,9 +574,9 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.lg,
     borderRadius: Radius.xl,
     borderWidth: 1,
-    borderColor: Colors.border.default,
+    borderColor: colors.border.default,
     overflow: 'hidden',
-    backgroundColor: Colors.bg.surface,
+    backgroundColor: colors.bg.surface,
   },
   roundHeader: {
     flexDirection: 'row',
@@ -586,16 +585,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border.default,
-    backgroundColor: Colors.bg.elevated,
+    borderBottomColor: colors.border.default,
+    backgroundColor: colors.bg.elevated,
   },
   roundNumBadge: {
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: Colors.bg.surface,
+    backgroundColor: colors.bg.surface,
     borderWidth: 1,
-    borderColor: Colors.border.strong,
+    borderColor: colors.border.strong,
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
@@ -603,7 +602,7 @@ const styles = StyleSheet.create({
   roundNumText: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize.sm,
-    color: Colors.text.secondary,
+    color: colors.text.secondary,
   },
   roundHeaderInfo: {
     flex: 1,
@@ -612,25 +611,25 @@ const styles = StyleSheet.create({
   roundHeaderTitle: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.base,
-    color: Colors.text.primary,
+    color: colors.text.primary,
   },
   roundHeaderDate: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.xs,
-    color: Colors.text.muted,
+    color: colors.text.muted,
   },
   friendlyTag: {
     paddingHorizontal: 7,
     paddingVertical: 2,
     borderRadius: Radius.full,
     borderWidth: 1,
-    borderColor: Colors.border.strong,
-    backgroundColor: Colors.bg.surface,
+    borderColor: colors.border.strong,
+    backgroundColor: colors.bg.surface,
   },
   friendlyTagText: {
     fontFamily: FontFamily.bodyBold,
     fontSize: FontSize.xs,
-    color: Colors.text.muted,
+    color: colors.text.muted,
     letterSpacing: 0.5,
   },
   roundWinnerArea: {
@@ -643,7 +642,7 @@ const styles = StyleSheet.create({
   roundEmptyText: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.sm,
-    color: Colors.text.muted,
+    color: colors.text.muted,
   },
 
   // Empty
@@ -656,6 +655,6 @@ const styles = StyleSheet.create({
   emptyText: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.base,
-    color: Colors.text.placeholder,
+    color: colors.text.placeholder,
   },
 });

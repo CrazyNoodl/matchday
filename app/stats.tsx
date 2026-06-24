@@ -11,7 +11,7 @@ import { useGoBack } from '@/utils/useGoBack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStore } from '@/store';
 import { calculateStandings } from '@/utils/standings';
-import { Colors } from '@/theme/colors';
+import { useColors, AppColors } from '@/theme';
 import { FontFamily, FontSize } from '@/theme/typography';
 import { Radius, Spacing } from '@/theme/spacing';
 import { Avatar } from '@/components/Avatar';
@@ -24,30 +24,6 @@ import type { Match, Player } from '@/store/types';
 import { useTranslation } from 'react-i18next';
 
 type Tab = 'ranking' | 'h2h';
-
-// ---------------------------------------------------------------------------
-// Medal config
-// ---------------------------------------------------------------------------
-const MEDALS = [
-  {
-    rank: 1,
-    badgeColor: Colors.accent.gold,
-    badgeBg: 'rgba(255,212,94,0.18)',
-    cardBorder: Colors.accent.greenBorder,
-  },
-  {
-    rank: 2,
-    badgeColor: Colors.text.secondary,
-    badgeBg: 'rgba(200,205,210,0.16)',
-    cardBorder: Colors.border.default,
-  },
-  {
-    rank: 3,
-    badgeColor: '#d08a4a',
-    badgeBg: 'rgba(205,127,50,0.16)',
-    cardBorder: Colors.border.default,
-  },
-];
 
 // ---------------------------------------------------------------------------
 // H2H pair type
@@ -69,6 +45,8 @@ interface H2HPair {
 export default function StatsScreen() {
   const router = useRouter();
   const goBack = useGoBack();
+  const colors = useColors();
+  const styles = makeStyles(colors);
   const [activeTab, setActiveTab] = useState<Tab>('ranking');
   const { t } = useTranslation();
 
@@ -234,6 +212,30 @@ function RankingTab({
   matchDaysPlayed,
 }: RankingTabProps) {
   const { t } = useTranslation();
+  const colors = useColors();
+  const styles = makeStyles(colors);
+
+  const MEDALS = [
+    {
+      rank: 1,
+      badgeColor: colors.accent.gold,
+      badgeBg: 'rgba(255,212,94,0.18)',
+      cardBorder: colors.accent.greenBorder,
+    },
+    {
+      rank: 2,
+      badgeColor: colors.text.secondary,
+      badgeBg: 'rgba(200,205,210,0.16)',
+      cardBorder: colors.border.default,
+    },
+    {
+      rank: 3,
+      badgeColor: '#d08a4a',
+      badgeBg: 'rgba(205,127,50,0.16)',
+      cardBorder: colors.border.default,
+    },
+  ];
+
   const sectionLabel = t('stats.allTime');
 
   return (
@@ -254,7 +256,7 @@ function RankingTab({
             subText={t('stats.record', { played: s.played, wins: s.wins, draws: s.draws, losses: s.losses, gf: s.gf, ga: s.ga })}
             points={s.pts}
             pointsLabel={t('common.pts')}
-            pointsColor={Colors.accent.green}
+            pointsColor={colors.accent.green}
           />
         );
       })}
@@ -291,6 +293,8 @@ interface H2HTabProps {
 
 function H2HTab({ pairs }: H2HTabProps) {
   const { t } = useTranslation();
+  const colors = useColors();
+  const styles = makeStyles(colors);
   return (
     <View style={styles.tabContent}>
       <SectionLabel label={t('stats.rivalries')} style={styles.sectionLabel} />
@@ -344,7 +348,7 @@ function H2HTab({ pairs }: H2HTabProps) {
                     styles.h2hBarSegment,
                     {
                       flex: 1,
-                      backgroundColor: Colors.border.strong,
+                      backgroundColor: colors.border.strong,
                       borderRadius: Radius.full,
                     },
                   ]}
@@ -402,10 +406,10 @@ function H2HTab({ pairs }: H2HTabProps) {
 // ---------------------------------------------------------------------------
 // Styles
 // ---------------------------------------------------------------------------
-const styles = StyleSheet.create({
+const makeStyles = (colors: AppColors) => StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: Colors.bg.base,
+    backgroundColor: colors.bg.base,
   },
   // Header
   headerContainer: {
@@ -415,8 +419,8 @@ const styles = StyleSheet.create({
     paddingTop: Spacing.md,
     paddingBottom: Spacing.lg,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border.default,
-    backgroundColor: Colors.bg.surface,
+    borderBottomColor: colors.border.default,
+    backgroundColor: colors.bg.surface,
   },
   backBtn: {
     width: 36,
@@ -428,7 +432,7 @@ const styles = StyleSheet.create({
   chevron: {
     fontFamily: FontFamily.display,
     fontSize: FontSize['2xl'],
-    color: Colors.text.secondary,
+    color: colors.text.secondary,
     lineHeight: 28,
     marginTop: -2,
   },
@@ -439,7 +443,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize['3xl'],
-    color: Colors.text.primary,
+    color: colors.text.primary,
     letterSpacing: 0.5,
     lineHeight: 34,
     textAlign: 'center',
@@ -482,10 +486,10 @@ const styles = StyleSheet.create({
   },
   statTile: {
     flex: 1,
-    backgroundColor: Colors.bg.surface,
+    backgroundColor: colors.bg.surface,
     borderRadius: Radius.xl,
     borderWidth: 1,
-    borderColor: Colors.border.default,
+    borderColor: colors.border.default,
     padding: Spacing.lg,
     gap: Spacing.xs,
     alignItems: 'flex-start',
@@ -493,25 +497,25 @@ const styles = StyleSheet.create({
   statTileLabel: {
     fontFamily: FontFamily.bodyBold,
     fontSize: FontSize.xs,
-    color: Colors.text.placeholder,
+    color: colors.text.placeholder,
     letterSpacing: 0.8,
     textTransform: 'uppercase',
   },
   statTileValue: {
     fontFamily: FontFamily.display,
     fontSize: FontSize['2xl'],
-    color: Colors.text.primary,
+    color: colors.text.primary,
   },
   statTileValueGreen: {
-    color: Colors.accent.green,
+    color: colors.accent.green,
   },
 
   // H2H card
   h2hCard: {
-    backgroundColor: Colors.bg.surface,
+    backgroundColor: colors.bg.surface,
     borderRadius: Radius.xl,
     borderWidth: 1,
-    borderColor: Colors.border.default,
+    borderColor: colors.border.default,
     padding: Spacing.lg,
     gap: Spacing.md,
   },
@@ -536,7 +540,7 @@ const styles = StyleSheet.create({
   h2hPlayerName: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.base,
-    color: Colors.text.primary,
+    color: colors.text.primary,
     flexShrink: 1,
   },
   h2hGamesWrap: {
@@ -545,7 +549,7 @@ const styles = StyleSheet.create({
   h2hGamesText: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.xs,
-    color: Colors.text.muted,
+    color: colors.text.muted,
     textAlign: 'center',
   },
   h2hScoreRow: {
@@ -561,7 +565,7 @@ const styles = StyleSheet.create({
   h2hDrawsLabel: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.sm,
-    color: Colors.text.muted,
+    color: colors.text.muted,
     flex: 1,
     textAlign: 'center',
   },
@@ -578,12 +582,12 @@ const styles = StyleSheet.create({
   h2hBarGap: {
     width: 3,
     height: 6,
-    backgroundColor: Colors.bg.base,
+    backgroundColor: colors.bg.base,
   },
   h2hGoals: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.sm,
-    color: Colors.text.muted,
+    color: colors.text.muted,
     textAlign: 'center',
   },
 
@@ -595,6 +599,6 @@ const styles = StyleSheet.create({
   emptyText: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.base,
-    color: Colors.text.placeholder,
+    color: colors.text.placeholder,
   },
 });

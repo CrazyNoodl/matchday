@@ -20,10 +20,10 @@ type Html2Canvas = typeof import('html2canvas').default;
 import { useStore } from '@/store';
 import { ArchivedRound } from '@/store/types';
 import { calculateStandings, Standing } from '@/utils/standings';
-import { Colors } from '@/theme/colors';
+import { useColors } from '@/theme';
 import { FontFamily } from '@/theme/typography';
 import { STANDINGS_NUM_COLS, formatShareCardDate } from '@/utils/shareCard';
-import { winnerStyles, modalStyles } from './ShareRoundModal.styles';
+import { makeWinnerStyles, makeModalStyles } from './ShareRoundModal.styles';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -43,11 +43,12 @@ interface ShareRoundModalProps {
 
 export function CardAvatar({ teamCode, size }: { teamCode?: string; size: number }) {
   const team = useStore((s) => s.teams.find((t) => t.code === teamCode));
+  const colors = useColors();
   const radius = Math.round(size * 0.3);
   const baseStyle = { width: size, height: size, borderRadius: radius, overflow: 'hidden' as const };
 
   if (!team) {
-    return <View style={[baseStyle, { backgroundColor: Colors.bg.elevated }]} />;
+    return <View style={[baseStyle, { backgroundColor: colors.bg.elevated }]} />;
   }
 
   if (team.logo?.startsWith('http')) {
@@ -89,9 +90,11 @@ function StandingsTableRow({
   isLast: boolean;
 }) {
   const player = useStore((s) => s.players.find((p) => p.id === standing.playerId));
+  const colors = useColors();
+  const winnerStyles = makeWinnerStyles(colors);
 
   const gdColor =
-    standing.gd > 0 ? Colors.accent.green : standing.gd < 0 ? Colors.accent.red : Colors.text.muted;
+    standing.gd > 0 ? colors.accent.green : standing.gd < 0 ? colors.accent.red : colors.text.muted;
 
   return (
     <View
@@ -122,6 +125,8 @@ function StandingsTableRow({
 
 function MatchRow({ match, isLast }: { match: ArchivedRound['matches'][number]; isLast: boolean }) {
   const players = useStore((s) => s.players);
+  const colors = useColors();
+  const winnerStyles = makeWinnerStyles(colors);
   const playerA = players.find((p) => p.id === match.aId);
   const playerB = players.find((p) => p.id === match.bId);
 
@@ -153,6 +158,8 @@ function MatchRow({ match, isLast }: { match: ArchivedRound['matches'][number]; 
 
 function WinnerCard({ round, tournamentName, includeMatches = false, includeStandings = false }: WinnerCardProps) {
   const players = useStore((s) => s.players);
+  const colors = useColors();
+  const winnerStyles = makeWinnerStyles(colors);
 
   const playerIds = useMemo(() => {
     const ids = new Set<string>();
@@ -169,7 +176,7 @@ function WinnerCard({ round, tournamentName, includeMatches = false, includeStan
   const winnerStats = standings.find((s) => s.playerId === round.winner);
   const isDraw = !round.winner;
 
-  const glowColor = winner?.color ?? Colors.accent.green;
+  const glowColor = winner?.color ?? colors.accent.green;
   const dateStr = formatShareCardDate(round.date);
 
   return (
@@ -216,7 +223,7 @@ function WinnerCard({ round, tournamentName, includeMatches = false, includeStan
         {winnerStats && (
           <View style={winnerStyles.statsRow}>
             <View style={winnerStyles.statItem}>
-              <Text style={[winnerStyles.statValue, { color: Colors.accent.green }]}>{winnerStats.wins}</Text>
+              <Text style={[winnerStyles.statValue, { color: colors.accent.green }]}>{winnerStats.wins}</Text>
               <Text style={winnerStyles.statLabel}>W</Text>
             </View>
             <View style={winnerStyles.statDot} />
@@ -226,7 +233,7 @@ function WinnerCard({ round, tournamentName, includeMatches = false, includeStan
             </View>
             <View style={winnerStyles.statDot} />
             <View style={winnerStyles.statItem}>
-              <Text style={[winnerStyles.statValue, { color: Colors.accent.red }]}>{winnerStats.losses}</Text>
+              <Text style={[winnerStyles.statValue, { color: colors.accent.red }]}>{winnerStats.losses}</Text>
               <Text style={winnerStyles.statLabel}>L</Text>
             </View>
             <View style={winnerStyles.statSep} />
@@ -236,7 +243,7 @@ function WinnerCard({ round, tournamentName, includeMatches = false, includeStan
             </View>
             <View style={winnerStyles.statDot} />
             <View style={winnerStyles.statItem}>
-              <Text style={[winnerStyles.statValue, { color: Colors.accent.gold }]}>{winnerStats.pts}</Text>
+              <Text style={[winnerStyles.statValue, { color: colors.accent.gold }]}>{winnerStats.pts}</Text>
               <Text style={winnerStyles.statLabel}>PTS</Text>
             </View>
           </View>
@@ -303,6 +310,8 @@ export function ShareRoundModal({ visible, onClose, round, tournamentName }: Sha
   const [loading, setLoading] = useState(false);
   const [includeMatches, setIncludeMatches] = useState(false);
   const [includeStandings, setIncludeStandings] = useState(false);
+  const colors = useColors();
+  const modalStyles = makeModalStyles(colors);
 
   const cardRef = useRef<View>(null);
 
@@ -439,8 +448,8 @@ export function ShareRoundModal({ visible, onClose, round, tournamentName }: Sha
           <Switch
             value={includeStandings}
             onValueChange={setIncludeStandings}
-            trackColor={{ false: Colors.bg.elevated, true: Colors.accent.green }}
-            thumbColor={Colors.text.primary}
+            trackColor={{ false: colors.bg.elevated, true: colors.accent.green }}
+            thumbColor={colors.text.primary}
           />
         </View>
         <View style={modalStyles.optionRow}>
@@ -448,8 +457,8 @@ export function ShareRoundModal({ visible, onClose, round, tournamentName }: Sha
           <Switch
             value={includeMatches}
             onValueChange={setIncludeMatches}
-            trackColor={{ false: Colors.bg.elevated, true: Colors.accent.green }}
-            thumbColor={Colors.text.primary}
+            trackColor={{ false: colors.bg.elevated, true: colors.accent.green }}
+            thumbColor={colors.text.primary}
           />
         </View>
 
@@ -462,7 +471,7 @@ export function ShareRoundModal({ visible, onClose, round, tournamentName }: Sha
             disabled={loading}
           >
             {loading ? (
-              <ActivityIndicator color={Colors.text.primary} size="small" />
+              <ActivityIndicator color={colors.text.primary} size="small" />
             ) : (
               <Text style={modalStyles.actionText}>
               {Platform.OS === 'web' ? '⬇  Download' : '💾  Save to Photos'}
@@ -476,9 +485,9 @@ export function ShareRoundModal({ visible, onClose, round, tournamentName }: Sha
             disabled={loading}
           >
             {loading ? (
-              <ActivityIndicator color={Colors.bg.base} size="small" />
+              <ActivityIndicator color={colors.bg.base} size="small" />
             ) : (
-              <Text style={[modalStyles.actionText, { color: Colors.bg.base }]}>↗  Share</Text>
+              <Text style={[modalStyles.actionText, { color: colors.bg.base }]}>↗  Share</Text>
             )}
           </TouchableOpacity>
         </View>

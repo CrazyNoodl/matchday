@@ -7,7 +7,8 @@ import {
   type ViewStyle,
   type TextStyle,
 } from 'react-native';
-import { Colors } from '../../theme/colors';
+import { useColors } from '../../theme';
+import type { AppColors } from '../../theme';
 import { FontFamily, FontSize } from '../../theme/typography';
 import { Radius, Spacing } from '../../theme/spacing';
 
@@ -33,45 +34,45 @@ export interface ButtonProps {
 type VariantDef = { container: ViewStyle; text: TextStyle; loadingColor: string };
 type SizeDef = { container: ViewStyle; text: TextStyle; loadingSize: number };
 
-const VARIANTS: Record<ButtonVariant, VariantDef> = {
+const makeVariants = (colors: AppColors): Record<ButtonVariant, VariantDef> => ({
   primary: {
-    container: { backgroundColor: Colors.accent.green },
-    text: { color: Colors.bg.base },
-    loadingColor: Colors.bg.base,
+    container: { backgroundColor: colors.accent.green },
+    text: { color: colors.bg.base },
+    loadingColor: colors.bg.base,
   },
   secondary: {
     container: {
-      backgroundColor: Colors.bg.elevated,
+      backgroundColor: colors.bg.elevated,
       borderWidth: 1,
-      borderColor: Colors.border.strong,
+      borderColor: colors.border.strong,
     },
-    text: { color: Colors.text.primary },
-    loadingColor: Colors.text.primary,
+    text: { color: colors.text.primary },
+    loadingColor: colors.text.primary,
   },
   outlined: {
     container: {
       backgroundColor: 'transparent',
       borderWidth: 1,
-      borderColor: Colors.accent.green,
+      borderColor: colors.accent.green,
     },
-    text: { color: Colors.accent.green },
-    loadingColor: Colors.accent.green,
+    text: { color: colors.accent.green },
+    loadingColor: colors.accent.green,
   },
   ghost: {
     container: { backgroundColor: 'transparent' },
-    text: { color: Colors.text.secondary },
-    loadingColor: Colors.text.secondary,
+    text: { color: colors.text.secondary },
+    loadingColor: colors.text.secondary,
   },
   destructive: {
     container: {
-      backgroundColor: Colors.accent.redSubtle,
+      backgroundColor: colors.accent.redSubtle,
       borderWidth: 1,
       borderColor: 'rgba(255,93,90,0.30)',
     },
-    text: { color: Colors.accent.red },
-    loadingColor: Colors.accent.red,
+    text: { color: colors.accent.red },
+    loadingColor: colors.accent.red,
   },
-};
+});
 
 const SIZES: Record<ButtonSize, SizeDef> = {
   sm: {
@@ -115,6 +116,8 @@ export function Button({
   fullWidth = false,
   onPress,
 }: ButtonProps) {
+  const colors = useColors();
+  const VARIANTS = makeVariants(colors);
   const v = VARIANTS[variant];
   const s = SIZES[size];
   const inactive = disabled || loading;

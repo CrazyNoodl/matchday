@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { NavHeader } from '@/components/NavHeader';
 import { GlowBackground } from '@/components/GlowBackground';
-import { Colors } from '@/theme/colors';
+import { useColors, AppColors } from '@/theme';
 import { FontFamily, FontSize } from '@/theme/typography';
 import { Radius, Spacing } from '@/theme/spacing';
 import { CHANGELOG } from '@/data/changelog';
@@ -17,6 +17,8 @@ interface ChangeGroupProps {
 }
 
 function ChangeGroup({ label, items, color }: ChangeGroupProps) {
+  const colors = useColors();
+  const styles = makeStyles(colors);
   if (!items || items.length === 0) return null;
   return (
     <View style={styles.group}>
@@ -34,6 +36,8 @@ function ChangeGroup({ label, items, color }: ChangeGroupProps) {
 export default function ChangelogScreen() {
   const goBack = useGoBack();
   const { t } = useTranslation();
+  const colors = useColors();
+  const styles = makeStyles(colors);
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
@@ -55,9 +59,9 @@ export default function ChangelogScreen() {
               {entry.date ? <Text style={styles.dateText}>{entry.date}</Text> : null}
             </View>
 
-            <ChangeGroup label={t('settings.changelog.added')} items={entry.added} color={Colors.accent.green} />
-            <ChangeGroup label={t('settings.changelog.fixed')} items={entry.fixed} color={Colors.accent.blue} />
-            <ChangeGroup label={t('settings.changelog.notes')} items={entry.notes} color={Colors.text.muted} />
+            <ChangeGroup label={t('settings.changelog.added')} items={entry.added} color={colors.accent.green} />
+            <ChangeGroup label={t('settings.changelog.fixed')} items={entry.fixed} color={colors.accent.blue} />
+            <ChangeGroup label={t('settings.changelog.notes')} items={entry.notes} color={colors.text.muted} />
           </View>
         ))}
       </ScrollView>
@@ -65,10 +69,10 @@ export default function ChangelogScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: AppColors) => StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: Colors.bg.base,
+    backgroundColor: colors.bg.base,
   },
   scrollContent: {
     paddingHorizontal: Spacing.xl,
@@ -79,15 +83,15 @@ const styles = StyleSheet.create({
   emptyText: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.sm,
-    color: Colors.text.muted,
+    color: colors.text.muted,
     textAlign: 'center',
     marginTop: Spacing['2xl'],
   },
   card: {
-    backgroundColor: Colors.bg.surface,
+    backgroundColor: colors.bg.surface,
     borderRadius: Radius.xl,
     borderWidth: 1,
-    borderColor: Colors.border.default,
+    borderColor: colors.border.default,
     padding: Spacing.lg,
     gap: Spacing.md,
   },
@@ -99,13 +103,13 @@ const styles = StyleSheet.create({
   versionText: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize.xl,
-    color: Colors.text.primary,
+    color: colors.text.primary,
     letterSpacing: 0.3,
   },
   dateText: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.xs,
-    color: Colors.text.muted,
+    color: colors.text.muted,
   },
   group: {
     gap: 4,
@@ -128,7 +132,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontFamily: FontFamily.body,
     fontSize: FontSize.sm,
-    color: Colors.text.secondary,
+    color: colors.text.secondary,
     lineHeight: 19,
   },
 });

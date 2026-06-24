@@ -1,14 +1,14 @@
 import { StyleSheet } from 'react-native';
-import { Colors } from '@/theme/colors';
+import type { AppColors } from '@/theme';
 import { FontFamily, FontSize } from '@/theme/typography';
 import { Radius, Spacing } from '@/theme/spacing';
 
-export const styles = StyleSheet.create({
+export const makeStyles = (colors: AppColors) => StyleSheet.create({
   container: {
-    backgroundColor: Colors.bg.surface,
+    backgroundColor: colors.bg.surface,
     borderRadius: Radius.xl,
     borderWidth: 1,
-    borderColor: Colors.border.default,
+    borderColor: colors.border.default,
     overflow: 'hidden',
   },
   headerRow: {
@@ -18,8 +18,8 @@ export const styles = StyleSheet.create({
     paddingHorizontal: Spacing.sm,
     paddingVertical: Spacing.sm,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border.default,
-    backgroundColor: Colors.bg.elevated,
+    borderBottomColor: colors.border.default,
+    backgroundColor: colors.bg.elevated,
   },
   row: {
     flexDirection: 'row',
@@ -28,20 +28,20 @@ export const styles = StyleSheet.create({
     paddingHorizontal: Spacing.sm,
     paddingVertical: Spacing.sm,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border.default,
+    borderBottomColor: colors.border.default,
   },
   rowLeader: {
-    backgroundColor: Colors.accent.greenSubtle,
+    backgroundColor: colors.accent.greenSubtle,
   },
   fixedCell: {
     paddingLeft: Spacing.md,
     borderRightWidth: 1,
-    borderRightColor: Colors.border.default,
+    borderRightColor: colors.border.default,
   },
   cell: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.xs,
-    color: Colors.text.secondary,
+    color: colors.text.secondary,
     textAlign: 'center',
   },
   playerCol: {
@@ -60,22 +60,22 @@ export const styles = StyleSheet.create({
   playerName: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.xs,
-    color: Colors.text.primary,
+    color: colors.text.primary,
   },
   playerNick: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.xs,
-    color: Colors.text.muted,
+    color: colors.text.muted,
   },
   numCol: {
     width: 32,
   },
   numColPerGame: {
     width: 38,
-    color: Colors.text.ghost,
+    color: colors.text.ghost,
   },
   ptsCell: {
-    color: Colors.accent.green,
+    color: colors.accent.green,
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize.base,
   },
@@ -86,6 +86,6 @@ export const styles = StyleSheet.create({
   emptyText: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.sm,
-    color: Colors.text.muted,
+    color: colors.text.muted,
   },
 });

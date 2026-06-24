@@ -16,7 +16,7 @@ import { NavHeader } from '@/components/NavHeader';
 import { SectionLabel } from '@/components/SectionLabel';
 import { StatsRow } from '@/components/StatsRow';
 import { GlowBackground } from '@/components/GlowBackground';
-import { Colors } from '@/theme/colors';
+import { useColors, AppColors } from '@/theme';
 import { FontFamily, FontSize } from '@/theme/typography';
 import { Radius, Spacing } from '@/theme/spacing';
 import { extractStatsFromPhoto, type ExtractedStat } from '@/utils/extractStats';
@@ -51,14 +51,16 @@ function getBgColor(c: ExtractedStat['confidence']): string {
   return 'transparent';
 }
 
-function getStripeColor(c: ExtractedStat['confidence']): string | null {
-  if (c === 'low') return '#ffa032';
-  if (c === 'medium') return Colors.accent.yellow;
-  return null;
-}
-
 export default function OcrLabScreen() {
   const goBack = useGoBack();
+  const colors = useColors();
+  const styles = makeStyles(colors);
+
+  const getStripeColor = (c: ExtractedStat['confidence']): string | null => {
+    if (c === 'low') return '#ffa032';
+    if (c === 'medium') return colors.accent.yellow;
+    return null;
+  };
   const [photos, setPhotos] = useState<PhotoItem[]>([]);
   const [scanning, setScanning] = useState(false);
   const [scanProgress, setScanProgress] = useState<string | null>(null);
@@ -170,7 +172,7 @@ export default function OcrLabScreen() {
         >
           {scanning ? (
             <View style={styles.scanBtnRow}>
-              <ActivityIndicator color={Colors.bg.base} size="small" />
+              <ActivityIndicator color={colors.bg.base} size="small" />
               <Text style={styles.scanBtnText}>{scanProgress ?? 'Scanning...'}</Text>
             </View>
           ) : (
@@ -240,7 +242,7 @@ export default function OcrLabScreen() {
                   <Text style={styles.legendText}>Orange — uncertain, verify manually</Text>
                 </View>
                 <View style={styles.legendRow}>
-                  <View style={[styles.legendStripe, { backgroundColor: Colors.accent.yellow }]} />
+                  <View style={[styles.legendStripe, { backgroundColor: colors.accent.yellow }]} />
                   <Text style={styles.legendText}>Yellow — slightly unclear in image</Text>
                 </View>
               </View>
@@ -256,10 +258,10 @@ export default function OcrLabScreen() {
 
 const THUMB_SIZE = 88;
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: AppColors) => StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: Colors.bg.base,
+    backgroundColor: colors.bg.base,
   },
   scroll: { flex: 1 },
   scrollContent: {
@@ -278,7 +280,7 @@ const styles = StyleSheet.create({
   proxyHintText: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.xs,
-    color: Colors.accent.blue,
+    color: colors.accent.blue,
     lineHeight: 18,
   },
   proxyHintCode: {
@@ -297,9 +299,9 @@ const styles = StyleSheet.create({
     height: THUMB_SIZE,
     borderRadius: Radius.md,
     overflow: 'hidden',
-    backgroundColor: Colors.bg.surface,
+    backgroundColor: colors.bg.surface,
     borderWidth: 1,
-    borderColor: Colors.border.medium,
+    borderColor: colors.border.medium,
   },
   thumbImage: {
     width: THUMB_SIZE,
@@ -328,8 +330,8 @@ const styles = StyleSheet.create({
     borderRadius: Radius.md,
     borderWidth: 1,
     borderStyle: 'dashed',
-    borderColor: Colors.border.strong,
-    backgroundColor: Colors.bg.surface,
+    borderColor: colors.border.strong,
+    backgroundColor: colors.bg.surface,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 4,
@@ -337,18 +339,18 @@ const styles = StyleSheet.create({
   thumbAddIcon: {
     fontFamily: FontFamily.display,
     fontSize: FontSize['2xl'],
-    color: Colors.text.muted,
+    color: colors.text.muted,
     lineHeight: 28,
   },
   thumbAddLabel: {
     fontFamily: FontFamily.body,
     fontSize: 10,
-    color: Colors.text.placeholder,
+    color: colors.text.placeholder,
   },
   photoCount: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.xs,
-    color: Colors.text.placeholder,
+    color: colors.text.placeholder,
     marginBottom: Spacing.lg,
   },
 
@@ -356,7 +358,7 @@ const styles = StyleSheet.create({
   scanBtn: {
     height: 50,
     borderRadius: Radius.md,
-    backgroundColor: Colors.accent.blue,
+    backgroundColor: colors.accent.blue,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: Spacing.xl,
@@ -372,12 +374,12 @@ const styles = StyleSheet.create({
   scanBtnText: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.base,
-    color: Colors.bg.base,
+    color: colors.bg.base,
   },
 
   // Error
   errorCard: {
-    backgroundColor: Colors.accent.redSubtle,
+    backgroundColor: colors.accent.redSubtle,
     borderRadius: Radius.md,
     borderWidth: 1,
     borderColor: 'rgba(255,93,90,0.22)',
@@ -388,12 +390,12 @@ const styles = StyleSheet.create({
   errorTitle: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.sm,
-    color: Colors.accent.red,
+    color: colors.accent.red,
   },
   errorText: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.xs,
-    color: Colors.text.muted,
+    color: colors.text.muted,
   },
 
   // Results
@@ -411,7 +413,7 @@ const styles = StyleSheet.create({
   resultMetaText: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.xs,
-    color: Colors.text.muted,
+    color: colors.text.muted,
   },
   metaBadgeLow: {
     paddingHorizontal: 7,
@@ -428,10 +430,10 @@ const styles = StyleSheet.create({
   },
 
   statsCard: {
-    backgroundColor: Colors.bg.surface,
+    backgroundColor: colors.bg.surface,
     borderRadius: Radius.xl,
     borderWidth: 1,
-    borderColor: Colors.border.default,
+    borderColor: colors.border.default,
     overflow: 'hidden',
     marginBottom: Spacing.lg,
   },
@@ -441,7 +443,7 @@ const styles = StyleSheet.create({
   },
   statRowDivider: {
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border.default,
+    borderBottomColor: colors.border.default,
   },
   confStripe: {
     width: 3,
@@ -470,6 +472,6 @@ const styles = StyleSheet.create({
   legendText: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.xs,
-    color: Colors.text.muted,
+    color: colors.text.muted,
   },
 });

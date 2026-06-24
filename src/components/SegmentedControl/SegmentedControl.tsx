@@ -1,6 +1,7 @@
 import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
-import { styles } from './SegmentedControl.styles';
+import { makeStyles } from './SegmentedControl.styles';
+import { useColors } from '@/theme';
 
 interface SegmentedControlOption<T extends string> {
   value: T;
@@ -22,6 +23,8 @@ export function SegmentedControl<T extends string>({
   onChange,
   variant = 'boxed',
 }: SegmentedControlProps<T>) {
+  const colors = useColors();
+  const styles = makeStyles(colors);
   const isPill = variant === 'pill';
   return (
     <View style={isPill ? styles.trackPill : styles.trackBoxed}>

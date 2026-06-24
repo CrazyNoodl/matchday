@@ -5,7 +5,7 @@ import { useGoBack } from '@/utils/useGoBack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '@/store';
-import { Colors } from '@/theme/colors';
+import { useColors, AppColors } from '@/theme';
 import { FontFamily, FontSize } from '@/theme/typography';
 import { Radius, Spacing } from '@/theme/spacing';
 import { NavHeader } from '@/components/NavHeader';
@@ -13,6 +13,8 @@ import { Avatar } from '@/components/Avatar';
 import { GlowBackground } from '@/components/GlowBackground';
 
 export default function TournamentsScreen() {
+  const colors = useColors();
+  const styles = makeStyles(colors);
   const router = useRouter();
   const goBack = useGoBack();
   const { t } = useTranslation();
@@ -168,7 +170,7 @@ export default function TournamentsScreen() {
             value={renameText}
             onChangeText={setRenameText}
             placeholder={t('tournament.rename.placeholder')}
-            placeholderTextColor={Colors.text.placeholder}
+            placeholderTextColor={colors.text.placeholder}
             autoFocus
             returnKeyType="done"
             onSubmitEditing={handleRename}
@@ -232,8 +234,8 @@ export default function TournamentsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: Colors.bg.base },
+const makeStyles = (colors: AppColors) => StyleSheet.create({
+  root: { flex: 1, backgroundColor: colors.bg.base },
   scroll: { flex: 1 },
   scrollContent: {
     paddingHorizontal: Spacing.xl,
@@ -241,10 +243,10 @@ const styles = StyleSheet.create({
     gap: Spacing.md,
   },
   activeTour: {
-    backgroundColor: Colors.bg.surface,
+    backgroundColor: colors.bg.surface,
     borderRadius: Radius.xl,
     borderWidth: 1,
-    borderColor: Colors.accent.greenBorder,
+    borderColor: colors.accent.greenBorder,
     padding: Spacing.xl,
     gap: Spacing.md,
   },
@@ -257,7 +259,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.xs,
-    backgroundColor: Colors.accent.greenSubtle,
+    backgroundColor: colors.accent.greenSubtle,
     borderRadius: Radius.full,
     paddingHorizontal: Spacing.sm,
     paddingVertical: 3,
@@ -266,23 +268,23 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: Colors.accent.green,
+    backgroundColor: colors.accent.green,
   },
   liveText: {
     fontFamily: FontFamily.bodyBold,
     fontSize: FontSize.xs,
-    color: Colors.accent.green,
+    color: colors.accent.green,
     letterSpacing: 0.8,
   },
   roundBadge: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.sm,
-    color: Colors.text.muted,
+    color: colors.text.muted,
   },
   activeTourName: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize['2xl'],
-    color: Colors.text.primary,
+    color: colors.text.primary,
     letterSpacing: 0.3,
   },
   playerRow: {
@@ -293,15 +295,15 @@ const styles = StyleSheet.create({
   playerAvatar: {
     marginRight: -8,
     borderWidth: 2,
-    borderColor: Colors.bg.surface,
+    borderColor: colors.bg.surface,
   },
   moreAvatar: {
     width: 30,
     height: 30,
     borderRadius: 9,
-    backgroundColor: Colors.bg.elevated,
+    backgroundColor: colors.bg.elevated,
     borderWidth: 2,
-    borderColor: Colors.bg.surface,
+    borderColor: colors.bg.surface,
     alignItems: 'center',
     justifyContent: 'center',
     marginLeft: -8,
@@ -309,7 +311,7 @@ const styles = StyleSheet.create({
   moreAvatarText: {
     fontFamily: FontFamily.bodyBold,
     fontSize: FontSize.xs,
-    color: Colors.text.muted,
+    color: colors.text.muted,
   },
   activeTourActions: {
     flexDirection: 'row',
@@ -317,33 +319,33 @@ const styles = StyleSheet.create({
   },
   actionBtn: {
     flex: 1,
-    backgroundColor: Colors.bg.elevated,
+    backgroundColor: colors.bg.elevated,
     borderRadius: Radius.md,
     paddingVertical: Spacing.md,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: Colors.border.medium,
+    borderColor: colors.border.medium,
   },
   actionBtnDanger: {
-    backgroundColor: Colors.accent.redSubtle,
-    borderColor: Colors.accent.red + '44',
+    backgroundColor: colors.accent.redSubtle,
+    borderColor: colors.accent.red + '44',
   },
   actionBtnText: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.sm,
-    color: Colors.text.secondary,
+    color: colors.text.secondary,
   },
   actionBtnTextDanger: {
-    color: Colors.accent.red,
+    color: colors.accent.red,
   },
   startNew: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.md,
-    backgroundColor: Colors.bg.surface,
+    backgroundColor: colors.bg.surface,
     borderRadius: Radius.xl,
     borderWidth: 1,
-    borderColor: Colors.accent.greenBorder,
+    borderColor: colors.accent.greenBorder,
     borderStyle: 'dashed',
     padding: Spacing.xl,
     justifyContent: 'center',
@@ -351,19 +353,19 @@ const styles = StyleSheet.create({
   startNewIcon: {
     fontFamily: FontFamily.bodyBold,
     fontSize: FontSize.xl,
-    color: Colors.accent.green,
+    color: colors.accent.green,
     lineHeight: 26,
   },
   startNewText: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize.lg,
-    color: Colors.accent.green,
+    color: colors.accent.green,
     letterSpacing: 0.3,
   },
   pastHeader: {
     fontFamily: FontFamily.bodyBold,
     fontSize: FontSize.xs,
-    color: Colors.text.placeholder,
+    color: colors.text.placeholder,
     letterSpacing: 1.2,
     marginTop: Spacing.md,
     paddingLeft: Spacing.xs,
@@ -371,10 +373,10 @@ const styles = StyleSheet.create({
   pastRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.bg.surface,
+    backgroundColor: colors.bg.surface,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: Colors.border.default,
+    borderColor: colors.border.default,
     padding: Spacing.md,
     gap: Spacing.sm,
   },
@@ -385,12 +387,12 @@ const styles = StyleSheet.create({
   pastName: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize.base,
-    color: Colors.text.primary,
+    color: colors.text.primary,
   },
   pastDate: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.xs,
-    color: Colors.text.muted,
+    color: colors.text.muted,
   },
   champDot: {
     width: 14,
@@ -400,13 +402,13 @@ const styles = StyleSheet.create({
   champName: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.sm,
-    color: Colors.text.secondary,
+    color: colors.text.secondary,
     maxWidth: 80,
   },
   pastChevron: {
     fontFamily: FontFamily.display,
     fontSize: FontSize.xl,
-    color: Colors.text.muted,
+    color: colors.text.muted,
     lineHeight: 24,
   },
   // Sheet
@@ -419,7 +421,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: Colors.bg.sheet,
+    backgroundColor: colors.bg.sheet,
     borderTopLeftRadius: Radius['3xl'],
     borderTopRightRadius: Radius['3xl'],
     paddingHorizontal: Spacing.xl,
@@ -430,28 +432,28 @@ const styles = StyleSheet.create({
     width: 40,
     height: 4,
     borderRadius: 2,
-    backgroundColor: Colors.border.strong,
+    backgroundColor: colors.border.strong,
     alignSelf: 'center',
     marginBottom: Spacing.xl,
   },
   sheetTitle: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize['2xl'],
-    color: Colors.text.primary,
+    color: colors.text.primary,
     letterSpacing: 0.5,
     textAlign: 'center',
     marginBottom: Spacing.xl,
   },
   renameInput: {
-    backgroundColor: Colors.bg.elevated,
+    backgroundColor: colors.bg.elevated,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: Colors.border.default,
+    borderColor: colors.border.default,
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
     fontFamily: FontFamily.body,
     fontSize: FontSize.base,
-    color: Colors.text.primary,
+    color: colors.text.primary,
     marginBottom: Spacing.xl,
   },
   sheetActions: {
@@ -460,39 +462,39 @@ const styles = StyleSheet.create({
   },
   cancelBtn: {
     flex: 1,
-    backgroundColor: Colors.bg.elevated,
+    backgroundColor: colors.bg.elevated,
     borderRadius: Radius.md,
     paddingVertical: Spacing.lg,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: Colors.border.medium,
+    borderColor: colors.border.medium,
   },
   cancelBtnText: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize.base,
-    color: Colors.text.muted,
+    color: colors.text.muted,
     letterSpacing: 0.5,
   },
   saveBtn: {
     flex: 2,
-    backgroundColor: Colors.accent.green,
+    backgroundColor: colors.accent.green,
     borderRadius: Radius.md,
     paddingVertical: Spacing.lg,
     alignItems: 'center',
   },
   saveBtnDisabled: {
-    backgroundColor: Colors.bg.elevated,
+    backgroundColor: colors.bg.elevated,
     borderWidth: 1,
-    borderColor: Colors.border.medium,
+    borderColor: colors.border.medium,
   },
   saveBtnText: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize.base,
-    color: Colors.accent.greenDark,
+    color: colors.accent.greenDark,
     letterSpacing: 0.5,
   },
   saveBtnTextDisabled: {
-    color: Colors.text.ghost,
+    color: colors.text.ghost,
   },
   // Dialog
   dialogOverlay: {
@@ -503,10 +505,10 @@ const styles = StyleSheet.create({
     padding: Spacing['2xl'],
   },
   dialog: {
-    backgroundColor: Colors.bg.surface,
+    backgroundColor: colors.bg.surface,
     borderRadius: Radius['2xl'],
     borderWidth: 1,
-    borderColor: Colors.border.medium,
+    borderColor: colors.border.medium,
     padding: Spacing['2xl'],
     width: '100%',
     gap: Spacing.md,
@@ -518,13 +520,13 @@ const styles = StyleSheet.create({
   dialogTitle: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize.xl,
-    color: Colors.text.primary,
+    color: colors.text.primary,
     letterSpacing: 0.5,
   },
   dialogDesc: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.base,
-    color: Colors.text.muted,
+    color: colors.text.muted,
     textAlign: 'center',
     lineHeight: 20,
   },
@@ -535,21 +537,21 @@ const styles = StyleSheet.create({
   },
   dialogCancel: {
     flex: 1,
-    backgroundColor: Colors.bg.elevated,
+    backgroundColor: colors.bg.elevated,
     borderRadius: Radius.md,
     paddingVertical: Spacing.md,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: Colors.border.medium,
+    borderColor: colors.border.medium,
   },
   dialogCancelText: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.base,
-    color: Colors.text.muted,
+    color: colors.text.muted,
   },
   dialogConfirm: {
     flex: 1,
-    backgroundColor: Colors.accent.red,
+    backgroundColor: colors.accent.red,
     borderRadius: Radius.md,
     paddingVertical: Spacing.md,
     alignItems: 'center',

@@ -12,7 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '@/store';
 import { calculateStandings } from '@/utils/standings';
-import { Colors } from '@/theme/colors';
+import { useColors, AppColors } from '@/theme';
 import { FontFamily, FontSize } from '@/theme/typography';
 import { Radius, Spacing } from '@/theme/spacing';
 import { NavHeader } from '@/components/NavHeader';
@@ -33,6 +33,8 @@ interface DayWinnerBannerProps {
 }
 
 function DayWinnerBanner({ winnerId, matchCount }: DayWinnerBannerProps) {
+  const colors = useColors();
+  const styles = makeStyles(colors);
   const { t } = useTranslation();
   const player = useStore((s) => s.players.find((p) => p.id === winnerId));
   const name = player?.name ?? '—';
@@ -56,6 +58,8 @@ function DayWinnerBanner({ winnerId, matchCount }: DayWinnerBannerProps) {
 // ---------------------------------------------------------------------------
 
 export default function ArchiveDayScreen() {
+  const colors = useColors();
+  const styles = makeStyles(colors);
   const router = useRouter();
   const goBack = useGoBack();
   const { t } = useTranslation();
@@ -198,10 +202,10 @@ export default function ArchiveDayScreen() {
 // Styles
 // ---------------------------------------------------------------------------
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: AppColors) => StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: Colors.bg.base,
+    backgroundColor: colors.bg.base,
   },
   scroll: {
     flex: 1,
@@ -217,14 +221,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.xs,
     borderRadius: Radius.md,
-    backgroundColor: Colors.accent.greenSubtle,
+    backgroundColor: colors.accent.greenSubtle,
     borderWidth: 1,
-    borderColor: Colors.accent.greenBorder,
+    borderColor: colors.accent.greenBorder,
   },
   shareBtnText: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.xs,
-    color: Colors.accent.green,
+    color: colors.accent.green,
     letterSpacing: 0.5,
   },
 
@@ -242,14 +246,14 @@ const styles = StyleSheet.create({
   winnerLabel: {
     fontFamily: FontFamily.bodyBold,
     fontSize: FontSize.xs,
-    color: Colors.accent.gold,
+    color: colors.accent.gold,
     letterSpacing: 2,
     textTransform: 'uppercase',
   },
   winnerMatchCount: {
     fontFamily: FontFamily.bodyBold,
     fontSize: FontSize.xs,
-    color: Colors.text.muted,
+    color: colors.text.muted,
     letterSpacing: 0.8,
     textTransform: 'uppercase',
   },
@@ -259,7 +263,7 @@ const styles = StyleSheet.create({
   winnerName: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize.lg,
-    color: Colors.text.primary,
+    color: colors.text.primary,
     letterSpacing: 0.2,
   },
 
@@ -281,7 +285,7 @@ const styles = StyleSheet.create({
   emptyMatchesText: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.sm,
-    color: Colors.text.muted,
+    color: colors.text.muted,
   },
 
   // ---- Error fallback ----
@@ -293,6 +297,6 @@ const styles = StyleSheet.create({
   errorText: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.base,
-    color: Colors.text.muted,
+    color: colors.text.muted,
   },
 });

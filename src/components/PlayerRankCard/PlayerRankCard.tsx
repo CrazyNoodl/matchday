@@ -1,8 +1,8 @@
 import React from 'react';
 import { StyleProp, Text, View, ViewStyle } from 'react-native';
-import { Colors } from '@/theme/colors';
+import { useColors } from '@/theme';
 import { Avatar } from '@/components/Avatar';
-import { styles } from './PlayerRankCard.styles';
+import { makeStyles } from './PlayerRankCard.styles';
 
 export interface RankMedal {
   badgeColor: string;
@@ -36,11 +36,13 @@ export function PlayerRankCard({
   emphasized,
   style,
 }: PlayerRankCardProps) {
+  const colors = useColors();
+  const styles = makeStyles(colors);
   return (
     <View
       style={[
         styles.card,
-        { borderColor: medal ? medal.cardBorder : Colors.border.default },
+        { borderColor: medal ? medal.cardBorder : colors.border.default },
         emphasized && styles.cardEmphasized,
         style,
       ]}
@@ -51,7 +53,7 @@ export function PlayerRankCard({
           { backgroundColor: medal ? medal.badgeBg : 'rgba(255,255,255,0.06)' },
         ]}
       >
-        <Text style={[styles.medalText, { color: medal ? medal.badgeColor : Colors.text.muted }]}>
+        <Text style={[styles.medalText, { color: medal ? medal.badgeColor : colors.text.muted }]}>
           {rank}
         </Text>
       </View>
