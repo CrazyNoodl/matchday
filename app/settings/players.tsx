@@ -7,9 +7,9 @@ import {
   TouchableOpacity,
   TextInput,
   Modal,
-  Pressable,
   Platform,
 } from 'react-native';
+import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { useRouter } from 'expo-router';
 import { useGoBack } from '@/utils/useGoBack';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -21,6 +21,7 @@ import { NavHeader } from '@/components/NavHeader';
 import { Avatar } from '@/components/Avatar';
 import { TeamBadge } from '@/components/TeamBadge';
 import { EmptyState } from '@/components/EmptyState';
+import { Sheet } from '@/components/Sheet/Sheet';
 import { GlowBackground } from '@/components/GlowBackground';
 import { Player } from '@/store/types';
 import { useTranslation } from 'react-i18next';
@@ -174,21 +175,13 @@ export default function PlayersScreen() {
       </ScrollView>
 
       {/* Edit / Create Sheet */}
-      <Modal
-        visible={showEdit}
-        transparent
-        animationType="slide"
-        statusBarTranslucent
-        onRequestClose={() => setShowEdit(false)}
-      >
-        <Pressable style={styles.overlay} onPress={() => setShowEdit(false)} />
+      <Sheet visible={showEdit} onClose={() => setShowEdit(false)}>
         <View style={styles.sheet}>
-          <View style={styles.sheetHandle} />
           <Text style={styles.sheetTitle}>
             {editingPlayer ? t('players.editTitle') : t('setup.newPlayer')}
           </Text>
 
-          <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+          <BottomSheetScrollView style={{ maxHeight: 360 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
             <View style={styles.formGroup}>
               <Text style={styles.formLabel}>{t('setup.form.name')}</Text>
               <TextInput
@@ -259,7 +252,7 @@ export default function PlayersScreen() {
                 ))}
               </View>
             </View>
-          </ScrollView>
+          </BottomSheetScrollView>
 
           <View style={styles.sheetActions}>
             <TouchableOpacity
@@ -284,7 +277,7 @@ export default function PlayersScreen() {
           </View>
           {Platform.OS === 'ios' && <View style={{ height: 16 }} />}
         </View>
-      </Modal>
+      </Sheet>
 
       {/* Cannot delete dialog */}
       <Modal
@@ -419,30 +412,11 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   // Sheet
-  overlay: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-  },
   sheet: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
     backgroundColor: Colors.bg.sheet,
-    borderTopLeftRadius: Radius['3xl'],
-    borderTopRightRadius: Radius['3xl'],
     paddingHorizontal: Spacing.xl,
     paddingTop: Spacing.lg,
     paddingBottom: Platform.OS === 'ios' ? 32 : Spacing['2xl'],
-    maxHeight: '85%',
-  },
-  sheetHandle: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: Colors.border.strong,
-    alignSelf: 'center',
-    marginBottom: Spacing.xl,
   },
   sheetTitle: {
     fontFamily: FontFamily.displayBold,

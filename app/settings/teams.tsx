@@ -8,9 +8,9 @@ import {
   TouchableOpacity,
   TextInput,
   Modal,
-  Pressable,
   Platform,
 } from 'react-native';
+import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import { useGoBack } from '@/utils/useGoBack';
@@ -21,6 +21,7 @@ import { FontFamily, FontSize } from '@/theme/typography';
 import { Radius, Spacing } from '@/theme/spacing';
 import { NavHeader } from '@/components/NavHeader';
 import { TeamBadge } from '@/components/TeamBadge';
+import { Sheet } from '@/components/Sheet/Sheet';
 import { EmptyState } from '@/components/EmptyState';
 import { GlowBackground } from '@/components/GlowBackground';
 import { Team } from '@/store/types';
@@ -200,21 +201,13 @@ export default function TeamsScreen() {
       </ScrollView>
 
       {/* Edit / Create Sheet */}
-      <Modal
-        visible={showEdit}
-        transparent
-        animationType="slide"
-        statusBarTranslucent
-        onRequestClose={() => setShowEdit(false)}
-      >
-        <Pressable style={styles.overlay} onPress={() => setShowEdit(false)} />
+      <Sheet visible={showEdit} onClose={() => setShowEdit(false)}>
         <View style={styles.sheet}>
-          <View style={styles.sheetHandle} />
           <Text style={styles.sheetTitle}>
             {editingTeam ? t('teams.editTitle') : 'NEW TEAM'}
           </Text>
 
-          <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+          <BottomSheetScrollView style={{ maxHeight: 360 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
             <View style={styles.formGroup}>
               <Text style={styles.formLabel}>TEAM NAME</Text>
               <TextInput
@@ -285,7 +278,7 @@ export default function TeamsScreen() {
                 ))}
               </View>
             </View>
-          </ScrollView>
+          </BottomSheetScrollView>
 
           <View style={styles.sheetActions}>
             <TouchableOpacity
@@ -318,7 +311,7 @@ export default function TeamsScreen() {
           </View>
           {Platform.OS === 'ios' && <View style={{ height: 16 }} />}
         </View>
-      </Modal>
+      </Sheet>
 
       {/* Cannot delete dialog */}
       <Modal
@@ -450,30 +443,11 @@ const styles = StyleSheet.create({
     color: Colors.accent.red,
     lineHeight: 22,
   },
-  overlay: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-  },
   sheet: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
     backgroundColor: Colors.bg.sheet,
-    borderTopLeftRadius: Radius['3xl'],
-    borderTopRightRadius: Radius['3xl'],
     paddingHorizontal: Spacing.xl,
     paddingTop: Spacing.lg,
     paddingBottom: Platform.OS === 'ios' ? 32 : Spacing['2xl'],
-    maxHeight: '80%',
-  },
-  sheetHandle: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: Colors.border.strong,
-    alignSelf: 'center',
-    marginBottom: Spacing.xl,
   },
   sheetTitle: {
     fontFamily: FontFamily.displayBold,

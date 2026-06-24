@@ -9,6 +9,13 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.6.3',
+    fixed: [
+      'Bottom sheets (New Match Day, Add Match, Edit Score/Stats, etc.) now swipe down to dismiss and size themselves to fit their content',
+      'Standings tables (current round, tournament overview, archived rounds) keep the player column fixed in place while the stats scroll horizontally',
+    ],
+  },
+  {
     version: '1.6.2',
     fixed: [
       'Deleting a player no longer leaves dangling references in closed tournament standings',

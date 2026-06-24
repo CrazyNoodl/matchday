@@ -3,12 +3,10 @@ import {
   View,
   Text,
   StyleSheet,
-  Modal,
-  Pressable,
   TouchableOpacity,
-  ScrollView,
   Platform,
 } from 'react-native';
+import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '@/store';
@@ -16,6 +14,7 @@ import { Colors } from '@/theme/colors';
 import { FontFamily, FontSize } from '@/theme/typography';
 import { Radius, Spacing } from '@/theme/spacing';
 import { Avatar } from '@/components/Avatar';
+import { Sheet } from '@/components/Sheet/Sheet';
 
 // ---------------------------------------------------------------------------
 // Shared "start a new round" sheet — used by the Home screen and the
@@ -65,18 +64,8 @@ export function NewRoundModal() {
   };
 
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="slide"
-      statusBarTranslucent
-      onRequestClose={close}
-    >
-      <View style={styles.container}>
-        <Pressable style={styles.overlay} onPress={close} />
+    <Sheet visible={visible} onClose={close}>
         <View style={styles.sheet}>
-          <View style={styles.handle} />
-
           <Text style={styles.title}>{t('tournament.newRound.title')}</Text>
           <Text style={styles.subtitle} numberOfLines={1}>
             {t('tournament.newRound.subtitle', { name: tournamentName, round: rankedCompleted + 1 })}
@@ -113,7 +102,7 @@ export function NewRoundModal() {
             {t('tournament.newRound.playersLabel', { count: newRoundPlayerIds.size })}
           </Text>
 
-          <ScrollView style={styles.playersList} showsVerticalScrollIndicator={false}>
+          <BottomSheetScrollView style={styles.playersList} showsVerticalScrollIndicator={false}>
             {players.map((player) => {
               const selected = newRoundPlayerIds.has(player.id);
               return (
@@ -146,7 +135,7 @@ export function NewRoundModal() {
                 </TouchableOpacity>
               );
             })}
-          </ScrollView>
+          </BottomSheetScrollView>
 
           {newRoundPlayerIds.size < 2 && (
             <Text style={styles.minPlayersHint}>{t('tournament.newRound.minPlayers')}</Text>
@@ -170,38 +159,16 @@ export function NewRoundModal() {
 
           {Platform.OS === 'ios' && <View style={{ height: 16 }} />}
         </View>
-      </View>
-    </Modal>
+    </Sheet>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  overlay: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: 'rgba(0,0,0,0.65)',
-  },
   sheet: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
     backgroundColor: Colors.bg.sheet,
-    borderTopLeftRadius: Radius['3xl'],
-    borderTopRightRadius: Radius['3xl'],
     paddingHorizontal: Spacing.xl,
     paddingTop: Spacing.lg,
     paddingBottom: Spacing['2xl'],
-  },
-  handle: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: Colors.border.strong,
-    alignSelf: 'center',
-    marginBottom: Spacing.lg,
   },
   title: {
     fontFamily: FontFamily.displayBold,
@@ -281,7 +248,7 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.sm,
   },
   playersList: {
-    maxHeight: 220,
+    maxHeight: 280,
     marginBottom: Spacing.sm,
   },
   playerRow: {
