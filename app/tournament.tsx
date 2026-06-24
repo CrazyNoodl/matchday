@@ -6,7 +6,6 @@ import {
   ScrollView,
   TouchableOpacity,
   Modal,
-  Pressable,
   TextInput,
   Platform,
 } from 'react-native';
@@ -18,28 +17,19 @@ import { formatShortDate } from '@/utils/dateFormat';
 import { Colors } from '@/theme/colors';
 import { FontFamily, FontSize } from '@/theme/typography';
 import { Radius, Spacing } from '@/theme/spacing';
-import { Avatar } from '@/components/Avatar';
 import { SectionLabel } from '@/components/SectionLabel';
 import { GlowBackground } from '@/components/GlowBackground';
 import { RoundCard } from '@/components/RoundCard';
 import { ShareStandingsModal } from '@/components/ShareStandingsModal';
 import { NewRoundModal } from '@/components/NewRoundModal';
+import { Sheet } from '@/components/Sheet/Sheet';
+import { StandingsTable } from '@/components/StandingsTable';
 import { useTranslation } from 'react-i18next';
 
 // ---------------------------------------------------------------------------
 // Column definitions (outside component to avoid recreation on every render)
 // ---------------------------------------------------------------------------
 
-const TOUR_TABLE_COLS = [
-  { key: 'И', tKey: 'table.played' },
-  { key: 'В', tKey: 'table.wins' },
-  { key: 'Н', tKey: 'table.draws' },
-  { key: 'П', tKey: 'table.losses' },
-  { key: 'ГЗ', tKey: 'table.gf' },
-  { key: 'ГП', tKey: 'table.ga' },
-  { key: 'РГ', tKey: 'table.gd' },
-  { key: 'О', tKey: 'table.pts' },
-];
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -134,70 +124,24 @@ export default function TournamentScreen() {
         {/* ---- TOURNAMENT STANDINGS ---- */}
         <SectionLabel label={t('tournament.standings')} style={styles.sectionLabel} />
 
-        <View style={styles.tableContainer}>
-          {/* Table header */}
-          <View style={styles.tableHeaderRow}>
-            <Text style={[styles.tableHeaderCell, styles.tablePlayerCol]}>
-              {t('table.player')}
-            </Text>
-            {TOUR_TABLE_COLS.map((col) => (
-              <Text key={col.key} style={[styles.tableHeaderCell, styles.tableNumCol]}>
-                {t(col.tKey)}
-              </Text>
-            ))}
-          </View>
-
-          {/* Rows */}
-          {standings.length === 0 ? (
-            <View style={styles.tableEmpty}>
-              <Text style={styles.tableEmptyText}>{t('tournament.noMatches')}</Text>
-            </View>
-          ) : (
-            standings.map((s, idx) => {
-              const player = players.find((p) => p.id === s.playerId);
-              const isLeader = idx === 0 && s.played > 0;
-              const gdColor =
-                s.gd > 0
-                  ? Colors.accent.green
-                  : s.gd < 0
-                  ? Colors.accent.red
-                  : Colors.text.muted;
-
-              return (
-                <View
-                  key={s.playerId}
-                  style={[styles.tableRow, isLeader && styles.tableRowLeader]}
-                >
-                  <View style={[styles.tablePlayerCol, styles.tablePlayerInner]}>
-                    <Avatar playerId={s.playerId} size="sm" style={styles.tableAvatar} />
-                    <View style={styles.tablePlayerNames}>
-                      <Text style={styles.tablePlayerName} numberOfLines={1}>
-                        {player?.name ?? 'Unknown'}
-                      </Text>
-                      {player?.nick ? (
-                        <Text style={styles.tablePlayerNick} numberOfLines={1}>
-                          @{player.nick}
-                        </Text>
-                      ) : null}
-                    </View>
-                  </View>
-                  <Text style={[styles.tableNumCol, styles.tableCell]}>{s.played}</Text>
-                  <Text style={[styles.tableNumCol, styles.tableCell]}>{s.wins}</Text>
-                  <Text style={[styles.tableNumCol, styles.tableCell]}>{s.draws}</Text>
-                  <Text style={[styles.tableNumCol, styles.tableCell]}>{s.losses}</Text>
-                  <Text style={[styles.tableNumCol, styles.tableCell]}>{s.gf}</Text>
-                  <Text style={[styles.tableNumCol, styles.tableCell]}>{s.ga}</Text>
-                  <Text style={[styles.tableNumCol, styles.tableCell, { color: gdColor }]}>
-                    {s.gd > 0 ? `+${s.gd}` : s.gd}
-                  </Text>
-                  <Text style={[styles.tableNumCol, styles.tableCell, styles.tablePtsCell]}>
-                    {s.pts}
-                  </Text>
-                </View>
-              );
-            })
-          )}
-        </View>
+        <StandingsTable
+          standings={standings}
+          players={players}
+          playerLabel={t('table.player')}
+          emptyLabel={t('tournament.noMatches')}
+          columns={[
+            { key: 'played', label: t('table.played') },
+            { key: 'wins', label: t('table.wins') },
+            { key: 'draws', label: t('table.draws') },
+            { key: 'losses', label: t('table.losses') },
+            { key: 'gf', label: t('table.gf') },
+            { key: 'ga', label: t('table.ga') },
+            { key: 'gd', label: t('table.gd') },
+            { key: 'pts', label: t('table.pts') },
+            { key: 'gfPerGame', label: t('table.gfPerGame') },
+            { key: 'gaPerGame', label: t('table.gaPerGame') },
+          ]}
+        />
 
         {/* ---- CURRENT MATCH DAY (only if roundOpen) ---- */}
         {roundOpen && (
@@ -302,18 +246,8 @@ export default function TournamentScreen() {
           ================================================================ */}
 
       {/* ---- Tour Settings Sheet ---- */}
-      <Modal
-        visible={modal === 'tourSettings'}
-        transparent
-        animationType="slide"
-        statusBarTranslucent
-        onRequestClose={() => store.setModal(null)}
-      >
-        <View style={sheetStyles.container}>
-          <Pressable style={sheetStyles.overlay} onPress={() => store.setModal(null)} />
+      <Sheet visible={modal === 'tourSettings'} onClose={() => store.setModal(null)}>
           <View style={sheetStyles.sheet}>
-            <View style={sheetStyles.handle} />
-
             {/* Header row */}
             <View style={sheetStyles.sheetHeaderRow}>
               <View style={sheetStyles.sheetTitleBlock}>
@@ -386,24 +320,11 @@ export default function TournamentScreen() {
 
             {Platform.OS === 'ios' && <View style={{ height: 16 }} />}
           </View>
-        </View>
-      </Modal>
+      </Sheet>
 
       {/* ---- Edit Tournament Name Sheet ---- */}
-      <Modal
-        visible={modal === 'editTourName'}
-        transparent
-        animationType="slide"
-        statusBarTranslucent
-        onRequestClose={() => store.setModal('tourSettings')}
-      >
-        <View style={sheetStyles.container}>
-          <Pressable
-            style={sheetStyles.overlay}
-            onPress={() => store.setModal('tourSettings')}
-          />
+      <Sheet visible={modal === 'editTourName'} onClose={() => store.setModal('tourSettings')}>
           <View style={sheetStyles.sheet}>
-            <View style={sheetStyles.handle} />
             <Text style={sheetStyles.sheetTitle}>{t('tournament.rename.title')}</Text>
             <TextInput
               style={inputStyles.input}
@@ -456,8 +377,7 @@ export default function TournamentScreen() {
             </View>
             {Platform.OS === 'ios' && <View style={{ height: 16 }} />}
           </View>
-        </View>
-      </Modal>
+      </Sheet>
 
       {/* ---- Close Tournament Confirmation ---- */}
       <Modal
@@ -593,94 +513,6 @@ const styles = StyleSheet.create({
     marginTop: Spacing.xl,
   },
 
-  // ---- Standings Table ----
-  tableContainer: {
-    backgroundColor: Colors.bg.surface,
-    borderRadius: Radius.xl,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: Colors.border.default,
-  },
-  tableHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    backgroundColor: Colors.bg.elevated,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border.default,
-  },
-  tableHeaderCell: {
-    fontFamily: FontFamily.bodyBold,
-    fontSize: FontSize.xs,
-    color: Colors.text.muted,
-    textAlign: 'center',
-    letterSpacing: 0.3,
-  },
-  tablePlayerCol: {
-    width: 110,
-    textAlign: 'left',
-  },
-  tableNumCol: {
-    width: 28,
-    textAlign: 'center',
-  },
-  tableRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border.default,
-  },
-  tableRowLeader: {
-    backgroundColor: Colors.accent.greenSubtle,
-  },
-  tablePlayerInner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.xs,
-  },
-  tableAvatar: {
-    width: 22,
-    height: 22,
-    borderRadius: 7,
-  },
-  tablePlayerNames: {
-    flex: 1,
-    gap: 1,
-  },
-  tablePlayerName: {
-    fontFamily: FontFamily.bodySemiBold,
-    fontSize: FontSize.xs,
-    color: Colors.text.primary,
-  },
-  tablePlayerNick: {
-    fontFamily: FontFamily.body,
-    fontSize: FontSize.xs,
-    color: Colors.text.muted,
-  },
-  tableCell: {
-    fontFamily: FontFamily.body,
-    fontSize: FontSize.xs,
-    color: Colors.text.secondary,
-    textAlign: 'center',
-  },
-  tablePtsCell: {
-    fontFamily: FontFamily.displayBold,
-    fontSize: FontSize.base,
-    color: Colors.accent.green,
-  },
-  tableEmpty: {
-    paddingVertical: Spacing['2xl'],
-    alignItems: 'center',
-  },
-  tableEmptyText: {
-    fontFamily: FontFamily.body,
-    fontSize: FontSize.sm,
-    color: Colors.text.muted,
-  },
-
   // ---- Current Match Day Card ----
   matchDayCard: {
     flexDirection: 'row',
@@ -810,32 +642,11 @@ const styles = StyleSheet.create({
 // ---------------------------------------------------------------------------
 
 const sheetStyles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  overlay: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: 'rgba(0,0,0,0.65)',
-  },
   sheet: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
     backgroundColor: Colors.bg.sheet,
-    borderTopLeftRadius: Radius['3xl'],
-    borderTopRightRadius: Radius['3xl'],
     paddingHorizontal: Spacing.xl,
     paddingTop: Spacing.lg,
     paddingBottom: Spacing['2xl'],
-  },
-  handle: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: Colors.border.strong,
-    alignSelf: 'center',
-    marginBottom: Spacing.lg,
   },
   sheetHeaderRow: {
     flexDirection: 'row',

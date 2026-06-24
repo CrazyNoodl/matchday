@@ -54,7 +54,12 @@ module.exports = {
     ],
     experiments: {
       typedRoutes: true,
-      baseUrl: '/matchday',
+      ...(process.env.EXPO_WEB_BUILD ? { baseUrl: '/matchday' } : {}),
+    },
+    extra: {
+      eas: {
+        projectId: '9f3fad92-7658-4826-ae80-43b52e0a1f72',
+      },
     },
   },
 };

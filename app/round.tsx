@@ -7,12 +7,12 @@ import {
   ScrollView,
   TouchableOpacity,
   Modal,
-  Pressable,
   TextInput,
   Platform,
   Animated,
   Dimensions,
 } from 'react-native';
+import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
@@ -25,8 +25,10 @@ import { Avatar } from '@/components/Avatar';
 import { TeamBadge } from '@/components/TeamBadge';
 import { MatchCard } from '@/components/MatchCard';
 import { StandingCard } from '@/components/StandingCard';
+import { StandingsTable } from '@/components/StandingsTable';
 import { ScoreCounter } from '@/components/ScoreCounter';
 import { SectionLabel } from '@/components/SectionLabel';
+import { Sheet } from '@/components/Sheet/Sheet';
 import { EmptyState } from '@/components/EmptyState';
 import { MediaThumbnail } from '@/components/MediaThumbnail';
 import { GlowBackground } from '@/components/GlowBackground';
@@ -40,19 +42,6 @@ import { extractStatsFromPhoto } from '@/utils/extractStats';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 type StandingsView = 'table' | 'cards';
-
-const TABLE_COLS = [
-  { key: 'И', tKey: 'table.played', perGame: false, pts: false },
-  { key: 'В', tKey: 'table.wins', perGame: false, pts: false },
-  { key: 'Н', tKey: 'table.draws', perGame: false, pts: false },
-  { key: 'П', tKey: 'table.losses', perGame: false, pts: false },
-  { key: 'ГЗ', tKey: 'table.gf', perGame: false, pts: false },
-  { key: 'ГП', tKey: 'table.ga', perGame: false, pts: false },
-  { key: 'РГ', tKey: 'table.gd', perGame: false, pts: false },
-  { key: 'О', tKey: 'table.pts', perGame: false, pts: true },
-  { key: 'ГЗ/і', tKey: 'table.gfPerGame', perGame: true, pts: false },
-  { key: 'ГП/і', tKey: 'table.gaPerGame', perGame: true, pts: false },
-] as const;
 
 // ---- Add Match sheet step state ----
 interface AddMatchState {
@@ -689,86 +678,25 @@ export default function MatchdayScreen() {
       >
         {/* Standings */}
         {standingsView === 'table' ? (
-          <View style={styles.tableCard}>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <View>
-                {/* Table header */}
-                <View style={styles.tableHeader}>
-                  <Text style={[styles.tableCell, styles.tableCellPlayer]}>{t('table.player')}</Text>
-                  {TABLE_COLS.map((col) => (
-                    <Text
-                      key={col.key}
-                      style={[
-                        styles.tableCell,
-                        col.perGame ? styles.tableCellPerGame : styles.tableCellNum,
-                        col.pts && styles.tableCellPts,
-                      ]}
-                    >
-                      {t(col.tKey)}
-                    </Text>
-                  ))}
-                </View>
-                {/* Table rows */}
-                {standings.map((s, idx) => {
-                  const player = players.find((p) => p.id === s.playerId);
-                  const isLeader = idx === 0 && s.played > 0;
-                  const gfPerGame = s.played > 0 ? (s.gf / s.played).toFixed(1) : '—';
-                  const gaPerGame = s.played > 0 ? (s.ga / s.played).toFixed(1) : '—';
-                  return (
-                    <View
-                      key={s.playerId}
-                      style={[styles.tableRow, isLeader && styles.tableRowLeader]}
-                    >
-                      <View style={[styles.tableCellPlayer, styles.tableCellPlayerInner]}>
-                        <Avatar playerId={s.playerId} size="sm" />
-                        <Text style={styles.tablePlayerName} numberOfLines={1}>
-                          {player?.nick ?? player?.name ?? t('common.unknown')}
-                        </Text>
-                      </View>
-                      <Text style={[styles.tableCell, styles.tableCellNum]}>{s.played}</Text>
-                      <Text style={[styles.tableCell, styles.tableCellNum]}>{s.wins}</Text>
-                      <Text style={[styles.tableCell, styles.tableCellNum]}>{s.draws}</Text>
-                      <Text style={[styles.tableCell, styles.tableCellNum]}>{s.losses}</Text>
-                      <Text style={[styles.tableCell, styles.tableCellNum]}>{s.gf}</Text>
-                      <Text style={[styles.tableCell, styles.tableCellNum]}>{s.ga}</Text>
-                      <Text
-                        style={[
-                          styles.tableCell,
-                          styles.tableCellNum,
-                          {
-                            color:
-                              s.gd > 0
-                                ? Colors.accent.green
-                                : s.gd < 0
-                                ? Colors.accent.red
-                                : Colors.text.muted,
-                          },
-                        ]}
-                      >
-                        {s.gd > 0 ? '+' : ''}{s.gd}
-                      </Text>
-                      <Text
-                        style={[
-                          styles.tableCell,
-                          styles.tableCellNum,
-                          styles.tableCellPts,
-                          { color: Colors.accent.green },
-                        ]}
-                      >
-                        {s.pts}
-                      </Text>
-                      <Text style={[styles.tableCell, styles.tableCellNum, styles.tableCellPerGame]}>
-                        {gfPerGame}
-                      </Text>
-                      <Text style={[styles.tableCell, styles.tableCellNum, styles.tableCellPerGame]}>
-                        {gaPerGame}
-                      </Text>
-                    </View>
-                  );
-                })}
-              </View>
-            </ScrollView>
-          </View>
+          <StandingsTable
+            style={{ marginBottom: Spacing.lg }}
+            standings={standings}
+            players={players}
+            playerLabel={t('table.player')}
+            compact
+            columns={[
+              { key: 'played', label: t('table.played') },
+              { key: 'wins', label: t('table.wins') },
+              { key: 'draws', label: t('table.draws') },
+              { key: 'losses', label: t('table.losses') },
+              { key: 'gf', label: t('table.gf') },
+              { key: 'ga', label: t('table.ga') },
+              { key: 'gd', label: t('table.gd') },
+              { key: 'pts', label: t('table.pts') },
+              { key: 'gfPerGame', label: t('table.gfPerGame') },
+              { key: 'gaPerGame', label: t('table.gaPerGame') },
+            ]}
+          />
         ) : (
           <View style={styles.cardsContainer}>
             {standings.map((s, idx) => (
@@ -824,21 +752,11 @@ export default function MatchdayScreen() {
       )}
 
       {/* ---- ADD MATCH SHEET ---- */}
-      <Modal
+      <Sheet
         visible={modal === 'add'}
-        transparent
-        animationType="slide"
-        statusBarTranslucent
-        onRequestClose={() => { store.setModal(null); setAddMatch(initAddMatch()); }}
+        onClose={() => { store.setModal(null); setAddMatch(initAddMatch()); }}
       >
-        <View style={sheetStyles.container}>
-          <Pressable
-            style={sheetStyles.overlay}
-            onPress={() => { store.setModal(null); setAddMatch(initAddMatch()); }}
-          />
           <View style={sheetStyles.sheet}>
-            <View style={sheetStyles.sheetHandle} />
-
             {/* Progress bar */}
             <View style={sheetStyles.progressBar}>
               {Array.from({ length: totalSteps }).map((_, i) => (
@@ -861,14 +779,14 @@ export default function MatchdayScreen() {
               </Text>
             </View>
 
-            <ScrollView
+            <BottomSheetScrollView
               style={sheetStyles.contentScroll}
               contentContainerStyle={sheetStyles.contentScrollPad}
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
             >
               {renderStepContent()}
-            </ScrollView>
+            </BottomSheetScrollView>
 
             {/* Actions */}
             <View style={sheetStyles.actions}>
@@ -924,10 +842,9 @@ export default function MatchdayScreen() {
                 </TouchableOpacity>
               )}
             </View>
-            {Platform.OS === 'ios' && <View style={{ height: 16 }} />}
+            <View style={{ height: Platform.OS === 'ios' ? 32 : 20 }} />
           </View>
-        </View>
-      </Modal>
+      </Sheet>
 
       {/* ---- END ROUND DIALOG ---- */}
       <Modal
@@ -1176,72 +1093,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.xl,
     paddingBottom: Spacing['3xl'],
   },
-  tableCard: {
-    backgroundColor: Colors.bg.surface,
-    borderRadius: Radius.xl,
-    borderWidth: 1,
-    borderColor: Colors.border.default,
-    overflow: 'hidden',
-    marginBottom: Spacing.lg,
-  },
-  tableHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border.default,
-    backgroundColor: Colors.bg.elevated,
-  },
-  tableRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border.default,
-  },
-  tableRowLeader: {
-    backgroundColor: Colors.accent.greenSubtle,
-  },
-  tableCell: {
-    fontFamily: FontFamily.body,
-    fontSize: FontSize.xs,
-    color: Colors.text.muted,
-    textAlign: 'center',
-  },
-  tableCellPlayer: {
-    width: 100,
-    textAlign: 'left',
-  },
-  tableCellPlayerInner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.xs,
-  },
-  tableCellNum: {
-    width: 32,
-    fontFamily: FontFamily.body,
-    fontSize: FontSize.xs,
-    color: Colors.text.secondary,
-  },
-  tableCellPts: {
-    color: Colors.accent.green,
-    fontFamily: FontFamily.displayBold,
-    fontSize: FontSize.base,
-  },
-  tableCellPerGame: {
-    width: 38,
-    color: Colors.text.ghost,
-    fontFamily: FontFamily.body,
-    fontSize: FontSize.xs,
-  },
-  tablePlayerName: {
-    fontFamily: FontFamily.bodySemiBold,
-    fontSize: FontSize.xs,
-    color: Colors.text.primary,
-    flex: 1,
-  },
   cardsContainer: {
     marginBottom: Spacing.lg,
   },
@@ -1278,32 +1129,10 @@ const styles = StyleSheet.create({
 
 // ---- Sheet styles ----
 const sheetStyles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  overlay: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: 'rgba(0,0,0,0.65)',
-  },
   sheet: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
     backgroundColor: Colors.bg.sheet,
-    borderTopLeftRadius: Radius['3xl'],
-    borderTopRightRadius: Radius['3xl'],
     paddingHorizontal: Spacing.xl,
     paddingTop: Spacing.lg,
-    maxHeight: '90%',
-  },
-  sheetHandle: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: Colors.border.strong,
-    alignSelf: 'center',
-    marginBottom: Spacing.md,
   },
   progressBar: {
     flexDirection: 'row',
@@ -1339,7 +1168,7 @@ const sheetStyles = StyleSheet.create({
     letterSpacing: 0.8,
   },
   contentScroll: {
-    flex: 1,
+    maxHeight: 420,
   },
   contentScrollPad: {
     paddingBottom: Spacing.xl,

@@ -659,8 +659,7 @@ export function ShareRoundModal({ visible, onClose, round, tournamentName }: Sha
   return (
     <Modal
       visible={visible}
-      animationType="slide"
-      statusBarTranslucent
+      presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
       <SafeAreaView style={modalStyles.root} edges={['top', 'bottom']}>

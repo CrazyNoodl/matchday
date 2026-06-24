@@ -16,23 +16,12 @@ import { Colors } from '@/theme/colors';
 import { FontFamily, FontSize } from '@/theme/typography';
 import { Radius, Spacing } from '@/theme/spacing';
 import { NavHeader } from '@/components/NavHeader';
-import { Avatar } from '@/components/Avatar';
 import { SectionLabel } from '@/components/SectionLabel';
 import { MatchCard } from '@/components/MatchCard';
 import { ShareRoundModal, CardAvatar } from '@/components/ShareRoundModal';
+import { StandingsTable } from '@/components/StandingsTable';
 import { GlowBackground } from '@/components/GlowBackground';
 import { Match } from '@/store/types';
-
-const ROUND_TABLE_COLS = [
-  { tKey: 'table.played' },
-  { tKey: 'table.wins' },
-  { tKey: 'table.draws' },
-  { tKey: 'table.losses' },
-  { tKey: 'table.gf' },
-  { tKey: 'table.ga' },
-  { tKey: 'table.gd' },
-  { tKey: 'table.pts' },
-] as const;
 
 // ---------------------------------------------------------------------------
 // Day Winner Banner
@@ -141,63 +130,23 @@ export default function ArchiveDayScreen() {
               <SectionLabel label={t('tournament.standings')} />
             </View>
 
-            <View style={styles.tableContainer}>
-              {/* Header */}
-              <View style={styles.tableHeaderRow}>
-                <Text style={[styles.tableCell, styles.tablePlayerCol]}>
-                  {t('table.player')}
-                </Text>
-                {ROUND_TABLE_COLS.map((col) => (
-                  <Text key={col.tKey} style={[styles.tableCell, styles.tableNumCol]}>
-                    {t(col.tKey)}
-                  </Text>
-                ))}
-              </View>
-
-              {/* Rows */}
-              {standings.map((s, idx) => {
-                const player = players.find((p) => p.id === s.playerId);
-                const isLeader = idx === 0 && s.played > 0;
-                const gdColor =
-                  s.gd > 0
-                    ? Colors.accent.green
-                    : s.gd < 0
-                    ? Colors.accent.red
-                    : Colors.text.muted;
-                return (
-                  <View
-                    key={s.playerId}
-                    style={[styles.tableRow, isLeader && styles.tableRowLeader]}
-                  >
-                    <View style={[styles.tablePlayerCol, styles.tablePlayerInner]}>
-                      <Avatar playerId={s.playerId} size="sm" />
-                      <View style={styles.tablePlayerNames}>
-                        <Text style={styles.tablePlayerName} numberOfLines={1}>
-                          {player?.name ?? t('common.unknown')}
-                        </Text>
-                        {player?.nick ? (
-                          <Text style={styles.tablePlayerNick} numberOfLines={1}>
-                            @{player.nick}
-                          </Text>
-                        ) : null}
-                      </View>
-                    </View>
-                    <Text style={[styles.tableCell, styles.tableNumCol]}>{s.played}</Text>
-                    <Text style={[styles.tableCell, styles.tableNumCol]}>{s.wins}</Text>
-                    <Text style={[styles.tableCell, styles.tableNumCol]}>{s.draws}</Text>
-                    <Text style={[styles.tableCell, styles.tableNumCol]}>{s.losses}</Text>
-                    <Text style={[styles.tableCell, styles.tableNumCol]}>{s.gf}</Text>
-                    <Text style={[styles.tableCell, styles.tableNumCol]}>{s.ga}</Text>
-                    <Text style={[styles.tableCell, styles.tableNumCol, { color: gdColor }]}>
-                      {s.gd > 0 ? `+${s.gd}` : s.gd}
-                    </Text>
-                    <Text style={[styles.tableCell, styles.tableNumCol, styles.tablePtsCell]}>
-                      {s.pts}
-                    </Text>
-                  </View>
-                );
-              })}
-            </View>
+            <StandingsTable
+              standings={standings}
+              players={players}
+              playerLabel={t('table.player')}
+              columns={[
+                { key: 'played', label: t('table.played') },
+                { key: 'wins', label: t('table.wins') },
+                { key: 'draws', label: t('table.draws') },
+                { key: 'losses', label: t('table.losses') },
+                { key: 'gf', label: t('table.gf') },
+                { key: 'ga', label: t('table.ga') },
+                { key: 'gd', label: t('table.gd') },
+                { key: 'pts', label: t('table.pts') },
+                { key: 'gfPerGame', label: t('table.gfPerGame') },
+                { key: 'gaPerGame', label: t('table.gaPerGame') },
+              ]}
+            />
           </>
         )}
 
@@ -340,76 +289,5 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.body,
     fontSize: FontSize.base,
     color: Colors.text.muted,
-  },
-
-  // ---- Round standings table ----
-  tableContainer: {
-    backgroundColor: Colors.bg.surface,
-    borderRadius: Radius.xl,
-    borderWidth: 1,
-    borderColor: Colors.border.default,
-    overflow: 'hidden',
-    marginBottom: Spacing.xl,
-  },
-  tableHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border.default,
-    backgroundColor: Colors.bg.elevated,
-  },
-  tableRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.md,
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border.default,
-  },
-  tableRowLeader: {
-    backgroundColor: Colors.accent.greenSubtle,
-  },
-  tableCell: {
-    fontFamily: FontFamily.body,
-    fontSize: FontSize.xs,
-    color: Colors.text.muted,
-    textAlign: 'center',
-  },
-  tablePlayerCol: {
-    width: 110,
-    textAlign: 'left',
-  },
-  tablePlayerInner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.xs,
-  },
-  tablePlayerNames: {
-    flex: 1,
-    gap: 1,
-  },
-  tablePlayerName: {
-    fontFamily: FontFamily.bodySemiBold,
-    fontSize: FontSize.xs,
-    color: Colors.text.primary,
-  },
-  tablePlayerNick: {
-    fontFamily: FontFamily.body,
-    fontSize: 9,
-    color: Colors.text.muted,
-  },
-  tableNumCol: {
-    width: 30,
-    fontFamily: FontFamily.body,
-    fontSize: FontSize.xs,
-    color: Colors.text.secondary,
-    textAlign: 'center',
-  },
-  tablePtsCell: {
-    color: Colors.accent.green,
-    fontFamily: FontFamily.displayBold,
-    fontSize: FontSize.sm,
   },
 });

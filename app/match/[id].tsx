@@ -11,6 +11,7 @@ import {
   TextInput,
   ActivityIndicator,
 } from 'react-native';
+import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useGoBack } from '@/utils/useGoBack';
@@ -25,6 +26,7 @@ import { Avatar } from '@/components/Avatar';
 import { SectionLabel } from '@/components/SectionLabel';
 import { StatsRow } from '@/components/StatsRow';
 import { GlowBackground } from '@/components/GlowBackground';
+import { Sheet } from '@/components/Sheet/Sheet';
 import { generateMatchStats } from '@/utils/matchStats';
 import { extractStatsFromPhoto, type ExtractedStat } from '@/utils/extractStats';
 import { STAT_DEF_MAP, STAT_DEFINITIONS } from '@/utils/statDefinitions';
@@ -561,14 +563,7 @@ export default function MatchDetailScreen() {
       </ScrollView>
 
       {/* ── EDIT SCORE MODAL ── */}
-      <Modal
-        visible={modal === 'editScore'}
-        transparent
-        animationType="slide"
-        onRequestClose={() => store.setModal(null)}
-      >
-        <View style={styles.sheetOverlay}>
-          <Pressable style={StyleSheet.absoluteFill} onPress={() => store.setModal(null)} />
+      <Sheet visible={modal === 'editScore'} onClose={() => store.setModal(null)}>
           <View style={styles.sheet}>
             <View style={styles.sheetHeader}>
               <Text style={styles.sheetTitle}>EDIT SCORE</Text>
@@ -644,8 +639,7 @@ export default function MatchDetailScreen() {
               </TouchableOpacity>
             </View>
           </View>
-        </View>
-      </Modal>
+      </Sheet>
 
       {/* ── MEDIA VIEWER ── */}
       <Modal
@@ -670,14 +664,7 @@ export default function MatchDetailScreen() {
       </Modal>
 
       {/* ── EDIT STATS MODAL ── */}
-      <Modal
-        visible={modal === 'editStats'}
-        transparent
-        animationType="slide"
-        onRequestClose={() => store.setModal(null)}
-      >
-        <View style={styles.sheetOverlay}>
-          <Pressable style={StyleSheet.absoluteFill} onPress={() => store.setModal(null)} />
+      <Sheet visible={modal === 'editStats'} onClose={() => store.setModal(null)}>
           <View style={styles.sheet}>
             {/* Sheet header */}
             <View style={styles.sheetHeader}>
@@ -685,7 +672,7 @@ export default function MatchDetailScreen() {
               <Text style={styles.sheetSubtitle}>Correct AI-read values</Text>
             </View>
 
-            <ScrollView
+            <BottomSheetScrollView
               style={styles.sheetScroll}
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
@@ -739,7 +726,7 @@ export default function MatchDetailScreen() {
                 );
               })}
               <View style={{ height: 16 }} />
-            </ScrollView>
+            </BottomSheetScrollView>
 
             {/* Sheet buttons */}
             <View style={styles.sheetButtons}>
@@ -759,18 +746,10 @@ export default function MatchDetailScreen() {
               </TouchableOpacity>
             </View>
           </View>
-        </View>
-      </Modal>
+      </Sheet>
 
       {/* ── EDIT NOTE MODAL ── */}
-      <Modal
-        visible={editingNote}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setEditingNote(false)}
-      >
-        <View style={styles.sheetOverlay}>
-          <Pressable style={StyleSheet.absoluteFill} onPress={() => setEditingNote(false)} />
+      <Sheet visible={editingNote} onClose={() => setEditingNote(false)}>
           <View style={styles.sheet}>
             <View style={styles.sheetHeader}>
               <Text style={styles.sheetTitle}>COMMENTARY</Text>
@@ -806,18 +785,13 @@ export default function MatchDetailScreen() {
               </TouchableOpacity>
             </View>
           </View>
-        </View>
-      </Modal>
+      </Sheet>
 
       {/* ── IMPORT STATS MODAL ── */}
-      <Modal
+      <Sheet
         visible={modal === 'importStats'}
-        transparent
-        animationType="slide"
-        onRequestClose={() => { store.setModal(null); setImportedStats(null); }}
+        onClose={() => { store.setModal(null); setImportedStats(null); }}
       >
-        <View style={styles.sheetOverlay}>
-          <Pressable style={StyleSheet.absoluteFill} onPress={() => { store.setModal(null); setImportedStats(null); }} />
           <View style={styles.sheet}>
             <View style={styles.sheetHeader}>
               <Text style={styles.sheetTitle}>IMPORT STATS</Text>
@@ -827,7 +801,7 @@ export default function MatchDetailScreen() {
             </View>
 
             {importedStats && importedStats.length > 0 ? (
-              <ScrollView style={styles.sheetScroll} showsVerticalScrollIndicator={false}>
+              <BottomSheetScrollView style={styles.sheetScroll} showsVerticalScrollIndicator={false}>
                 {importedStats.map((stat, i) => {
                   const aLeads = stat.home >= stat.away;
                   const isLow = stat.confidence === 'low';
@@ -856,7 +830,7 @@ export default function MatchDetailScreen() {
                   );
                 })}
                 <View style={{ height: 8 }} />
-              </ScrollView>
+              </BottomSheetScrollView>
             ) : (
               <View style={styles.importErrorBody}>
                 <Text style={styles.importErrorText}>
@@ -884,8 +858,7 @@ export default function MatchDetailScreen() {
               )}
             </View>
           </View>
-        </View>
-      </Modal>
+      </Sheet>
 
       {/* ── DELETE MATCH MODAL ── */}
       <Modal
@@ -1174,19 +1147,8 @@ const styles = StyleSheet.create({
   },
 
   // Edit stats sheet
-  sheetOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    justifyContent: 'flex-end',
-  },
   sheet: {
     backgroundColor: Colors.bg.sheet,
-    borderTopLeftRadius: Radius['3xl'],
-    borderTopRightRadius: Radius['3xl'],
-    borderWidth: 1,
-    borderBottomWidth: 0,
-    borderColor: Colors.border.default,
-    maxHeight: '85%',
     paddingBottom: 32,
   },
   sheetHeader: {
@@ -1212,6 +1174,7 @@ const styles = StyleSheet.create({
     textAlign: 'right',
   },
   sheetScroll: {
+    maxHeight: 360,
     paddingHorizontal: Spacing['2xl'],
     paddingTop: Spacing.md,
   },
