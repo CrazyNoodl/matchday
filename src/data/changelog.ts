@@ -9,6 +9,12 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.6.6',
+    added: [
+      'Light theme — toggle between dark and light appearance in Settings → Display',
+    ],
+  },
+  {
     version: '1.6.5',
     fixed: [
       'Demo mode toggle in Settings now responds to tapping directly on the switch (was silently ignored)',
