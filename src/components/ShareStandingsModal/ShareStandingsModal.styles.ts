@@ -1,11 +1,11 @@
 import { StyleSheet } from 'react-native';
-import { Colors } from '@/theme/colors';
+import type { AppColors } from '@/theme';
 import { FontFamily, FontSize } from '@/theme/typography';
 import { Radius, Spacing } from '@/theme/spacing';
 
 export const CARD_W = 320;
 
-export const cardStyles = StyleSheet.create({
+export const makeCardStyles = (colors: AppColors) => StyleSheet.create({
   card: {
     width: CARD_W,
     backgroundColor: '#0c0e10',
@@ -33,13 +33,13 @@ export const cardStyles = StyleSheet.create({
   appName: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize.sm,
-    color: Colors.text.placeholder,
+    color: colors.text.placeholder,
     letterSpacing: 2.5,
   },
   topDate: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.xs,
-    color: Colors.text.placeholder,
+    color: colors.text.placeholder,
   },
   divider: {
     height: 1,
@@ -54,14 +54,14 @@ export const cardStyles = StyleSheet.create({
   tourName: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize['2xl'],
-    color: Colors.text.primary,
+    color: colors.text.primary,
     letterSpacing: 0.5,
     textAlign: 'center',
   },
   tourSubtitle: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.xs,
-    color: Colors.text.placeholder,
+    color: colors.text.placeholder,
   },
   section: {
     paddingHorizontal: Spacing.lg,
@@ -75,7 +75,7 @@ export const cardStyles = StyleSheet.create({
   headerCell: {
     fontFamily: FontFamily.bodyBold,
     fontSize: 9,
-    color: Colors.text.placeholder,
+    color: colors.text.placeholder,
     letterSpacing: 0.5,
     textAlign: 'center',
   },
@@ -92,7 +92,7 @@ export const cardStyles = StyleSheet.create({
     borderBottomColor: 'rgba(255,255,255,0.06)',
   },
   rowLeader: {
-    backgroundColor: Colors.accent.greenSubtle,
+    backgroundColor: colors.accent.greenSubtle,
   },
   playerCol: {
     flex: 1,
@@ -106,12 +106,12 @@ export const cardStyles = StyleSheet.create({
   playerName: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.xs,
-    color: Colors.text.primary,
+    color: colors.text.primary,
   },
   playerNick: {
     fontFamily: FontFamily.body,
     fontSize: 10,
-    color: Colors.text.placeholder,
+    color: colors.text.placeholder,
   },
   numCol: {
     width: 24,
@@ -120,19 +120,19 @@ export const cardStyles = StyleSheet.create({
   cell: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.xs,
-    color: Colors.text.secondary,
+    color: colors.text.secondary,
   },
   pts: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize.sm,
-    color: Colors.accent.green,
+    color: colors.accent.green,
   },
 });
 
-export const modalStyles = StyleSheet.create({
+export const makeModalStyles = (colors: AppColors) => StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: Colors.bg.base,
+    backgroundColor: colors.bg.base,
   },
   header: {
     flexDirection: 'row',
@@ -142,12 +142,12 @@ export const modalStyles = StyleSheet.create({
     paddingTop: Spacing['2xl'],
     paddingBottom: Spacing.lg,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border.default,
+    borderBottomColor: colors.border.default,
   },
   title: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize.xl,
-    color: Colors.text.primary,
+    color: colors.text.primary,
     letterSpacing: 1,
   },
   closeBtn: {
@@ -159,7 +159,7 @@ export const modalStyles = StyleSheet.create({
   closeText: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.lg,
-    color: Colors.text.muted,
+    color: colors.text.muted,
   },
   previewScroll: {
     flexGrow: 1,
@@ -179,7 +179,7 @@ export const modalStyles = StyleSheet.create({
     paddingHorizontal: Spacing.xl,
     paddingVertical: Spacing.xl,
     borderTopWidth: 1,
-    borderTopColor: Colors.border.default,
+    borderTopColor: colors.border.default,
   },
   actionBtn: {
     flex: 1,
@@ -190,16 +190,16 @@ export const modalStyles = StyleSheet.create({
     minHeight: 48,
   },
   saveBtn: {
-    backgroundColor: Colors.bg.elevated,
+    backgroundColor: colors.bg.elevated,
     borderWidth: 1,
-    borderColor: Colors.border.strong,
+    borderColor: colors.border.strong,
   },
   shareBtn: {
-    backgroundColor: Colors.accent.green,
+    backgroundColor: colors.accent.green,
   },
   actionText: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.base,
-    color: Colors.text.primary,
+    color: colors.text.primary,
   },
 });

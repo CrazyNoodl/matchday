@@ -1,17 +1,17 @@
 import { StyleSheet } from 'react-native';
-import { Colors } from '../../theme/colors';
+import type { AppColors } from '../../theme';
 import { FontFamily, FontSize } from '../../theme/typography';
 import { Radius, Spacing } from '../../theme/spacing';
 
-export const styles = StyleSheet.create({
+export const makeStyles = (colors: AppColors) => StyleSheet.create({
   card: {
     flexDirection: 'row',
     alignItems: 'center',
     flexWrap: 'wrap',
-    backgroundColor: Colors.bg.surface,
+    backgroundColor: colors.bg.surface,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: Colors.border.default,
+    borderColor: colors.border.default,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.md,
     marginBottom: Spacing.sm,
@@ -47,7 +47,7 @@ export const styles = StyleSheet.create({
   scoreSeparator: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize.xl,
-    color: Colors.text.ghost,
+    color: colors.text.ghost,
     lineHeight: 30,
   },
   indicators: {
@@ -57,13 +57,13 @@ export const styles = StyleSheet.create({
     marginTop: Spacing.xs,
     paddingTop: Spacing.xs,
     borderTopWidth: 1,
-    borderTopColor: Colors.border.default,
+    borderTopColor: colors.border.default,
   },
   indicator: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 3,
-    backgroundColor: Colors.bg.elevated,
+    backgroundColor: colors.bg.elevated,
     borderRadius: Radius.xs,
     paddingHorizontal: 6,
     paddingVertical: 2,
@@ -74,6 +74,6 @@ export const styles = StyleSheet.create({
   indicatorCount: {
     fontFamily: FontFamily.bodyBold,
     fontSize: 10,
-    color: Colors.text.muted,
+    color: colors.text.muted,
   },
-} as const);
+});

@@ -17,10 +17,10 @@ type SharingModule = typeof import('expo-sharing');
 type Html2Canvas = typeof import('html2canvas').default;
 import { useStore } from '@/store';
 import { Standing } from '@/utils/standings';
-import { Colors } from '@/theme/colors';
+import { useColors } from '@/theme';
 import { CardAvatar } from '@/components/ShareRoundModal';
 import { STANDINGS_NUM_COLS, formatShareCardDate } from '@/utils/shareCard';
-import { cardStyles, modalStyles } from './ShareStandingsModal.styles';
+import { makeCardStyles, makeModalStyles } from './ShareStandingsModal.styles';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -40,9 +40,11 @@ interface ShareStandingsModalProps {
 
 function StandingsRow({ standing, isLeader, isLast }: { standing: Standing; isLeader: boolean; isLast: boolean }) {
   const player = useStore((s) => s.players.find((p) => p.id === standing.playerId));
+  const colors = useColors();
+  const cardStyles = makeCardStyles(colors);
 
   const gdColor =
-    standing.gd > 0 ? Colors.accent.green : standing.gd < 0 ? Colors.accent.red : Colors.text.muted;
+    standing.gd > 0 ? colors.accent.green : standing.gd < 0 ? colors.accent.red : colors.text.muted;
 
   return (
     <View style={[cardStyles.row, !isLast && cardStyles.rowBorder, isLeader && cardStyles.rowLeader]}>
@@ -79,12 +81,14 @@ interface StandingsCardProps {
 }
 
 function StandingsCard({ tournamentName, subtitle, standings }: StandingsCardProps) {
+  const colors = useColors();
+  const cardStyles = makeCardStyles(colors);
   const dateStr = formatShareCardDate();
 
   return (
     <View style={cardStyles.card} collapsable={false}>
       {/* Glow */}
-      <View style={[cardStyles.glow, { backgroundColor: Colors.accent.green }]} pointerEvents="none" />
+      <View style={[cardStyles.glow, { backgroundColor: colors.accent.green }]} pointerEvents="none" />
 
       {/* Top bar */}
       <View style={cardStyles.topBar}>
@@ -133,6 +137,8 @@ function StandingsCard({ tournamentName, subtitle, standings }: StandingsCardPro
 export function ShareStandingsModal({ visible, onClose, tournamentName, subtitle, standings }: ShareStandingsModalProps) {
   const [loading, setLoading] = useState(false);
   const cardRef = useRef<View>(null);
+  const colors = useColors();
+  const modalStyles = makeModalStyles(colors);
 
   useEffect(() => {
     if (!visible) setLoading(false);
@@ -258,7 +264,7 @@ export function ShareStandingsModal({ visible, onClose, tournamentName, subtitle
             disabled={loading}
           >
             {loading ? (
-              <ActivityIndicator color={Colors.text.primary} size="small" />
+              <ActivityIndicator color={colors.text.primary} size="small" />
             ) : (
               <Text style={modalStyles.actionText}>
                 {Platform.OS === 'web' ? '⬇  Download' : '💾  Save to Photos'}
@@ -272,9 +278,9 @@ export function ShareStandingsModal({ visible, onClose, tournamentName, subtitle
             disabled={loading}
           >
             {loading ? (
-              <ActivityIndicator color={Colors.bg.base} size="small" />
+              <ActivityIndicator color={colors.bg.base} size="small" />
             ) : (
-              <Text style={[modalStyles.actionText, { color: Colors.bg.base }]}>↗  Share</Text>
+              <Text style={[modalStyles.actionText, { color: colors.bg.base }]}>↗  Share</Text>
             )}
           </TouchableOpacity>
         </View>

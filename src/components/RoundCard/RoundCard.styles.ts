@@ -1,17 +1,17 @@
 import { StyleSheet } from 'react-native';
-import { Colors } from '@/theme/colors';
+import type { AppColors } from '@/theme';
 import { FontFamily, FontSize } from '@/theme/typography';
 import { Radius, Spacing } from '@/theme/spacing';
 
-export const styles = StyleSheet.create({
+export const makeStyles = (colors: AppColors) => StyleSheet.create({
   // ---- card variant ----
   cardOuter: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.bg.surface,
+    backgroundColor: colors.bg.surface,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: Colors.border.default,
+    borderColor: colors.border.default,
     padding: Spacing.md,
     marginBottom: Spacing.sm,
     gap: Spacing.md,
@@ -20,7 +20,7 @@ export const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: Colors.bg.elevated,
+    backgroundColor: colors.bg.elevated,
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
@@ -28,7 +28,7 @@ export const styles = StyleSheet.create({
   badgeTextCard: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize.base,
-    color: Colors.text.secondary,
+    color: colors.text.secondary,
   },
   infoCard: {
     gap: 2,
@@ -38,12 +38,12 @@ export const styles = StyleSheet.create({
   dateCard: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.xs,
-    color: Colors.text.secondary,
+    color: colors.text.secondary,
   },
   matchCount: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.xs,
-    color: Colors.text.muted,
+    color: colors.text.muted,
   },
   winnerAreaCard: {
     flex: 1,
@@ -54,27 +54,27 @@ export const styles = StyleSheet.create({
   winnerNameCard: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.sm,
-    color: Colors.text.primary,
+    color: colors.text.primary,
     flex: 1,
   },
   friendlyBadge: {
     paddingHorizontal: Spacing.sm,
     paddingVertical: 2,
     borderRadius: Radius.xs,
-    backgroundColor: Colors.bg.elevated,
+    backgroundColor: colors.bg.elevated,
     borderWidth: 1,
-    borderColor: Colors.border.medium,
+    borderColor: colors.border.medium,
   },
   friendlyBadgeText: {
     fontFamily: FontFamily.bodyBold,
     fontSize: FontSize.xs,
-    color: Colors.text.muted,
+    color: colors.text.muted,
     letterSpacing: 0.4,
   },
   chevronCard: {
     fontFamily: FontFamily.display,
     fontSize: FontSize.xl,
-    color: Colors.text.muted,
+    color: colors.text.muted,
     lineHeight: 24,
   },
 
@@ -90,9 +90,9 @@ export const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: Colors.bg.elevated,
+    backgroundColor: colors.bg.elevated,
     borderWidth: 1,
-    borderColor: Colors.border.strong,
+    borderColor: colors.border.strong,
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
@@ -100,7 +100,7 @@ export const styles = StyleSheet.create({
   badgeTextRow: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize.sm,
-    color: Colors.text.secondary,
+    color: colors.text.secondary,
   },
   infoRow: {
     flex: 1,
@@ -109,7 +109,7 @@ export const styles = StyleSheet.create({
   dateRow: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.base,
-    color: Colors.text.primary,
+    color: colors.text.primary,
   },
   winnerAreaRow: {
     flexDirection: 'row',
@@ -125,13 +125,13 @@ export const styles = StyleSheet.create({
   winnerNameRow: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.sm,
-    color: Colors.text.secondary,
+    color: colors.text.secondary,
     maxWidth: 72,
   },
   chevronRow: {
     fontFamily: FontFamily.display,
     fontSize: FontSize.lg,
-    color: Colors.text.ghost,
+    color: colors.text.ghost,
     lineHeight: 20,
   },
 });

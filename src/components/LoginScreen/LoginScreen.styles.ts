@@ -1,12 +1,12 @@
 import { StyleSheet } from 'react-native';
-import { Colors } from '@/theme/colors';
+import type { AppColors } from '@/theme';
 import { FontFamily, FontSize } from '@/theme/typography';
 import { Radius, Spacing } from '@/theme/spacing';
 
-export const styles = StyleSheet.create({
+export const makeStyles = (colors: AppColors) => StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: Colors.bg.base,
+    backgroundColor: colors.bg.base,
   },
   scroll: {
     flexGrow: 1,
@@ -24,13 +24,13 @@ export const styles = StyleSheet.create({
   title: {
     fontFamily: FontFamily.displayBold,
     fontSize: 36,
-    color: Colors.text.primary,
+    color: colors.text.primary,
     letterSpacing: 4,
   },
   sub: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.sm,
-    color: Colors.text.muted,
+    color: colors.text.muted,
     marginTop: Spacing.xs,
   },
   form: {
@@ -39,24 +39,24 @@ export const styles = StyleSheet.create({
   label: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize.xs,
-    color: Colors.text.muted,
+    color: colors.text.muted,
     letterSpacing: 1.5,
     marginBottom: -Spacing.xs / 2,
   },
   input: {
-    backgroundColor: Colors.bg.elevated,
+    backgroundColor: colors.bg.elevated,
     borderWidth: 1,
-    borderColor: Colors.border.default,
+    borderColor: colors.border.default,
     borderRadius: Radius.md,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     fontFamily: FontFamily.body,
     fontSize: FontSize.md,
-    color: Colors.text.primary,
+    color: colors.text.primary,
   },
   btn: {
     marginTop: Spacing.sm,
-    backgroundColor: Colors.accent.green,
+    backgroundColor: colors.accent.green,
     borderRadius: Radius.md,
     paddingVertical: Spacing.md,
     alignItems: 'center',
@@ -67,7 +67,7 @@ export const styles = StyleSheet.create({
   btnText: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize.sm,
-    color: Colors.bg.base,
+    color: colors.bg.base,
     letterSpacing: 1.5,
   },
   toggleBtn: {
@@ -77,7 +77,7 @@ export const styles = StyleSheet.create({
   toggleText: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.sm,
-    color: Colors.accent.green,
+    color: colors.accent.green,
   },
   errorBox: {
     backgroundColor: '#3a1a1a',
@@ -94,13 +94,13 @@ export const styles = StyleSheet.create({
   successBox: {
     backgroundColor: '#1a3a1a',
     borderWidth: 1,
-    borderColor: Colors.accent.green + '44',
+    borderColor: colors.accent.green + '44',
     borderRadius: Radius.md,
     padding: Spacing.sm,
   },
   successText: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.sm,
-    color: Colors.accent.green,
+    color: colors.accent.green,
   },
 });

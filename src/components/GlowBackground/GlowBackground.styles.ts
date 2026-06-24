@@ -1,7 +1,7 @@
 import { StyleSheet } from 'react-native';
-import { Colors } from '@/theme/colors';
+import type { AppColors } from '@/theme';
 
-export const styles = StyleSheet.create({
+export const makeStyles = (colors: AppColors) => StyleSheet.create({
   glowGreen: {
     position: 'absolute',
     width: 340,
@@ -9,7 +9,7 @@ export const styles = StyleSheet.create({
     top: -80,
     left: -40,
     borderRadius: 170,
-    backgroundColor: Colors.accent.green,
+    backgroundColor: colors.accent.green,
     opacity: 0.06,
   },
   glowBlue: {
@@ -19,7 +19,7 @@ export const styles = StyleSheet.create({
     top: -80,
     right: -40,
     borderRadius: 150,
-    backgroundColor: Colors.accent.blue,
+    backgroundColor: colors.accent.blue,
     opacity: 0.05,
   },
 });

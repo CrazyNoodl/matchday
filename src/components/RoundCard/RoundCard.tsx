@@ -1,7 +1,8 @@
 import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import { Avatar } from '@/components/Avatar';
-import { styles } from './RoundCard.styles';
+import { makeStyles } from './RoundCard.styles';
+import { useColors } from '@/theme';
 
 interface RoundCardProps {
   n: number;
@@ -27,6 +28,8 @@ export function RoundCard({
   onPress,
   variant = 'card',
 }: RoundCardProps) {
+  const colors = useColors();
+  const styles = makeStyles(colors);
   const isRow = variant === 'row';
   return (
     <TouchableOpacity

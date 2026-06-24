@@ -11,7 +11,8 @@ import { useTranslation } from 'react-i18next';
 import { useStore } from '@/store';
 import { Avatar } from '@/components/Avatar';
 import { Sheet } from '@/components/Sheet/Sheet';
-import { styles } from './NewRoundModal.styles';
+import { makeStyles } from './NewRoundModal.styles';
+import { useColors } from '@/theme';
 
 // ---------------------------------------------------------------------------
 // Shared "start a new round" sheet — used by the Home screen and the
@@ -21,6 +22,8 @@ import { styles } from './NewRoundModal.styles';
 // ---------------------------------------------------------------------------
 
 export function NewRoundModal() {
+  const colors = useColors();
+  const styles = makeStyles(colors);
   const router = useRouter();
   const { t } = useTranslation();
   const store = useStore();

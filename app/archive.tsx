@@ -12,7 +12,7 @@ import { useGoBack } from '@/utils/useGoBack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '@/store';
-import { Colors } from '@/theme/colors';
+import { useColors, AppColors } from '@/theme';
 import { FontFamily, FontSize } from '@/theme/typography';
 import { Radius, Spacing } from '@/theme/spacing';
 import { NavHeader } from '@/components/NavHeader';
@@ -66,6 +66,8 @@ function ClosedTournamentCard({
   onRoundPress,
   onStatsPress,
 }: ClosedTournamentCardProps) {
+  const colors = useColors();
+  const styles = makeStyles(colors);
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
 
@@ -164,6 +166,8 @@ function ClosedTournamentCard({
 // ---------------------------------------------------------------------------
 
 function EmptyArchive() {
+  const colors = useColors();
+  const styles = makeStyles(colors);
   const { t } = useTranslation();
   return (
     <View style={styles.emptyCard}>
@@ -179,6 +183,8 @@ function EmptyArchive() {
 // ---------------------------------------------------------------------------
 
 export default function ArchiveScreen() {
+  const colors = useColors();
+  const styles = makeStyles(colors);
   const router = useRouter();
   const goBack = useGoBack();
   const { t } = useTranslation();
@@ -247,10 +253,10 @@ export default function ArchiveScreen() {
 // Styles
 // ---------------------------------------------------------------------------
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: AppColors) => StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: Colors.bg.base,
+    backgroundColor: colors.bg.base,
   },
   scroll: {
     flex: 1,
@@ -262,10 +268,10 @@ const styles = StyleSheet.create({
   },
 
   tourCard: {
-    backgroundColor: Colors.bg.archive,
+    backgroundColor: colors.bg.archive,
     borderRadius: Radius['3xl'],
     borderWidth: 1,
-    borderColor: Colors.border.medium,
+    borderColor: colors.border.medium,
     marginBottom: Spacing.md,
     overflow: 'hidden',
   },
@@ -280,9 +286,9 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: Radius.md,
-    backgroundColor: Colors.bg.surface,
+    backgroundColor: colors.bg.surface,
     borderWidth: 1,
-    borderColor: Colors.border.strong,
+    borderColor: colors.border.strong,
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
@@ -290,14 +296,14 @@ const styles = StyleSheet.create({
   fcIconText: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize.sm,
-    color: Colors.text.muted,
+    color: colors.text.muted,
     letterSpacing: 0.5,
     lineHeight: 14,
   },
   fcIconYear: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize.xl,
-    color: Colors.text.primary,
+    color: colors.text.primary,
     lineHeight: 22,
   },
 
@@ -315,14 +321,14 @@ const styles = StyleSheet.create({
   tourName: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize.lg,
-    color: Colors.text.primary,
+    color: colors.text.primary,
     letterSpacing: 0.2,
     flexShrink: 1,
   },
   tourSubtitle: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.xs,
-    color: Colors.text.muted,
+    color: colors.text.muted,
   },
 
   champRow: {
@@ -334,7 +340,7 @@ const styles = StyleSheet.create({
   },
   champDiamond: {
     fontSize: 11,
-    color: Colors.accent.gold,
+    color: colors.accent.gold,
   },
   champAvatarSmall: {
     width: 20,
@@ -346,18 +352,18 @@ const styles = StyleSheet.create({
   champInitSmall: {
     fontFamily: FontFamily.bodyBold,
     fontSize: 8,
-    color: Colors.bg.base,
+    color: colors.bg.base,
   },
   champNameText: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.xs,
-    color: Colors.text.secondary,
+    color: colors.text.secondary,
     flexShrink: 1,
   },
   champMeta: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.xs,
-    color: Colors.text.muted,
+    color: colors.text.muted,
   },
 
   tourCardRight: {
@@ -369,7 +375,7 @@ const styles = StyleSheet.create({
   },
   statsBtn: {
     borderWidth: 1,
-    borderColor: Colors.border.strong,
+    borderColor: colors.border.strong,
     borderRadius: Radius.sm,
     paddingHorizontal: 10,
     paddingVertical: 4,
@@ -377,12 +383,12 @@ const styles = StyleSheet.create({
   statsBtnText: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.sm,
-    color: Colors.text.secondary,
+    color: colors.text.secondary,
   },
   chevron: {
     fontFamily: FontFamily.display,
     fontSize: FontSize.xl,
-    color: Colors.text.muted,
+    color: colors.text.muted,
     transform: [{ rotate: '0deg' }],
     lineHeight: 22,
   },
@@ -392,7 +398,7 @@ const styles = StyleSheet.create({
 
   roundsDivider: {
     height: 1,
-    backgroundColor: Colors.border.default,
+    backgroundColor: colors.border.default,
     marginHorizontal: 18,
   },
   roundsList: {
@@ -406,12 +412,12 @@ const styles = StyleSheet.create({
   noRoundsText: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.sm,
-    color: Colors.text.muted,
+    color: colors.text.muted,
   },
 
   emptyCard: {
     borderWidth: 1,
-    borderColor: Colors.border.medium,
+    borderColor: colors.border.medium,
     borderStyle: 'dashed',
     borderRadius: Radius['2xl'],
     paddingVertical: Spacing['3xl'],
@@ -426,13 +432,13 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize.lg,
-    color: Colors.text.secondary,
+    color: colors.text.secondary,
     letterSpacing: 0.2,
   },
   emptySubtitle: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.sm,
-    color: Colors.text.muted,
+    color: colors.text.muted,
     textAlign: 'center',
   },
 });

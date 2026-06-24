@@ -6,8 +6,9 @@ import {
 } from 'react-native';
 import { Avatar } from '../Avatar';
 import { useStore } from '../../store';
+import { useColors } from '../../theme';
 import { getPlayerDisplayName } from '../../utils/playerDisplay';
-import { styles } from './ScoreCounter.styles';
+import { makeStyles } from './ScoreCounter.styles';
 
 interface ScoreCounterProps {
   playerId: string;
@@ -24,6 +25,8 @@ export function ScoreCounter({
   onIncrement,
   onDecrement,
 }: ScoreCounterProps) {
+  const colors = useColors();
+  const styles = makeStyles(colors);
   const player = useStore((s) => s.players.find((p) => p.id === playerId));
   const showNick = useStore((s) => s.showNick);
 

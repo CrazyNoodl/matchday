@@ -1,20 +1,20 @@
 import { StyleSheet } from 'react-native';
-import { Colors } from '../../theme/colors';
+import type { AppColors } from '../../theme';
 import { FontFamily, FontSize } from '../../theme/typography';
 import { Radius } from '../../theme/spacing';
 
 export const THUMB_WIDTH = 90;
 export const THUMB_HEIGHT = 118;
 
-export const styles = StyleSheet.create({
+export const makeStyles = (colors: AppColors) => StyleSheet.create({
   container: {
     width: THUMB_WIDTH,
     height: THUMB_HEIGHT,
     borderRadius: Radius.sm,
     overflow: 'hidden',
-    backgroundColor: Colors.bg.media,
+    backgroundColor: colors.bg.media,
     borderWidth: 1,
-    borderColor: Colors.border.medium,
+    borderColor: colors.border.medium,
   },
   image: {
     width: THUMB_WIDTH,
@@ -47,7 +47,7 @@ export const styles = StyleSheet.create({
   removeIcon: {
     fontFamily: FontFamily.bodyBold,
     fontSize: FontSize.md,
-    color: Colors.text.secondary,
+    color: colors.text.secondary,
     lineHeight: 20,
     textAlign: 'center',
     includeFontPadding: false,

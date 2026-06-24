@@ -7,9 +7,9 @@ import {
 } from 'react-native';
 import { useStore } from '../../store';
 import { Match } from '../../store/types';
-import { Colors } from '../../theme/colors';
+import { useColors } from '../../theme';
 import { Avatar } from '../Avatar';
-import { styles } from './MatchCard.styles';
+import { makeStyles } from './MatchCard.styles';
 
 interface MatchCardProps {
   match: Match;
@@ -18,6 +18,8 @@ interface MatchCardProps {
 }
 
 export function MatchCard({ match, onPress, readonly = false }: MatchCardProps) {
+  const colors = useColors();
+  const styles = makeStyles(colors);
   const players = useStore((s) => s.players);
 
   const playerA = players.find((p) => p.id === match.aId);
@@ -27,10 +29,10 @@ export function MatchCard({ match, onPress, readonly = false }: MatchCardProps) 
   const bWins = match.bScore > match.aScore;
   const isDraw = match.aScore === match.bScore;
 
-  const aNameColor = !bWins ? Colors.text.primary : Colors.text.muted;
-  const bNameColor = !aWins ? Colors.text.primary : Colors.text.muted;
-  const aScoreColor = aWins ? Colors.accent.green : isDraw ? Colors.text.secondary : '#7c8388';
-  const bScoreColor = bWins ? Colors.accent.green : isDraw ? Colors.text.secondary : '#7c8388';
+  const aNameColor = !bWins ? colors.text.primary : colors.text.muted;
+  const bNameColor = !aWins ? colors.text.primary : colors.text.muted;
+  const aScoreColor = aWins ? colors.accent.green : isDraw ? colors.text.secondary : '#7c8388';
+  const bScoreColor = bWins ? colors.accent.green : isDraw ? colors.text.secondary : '#7c8388';
 
   const Container = onPress && !readonly ? TouchableOpacity : View;
   const containerProps = onPress && !readonly ? { onPress, activeOpacity: 0.75 } : {};

@@ -2,12 +2,12 @@ import React from 'react';
 import { View, Text } from 'react-native';
 import { useStore } from '../../store';
 import { Standing } from '../../utils/standings';
-import { Colors } from '../../theme/colors';
+import { useColors } from '../../theme';
 import { Avatar } from '../Avatar';
 import { FormChip } from '../FormChip';
 import { getFormChips } from '../../utils/standings';
 import { getPlayerDisplayName } from '../../utils/playerDisplay';
-import { styles } from './StandingCard.styles';
+import { makeStyles } from './StandingCard.styles';
 
 interface StandingCardProps {
   standing: Standing;
@@ -16,27 +16,29 @@ interface StandingCardProps {
   showFormChips?: boolean;
 }
 
-const POSITION_COLORS: Record<number, string> = {
-  1: Colors.accent.green,
-  2: '#b0b8be',
-  3: '#cd7f32',
-};
-
 export function StandingCard({
   standing,
   position,
   playerId,
   showFormChips = true,
 }: StandingCardProps) {
+  const colors = useColors();
+  const styles = makeStyles(colors);
   const player = useStore((s) => s.players.find((p) => p.id === playerId));
   const matches = useStore((s) => s.matches);
   const showNick = useStore((s) => s.showNick);
+
+  const POSITION_COLORS: Record<number, string> = {
+    1: colors.accent.green,
+    2: '#b0b8be',
+    3: '#cd7f32',
+  };
 
   const formChips = showFormChips
     ? getFormChips(matches, playerId, 3)
     : [];
 
-  const posColor = POSITION_COLORS[position] ?? Colors.text.muted;
+  const posColor = POSITION_COLORS[position] ?? colors.text.muted;
   const isLeader = position === 1;
 
   return (
@@ -80,7 +82,7 @@ export function StandingCard({
               <Text
                 style={[
                   styles.statText,
-                  { color: standing.gd > 0 ? Colors.accent.green : Colors.accent.red },
+                  { color: standing.gd > 0 ? colors.accent.green : colors.accent.red },
                 ]}
               >
                 {standing.gd > 0 ? '+' : ''}{standing.gd}

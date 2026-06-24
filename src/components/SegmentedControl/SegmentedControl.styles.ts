@@ -1,12 +1,12 @@
 import { StyleSheet } from 'react-native';
-import { Colors } from '@/theme/colors';
+import type { AppColors } from '@/theme';
 import { FontFamily, FontSize } from '@/theme/typography';
 import { Radius, Spacing } from '@/theme/spacing';
 
-export const styles = StyleSheet.create({
+export const makeStyles = (colors: AppColors) => StyleSheet.create({
   trackBoxed: {
     flexDirection: 'row',
-    backgroundColor: Colors.bg.elevated,
+    backgroundColor: colors.bg.elevated,
     borderRadius: Radius.lg,
     padding: 3,
     alignSelf: 'flex-start',
@@ -17,7 +17,7 @@ export const styles = StyleSheet.create({
     borderRadius: Radius.md,
   },
   segBoxedActive: {
-    backgroundColor: Colors.bg.surface,
+    backgroundColor: colors.bg.surface,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.3,
@@ -27,15 +27,15 @@ export const styles = StyleSheet.create({
   textBoxed: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.sm,
-    color: Colors.text.muted,
+    color: colors.text.muted,
   },
   textBoxedActive: {
-    color: Colors.text.primary,
+    color: colors.text.primary,
   },
 
   trackPill: {
     flexDirection: 'row',
-    backgroundColor: Colors.bg.elevated,
+    backgroundColor: colors.bg.elevated,
     borderRadius: Radius.full,
     padding: 3,
     gap: 3,
@@ -48,7 +48,7 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   segPillActive: {
-    backgroundColor: Colors.accent.green,
+    backgroundColor: colors.accent.green,
   },
   textPill: {
     fontFamily: FontFamily.bodySemiBold,
@@ -56,9 +56,9 @@ export const styles = StyleSheet.create({
     letterSpacing: 0.2,
   },
   textPillActive: {
-    color: Colors.accent.greenDark,
+    color: colors.accent.greenDark,
   },
   textPillInactive: {
-    color: Colors.text.muted,
+    color: colors.text.muted,
   },
 });

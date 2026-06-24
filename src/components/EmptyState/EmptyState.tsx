@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import { Colors } from '../../theme/colors';
-import { styles } from './EmptyState.styles';
+import { useColors } from '../../theme';
+import { makeStyles } from './EmptyState.styles';
 
 interface EmptyStateProps {
   message: string;
@@ -11,6 +11,8 @@ interface EmptyStateProps {
 }
 
 export function EmptyState({ message, ctaText, ctaColor, onPress }: EmptyStateProps) {
+  const colors = useColors();
+  const styles = makeStyles(colors);
   return (
     <View style={styles.container}>
       <Text style={styles.message}>{message}</Text>
@@ -19,7 +21,7 @@ export function EmptyState({ message, ctaText, ctaColor, onPress }: EmptyStatePr
           <Text
             style={[
               styles.ctaText,
-              { color: ctaColor ?? Colors.accent.green },
+              { color: ctaColor ?? colors.accent.green },
             ]}
           >
             {ctaText}

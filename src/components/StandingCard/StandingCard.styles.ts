@@ -1,24 +1,24 @@
 import { StyleSheet } from 'react-native';
-import { Colors } from '../../theme/colors';
+import type { AppColors } from '../../theme';
 import { FontFamily, FontSize } from '../../theme/typography';
 import { Radius, Spacing } from '../../theme/spacing';
 
-export const styles = StyleSheet.create({
+export const makeStyles = (colors: AppColors) => StyleSheet.create({
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.bg.surface,
+    backgroundColor: colors.bg.surface,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: Colors.border.default,
+    borderColor: colors.border.default,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.md,
     marginBottom: Spacing.sm,
     gap: Spacing.sm,
   },
   cardLeader: {
-    borderColor: Colors.accent.greenBorder,
-    backgroundColor: Colors.accent.greenSubtle,
+    borderColor: colors.accent.greenBorder,
+    backgroundColor: colors.accent.greenSubtle,
   },
   position: {
     fontFamily: FontFamily.display,
@@ -41,21 +41,21 @@ export const styles = StyleSheet.create({
   name: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.md,
-    color: Colors.text.primary,
+    color: colors.text.primary,
     flexShrink: 1,
   },
   leaderBadge: {
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: Radius.xs,
-    backgroundColor: Colors.accent.greenSubtle,
+    backgroundColor: colors.accent.greenSubtle,
     borderWidth: 1,
-    borderColor: Colors.accent.greenBorder,
+    borderColor: colors.accent.greenBorder,
   },
   leaderText: {
     fontFamily: FontFamily.bodyBold,
     fontSize: FontSize.xs,
-    color: Colors.accent.green,
+    color: colors.accent.green,
     letterSpacing: 0.5,
   },
   statsRow: {
@@ -66,12 +66,12 @@ export const styles = StyleSheet.create({
   statText: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.xs,
-    color: Colors.text.muted,
+    color: colors.text.muted,
   },
   statDivider: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.xs,
-    color: Colors.text.ghost,
+    color: colors.text.ghost,
   },
   chips: {
     flexDirection: 'row',
@@ -84,13 +84,13 @@ export const styles = StyleSheet.create({
   pts: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize['3xl'],
-    color: Colors.accent.green,
+    color: colors.accent.green,
     lineHeight: 34,
   },
   ptsLabel: {
     fontFamily: FontFamily.bodyBold,
     fontSize: FontSize.xs,
-    color: Colors.text.muted,
+    color: colors.text.muted,
     letterSpacing: 0.6,
   },
 });

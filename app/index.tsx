@@ -11,7 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '@/store';
 import { calculateStandings, isTopTied } from '@/utils/standings';
-import { Colors } from '@/theme/colors';
+import { useColors, AppColors } from '@/theme';
 import { FontFamily, FontSize } from '@/theme/typography';
 import { Radius, Spacing } from '@/theme/spacing';
 import { Avatar } from '@/components/Avatar';
@@ -19,6 +19,8 @@ import { NewRoundModal } from '@/components/NewRoundModal';
 import { GlowBackground } from '@/components/GlowBackground';
 
 export default function HomeScreen() {
+  const colors = useColors();
+  const styles = makeStyles(colors);
   const router = useRouter();
   const { t } = useTranslation();
   const store = useStore();
@@ -283,10 +285,10 @@ export default function HomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: AppColors) => StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: Colors.bg.base,
+    backgroundColor: colors.bg.base,
   },
   header: {
     flexDirection: 'row',
@@ -304,8 +306,8 @@ const styles = StyleSheet.create({
     width: 11,
     height: 11,
     borderRadius: 6,
-    backgroundColor: Colors.accent.green,
-    shadowColor: Colors.accent.green,
+    backgroundColor: colors.accent.green,
+    shadowColor: colors.accent.green,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.9,
     shadowRadius: 6,
@@ -314,7 +316,7 @@ const styles = StyleSheet.create({
   logoText: {
     fontFamily: FontFamily.displayBold,
     fontSize: 23,
-    color: Colors.text.primary,
+    color: colors.text.primary,
     letterSpacing: 1.5,
   },
   settingsBtn: {
@@ -329,7 +331,7 @@ const styles = StyleSheet.create({
   },
   settingsIcon: {
     fontSize: 18,
-    color: Colors.text.secondary,
+    color: colors.text.secondary,
   },
   scroll: {
     flex: 1,
@@ -355,24 +357,24 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm - 2,
     borderRadius: Radius.full,
-    backgroundColor: Colors.bg.surface,
+    backgroundColor: colors.bg.surface,
     borderWidth: 1,
-    borderColor: Colors.border.default,
+    borderColor: colors.border.default,
   },
   chipActive: {
-    backgroundColor: Colors.accent.greenSubtle,
-    borderColor: Colors.accent.greenBorder,
+    backgroundColor: colors.accent.greenSubtle,
+    borderColor: colors.accent.greenBorder,
   },
   chipText: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.sm,
-    color: Colors.text.muted,
+    color: colors.text.muted,
   },
   chipTextActive: {
-    color: Colors.accent.green,
+    color: colors.accent.green,
   },
   soonBadge: {
-    backgroundColor: Colors.bg.elevated,
+    backgroundColor: colors.bg.elevated,
     borderRadius: Radius.xs,
     paddingHorizontal: 4,
     paddingVertical: 1,
@@ -380,15 +382,15 @@ const styles = StyleSheet.create({
   soonText: {
     fontFamily: FontFamily.bodyBold,
     fontSize: 8,
-    color: Colors.text.ghost,
+    color: colors.text.ghost,
     letterSpacing: 0.5,
   },
   // Tournament card (active)
   tournamentCard: {
-    backgroundColor: Colors.bg.surface,
+    backgroundColor: colors.bg.surface,
     borderRadius: Radius.xl,
     borderWidth: 1,
-    borderColor: Colors.accent.greenBorder,
+    borderColor: colors.accent.greenBorder,
     padding: Spacing.xl,
     gap: Spacing.sm,
   },
@@ -405,7 +407,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.xs,
-    backgroundColor: Colors.accent.greenSubtle,
+    backgroundColor: colors.accent.greenSubtle,
     borderRadius: Radius.full,
     paddingHorizontal: Spacing.sm,
     paddingVertical: 3,
@@ -415,25 +417,25 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: Colors.accent.green,
+    backgroundColor: colors.accent.green,
   },
   livePillText: {
     fontFamily: FontFamily.bodyBold,
     fontSize: FontSize.xs,
-    color: Colors.accent.green,
+    color: colors.accent.green,
     letterSpacing: 0.8,
   },
   tournamentRoundText: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.sm,
-    color: Colors.text.muted,
+    color: colors.text.muted,
     marginTop: 2,
   },
   playButton: {
     width: 34,
     height: 34,
     borderRadius: 17,
-    backgroundColor: Colors.accent.green,
+    backgroundColor: colors.accent.green,
     alignItems: 'center',
     justifyContent: 'center',
     marginLeft: Spacing.md,
@@ -441,19 +443,19 @@ const styles = StyleSheet.create({
   playButtonIcon: {
     fontFamily: FontFamily.bodyBold,
     fontSize: 13,
-    color: Colors.accent.greenDark,
+    color: colors.accent.greenDark,
     marginLeft: 2,
   },
   tournamentName: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize['2xl'],
-    color: Colors.text.primary,
+    color: colors.text.primary,
     letterSpacing: 0.3,
     marginTop: Spacing.xs,
   },
   // Leader inset (dark row at bottom of tournament card)
   leaderInset: {
-    backgroundColor: Colors.bg.archive,
+    backgroundColor: colors.bg.archive,
     borderRadius: Radius.md,
     padding: Spacing.md,
     marginTop: Spacing.xs,
@@ -462,7 +464,7 @@ const styles = StyleSheet.create({
   leaderLabel: {
     fontFamily: FontFamily.bodyBold,
     fontSize: FontSize.xs,
-    color: Colors.text.muted,
+    color: colors.text.muted,
     letterSpacing: 1,
     textTransform: 'uppercase',
   },
@@ -474,13 +476,13 @@ const styles = StyleSheet.create({
   leaderName: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.base,
-    color: Colors.text.primary,
+    color: colors.text.primary,
     flex: 1,
   },
   leaderPts: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize.lg,
-    color: Colors.accent.green,
+    color: colors.accent.green,
   },
   // Progress bar
   progressBlock: {
@@ -490,26 +492,26 @@ const styles = StyleSheet.create({
   progressTrack: {
     height: 4,
     borderRadius: 2,
-    backgroundColor: Colors.bg.elevated,
+    backgroundColor: colors.bg.elevated,
     overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
     borderRadius: 2,
-    backgroundColor: Colors.accent.green,
+    backgroundColor: colors.accent.green,
   },
   progressLabel: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.xs,
-    color: Colors.text.muted,
+    color: colors.text.muted,
     letterSpacing: 0.3,
   },
   // No tournament card
   noTournamentCard: {
-    backgroundColor: Colors.bg.surface,
+    backgroundColor: colors.bg.surface,
     borderRadius: Radius.xl,
     borderWidth: 1,
-    borderColor: Colors.border.medium,
+    borderColor: colors.border.medium,
     borderStyle: 'dashed',
     padding: Spacing['2xl'],
     alignItems: 'center',
@@ -519,33 +521,33 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: Colors.accent.greenSubtle,
+    backgroundColor: colors.accent.greenSubtle,
     borderWidth: 1,
-    borderColor: Colors.accent.greenBorder,
+    borderColor: colors.accent.greenBorder,
     alignItems: 'center',
     justifyContent: 'center',
   },
   noTournamentPlusText: {
     fontFamily: FontFamily.bodyBold,
     fontSize: FontSize.xl,
-    color: Colors.accent.green,
+    color: colors.accent.green,
     lineHeight: 26,
   },
   noTournamentTitle: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize.lg,
-    color: Colors.text.secondary,
+    color: colors.text.secondary,
     letterSpacing: 0.8,
   },
   noTournamentDesc: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.base,
-    color: Colors.text.muted,
+    color: colors.text.muted,
     textAlign: 'center',
     lineHeight: 20,
   },
   startTournamentBtn: {
-    backgroundColor: Colors.accent.green,
+    backgroundColor: colors.accent.green,
     borderRadius: Radius.md,
     paddingHorizontal: Spacing.xl,
     paddingVertical: Spacing.md,
@@ -554,12 +556,12 @@ const styles = StyleSheet.create({
   startTournamentBtnText: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize.md,
-    color: Colors.accent.greenDark,
+    color: colors.accent.greenDark,
     letterSpacing: 0.8,
   },
   // NEW MATCH DAY button
   newMatchDayBtn: {
-    backgroundColor: Colors.accent.green,
+    backgroundColor: colors.accent.green,
     borderRadius: Radius.lg,
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.lg,
@@ -568,9 +570,9 @@ const styles = StyleSheet.create({
     gap: Spacing.md,
   },
   newMatchDayBtnDisabled: {
-    backgroundColor: Colors.bg.elevated,
+    backgroundColor: colors.bg.elevated,
     borderWidth: 1,
-    borderColor: Colors.border.medium,
+    borderColor: colors.border.medium,
   },
   newMatchDayIcon: {
     width: 42,
@@ -580,23 +582,23 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   newMatchDayIconActive: {
-    backgroundColor: Colors.accent.greenDark,
+    backgroundColor: colors.accent.greenDark,
   },
   newMatchDayIconDisabled: {
-    backgroundColor: Colors.bg.elevated,
+    backgroundColor: colors.bg.elevated,
     borderWidth: 1,
-    borderColor: Colors.border.medium,
+    borderColor: colors.border.medium,
   },
   newMatchDayIconText: {
     fontSize: FontSize.xl,
     lineHeight: 28,
   },
   newMatchDayIconTextActive: {
-    color: Colors.accent.green,
+    color: colors.accent.green,
     fontFamily: FontFamily.bodyBold,
   },
   newMatchDayIconTextDisabled: {
-    color: Colors.text.muted,
+    color: colors.text.muted,
     fontFamily: FontFamily.bodyBold,
   },
   newMatchDayTextBlock: {
@@ -606,16 +608,16 @@ const styles = StyleSheet.create({
   newMatchDayBtnText: {
     fontFamily: FontFamily.display,
     fontSize: FontSize.lg,
-    color: Colors.accent.greenDark,
+    color: colors.accent.greenDark,
     letterSpacing: 1,
   },
   newMatchDayBtnTextDisabled: {
-    color: Colors.text.ghost,
+    color: colors.text.ghost,
   },
   newMatchDaySubtitle: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.sm,
-    color: Colors.text.muted,
+    color: colors.text.muted,
   },
   // Quick row (Stats + Archive)
   quickRow: {
@@ -624,10 +626,10 @@ const styles = StyleSheet.create({
   },
   quickCard: {
     flex: 1,
-    backgroundColor: Colors.bg.surface,
+    backgroundColor: colors.bg.surface,
     borderRadius: Radius.xl,
     borderWidth: 1,
-    borderColor: Colors.border.default,
+    borderColor: colors.border.default,
     padding: Spacing.lg,
     flexDirection: 'row',
     alignItems: 'center',
@@ -639,13 +641,13 @@ const styles = StyleSheet.create({
   quickCardTitle: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize.md,
-    color: Colors.text.primary,
+    color: colors.text.primary,
     letterSpacing: 0.5,
   },
   quickCardSub: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.xs,
-    color: Colors.text.muted,
+    color: colors.text.muted,
     marginTop: 2,
   },
 });

@@ -1,12 +1,12 @@
 import { StyleSheet } from 'react-native';
-import { Colors } from '../../theme/colors';
+import type { AppColors } from '../../theme';
 import { FontFamily, FontSize } from '../../theme/typography';
 import { Radius, Spacing } from '../../theme/spacing';
 
-export const styles = StyleSheet.create({
+export const makeStyles = (colors: AppColors) => StyleSheet.create({
   container: {
     borderWidth: 1,
-    borderColor: Colors.border.medium,
+    borderColor: colors.border.medium,
     borderStyle: 'dashed',
     borderRadius: Radius.lg,
     paddingHorizontal: Spacing['2xl'],
@@ -18,7 +18,7 @@ export const styles = StyleSheet.create({
   message: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.base,
-    color: Colors.text.muted,
+    color: colors.text.muted,
     textAlign: 'center',
     lineHeight: 20,
   },

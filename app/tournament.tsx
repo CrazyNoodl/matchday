@@ -14,7 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStore } from '@/store';
 import { calculateStandings } from '@/utils/standings';
 import { formatShortDate } from '@/utils/dateFormat';
-import { Colors } from '@/theme/colors';
+import { useColors, AppColors } from '@/theme';
 import { FontFamily, FontSize } from '@/theme/typography';
 import { Radius, Spacing } from '@/theme/spacing';
 import { SectionLabel } from '@/components/SectionLabel';
@@ -55,6 +55,12 @@ export default function TournamentScreen() {
     players,
     modal,
   } = store;
+
+  const colors = useColors();
+  const styles = makeStyles(colors);
+  const sheetStyles = makeSheetStyles(colors);
+  const inputStyles = makeInputStyles(colors);
+  const dialogStyles = makeDialogStyles(colors);
 
   const [renameValue, setRenameValue] = useState('');
   const [shareStandingsVisible, setShareStandingsVisible] = useState(false);
@@ -275,7 +281,7 @@ export default function TournamentScreen() {
                 }}
                 activeOpacity={0.8}
               >
-                <View style={[sheetStyles.rowIcon, { backgroundColor: Colors.accent.blueSubtle }]}>
+                <View style={[sheetStyles.rowIcon, { backgroundColor: colors.accent.blueSubtle }]}>
                   <Text style={sheetStyles.rowIconText}>✎</Text>
                 </View>
                 <Text style={sheetStyles.rowLabel}>{t('tournament.sheet.rename')}</Text>
@@ -291,8 +297,8 @@ export default function TournamentScreen() {
                 }}
                 activeOpacity={0.8}
               >
-                <View style={[sheetStyles.rowIcon, { backgroundColor: Colors.accent.greenSubtle }]}>
-                  <Text style={[sheetStyles.rowIconText, { color: Colors.accent.green }]}>↗</Text>
+                <View style={[sheetStyles.rowIcon, { backgroundColor: colors.accent.greenSubtle }]}>
+                  <Text style={[sheetStyles.rowIconText, { color: colors.accent.green }]}>↗</Text>
                 </View>
                 <View style={sheetStyles.rowLabelBlock}>
                   <Text style={sheetStyles.rowLabel}>{t('tournament.sheet.shareStandings')}</Text>
@@ -307,8 +313,8 @@ export default function TournamentScreen() {
                 onPress={() => store.setModal('closeTour')}
                 activeOpacity={0.8}
               >
-                <View style={[sheetStyles.rowIcon, { backgroundColor: Colors.accent.redSubtle }]}>
-                  <Text style={[sheetStyles.rowIconText, { color: Colors.accent.red }]}>🔒</Text>
+                <View style={[sheetStyles.rowIcon, { backgroundColor: colors.accent.redSubtle }]}>
+                  <Text style={[sheetStyles.rowIconText, { color: colors.accent.red }]}>🔒</Text>
                 </View>
                 <View style={sheetStyles.rowLabelBlock}>
                   <Text style={sheetStyles.rowLabel}>{t('tournament.sheet.closeAndArchive')}</Text>
@@ -331,7 +337,7 @@ export default function TournamentScreen() {
               value={renameValue}
               onChangeText={setRenameValue}
               placeholder={t('tournament.rename.placeholder')}
-              placeholderTextColor={Colors.text.placeholder}
+              placeholderTextColor={colors.text.placeholder}
               autoFocus
               returnKeyType="done"
               onSubmitEditing={() => {
@@ -436,10 +442,10 @@ export default function TournamentScreen() {
 // Styles
 // ---------------------------------------------------------------------------
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: AppColors) => StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: Colors.bg.base,
+    backgroundColor: colors.bg.base,
   },
   // ---- Header ----
   header: {
@@ -448,8 +454,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border.default,
-    backgroundColor: Colors.bg.surface,
+    borderBottomColor: colors.border.default,
+    backgroundColor: colors.bg.surface,
   },
   backBtn: {
     width: 40,
@@ -460,7 +466,7 @@ const styles = StyleSheet.create({
   backChevron: {
     fontFamily: FontFamily.display,
     fontSize: FontSize['2xl'],
-    color: Colors.text.secondary,
+    color: colors.text.secondary,
     lineHeight: 28,
   },
   headerCenter: {
@@ -472,30 +478,30 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontFamily: FontFamily.display,
     fontSize: 21,
-    color: Colors.text.primary,
+    color: colors.text.primary,
     letterSpacing: 0.3,
     textAlign: 'center',
   },
   headerSubtitle: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.xs,
-    color: Colors.text.muted,
+    color: colors.text.muted,
     textAlign: 'center',
   },
   dotsBtn: {
     width: 32,
     height: 32,
     borderRadius: Radius.sm,
-    backgroundColor: Colors.bg.elevated,
+    backgroundColor: colors.bg.elevated,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: Colors.border.medium,
+    borderColor: colors.border.medium,
   },
   dotsIcon: {
     fontFamily: FontFamily.bodyBold,
     fontSize: FontSize.base,
-    color: Colors.text.secondary,
+    color: colors.text.secondary,
     letterSpacing: 2,
     lineHeight: 18,
   },
@@ -517,10 +523,10 @@ const styles = StyleSheet.create({
   matchDayCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.bg.surface,
+    backgroundColor: colors.bg.surface,
     borderRadius: Radius.xl,
     borderWidth: 1,
-    borderColor: Colors.accent.greenBorder,
+    borderColor: colors.accent.greenBorder,
     padding: Spacing.lg,
     gap: Spacing.lg,
   },
@@ -530,10 +536,10 @@ const styles = StyleSheet.create({
   },
   roundBadge: {
     alignSelf: 'flex-start',
-    backgroundColor: Colors.accent.greenSubtle,
+    backgroundColor: colors.accent.greenSubtle,
     borderRadius: Radius.full,
     borderWidth: 1,
-    borderColor: Colors.accent.greenBorder,
+    borderColor: colors.accent.greenBorder,
     paddingHorizontal: Spacing.sm,
     paddingVertical: 2,
     marginBottom: Spacing.xs,
@@ -541,7 +547,7 @@ const styles = StyleSheet.create({
   roundBadgeText: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize.xs,
-    color: Colors.accent.green,
+    color: colors.accent.green,
     letterSpacing: 0.5,
   },
   inProgressRow: {
@@ -553,32 +559,32 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: Colors.accent.green,
+    backgroundColor: colors.accent.green,
   },
   inProgressText: {
     fontFamily: FontFamily.bodyBold,
     fontSize: FontSize.xs,
-    color: Colors.accent.green,
+    color: colors.accent.green,
     letterSpacing: 0.8,
   },
   matchDayCount: {
     fontFamily: FontFamily.bodyBold,
     fontSize: FontSize.md,
-    color: Colors.text.primary,
+    color: colors.text.primary,
   },
   matchDayLeader: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.sm,
-    color: Colors.text.muted,
+    color: colors.text.muted,
   },
   playBtn: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: Colors.accent.green,
+    backgroundColor: colors.accent.green,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: Colors.accent.green,
+    shadowColor: colors.accent.green,
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.4,
     shadowRadius: 8,
@@ -586,14 +592,14 @@ const styles = StyleSheet.create({
   },
   playBtnIcon: {
     fontSize: 16,
-    color: Colors.accent.greenDark,
+    color: colors.accent.greenDark,
     marginLeft: 2,
   },
 
   // ---- Played Rounds ----
   emptyRounds: {
     borderWidth: 1,
-    borderColor: Colors.border.medium,
+    borderColor: colors.border.medium,
     borderStyle: 'dashed',
     borderRadius: Radius.lg,
     paddingVertical: Spacing['2xl'],
@@ -603,7 +609,7 @@ const styles = StyleSheet.create({
   emptyRoundsText: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.base,
-    color: Colors.text.muted,
+    color: colors.text.muted,
   },
   // ---- Bottom CTA ----
   bottomBar: {
@@ -611,19 +617,19 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: Colors.bg.base,
+    backgroundColor: colors.bg.base,
     paddingHorizontal: Spacing.xl,
     paddingTop: Spacing.md,
     paddingBottom: 32,
     borderTopWidth: 1,
-    borderTopColor: Colors.border.default,
+    borderTopColor: colors.border.default,
   },
   ctaBtn: {
-    backgroundColor: Colors.accent.green,
+    backgroundColor: colors.accent.green,
     borderRadius: Radius.lg,
     paddingVertical: Spacing.lg,
     alignItems: 'center',
-    shadowColor: Colors.accent.green,
+    shadowColor: colors.accent.green,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.35,
     shadowRadius: 12,
@@ -632,7 +638,7 @@ const styles = StyleSheet.create({
   ctaBtnText: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize.lg,
-    color: Colors.accent.greenDark,
+    color: colors.accent.greenDark,
     letterSpacing: 0.6,
   },
 });
@@ -641,9 +647,9 @@ const styles = StyleSheet.create({
 // Sheet styles
 // ---------------------------------------------------------------------------
 
-const sheetStyles = StyleSheet.create({
+const makeSheetStyles = (colors: AppColors) => StyleSheet.create({
   sheet: {
-    backgroundColor: Colors.bg.sheet,
+    backgroundColor: colors.bg.sheet,
     paddingHorizontal: Spacing.xl,
     paddingTop: Spacing.lg,
     paddingBottom: Spacing['2xl'],
@@ -661,26 +667,26 @@ const sheetStyles = StyleSheet.create({
   sheetTitle: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize['2xl'],
-    color: Colors.text.primary,
+    color: colors.text.primary,
     letterSpacing: 0.5,
   },
   sheetSubtitle: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.sm,
-    color: Colors.text.muted,
+    color: colors.text.muted,
   },
   doneBtn: {
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.xs,
     borderRadius: Radius.sm,
-    backgroundColor: Colors.accent.greenSubtle,
+    backgroundColor: colors.accent.greenSubtle,
     borderWidth: 1,
-    borderColor: Colors.accent.greenBorder,
+    borderColor: colors.accent.greenBorder,
   },
   doneBtnText: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.sm,
-    color: Colors.accent.green,
+    color: colors.accent.green,
   },
   rows: {
     gap: Spacing.sm,
@@ -688,10 +694,10 @@ const sheetStyles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.bg.elevated,
+    backgroundColor: colors.bg.elevated,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: Colors.border.default,
+    borderColor: colors.border.default,
     padding: Spacing.md,
     gap: Spacing.md,
   },
@@ -705,7 +711,7 @@ const sheetStyles = StyleSheet.create({
   },
   rowIconText: {
     fontSize: 16,
-    color: Colors.accent.blue,
+    color: colors.accent.blue,
   },
   rowLabelBlock: {
     flex: 1,
@@ -714,18 +720,18 @@ const sheetStyles = StyleSheet.create({
   rowLabel: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.base,
-    color: Colors.text.primary,
+    color: colors.text.primary,
     flex: 1,
   },
   rowSubtitle: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.xs,
-    color: Colors.text.muted,
+    color: colors.text.muted,
   },
   rowChevron: {
     fontFamily: FontFamily.display,
     fontSize: FontSize.xl,
-    color: Colors.text.muted,
+    color: colors.text.muted,
     lineHeight: 24,
   },
 });
@@ -734,17 +740,17 @@ const sheetStyles = StyleSheet.create({
 // Input sheet styles (rename modal)
 // ---------------------------------------------------------------------------
 
-const inputStyles = StyleSheet.create({
+const makeInputStyles = (colors: AppColors) => StyleSheet.create({
   input: {
-    backgroundColor: Colors.bg.elevated,
+    backgroundColor: colors.bg.elevated,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: Colors.border.medium,
+    borderColor: colors.border.medium,
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
     fontFamily: FontFamily.body,
     fontSize: FontSize.md,
-    color: Colors.text.primary,
+    color: colors.text.primary,
     marginTop: Spacing.lg,
     marginBottom: Spacing.lg,
   },
@@ -754,39 +760,39 @@ const inputStyles = StyleSheet.create({
   },
   cancelBtn: {
     flex: 1,
-    backgroundColor: Colors.bg.elevated,
+    backgroundColor: colors.bg.elevated,
     borderRadius: Radius.md,
     paddingVertical: Spacing.lg,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: Colors.border.medium,
+    borderColor: colors.border.medium,
   },
   cancelText: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize.base,
-    color: Colors.text.muted,
+    color: colors.text.muted,
     letterSpacing: 0.4,
   },
   saveBtn: {
     flex: 2,
-    backgroundColor: Colors.accent.green,
+    backgroundColor: colors.accent.green,
     borderRadius: Radius.md,
     paddingVertical: Spacing.lg,
     alignItems: 'center',
   },
   saveBtnDisabled: {
-    backgroundColor: Colors.bg.elevated,
+    backgroundColor: colors.bg.elevated,
     borderWidth: 1,
-    borderColor: Colors.border.medium,
+    borderColor: colors.border.medium,
   },
   saveText: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize.base,
-    color: Colors.accent.greenDark,
+    color: colors.accent.greenDark,
     letterSpacing: 0.4,
   },
   saveTextDisabled: {
-    color: Colors.text.ghost,
+    color: colors.text.ghost,
   },
 });
 
@@ -794,7 +800,7 @@ const inputStyles = StyleSheet.create({
 // Dialog styles (close tournament)
 // ---------------------------------------------------------------------------
 
-const dialogStyles = StyleSheet.create({
+const makeDialogStyles = (colors: AppColors) => StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.75)',
@@ -803,10 +809,10 @@ const dialogStyles = StyleSheet.create({
     padding: Spacing['2xl'],
   },
   dialog: {
-    backgroundColor: Colors.bg.surface,
+    backgroundColor: colors.bg.surface,
     borderRadius: Radius['2xl'],
     borderWidth: 1,
-    borderColor: Colors.accent.goldBorder,
+    borderColor: colors.accent.goldBorder,
     padding: Spacing['2xl'],
     width: '100%',
     gap: Spacing.md,
@@ -818,14 +824,14 @@ const dialogStyles = StyleSheet.create({
   dialogTitle: {
     fontFamily: FontFamily.displayBold,
     fontSize: FontSize['2xl'],
-    color: Colors.text.primary,
+    color: colors.text.primary,
     letterSpacing: 0.5,
     textAlign: 'center',
   },
   dialogDesc: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.base,
-    color: Colors.text.muted,
+    color: colors.text.muted,
     textAlign: 'center',
     lineHeight: 20,
     marginBottom: Spacing.sm,
@@ -837,21 +843,21 @@ const dialogStyles = StyleSheet.create({
   },
   cancelBtn: {
     flex: 1,
-    backgroundColor: Colors.bg.elevated,
+    backgroundColor: colors.bg.elevated,
     borderRadius: Radius.md,
     paddingVertical: Spacing.md,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: Colors.border.medium,
+    borderColor: colors.border.medium,
   },
   cancelText: {
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.base,
-    color: Colors.text.muted,
+    color: colors.text.muted,
   },
   archiveBtn: {
     flex: 1,
-    backgroundColor: Colors.accent.gold,
+    backgroundColor: colors.accent.gold,
     borderRadius: Radius.md,
     paddingVertical: Spacing.md,
     alignItems: 'center',
