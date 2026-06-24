@@ -41,9 +41,11 @@ export function Sheet({ visible, onClose, children, snapToMax }: SheetProps) {
   const ref = useRef<BottomSheet>(null);
   const [height, setHeight] = useState(MIN_HEIGHT);
   const { bottom: bottomInset } = useSafeAreaInsets();
+  const [everOpened, setEverOpened] = useState(false);
 
   useEffect(() => {
     if (visible) {
+      setEverOpened(true);
       ref.current?.snapToIndex(0);
     } else {
       ref.current?.close();
@@ -82,7 +84,7 @@ export function Sheet({ visible, onClose, children, snapToMax }: SheetProps) {
       handleIndicatorStyle={{ backgroundColor: Colors.border.strong }}
       onClose={onClose}
     >
-      {snapToMax ? children : <BottomSheetView onLayout={handleLayout}>{children}</BottomSheetView>}
+      {everOpened && (snapToMax ? children : <BottomSheetView onLayout={handleLayout}>{children}</BottomSheetView>)}
     </BottomSheet>
   );
 }

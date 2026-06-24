@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Modal, Pressable, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Modal, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import Constants from 'expo-constants';
 import { useGoBack } from '@/utils/useGoBack';
@@ -54,6 +54,7 @@ export default function SettingsScreen() {
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
   const [showSignOutConfirm, setShowSignOutConfirm] = useState(false);
+  const [showDemoConfirm, setShowDemoConfirm] = useState(false);
   const [versionTaps, setVersionTaps] = useState(0);
   const [devUnlocked, setDevUnlocked] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
@@ -118,18 +119,18 @@ export default function SettingsScreen() {
 
   const handleDemoToggle = (on: boolean) => {
     if (on && hasTournament) {
-      Alert.alert(
-        t('demo.label'),
-        t('demo.replaceWarning'),
-        [
-          { text: t('common.cancel'), style: 'cancel' },
-          { text: t('demo.enable'), onPress: () => { store.setDemoMode(true); router.dismissAll(); router.replace('/'); } },
-        ],
-      );
+      setShowDemoConfirm(true);
       return;
     }
     store.setDemoMode(on);
     if (on) { router.dismissAll(); router.replace('/'); }
+  };
+
+  const confirmEnableDemo = () => {
+    setShowDemoConfirm(false);
+    store.setDemoMode(true);
+    router.dismissAll();
+    router.replace('/');
   };
 
   return (
@@ -295,7 +296,7 @@ export default function SettingsScreen() {
               right={
                 <Switch
                   value={demoMode}
-                  onValueChange={() => {}}
+                  onValueChange={(v) => handleDemoToggle(v)}
                   trackColor={{ false: Colors.bg.elevated, true: Colors.accent.yellow }}
                   thumbColor={Colors.text.primary}
                 />
@@ -349,6 +350,39 @@ export default function SettingsScreen() {
                 activeOpacity={0.8}
               >
                 <Text style={styles.dialogConfirmText}>Sign Out</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Demo mode confirmation dialog */}
+      <Modal
+        visible={showDemoConfirm}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowDemoConfirm(false)}
+        statusBarTranslucent
+      >
+        <View style={styles.dialogOverlay}>
+          <Pressable style={styles.dialogBackdrop} onPress={() => setShowDemoConfirm(false)} />
+          <View style={styles.dialog}>
+            <Text style={styles.dialogTitle}>{t('demo.label').toUpperCase()}</Text>
+            <Text style={styles.dialogDesc}>{t('demo.replaceWarning')}</Text>
+            <View style={styles.dialogButtons}>
+              <TouchableOpacity
+                style={styles.dialogCancelBtn}
+                onPress={() => setShowDemoConfirm(false)}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.dialogCancelText}>{t('common.cancel')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.dialogConfirmBtn, { backgroundColor: Colors.accent.yellow }]}
+                onPress={confirmEnableDemo}
+                activeOpacity={0.8}
+              >
+                <Text style={[styles.dialogConfirmText, { color: '#000' }]}>{t('demo.enable').toUpperCase()}</Text>
               </TouchableOpacity>
             </View>
           </View>
