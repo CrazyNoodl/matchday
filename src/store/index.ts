@@ -33,15 +33,26 @@ const buildStorage = () => {
       },
     };
   }
-  // Native: lazy-import MMKV so the module doesn't crash on web
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const { createMMKV } = require('react-native-mmkv') as typeof import('react-native-mmkv');
-  const mmkv = createMMKV({ id: 'matchday-store' });
-  return {
-    getItem: (name: string): string | null => mmkv.getString(name) ?? null,
-    setItem: (name: string, value: string): void => mmkv.set(name, value),
-    removeItem: (name: string): void => { mmkv.remove(name); },
-  };
+  // Native: lazy-import MMKV so the module doesn't crash on web.
+  // Falls back to an in-memory store if the native module isn't available
+  // (e.g. Jest/Storybook, which have no real native runtime).
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { createMMKV } = require('react-native-mmkv') as typeof import('react-native-mmkv');
+    const mmkv = createMMKV({ id: 'matchday-store' });
+    return {
+      getItem: (name: string): string | null => mmkv.getString(name) ?? null,
+      setItem: (name: string, value: string): void => mmkv.set(name, value),
+      removeItem: (name: string): void => { mmkv.remove(name); },
+    };
+  } catch {
+    const memory = new Map<string, string>();
+    return {
+      getItem: (name: string): string | null => memory.get(name) ?? null,
+      setItem: (name: string, value: string): void => { memory.set(name, value); },
+      removeItem: (name: string): void => { memory.delete(name); },
+    };
+  }
 };
 
 const mmkvStorage = buildStorage();
