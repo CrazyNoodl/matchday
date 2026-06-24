@@ -1326,7 +1326,7 @@ const makeStyles = (colors: AppColors) => StyleSheet.create({
   },
   sheetFlex: {
     flex: 1,
-    backgroundColor: Colors.bg.sheet,
+    backgroundColor: colors.bg.sheet,
     paddingBottom: 32,
   },
   sheetHeader: {
