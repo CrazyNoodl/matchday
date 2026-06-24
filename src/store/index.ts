@@ -11,6 +11,7 @@ import {
   RealDataBackup,
 } from './types';
 import { ParsedMatch } from '../utils/importRound';
+import { deleteMediaItem } from '../supabase/storage';
 import { DEMO_STATE } from '../demo/data';
 import { calculateStandings, isTopTied } from '../utils/standings';
 import { Colors } from '../theme/colors';
@@ -137,7 +138,7 @@ interface Actions {
   setShowTeamLogo: (v: boolean) => void;
   setLanguage: (lang: string) => void;
   setDemoMode: (on: boolean) => void;
-  resetStore: () => void;
+  resetStore: () => Promise<void>;
   bulkImportMatches: (parsed: ParsedMatch[]) => void;
 }
 
@@ -150,6 +151,36 @@ function initials(name: string): string {
     return (parts[0][0] + parts[1][0]).toUpperCase();
   }
   return name.slice(0, 2).toUpperCase();
+}
+
+// ---------------------------------------------------------------------------
+// Helper — patch a single match wherever it lives (current matches + archived rounds)
+// ---------------------------------------------------------------------------
+function patchMatchEverywhere(
+  s: Pick<AppState, 'matches' | 'archivedRounds'>,
+  id: string,
+  patch: Partial<Match>,
+): Pick<AppState, 'matches' | 'archivedRounds'> {
+  return {
+    matches: s.matches.map((m) => (m.id === id ? { ...m, ...patch } : m)),
+    archivedRounds: s.archivedRounds.map((r) => ({
+      ...r,
+      matches: r.matches.map((m) => (m.id === id ? { ...m, ...patch } : m)),
+    })),
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Helper — collect every match across current round, archived rounds, and closed tournaments
+// ---------------------------------------------------------------------------
+function collectAllMatches(
+  s: Pick<AppState, 'matches' | 'archivedRounds' | 'closedTournaments'>,
+): Match[] {
+  return [
+    ...s.matches,
+    ...s.archivedRounds.flatMap((r) => r.matches),
+    ...s.closedTournaments.flatMap((t) => t.rounds.flatMap((r) => r.matches)),
+  ];
 }
 
 // ---------------------------------------------------------------------------
@@ -223,48 +254,16 @@ export const useStore = create<AppState & Actions>()(
         set((s) => ({ matches: s.matches.filter((m) => m.id !== id) })),
 
       updateMatchScore: (id, aScore, bScore) =>
-        set((s) => ({
-          matches: s.matches.map((m) =>
-            m.id === id ? { ...m, aScore, bScore } : m,
-          ),
-          archivedRounds: s.archivedRounds.map((r) => ({
-            ...r,
-            matches: r.matches.map((m) =>
-              m.id === id ? { ...m, aScore, bScore } : m,
-            ),
-          })),
-        })),
+        set((s) => patchMatchEverywhere(s, id, { aScore, bScore })),
 
       updateMatchMedia: (id, media) =>
-        set((s) => ({
-          matches: s.matches.map((m) => (m.id === id ? { ...m, media } : m)),
-          archivedRounds: s.archivedRounds.map((r) => ({
-            ...r,
-            matches: r.matches.map((m) => (m.id === id ? { ...m, media } : m)),
-          })),
-        })),
+        set((s) => patchMatchEverywhere(s, id, { media })),
 
       updateMatchNote: (id, note) =>
-        set((s) => ({
-          matches: s.matches.map((m) => (m.id === id ? { ...m, note } : m)),
-          archivedRounds: s.archivedRounds.map((r) => ({
-            ...r,
-            matches: r.matches.map((m) => (m.id === id ? { ...m, note } : m)),
-          })),
-        })),
+        set((s) => patchMatchEverywhere(s, id, { note })),
 
       updateMatchStats: (id, stats) =>
-        set((s) => ({
-          matches: s.matches.map((m) =>
-            m.id === id ? { ...m, statsOverride: stats } : m,
-          ),
-          archivedRounds: s.archivedRounds.map((r) => ({
-            ...r,
-            matches: r.matches.map((m) =>
-              m.id === id ? { ...m, statsOverride: stats } : m,
-            ),
-          })),
-        })),
+        set((s) => patchMatchEverywhere(s, id, { statsOverride: stats })),
 
       finishRound: () => {
         const s = get();
@@ -345,12 +344,9 @@ export const useStore = create<AppState & Actions>()(
 
       deletePlayer: (id) => {
         const s = get();
-        const allMatches = [
-          ...s.matches,
-          ...s.archivedRounds.flatMap((r) => r.matches),
-          ...s.closedTournaments.flatMap((t) => t.rounds.flatMap((r) => r.matches)),
-        ];
+        const allMatches = collectAllMatches(s);
         if (allMatches.some((m) => m.aId === id || m.bId === id)) return;
+        if (s.closedTournaments.some((t) => t.players.includes(id))) return;
         set({ players: s.players.filter((p) => p.id !== id) });
       },
 
@@ -367,11 +363,7 @@ export const useStore = create<AppState & Actions>()(
 
       deleteTeam: (code) => {
         const s = get();
-        const allMatches = [
-          ...s.matches,
-          ...s.archivedRounds.flatMap((r) => r.matches),
-          ...s.closedTournaments.flatMap((t) => t.rounds.flatMap((r) => r.matches)),
-        ];
+        const allMatches = collectAllMatches(s);
         if (allMatches.some((m) => m.aTeam === code || m.bTeam === code)) return;
         set({ teams: s.teams.filter((t) => t.code !== code) });
       },
@@ -525,7 +517,27 @@ export const useStore = create<AppState & Actions>()(
         });
       },
 
-      resetStore: () => {
+      resetStore: async () => {
+        const s = get();
+        const matchUris = [
+          ...s.matches,
+          ...s.archivedRounds.flatMap((r) => r.matches),
+          ...s.closedTournaments.flatMap((t) => t.rounds.flatMap((r) => r.matches)),
+          ...(s.realDataBackup?.matches ?? []),
+          ...(s.realDataBackup?.archivedRounds.flatMap((r) => r.matches) ?? []),
+          ...(s.realDataBackup?.closedTournaments.flatMap((t) => t.rounds.flatMap((r) => r.matches)) ?? []),
+        ].flatMap((m) => m.media ?? []).map((media) => media.uri);
+        const playerPhotoUris = [
+          ...s.players,
+          ...(s.realDataBackup?.players ?? []),
+        ].map((p) => p.photo).filter((uri): uri is string => !!uri);
+        const teamLogoUris = [
+          ...s.teams,
+          ...(s.realDataBackup?.teams ?? []),
+        ].map((t) => t.logo).filter((uri): uri is string => !!uri);
+
+        const mediaUris = [...new Set([...matchUris, ...playerPhotoUris, ...teamLogoUris])];
+
         set({
           tournamentId: '',
           hasTournament: false,
@@ -551,6 +563,8 @@ export const useStore = create<AppState & Actions>()(
           viewingRound: null,
           viewingTournament: null,
         });
+
+        await Promise.all(mediaUris.map((uri) => deleteMediaItem(uri)));
       },
     }),
     {

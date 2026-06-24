@@ -105,6 +105,14 @@ const uk = {
       draw: 'НІЧИЯ',
       done: 'ГОТОВО',
     },
+    ocr: {
+      reading: 'Зчитування статистики з фото...',
+      detected: '📊 Знайдено {{count}} показників',
+      failed: 'Не вдалося зчитати статистику',
+      retry: 'Повторити',
+      skip: 'Пропустити',
+      skipped: 'Статистику пропущено — додайте її в деталях матчу',
+    },
   },
 
   setup: {
@@ -153,7 +161,7 @@ const uk = {
 
   tournament: {
     standings: 'ТАБЛИЦЯ ТУРНІРУ',
-    headerSubtitle: 'Раунд {{round}} / {{total}} · Сьогодні · {{played}} раундів зіграно',
+    headerSubtitle: 'Раунд {{round}} / {{total}} · {{date}} · {{played}} раундів зіграно',
     noMatches: 'Ще жодного матчу не зіграно',
     currentMatchDay: 'ПОТОЧНИЙ ІГРОВИЙ ДЕНЬ',
     roundBadge: 'РНД / {{n}}',
@@ -170,8 +178,14 @@ const uk = {
       title: 'ТУРНІР',
       done: 'Готово',
       rename: 'Перейменувати турнір',
+      shareStandings: 'Поділитись таблицею',
+      shareStandingsSubtitle: 'Поділитись поточною таблицею як зображенням',
       closeAndArchive: 'Закрити та архівувати',
       closeSubtitle: 'Зафіксувати таблицю та визначити переможця',
+    },
+    shareStandings: {
+      title: 'ПОДІЛИТИСЬ ТАБЛИЦЕЮ',
+      roundLabel: 'Раунд {{round}} / {{total}}',
     },
     rename: {
       title: 'ПЕРЕЙМЕНУВАТИ ТУРНІР',
@@ -242,7 +256,14 @@ const uk = {
     about: {
       section: 'ПРО ДОДАТОК',
       appName: 'Matchday',
-      version: 'Версія 1.2.0',
+      version: 'Версія {{version}}',
+    },
+    changelog: {
+      title: 'ЩО НОВОГО',
+      added: 'ДОДАНО',
+      fixed: 'ВИПРАВЛЕНО',
+      notes: 'ПРИМІТКИ',
+      empty: 'Записів поки немає.',
     },
     danger: {
       section: 'НЕБЕЗПЕЧНА ЗОНА',

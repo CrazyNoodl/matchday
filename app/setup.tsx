@@ -22,6 +22,7 @@ import { Radius, Spacing } from '@/theme/spacing';
 import { Avatar } from '@/components/Avatar';
 import { TeamBadge } from '@/components/TeamBadge';
 import { SectionLabel } from '@/components/SectionLabel';
+import { GlowBackground } from '@/components/GlowBackground';
 import { Team } from '@/store/types';
 
 const PLAYER_COLORS = Colors.player;
@@ -137,7 +138,7 @@ export default function SetupScreen() {
 
   return (
     <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
-      <View style={styles.glow} pointerEvents="none" />
+      <GlowBackground />
 
       {/* Header */}
       <View style={styles.header}>
@@ -565,16 +566,6 @@ const styles = StyleSheet.create({
   },
   flex: {
     flex: 1,
-  },
-  glow: {
-    position: 'absolute',
-    width: 340,
-    height: 340,
-    top: -80,
-    left: -40,
-    borderRadius: 170,
-    backgroundColor: Colors.accent.green,
-    opacity: 0.06,
   },
   header: {
     flexDirection: 'row',

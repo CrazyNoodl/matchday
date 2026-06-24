@@ -11,6 +11,8 @@ import { useGoBack } from '@/utils/useGoBack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStore } from '@/store';
 import { calculateStandings } from '@/utils/standings';
+import { formatShortDate, formatYearShort } from '@/utils/dateFormat';
+import { getPlayerDisplayName } from '@/utils/playerDisplay';
 import { Colors } from '@/theme/colors';
 import { FontFamily, FontSize } from '@/theme/typography';
 import { Radius, Spacing } from '@/theme/spacing';
@@ -18,6 +20,8 @@ import { NavHeader } from '@/components/NavHeader';
 import { SectionLabel } from '@/components/SectionLabel';
 import { Avatar } from '@/components/Avatar';
 import { MatchCard } from '@/components/MatchCard';
+import { GlowBackground } from '@/components/GlowBackground';
+import { PlayerRankCard } from '@/components/PlayerRankCard';
 import type { ArchivedRound, Match } from '@/store/types';
 import { useTranslation } from 'react-i18next';
 
@@ -32,18 +36,6 @@ type ParamChip = 'wdl' | 'gd' | 'gfa';
 // Helpers
 // ---------------------------------------------------------------------------
 
-function formatFCYear(dateStr: string): string {
-  const d = new Date(dateStr);
-  return String(d.getFullYear()).slice(-2);
-}
-
-function formatRoundDate(dateStr: string): string {
-  const d = new Date(dateStr);
-  const dd = String(d.getDate()).padStart(2, '0');
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  const yy = String(d.getFullYear()).slice(-2);
-  return `${dd}/${mm}/${yy}`;
-}
 
 function filterRounds(
   rounds: ArchivedRound[],
@@ -153,7 +145,7 @@ export default function SeasonStatsScreen() {
   const fullYear = d.getFullYear();
   const shortYear = String(fullYear + 1).slice(-2);
   const seasonSubtitle = t('seasonStats.seasonSubtitle', { year1: fullYear, year2: shortYear });
-  const fcYear = formatFCYear(viewingTournament.date);
+  const fcYear = formatYearShort(viewingTournament.date);
 
   const includeFilters: { key: IncludeFilter; label: string }[] = [
     { key: 'Rated', label: t('seasonStats.rated') },
@@ -168,8 +160,7 @@ export default function SeasonStatsScreen() {
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
-      {/* Green glow */}
-      <View style={styles.glow} pointerEvents="none" />
+      <GlowBackground />
 
       {/* Header */}
       <NavHeader title={t('seasonStats.title')} onBack={() => goBack()} />
@@ -296,9 +287,7 @@ export default function SeasonStatsScreen() {
           standings.map((s, index) => {
             const rank = index + 1;
             const player = players.find((p) => p.id === s.playerId);
-            const displayName =
-              (showNick && player?.nick) ? player.nick : player?.name ?? '—';
-            const medal = MEDALS[rank] ?? null;
+            const displayName = getPlayerDisplayName(player, showNick, '—');
             const subText = buildSubText(
               paramChip,
               s.wins,
@@ -311,61 +300,19 @@ export default function SeasonStatsScreen() {
             );
 
             return (
-              <View
+              <PlayerRankCard
                 key={s.playerId}
-                style={[
-                  styles.rankCard,
-                  { borderColor: medal ? medal.cardBorder : Colors.border.default },
-                  rank === 1 && styles.rankCardFirst,
-                ]}
-              >
-                {/* Medal badge */}
-                <View
-                  style={[
-                    styles.medalBadge,
-                    {
-                      backgroundColor: medal
-                        ? medal.badgeBg
-                        : 'rgba(255,255,255,0.06)',
-                    },
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.medalText,
-                      { color: medal ? medal.badgeColor : Colors.text.muted },
-                    ]}
-                  >
-                    {rank}
-                  </Text>
-                </View>
-
-                {/* Avatar + name */}
-                <View style={styles.rankPlayerInfo}>
-                  <Avatar playerId={s.playerId} size="md" />
-                  <View style={styles.rankNameWrap}>
-                    <Text style={styles.rankName} numberOfLines={1}>
-                      {displayName}
-                    </Text>
-                    <Text style={styles.rankSubText} numberOfLines={1}>
-                      {subText}
-                    </Text>
-                  </View>
-                </View>
-
-                {/* Points block */}
-                <View style={styles.ptsBlock}>
-                  <Text
-                    style={[
-                      styles.ptsNumber,
-                      rank === 1 && { color: Colors.accent.green },
-                    ]}
-                  >
-                    {s.pts}
-                  </Text>
-                  <Text style={styles.ptsLabel}>{t('seasonStats.pts')}</Text>
-                </View>
-              </View>
+                style={styles.rankCardSpacing}
+                rank={rank}
+                medal={MEDALS[rank] ?? null}
+                playerId={s.playerId}
+                name={displayName}
+                subText={subText}
+                points={s.pts}
+                pointsLabel={t('seasonStats.pts')}
+                pointsColor={rank === 1 ? Colors.accent.green : undefined}
+                emphasized={rank === 1}
+              />
             );
           })
         )}
@@ -389,7 +336,7 @@ export default function SeasonStatsScreen() {
                   <Text style={styles.roundHeaderTitle}>
                     {t('matchday.round', { n: round.n })}
                   </Text>
-                  <Text style={styles.roundHeaderDate}>{formatRoundDate(round.date)}</Text>
+                  <Text style={styles.roundHeaderDate}>{formatShortDate(round.date)}</Text>
                 </View>
                 {!round.ranked && (
                   <View style={styles.friendlyTag}>
@@ -409,7 +356,7 @@ export default function SeasonStatsScreen() {
                   <Text style={styles.roundEmptyText}>—</Text>
                 </View>
               ) : (
-                round.matches.map((m) => (
+                [...round.matches].reverse().map((m) => (
                   <TouchableOpacity
                     key={m.id}
                     onPress={() => handleMatchPress(m.id)}
@@ -437,16 +384,6 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: Colors.bg.base,
-  },
-  glow: {
-    position: 'absolute',
-    width: 340,
-    height: 340,
-    top: -80,
-    left: -40,
-    borderRadius: 170,
-    backgroundColor: Colors.accent.green,
-    opacity: 0.06,
   },
   scroll: {
     flex: 1,
@@ -528,7 +465,7 @@ const styles = StyleSheet.create({
   champAvatarWrap: {
     borderWidth: 2,
     borderColor: Colors.accent.gold,
-    borderRadius: 30,
+    borderRadius: 19,
     padding: 2,
   },
   champAvatar: {
@@ -629,70 +566,8 @@ const styles = StyleSheet.create({
   },
 
   // Ranking cards
-  rankCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.bg.surface,
-    borderRadius: Radius.xl,
-    borderWidth: 1,
-    padding: Spacing.lg,
+  rankCardSpacing: {
     marginBottom: Spacing.sm,
-    gap: Spacing.md,
-  },
-  rankCardFirst: {
-    backgroundColor: Colors.accent.greenSubtle,
-  },
-  medalBadge: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-  },
-  medalText: {
-    fontFamily: FontFamily.display,
-    fontSize: FontSize.md,
-    lineHeight: 18,
-  },
-  rankPlayerInfo: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.md,
-    overflow: 'hidden',
-  },
-  rankNameWrap: {
-    flex: 1,
-    gap: 3,
-  },
-  rankName: {
-    fontFamily: FontFamily.bodySemiBold,
-    fontSize: FontSize.md,
-    color: Colors.text.primary,
-  },
-  rankSubText: {
-    fontFamily: FontFamily.body,
-    fontSize: FontSize.xs,
-    color: Colors.text.muted,
-  },
-  ptsBlock: {
-    alignItems: 'center',
-    minWidth: 40,
-    flexShrink: 0,
-  },
-  ptsNumber: {
-    fontFamily: FontFamily.display,
-    fontSize: FontSize['3xl'],
-    color: Colors.text.primary,
-    lineHeight: 34,
-  },
-  ptsLabel: {
-    fontFamily: FontFamily.body,
-    fontSize: FontSize.xs,
-    color: Colors.text.muted,
-    letterSpacing: 0.8,
-    marginTop: -2,
   },
 
   // Games / rounds table

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -29,6 +29,9 @@ import { ScoreCounter } from '@/components/ScoreCounter';
 import { SectionLabel } from '@/components/SectionLabel';
 import { EmptyState } from '@/components/EmptyState';
 import { MediaThumbnail } from '@/components/MediaThumbnail';
+import { GlowBackground } from '@/components/GlowBackground';
+import { SegmentedControl } from '@/components/SegmentedControl';
+import { TeamPickerRow } from '@/components/TeamPickerRow';
 import { Match, MediaItem } from '@/store/types';
 import { useTranslation } from 'react-i18next';
 import { uploadMediaItems } from '@/supabase/storage';
@@ -88,7 +91,7 @@ function initAddMatch(): AddMatchState {
 }
 
 // ---- Confetti Piece ----
-function ConfettiPiece({ delay }: { delay: number }) {
+const ConfettiPiece = React.memo(function ConfettiPiece({ delay }: { delay: number }) {
   const anim = useRef(new Animated.Value(0)).current;
   const x = useRef(Math.random() * SCREEN_WIDTH).current;
   const COLORS = [
@@ -136,7 +139,7 @@ function ConfettiPiece({ delay }: { delay: number }) {
       }}
     />
   );
-}
+});
 
 export default function MatchdayScreen() {
   const router = useRouter();
@@ -158,20 +161,25 @@ export default function MatchdayScreen() {
 
   const [standingsView, setStandingsView] = useState<StandingsView>('table');
   const [addMatch, setAddMatch] = useState<AddMatchState>(initAddMatch());
+  const [isSavingMatch, setIsSavingMatch] = useState(false);
   const [localWinnerId, setLocalWinnerId] = useState<string | null>(null);
 
-  const standings = calculateStandings(matches, roundPlayers);
+  const standings = useMemo(
+    () => calculateStandings(matches, roundPlayers),
+    [matches, roundPlayers],
+  );
 
-  const tournamentPlayerList = players.filter((p) =>
-    roundPlayers.includes(p.id),
+  const tournamentPlayerList = useMemo(
+    () => players.filter((p) => roundPlayers.includes(p.id)),
+    [players, roundPlayers],
   );
 
   // ---- Match validation ----
-  const allPlayedEqual = (() => {
+  const allPlayedEqual = useMemo(() => {
     if (standings.length === 0) return true;
     const counts = standings.map((s) => s.played);
     return counts.every((c) => c === counts[0]);
-  })();
+  }, [standings]);
 
   const handleFinishPress = useCallback(() => {
     if (matches.length === 0) {
@@ -252,6 +260,7 @@ export default function MatchdayScreen() {
 
   const handleBack = useCallback(() => {
     setAddMatch((prev) => {
+      if (prev.ocrStatus === 'scanning') return prev;
       if (prev.step <= 1) {
         store.setModal(null);
         return initAddMatch();
@@ -262,31 +271,36 @@ export default function MatchdayScreen() {
 
   const handleSaveMatch = useCallback(async () => {
     if (!addMatch.homeId || !addMatch.awayId) return;
-    const homePlayer = players.find((p) => p.id === addMatch.homeId);
-    const awayPlayer = players.find((p) => p.id === addMatch.awayId);
-    const hTeam = addMatch.homeTeam || homePlayer?.teamCode || 'UNK';
-    const aTeam = addMatch.awayTeam || awayPlayer?.teamCode || 'UNK';
+    setIsSavingMatch(true);
+    try {
+      const homePlayer = players.find((p) => p.id === addMatch.homeId);
+      const awayPlayer = players.find((p) => p.id === addMatch.awayId);
+      const hTeam = addMatch.homeTeam || homePlayer?.teamCode || 'UNK';
+      const aTeam = addMatch.awayTeam || awayPlayer?.teamCode || 'UNK';
 
-    // Upload local media to Supabase Storage before saving
-    const uploadedMedia = addMatch.media.length > 0
-      ? await uploadMediaItems(addMatch.media)
-      : [];
+      // Upload local media to Supabase Storage before saving
+      const uploadedMedia = addMatch.media.length > 0
+        ? await uploadMediaItems(addMatch.media)
+        : [];
 
-    const match: Match = {
-      id: `match-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-      aId: addMatch.homeId,
-      bId: addMatch.awayId,
-      aTeam: hTeam,
-      bTeam: aTeam,
-      aScore: addMatch.homeScore,
-      bScore: addMatch.awayScore,
-      media: uploadedMedia.length > 0 ? uploadedMedia : undefined,
-      note: addMatch.note.trim() || undefined,
-      statsOverride: addMatch.pendingStats ?? undefined,
-    };
-    store.addMatch(match);
-    store.setModal(null);
-    setAddMatch(initAddMatch());
+      const match: Match = {
+        id: `match-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        aId: addMatch.homeId,
+        bId: addMatch.awayId,
+        aTeam: hTeam,
+        bTeam: aTeam,
+        aScore: addMatch.homeScore,
+        bScore: addMatch.awayScore,
+        media: uploadedMedia.length > 0 ? uploadedMedia : undefined,
+        note: addMatch.note.trim() || undefined,
+        statsOverride: addMatch.pendingStats ?? undefined,
+      };
+      store.addMatch(match);
+      store.setModal(null);
+      setAddMatch(initAddMatch());
+    } finally {
+      setIsSavingMatch(false);
+    }
   }, [addMatch, players, store]);
 
   const runOcr = useCallback(
@@ -380,10 +394,10 @@ export default function MatchdayScreen() {
   }, [runOcr]);
 
   const handleRemoveMedia = useCallback((idx: number) => {
-    setAddMatch((prev) => ({
-      ...prev,
-      media: prev.media.filter((_, i) => i !== idx),
-    }));
+    setAddMatch((prev) => {
+      if (prev.ocrStatus === 'scanning') return prev;
+      return { ...prev, media: prev.media.filter((_, i) => i !== idx) };
+    });
   }, []);
 
   // ---- Render step content ----
@@ -472,48 +486,20 @@ export default function MatchdayScreen() {
         <Text style={sheetStyles.stepHint}>
           {t('matchday.pickTeam', { name: homePl?.name ?? 'Home' })}
         </Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={sheetStyles.teamPicker}>
-          {teams.map((t) => (
-            <TouchableOpacity
-              key={t.code}
-              style={[
-                sheetStyles.teamPickItem,
-                addMatch.homeTeam === t.code && {
-                  borderColor: t.color + '88',
-                  backgroundColor: t.color + '22',
-                },
-              ]}
-              onPress={() => setAddMatch((p) => ({ ...p, homeTeam: t.code }))}
-              activeOpacity={0.8}
-            >
-              <TeamBadge teamCode={t.code} size="md" />
-              <Text style={sheetStyles.teamPickName} numberOfLines={1}>{t.short}</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+        <TeamPickerRow
+          teams={teams}
+          selectedCode={addMatch.homeTeam}
+          onSelect={(code) => setAddMatch((p) => ({ ...p, homeTeam: code }))}
+        />
 
         <Text style={[sheetStyles.stepHint, { marginTop: Spacing.lg }]}>
           {t('matchday.pickTeam', { name: awayPl?.name ?? 'Away' })}
         </Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={sheetStyles.teamPicker}>
-          {teams.map((t) => (
-            <TouchableOpacity
-              key={t.code}
-              style={[
-                sheetStyles.teamPickItem,
-                addMatch.awayTeam === t.code && {
-                  borderColor: t.color + '88',
-                  backgroundColor: t.color + '22',
-                },
-              ]}
-              onPress={() => setAddMatch((p) => ({ ...p, awayTeam: t.code }))}
-              activeOpacity={0.8}
-            >
-              <TeamBadge teamCode={t.code} size="md" />
-              <Text style={sheetStyles.teamPickName} numberOfLines={1}>{t.short}</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+        <TeamPickerRow
+          teams={teams}
+          selectedCode={addMatch.awayTeam}
+          onSelect={(code) => setAddMatch((p) => ({ ...p, awayTeam: code }))}
+        />
       </View>
     );
   };
@@ -572,7 +558,7 @@ export default function MatchdayScreen() {
             <MediaThumbnail
               key={idx}
               uri={item.uri}
-              onRemove={() => handleRemoveMedia(idx)}
+              onRemove={addMatch.ocrStatus === 'scanning' ? undefined : () => handleRemoveMedia(idx)}
             />
           ))}
           {addMatch.media.length < 7 && (
@@ -590,37 +576,37 @@ export default function MatchdayScreen() {
       {addMatch.ocrStatus === 'scanning' && (
         <View style={sheetStyles.ocrStatus}>
           <ActivityIndicator size="small" color={Colors.accent.blue} />
-          <Text style={sheetStyles.ocrStatusText}>Reading stats from photos...</Text>
+          <Text style={sheetStyles.ocrStatusText}>{t('matchday.ocr.reading')}</Text>
         </View>
       )}
       {addMatch.ocrStatus === 'done' && addMatch.pendingStats && (
         <View style={sheetStyles.ocrStatus}>
           <Text style={sheetStyles.ocrFoundText}>
-            📊 {Object.keys(addMatch.pendingStats).length} stats detected
+            {t('matchday.ocr.detected', { count: Object.keys(addMatch.pendingStats).length })}
           </Text>
         </View>
       )}
       {addMatch.ocrStatus === 'error' && (
         <View style={sheetStyles.ocrError}>
-          <Text style={sheetStyles.ocrErrorText}>Failed to read stats</Text>
+          <Text style={sheetStyles.ocrErrorText}>{t('matchday.ocr.failed')}</Text>
           <TouchableOpacity
             style={sheetStyles.ocrRetryBtn}
             onPress={handleRetryOcr}
             activeOpacity={0.75}
           >
-            <Text style={sheetStyles.ocrRetryText}>Retry</Text>
+            <Text style={sheetStyles.ocrRetryText}>{t('matchday.ocr.retry')}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => setAddMatch((p) => ({ ...p, ocrStatus: 'skipped' }))}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
-            <Text style={sheetStyles.ocrSkipText}>Skip</Text>
+            <Text style={sheetStyles.ocrSkipText}>{t('matchday.ocr.skip')}</Text>
           </TouchableOpacity>
         </View>
       )}
       {addMatch.ocrStatus === 'skipped' && (
         <View style={sheetStyles.ocrStatus}>
-          <Text style={sheetStyles.ocrSkippedText}>Stats skipped — add from match detail</Text>
+          <Text style={sheetStyles.ocrSkippedText}>{t('matchday.ocr.skipped')}</Text>
         </View>
       )}
     </View>
@@ -648,7 +634,7 @@ export default function MatchdayScreen() {
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
-      <View style={styles.glow} pointerEvents="none" />
+      <GlowBackground />
 
       {/* Header */}
       <View style={styles.header}>
@@ -686,30 +672,14 @@ export default function MatchdayScreen() {
 
       {/* Standings toggle */}
       <View style={styles.toggleContainer}>
-        <View style={styles.segmented}>
-          <TouchableOpacity
-            style={[styles.seg, standingsView === 'table' && styles.segActive]}
-            onPress={() => setStandingsView('table')}
-            activeOpacity={0.8}
-          >
-            <Text
-              style={[styles.segText, standingsView === 'table' && styles.segTextActive]}
-            >
-              {t('matchday.table')}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.seg, standingsView === 'cards' && styles.segActive]}
-            onPress={() => setStandingsView('cards')}
-            activeOpacity={0.8}
-          >
-            <Text
-              style={[styles.segText, standingsView === 'cards' && styles.segTextActive]}
-            >
-              {t('matchday.cards')}
-            </Text>
-          </TouchableOpacity>
-        </View>
+        <SegmentedControl
+          value={standingsView}
+          onChange={setStandingsView}
+          options={[
+            { value: 'table', label: t('matchday.table') },
+            { value: 'cards', label: t('matchday.cards') },
+          ]}
+        />
       </View>
 
       <ScrollView
@@ -903,11 +873,20 @@ export default function MatchdayScreen() {
             {/* Actions */}
             <View style={sheetStyles.actions}>
               <TouchableOpacity
-                style={sheetStyles.backActionBtn}
+                style={[
+                  sheetStyles.backActionBtn,
+                  addMatch.ocrStatus === 'scanning' && sheetStyles.nextBtnDisabled,
+                ]}
                 onPress={handleBack}
+                disabled={addMatch.ocrStatus === 'scanning'}
                 activeOpacity={0.75}
               >
-                <Text style={sheetStyles.backActionText}>
+                <Text
+                  style={[
+                    sheetStyles.backActionText,
+                    addMatch.ocrStatus === 'scanning' && sheetStyles.nextBtnTextDisabled,
+                  ]}
+                >
                   {addMatch.step === 1 ? t('common.cancel') : t('common.back')}
                 </Text>
               </TouchableOpacity>
@@ -932,11 +911,16 @@ export default function MatchdayScreen() {
                 </TouchableOpacity>
               ) : (
                 <TouchableOpacity
-                  style={sheetStyles.nextBtn}
+                  style={[sheetStyles.nextBtn, isSavingMatch && sheetStyles.nextBtnDisabled]}
                   onPress={handleSaveMatch}
+                  disabled={isSavingMatch}
                   activeOpacity={0.85}
                 >
-                  <Text style={sheetStyles.nextBtnText}>{t('matchday.saveMatch')}</Text>
+                  {isSavingMatch ? (
+                    <ActivityIndicator size="small" color={Colors.accent.greenDark} />
+                  ) : (
+                    <Text style={sheetStyles.nextBtnText}>{t('matchday.saveMatch')}</Text>
+                  )}
                 </TouchableOpacity>
               )}
             </View>
@@ -1111,16 +1095,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.bg.base,
   },
-  glow: {
-    position: 'absolute',
-    width: 340,
-    height: 340,
-    top: -80,
-    left: -40,
-    borderRadius: 170,
-    backgroundColor: Colors.accent.green,
-    opacity: 0.06,
-  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1194,34 +1168,6 @@ const styles = StyleSheet.create({
   toggleContainer: {
     paddingHorizontal: Spacing.xl,
     paddingVertical: Spacing.md,
-  },
-  segmented: {
-    flexDirection: 'row',
-    backgroundColor: Colors.bg.elevated,
-    borderRadius: Radius.lg,
-    padding: 3,
-    alignSelf: 'flex-start',
-  },
-  seg: {
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm - 1,
-    borderRadius: Radius.md,
-  },
-  segActive: {
-    backgroundColor: Colors.bg.surface,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.3,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  segText: {
-    fontFamily: FontFamily.bodySemiBold,
-    fontSize: FontSize.sm,
-    color: Colors.text.muted,
-  },
-  segTextActive: {
-    color: Colors.text.primary,
   },
   scroll: {
     flex: 1,
@@ -1457,26 +1403,6 @@ const sheetStyles = StyleSheet.create({
     fontSize: FontSize.xs,
     color: Colors.accent.blue,
     letterSpacing: 0.5,
-  },
-  teamPicker: {
-    flexGrow: 0,
-  },
-  teamPickItem: {
-    alignItems: 'center',
-    backgroundColor: Colors.bg.elevated,
-    borderRadius: Radius.md,
-    borderWidth: 1,
-    borderColor: Colors.border.default,
-    padding: Spacing.md,
-    marginRight: Spacing.sm,
-    gap: Spacing.xs,
-    width: 72,
-  },
-  teamPickName: {
-    fontFamily: FontFamily.bodyBold,
-    fontSize: FontSize.xs,
-    color: Colors.text.secondary,
-    textAlign: 'center',
   },
   scoreRow: {
     flexDirection: 'row',

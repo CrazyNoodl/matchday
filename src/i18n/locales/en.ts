@@ -105,6 +105,14 @@ const en = {
       draw: 'DRAW',
       done: 'DONE',
     },
+    ocr: {
+      reading: 'Reading stats from photos...',
+      detected: '📊 {{count}} stats detected',
+      failed: 'Failed to read stats',
+      retry: 'Retry',
+      skip: 'Skip',
+      skipped: 'Stats skipped — add from match detail',
+    },
   },
 
   setup: {
@@ -153,7 +161,7 @@ const en = {
 
   tournament: {
     standings: 'TOURNAMENT STANDINGS',
-    headerSubtitle: 'Round {{round}} / {{total}} · Today · {{played}} rounds played',
+    headerSubtitle: 'Round {{round}} / {{total}} · {{date}} · {{played}} rounds played',
     noMatches: 'No matches played yet',
     currentMatchDay: 'CURRENT MATCH DAY',
     roundBadge: 'RND / {{n}}',
@@ -170,8 +178,14 @@ const en = {
       title: 'TOURNAMENT',
       done: 'Done',
       rename: 'Rename tournament',
+      shareStandings: 'Share standings',
+      shareStandingsSubtitle: 'Share the current table as an image',
       closeAndArchive: 'Close & archive',
       closeSubtitle: 'Lock standings & crown the winner',
+    },
+    shareStandings: {
+      title: 'SHARE STANDINGS',
+      roundLabel: 'Round {{round}} / {{total}}',
     },
     rename: {
       title: 'RENAME TOURNAMENT',
@@ -242,7 +256,14 @@ const en = {
     about: {
       section: 'ABOUT',
       appName: 'Matchday',
-      version: 'Version 1.3.0',
+      version: 'Version {{version}}',
+    },
+    changelog: {
+      title: "WHAT'S NEW",
+      added: 'ADDED',
+      fixed: 'FIXED',
+      notes: 'NOTES',
+      empty: 'No changelog entries yet.',
     },
     danger: {
       section: 'DANGER ZONE',

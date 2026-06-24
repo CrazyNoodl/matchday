@@ -15,6 +15,7 @@ import { useGoBack } from '@/utils/useGoBack';
 import { NavHeader } from '@/components/NavHeader';
 import { SectionLabel } from '@/components/SectionLabel';
 import { StatsRow } from '@/components/StatsRow';
+import { GlowBackground } from '@/components/GlowBackground';
 import { Colors } from '@/theme/colors';
 import { FontFamily, FontSize } from '@/theme/typography';
 import { Radius, Spacing } from '@/theme/spacing';
@@ -121,7 +122,7 @@ export default function OcrLabScreen() {
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
-      <View style={styles.glow} pointerEvents="none" />
+      <GlowBackground variant="blue" />
       <NavHeader title="OCR Lab" onBack={() => goBack()} />
 
       <ScrollView
@@ -259,16 +260,6 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: Colors.bg.base,
-  },
-  glow: {
-    position: 'absolute',
-    width: 300,
-    height: 300,
-    top: -80,
-    right: -40,
-    borderRadius: 150,
-    backgroundColor: Colors.accent.blue,
-    opacity: 0.05,
   },
   scroll: { flex: 1 },
   scrollContent: {

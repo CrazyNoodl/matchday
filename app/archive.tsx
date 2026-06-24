@@ -16,25 +16,15 @@ import { Colors } from '@/theme/colors';
 import { FontFamily, FontSize } from '@/theme/typography';
 import { Radius, Spacing } from '@/theme/spacing';
 import { NavHeader } from '@/components/NavHeader';
-import { Avatar } from '@/components/Avatar';
+import { GlowBackground } from '@/components/GlowBackground';
+import { RoundCard } from '@/components/RoundCard';
 import { ArchivedRound, ClosedTournament } from '@/store/types';
+import { formatShortDate, formatYearShort } from '@/utils/dateFormat';
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
-function formatFCYear(dateStr: string): string {
-  const d = new Date(dateStr);
-  return String(d.getFullYear()).slice(-2);
-}
-
-function formatRoundDate(dateStr: string): string {
-  const d = new Date(dateStr);
-  const dd = String(d.getDate()).padStart(2, '0');
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  const yy = String(d.getFullYear()).slice(-2);
-  return `${dd}/${mm}/${yy}`;
-}
 
 // ---------------------------------------------------------------------------
 // Round row inside an expanded tournament card
@@ -47,39 +37,17 @@ interface RoundRowProps {
 
 function RoundRow({ round, onPress }: RoundRowProps) {
   const { t } = useTranslation();
+  const winner = useStore((s) => s.players.find((p) => p.id === round.winner));
   return (
-    <TouchableOpacity
-      style={styles.roundRow}
+    <RoundCard
+      variant="row"
+      n={round.n}
+      dateText={formatShortDate(round.date)}
+      matchCountText={t('archive.roundMatches', { count: round.matches.length })}
+      winnerId={round.winner}
+      winnerName={winner?.nick ?? winner?.name ?? '—'}
       onPress={onPress}
-      activeOpacity={0.75}
-    >
-      <View style={styles.roundBadge}>
-        <Text style={styles.roundBadgeText}>{round.n}</Text>
-      </View>
-
-      <View style={styles.roundInfo}>
-        <Text style={styles.roundDate}>{formatRoundDate(round.date)}</Text>
-        <Text style={styles.roundMatchCount}>
-          {t('archive.roundMatches', { count: round.matches.length })}
-        </Text>
-      </View>
-
-      <View style={styles.roundWinnerArea}>
-        <Avatar playerId={round.winner} size="sm" style={styles.roundAvatar} />
-        <WinnerName winnerId={round.winner} />
-      </View>
-
-      <Text style={styles.rowChevron}>›</Text>
-    </TouchableOpacity>
-  );
-}
-
-function WinnerName({ winnerId }: { winnerId: string }) {
-  const player = useStore((s) => s.players.find((p) => p.id === winnerId));
-  return (
-    <Text style={styles.roundWinnerName} numberOfLines={1}>
-      {player?.nick ?? player?.name ?? '—'}
-    </Text>
+    />
   );
 }
 
@@ -108,7 +76,7 @@ function ClosedTournamentCard({
   const d = new Date(tournament.date);
   const fullYear = d.getFullYear();
   const shortYear = String(fullYear + 1).slice(-2);
-  const year = formatFCYear(tournament.date);
+  const year = formatYearShort(tournament.date);
   const seasonSubtitle = t('archive.season', {
     year1: fullYear,
     year2: shortYear,
@@ -242,7 +210,7 @@ export default function ArchiveScreen() {
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
-      <View style={styles.glow} pointerEvents="none" />
+      <GlowBackground />
 
       <NavHeader
         title={t('archive.title')}
@@ -283,16 +251,6 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: Colors.bg.base,
-  },
-  glow: {
-    position: 'absolute',
-    width: 340,
-    height: 340,
-    top: -80,
-    left: -40,
-    borderRadius: 170,
-    backgroundColor: Colors.accent.green,
-    opacity: 0.06,
   },
   scroll: {
     flex: 1,
@@ -439,66 +397,6 @@ const styles = StyleSheet.create({
   },
   roundsList: {
     paddingBottom: Spacing.sm,
-  },
-  roundRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 18,
-    paddingVertical: 11,
-    gap: Spacing.md,
-  },
-  roundBadge: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: Colors.bg.elevated,
-    borderWidth: 1,
-    borderColor: Colors.border.strong,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-  },
-  roundBadgeText: {
-    fontFamily: FontFamily.displayBold,
-    fontSize: FontSize.sm,
-    color: Colors.text.secondary,
-  },
-  roundInfo: {
-    flex: 1,
-    gap: 1,
-  },
-  roundDate: {
-    fontFamily: FontFamily.bodySemiBold,
-    fontSize: FontSize.base,
-    color: Colors.text.primary,
-  },
-  roundMatchCount: {
-    fontFamily: FontFamily.body,
-    fontSize: FontSize.xs,
-    color: Colors.text.muted,
-  },
-  roundWinnerArea: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    flexShrink: 1,
-  },
-  roundAvatar: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-  },
-  roundWinnerName: {
-    fontFamily: FontFamily.bodySemiBold,
-    fontSize: FontSize.sm,
-    color: Colors.text.secondary,
-    maxWidth: 72,
-  },
-  rowChevron: {
-    fontFamily: FontFamily.display,
-    fontSize: FontSize.lg,
-    color: Colors.text.ghost,
-    lineHeight: 20,
   },
   noRoundsRow: {
     paddingHorizontal: 18,

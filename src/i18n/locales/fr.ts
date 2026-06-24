@@ -105,6 +105,14 @@ const fr = {
       draw: 'MATCH NUL',
       done: 'TERMINÉ',
     },
+    ocr: {
+      reading: 'Lecture des statistiques depuis les photos...',
+      detected: '📊 {{count}} statistiques détectées',
+      failed: 'Échec de la lecture des statistiques',
+      retry: 'Réessayer',
+      skip: 'Ignorer',
+      skipped: 'Statistiques ignorées — ajoutez-les depuis le détail du match',
+    },
   },
 
   setup: {
@@ -153,7 +161,7 @@ const fr = {
 
   tournament: {
     standings: 'CLASSEMENT DU TOURNOI',
-    headerSubtitle: 'Tour {{round}} / {{total}} · Aujourd\'hui · {{played}} tours joués',
+    headerSubtitle: 'Tour {{round}} / {{total}} · {{date}} · {{played}} tours joués',
     noMatches: 'Aucun match joué pour l\'instant',
     currentMatchDay: 'JOURNÉE EN COURS',
     roundBadge: 'TOUR / {{n}}',
@@ -170,8 +178,14 @@ const fr = {
       title: 'TOURNOI',
       done: 'Terminer',
       rename: 'Renommer le tournoi',
+      shareStandings: 'Partager le classement',
+      shareStandingsSubtitle: 'Partager le classement actuel en image',
       closeAndArchive: 'Clôturer et archiver',
       closeSubtitle: 'Figer le classement & couronner le vainqueur',
+    },
+    shareStandings: {
+      title: 'PARTAGER LE CLASSEMENT',
+      roundLabel: 'Tour {{round}} / {{total}}',
     },
     rename: {
       title: 'RENOMMER LE TOURNOI',
@@ -242,7 +256,14 @@ const fr = {
     about: {
       section: 'À PROPOS',
       appName: 'Matchday',
-      version: 'Version 1.2.0',
+      version: 'Version {{version}}',
+    },
+    changelog: {
+      title: 'NOUVEAUTÉS',
+      added: 'AJOUTÉ',
+      fixed: 'CORRIGÉ',
+      notes: 'NOTES',
+      empty: 'Aucune entrée pour le moment.',
     },
     danger: {
       section: 'ZONE DANGEREUSE',

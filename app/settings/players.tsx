@@ -21,6 +21,7 @@ import { NavHeader } from '@/components/NavHeader';
 import { Avatar } from '@/components/Avatar';
 import { TeamBadge } from '@/components/TeamBadge';
 import { EmptyState } from '@/components/EmptyState';
+import { GlowBackground } from '@/components/GlowBackground';
 import { Player } from '@/store/types';
 import { useTranslation } from 'react-i18next';
 
@@ -111,7 +112,7 @@ export default function PlayersScreen() {
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
-      <View style={styles.glow} pointerEvents="none" />
+      <GlowBackground />
       <NavHeader
         title={t('players.title')}
         subtitle={t('settings.data.playersCount', { count: players.length })}
@@ -148,7 +149,6 @@ export default function PlayersScreen() {
                   <Text style={styles.playerNick}>@{player.nick}</Text>
                 )}
               </View>
-              <TeamBadge teamCode={player.teamCode} size="xs" />
               <View style={styles.playerActions}>
                 <TouchableOpacity
                   style={styles.actionBtn}
@@ -348,16 +348,6 @@ export default function PlayersScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: Colors.bg.base },
-  glow: {
-    position: 'absolute',
-    width: 340,
-    height: 340,
-    top: -80,
-    left: -40,
-    borderRadius: 170,
-    backgroundColor: Colors.accent.green,
-    opacity: 0.06,
-  },
   addBtn: {
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.xs,

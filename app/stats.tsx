@@ -17,6 +17,9 @@ import { Radius, Spacing } from '@/theme/spacing';
 import { Avatar } from '@/components/Avatar';
 import { NavHeader } from '@/components/NavHeader';
 import { SectionLabel } from '@/components/SectionLabel';
+import { GlowBackground } from '@/components/GlowBackground';
+import { SegmentedControl } from '@/components/SegmentedControl';
+import { PlayerRankCard } from '@/components/PlayerRankCard';
 import type { Match, Player } from '@/store/types';
 import { useTranslation } from 'react-i18next';
 
@@ -161,8 +164,7 @@ export default function StatsScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-      {/* Green glow */}
-      <View style={styles.glow} pointerEvents="none" />
+      <GlowBackground />
 
       {/* Custom two-line header */}
       <View style={styles.headerContainer}>
@@ -184,34 +186,15 @@ export default function StatsScreen() {
 
       {/* Tab pills */}
       <View style={styles.tabRow}>
-        <TouchableOpacity
-          style={[styles.tabPill, activeTab === 'ranking' && styles.tabPillActive]}
-          onPress={() => setActiveTab('ranking')}
-          activeOpacity={0.8}
-        >
-          <Text
-            style={[
-              styles.tabLabel,
-              activeTab === 'ranking' ? styles.tabLabelActive : styles.tabLabelInactive,
-            ]}
-          >
-            {t('stats.ranking')}
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.tabPill, activeTab === 'h2h' && styles.tabPillActive]}
-          onPress={() => setActiveTab('h2h')}
-          activeOpacity={0.8}
-        >
-          <Text
-            style={[
-              styles.tabLabel,
-              activeTab === 'h2h' ? styles.tabLabelActive : styles.tabLabelInactive,
-            ]}
-          >
-            {t('stats.h2h')}
-          </Text>
-        </TouchableOpacity>
+        <SegmentedControl
+          variant="pill"
+          value={activeTab}
+          onChange={setActiveTab}
+          options={[
+            { value: 'ranking', label: t('stats.ranking') },
+            { value: 'h2h', label: t('stats.h2h') },
+          ]}
+        />
       </View>
 
       <ScrollView
@@ -261,56 +244,18 @@ function RankingTab({
         const player = players.find((p) => p.id === s.playerId);
         if (!player) return null;
 
-        const medal = MEDALS[index] ?? null;
-
         return (
-          <View
+          <PlayerRankCard
             key={s.playerId}
-            style={[
-              styles.rankCard,
-              { borderColor: medal ? medal.cardBorder : Colors.border.default },
-            ]}
-          >
-            {/* Medal badge */}
-            <View
-              style={[
-                styles.medalBadge,
-                {
-                  backgroundColor: medal
-                    ? medal.badgeBg
-                    : 'rgba(255,255,255,0.06)',
-                },
-              ]}
-            >
-              <Text
-                style={[
-                  styles.medalText,
-                  { color: medal ? medal.badgeColor : Colors.text.muted },
-                ]}
-              >
-                {index + 1}
-              </Text>
-            </View>
-
-            {/* Player info */}
-            <View style={styles.rankInfo}>
-              <Avatar playerId={player.id} size="md" />
-              <View style={styles.rankNameWrap}>
-                <Text style={styles.rankName} numberOfLines={1}>
-                  {player.name}
-                </Text>
-                <Text style={styles.rankRecord} numberOfLines={1}>
-                  {t('stats.record', { played: s.played, wins: s.wins, draws: s.draws, losses: s.losses, gf: s.gf, ga: s.ga })}
-                </Text>
-              </View>
-            </View>
-
-            {/* Points */}
-            <View style={styles.ptsWrap}>
-              <Text style={styles.ptsNumber}>{s.pts}</Text>
-              <Text style={styles.ptsLabel}>{t('common.pts')}</Text>
-            </View>
-          </View>
+            rank={index + 1}
+            medal={MEDALS[index] ?? null}
+            playerId={player.id}
+            name={player.name}
+            subText={t('stats.record', { played: s.played, wins: s.wins, draws: s.draws, losses: s.losses, gf: s.gf, ga: s.ga })}
+            points={s.pts}
+            pointsLabel={t('common.pts')}
+            pointsColor={Colors.accent.green}
+          />
         );
       })}
 
@@ -462,17 +407,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.bg.base,
   },
-  glow: {
-    position: 'absolute',
-    width: 340,
-    height: 340,
-    top: -80,
-    left: -40,
-    borderRadius: 170,
-    backgroundColor: Colors.accent.green,
-    opacity: 0.06,
-  },
-
   // Header
   headerContainer: {
     flexDirection: 'row',
@@ -516,35 +450,9 @@ const styles = StyleSheet.create({
 
   // Tab pills
   tabRow: {
-    flexDirection: 'row',
     marginHorizontal: Spacing.lg,
     marginTop: Spacing.lg,
     marginBottom: Spacing.sm,
-    backgroundColor: Colors.bg.elevated,
-    borderRadius: Radius.full,
-    padding: 3,
-    gap: 3,
-  },
-  tabPill: {
-    flex: 1,
-    paddingVertical: Spacing.sm,
-    borderRadius: Radius.full,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  tabPillActive: {
-    backgroundColor: Colors.accent.green,
-  },
-  tabLabel: {
-    fontFamily: FontFamily.bodySemiBold,
-    fontSize: FontSize.base,
-    letterSpacing: 0.2,
-  },
-  tabLabelActive: {
-    color: Colors.accent.greenDark,
-  },
-  tabLabelInactive: {
-    color: Colors.text.muted,
   },
 
   // Scroll
@@ -566,66 +474,6 @@ const styles = StyleSheet.create({
   },
 
   // Ranking card
-  rankCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.bg.surface,
-    borderRadius: Radius.xl,
-    borderWidth: 1,
-    padding: Spacing.lg,
-    gap: Spacing.md,
-  },
-  medalBadge: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  medalText: {
-    fontFamily: FontFamily.display,
-    fontSize: FontSize.md,
-    lineHeight: 18,
-  },
-  rankInfo: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.md,
-    overflow: 'hidden',
-  },
-  rankNameWrap: {
-    flex: 1,
-    gap: 3,
-  },
-  rankName: {
-    fontFamily: FontFamily.bodySemiBold,
-    fontSize: FontSize.md,
-    color: Colors.text.primary,
-  },
-  rankRecord: {
-    fontFamily: FontFamily.body,
-    fontSize: FontSize.xs,
-    color: Colors.text.muted,
-  },
-  ptsWrap: {
-    alignItems: 'center',
-    minWidth: 40,
-  },
-  ptsNumber: {
-    fontFamily: FontFamily.display,
-    fontSize: FontSize['3xl'],
-    color: Colors.accent.green,
-    lineHeight: 34,
-  },
-  ptsLabel: {
-    fontFamily: FontFamily.body,
-    fontSize: FontSize.xs,
-    color: Colors.text.muted,
-    letterSpacing: 0.8,
-    marginTop: -2,
-  },
-
   // Stat tiles
   tilesRow: {
     flexDirection: 'row',

@@ -19,7 +19,8 @@ import { NavHeader } from '@/components/NavHeader';
 import { Avatar } from '@/components/Avatar';
 import { SectionLabel } from '@/components/SectionLabel';
 import { MatchCard } from '@/components/MatchCard';
-import { ShareRoundModal } from '@/components/ShareRoundModal';
+import { ShareRoundModal, CardAvatar } from '@/components/ShareRoundModal';
+import { GlowBackground } from '@/components/GlowBackground';
 import { Match } from '@/store/types';
 
 const ROUND_TABLE_COLS = [
@@ -49,24 +50,14 @@ function DayWinnerBanner({ winnerId, matchCount }: DayWinnerBannerProps) {
 
   return (
     <View style={styles.winnerCard}>
-      {/* Left: diamond + label stack + avatar + name */}
-      <View style={styles.winnerLeft}>
-        <Text style={styles.winnerDiamond}>♦</Text>
-        <View style={styles.winnerLabelBlock}>
-          <Text style={styles.winnerLabel}>{t('archive.dayWinner')}</Text>
-          <View style={styles.winnerNameRow}>
-            <Avatar playerId={winnerId} size="sm" />
-            <Text style={styles.winnerName} numberOfLines={1}>
-              {name}
-            </Text>
-          </View>
-        </View>
+      <Text style={styles.winnerLabel}>♦ {t('archive.dayWinner')} ♦</Text>
+      <Text style={styles.winnerMatchCount}>{t('archive.matchCount', { count: matchCount })}</Text>
+      <View style={styles.winnerLogoWrap}>
+        <CardAvatar teamCode={player?.teamCode} size={56} />
       </View>
-
-      {/* Right: match count */}
-      <View style={styles.winnerRight}>
-        <Text style={styles.winnerMatchCount}>{t('archive.matchCount', { count: matchCount })}</Text>
-      </View>
+      <Text style={styles.winnerName} numberOfLines={1}>
+        {name}
+      </Text>
     </View>
   );
 }
@@ -102,7 +93,7 @@ export default function ArchiveDayScreen() {
   if (!viewingRound) {
     return (
       <SafeAreaView style={styles.root} edges={['top']}>
-        <View style={styles.glow} pointerEvents="none" />
+        <GlowBackground />
         <NavHeader title="" onBack={() => goBack()} />
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>{t('archive.noRoundData')}</Text>
@@ -115,7 +106,7 @@ export default function ArchiveDayScreen() {
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
-      <View style={styles.glow} pointerEvents="none" />
+      <GlowBackground />
 
       {/* Header */}
       <NavHeader
@@ -222,7 +213,7 @@ export default function ArchiveDayScreen() {
           </View>
         ) : (
           <View style={styles.matchList}>
-            {matches.map((m: Match) => (
+            {[...matches].reverse().map((m: Match) => (
               <TouchableOpacity
                 key={m.id}
                 activeOpacity={0.75}
@@ -258,16 +249,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.bg.base,
   },
-  glow: {
-    position: 'absolute',
-    width: 340,
-    height: 340,
-    top: -80,
-    left: -40,
-    borderRadius: 170,
-    backgroundColor: Colors.accent.green,
-    opacity: 0.06,
-  },
   scroll: {
     flex: 1,
   },
@@ -295,54 +276,21 @@ const styles = StyleSheet.create({
 
   // ---- Day Winner Banner ----
   winnerCard: {
-    flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1e1a0e',
+    backgroundColor: '#0c0e10',
     borderWidth: 1,
-    borderColor: 'rgba(255,212,94,0.3)',
+    borderColor: 'rgba(255,255,255,0.08)',
     borderRadius: Radius.xl,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.lg,
+    paddingVertical: Spacing.xl,
+    gap: Spacing.xs,
     marginBottom: Spacing.xl,
-  },
-  winnerLeft: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-  },
-  winnerDiamond: {
-    fontSize: 16,
-    color: Colors.accent.gold,
-    lineHeight: 20,
-  },
-  winnerLabelBlock: {
-    flex: 1,
-    gap: 5,
   },
   winnerLabel: {
     fontFamily: FontFamily.bodyBold,
-    fontSize: FontSize.sm,
-    color: Colors.text.muted,
-    letterSpacing: 1.0,
+    fontSize: FontSize.xs,
+    color: Colors.accent.gold,
+    letterSpacing: 2,
     textTransform: 'uppercase',
-  },
-  winnerNameRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-  },
-  winnerName: {
-    fontFamily: FontFamily.display,
-    fontSize: FontSize.lg,
-    color: Colors.text.primary,
-    letterSpacing: 0.2,
-    flexShrink: 1,
-  },
-  winnerRight: {
-    alignItems: 'flex-end',
-    justifyContent: 'center',
-    flexShrink: 0,
   },
   winnerMatchCount: {
     fontFamily: FontFamily.bodyBold,
@@ -350,6 +298,15 @@ const styles = StyleSheet.create({
     color: Colors.text.muted,
     letterSpacing: 0.8,
     textTransform: 'uppercase',
+  },
+  winnerLogoWrap: {
+    marginVertical: Spacing.sm,
+  },
+  winnerName: {
+    fontFamily: FontFamily.displayBold,
+    fontSize: FontSize.lg,
+    color: Colors.text.primary,
+    letterSpacing: 0.2,
   },
 
   // ---- Section label ----
