@@ -514,6 +514,11 @@ export const makeStyles = (colors: AppColors) => StyleSheet.create({
     lineHeight: 20,
   },
 
+  // Cross-blocked state: the OTHER button is busy (own button still shows its own spinner)
+  btnCrossBlocked: {
+    opacity: 0.35,
+  },
+
   // Add media button
   addMediaBtn: {
     height: 26,

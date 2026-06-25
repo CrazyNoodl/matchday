@@ -6,7 +6,7 @@ import { useColors } from '@/theme';
 import { Spacing } from '@/theme/spacing';
 import { Avatar, ScoreCounter, MediaThumbnail, Sheet, TeamPickerRow } from '@/components';
 import { Player, Team } from '@/store/types';
-import { AddMatchState, getAddMatchStepLabel, canAddMatchGoNext } from '@/utils/addMatchState';
+import { AddMatchState, getAddMatchStepLabel, canAddMatchGoNext, isAddMatchDirty } from '@/utils/addMatchState';
 import { makeSheetStyles } from './AddMatchSheet.styles';
 import { useAddMatchFlow } from './useAddMatchFlow';
 
@@ -279,7 +279,11 @@ export function AddMatchSheet({
   };
 
   return (
-    <Sheet visible={visible} onClose={onClose}>
+    <Sheet
+      visible={visible}
+      onClose={onClose}
+      disableClose={addMatch.ocrStatus === 'scanning' || isAddMatchDirty(addMatch)}
+    >
       <View style={sheetStyles.sheet}>
         {/* Progress bar */}
         <View style={sheetStyles.progressBar}>

@@ -819,3 +819,105 @@ describe('handlePickMedia — no phantom OCR assets beyond media cap', () => {
     expect(mockPicker).not.toHaveBeenCalled();
   });
 });
+
+// ---------------------------------------------------------------------------
+// Discard confirmation — handleBack shows Alert when state is dirty (step 1)
+// ---------------------------------------------------------------------------
+
+describe('handleBack — discard confirmation', () => {
+  it('calls closeModal directly (no Alert) when state is clean', async () => {
+    const { result, closeModal } = await makeHook();
+    // initAddMatch() state → not dirty
+
+    await act(async () => { result.current.handleBack(); });
+
+    expect(alertSpy).not.toHaveBeenCalled();
+    expect(closeModal).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows Alert (not closeModal) when homeId is set', async () => {
+    const { result, closeModal } = await makeHook();
+
+    await act(async () => {
+      result.current.setAddMatch({ ...initAddMatch(), homeId: 'p1' });
+    });
+
+    await act(async () => { result.current.handleBack(); });
+
+    expect(alertSpy).toHaveBeenCalledTimes(1);
+    expect(alertSpy).toHaveBeenCalledWith(
+      'matchday.discard.title',
+      'matchday.discard.message',
+      expect.arrayContaining([
+        expect.objectContaining({ style: 'cancel' }),
+        expect.objectContaining({ style: 'destructive' }),
+      ]),
+    );
+    expect(closeModal).not.toHaveBeenCalled();
+  });
+
+  it('shows Alert when media is present', async () => {
+    const { result, closeModal } = await makeHook();
+
+    await act(async () => {
+      result.current.setAddMatch({
+        ...initAddMatch(),
+        media: [{ uri: 'file://photo.jpg', type: 'image' }],
+      });
+    });
+
+    await act(async () => { result.current.handleBack(); });
+
+    expect(alertSpy).toHaveBeenCalledTimes(1);
+    expect(closeModal).not.toHaveBeenCalled();
+  });
+
+  it('calls closeModal after user confirms Discard', async () => {
+    alertSpy.mockImplementation((_title, _msg, buttons) => {
+      const destructive = (buttons as Array<{ style: string; onPress?: () => void }>)
+        .find((b) => b.style === 'destructive');
+      destructive?.onPress?.();
+    });
+
+    const { result, closeModal } = await makeHook();
+
+    await act(async () => {
+      result.current.setAddMatch({ ...initAddMatch(), homeId: 'p1', awayId: 'p2' });
+    });
+
+    await act(async () => { result.current.handleBack(); });
+
+    expect(closeModal).toHaveBeenCalledTimes(1);
+    expect(result.current.addMatch.homeId).toBeNull();
+  });
+
+  it('does NOT call closeModal when user presses cancel in Alert', async () => {
+    alertSpy.mockImplementation(() => { /* simulate tapping "Cancel" — do nothing */ });
+
+    const { result, closeModal } = await makeHook();
+
+    await act(async () => {
+      result.current.setAddMatch({ ...initAddMatch(), homeId: 'p1' });
+    });
+
+    await act(async () => { result.current.handleBack(); });
+
+    expect(alertSpy).toHaveBeenCalledTimes(1);
+    expect(closeModal).not.toHaveBeenCalled();
+    // State is preserved — modal stays open
+    expect(result.current.addMatch.homeId).toBe('p1');
+  });
+
+  it('shows Alert when score > 0 even without players or media', async () => {
+    const { result, closeModal } = await makeHook();
+
+    await act(async () => {
+      result.current.setAddMatch({ ...initAddMatch(), homeScore: 1 });
+    });
+
+    await act(async () => { result.current.handleBack(); });
+
+    expect(alertSpy).toHaveBeenCalledTimes(1);
+    expect(closeModal).not.toHaveBeenCalled();
+  });
+});

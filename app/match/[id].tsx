@@ -200,10 +200,10 @@ export default function MatchDetailScreen() {
             <View style={styles.mediaActions}>
               {!hasStatsOverride && (
                 <TouchableOpacity
-                  style={styles.importStatsBtn}
+                  style={[styles.importStatsBtn, uploadingMedia && styles.btnCrossBlocked]}
                   onPress={d.handleImportStats}
                   activeOpacity={0.75}
-                  disabled={importingStats}
+                  disabled={importingStats || uploadingMedia}
                   hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
                 >
                   {importingStats ? (
@@ -214,10 +214,10 @@ export default function MatchDetailScreen() {
                 </TouchableOpacity>
               )}
               <TouchableOpacity
-                style={styles.addMediaBtn}
+                style={[styles.addMediaBtn, importingStats && styles.btnCrossBlocked]}
                 onPress={d.handleAddMedia}
                 activeOpacity={0.75}
-                disabled={uploadingMedia}
+                disabled={uploadingMedia || importingStats}
                 hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
               >
                 {uploadingMedia ? (

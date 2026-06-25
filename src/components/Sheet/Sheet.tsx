@@ -85,7 +85,7 @@ export function Sheet({ visible, onClose, children, snapToMax, disableClose = fa
       backdropComponent={renderBackdrop}
       backgroundStyle={{ backgroundColor: colors.bg.sheet }}
       handleIndicatorStyle={{ backgroundColor: colors.border.strong }}
-      onClose={onClose}
+      onClose={disableClose ? undefined : onClose}
     >
       {everOpened && (snapToMax ? children : <BottomSheetView onLayout={handleLayout}>{children}</BottomSheetView>)}
     </BottomSheet>
