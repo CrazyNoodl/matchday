@@ -36,6 +36,7 @@ const fr = {
     roundInfo: 'Tour {{round}} / {{total}} · Aujourd\'hui',
     progressRounds: '{{done}} / {{total}} tours classés',
     currentLeader: 'LEADER ACTUEL',
+    noLeaderTie: 'AUCUN LEADER — ÉGALITÉ',
     noActiveTournament: 'AUCUN TOURNOI ACTIF',
     noActiveTournamentDesc: 'Commencez un nouveau tournoi pour suivre les classements et l\'historique',
     startNewTournament: 'NOUVEAU TOURNOI',
@@ -249,6 +250,13 @@ const fr = {
     openCurrent: 'Ouvrir la journée en cours',
     allMatches: 'TOUS LES MATCHS · appuyer pour les stats',
     noMatchesRecorded: 'Aucun match enregistré.',
+    editDate: {
+      title: 'MODIFIER LA DATE',
+      placeholder: 'JJ/MM/AAAA',
+      invalid: 'Saisissez une date valide',
+      cancel: 'Annuler',
+      save: 'Enregistrer',
+    },
   },
 
   settings: {

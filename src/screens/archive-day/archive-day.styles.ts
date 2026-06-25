@@ -100,4 +100,60 @@ export const makeStyles = (colors: AppColors) => StyleSheet.create({
     fontSize: FontSize.base,
     color: colors.text.muted,
   },
+
+  // ---- Round date ----
+  dateRow: {
+    paddingHorizontal: Spacing.xl,
+    paddingTop: Spacing.sm,
+    alignItems: 'flex-start',
+  },
+  datePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+    borderRadius: Radius.md,
+    backgroundColor: colors.bg.elevated,
+    borderWidth: 1,
+    borderColor: colors.border.medium,
+  },
+  datePillText: {
+    fontFamily: FontFamily.bodySemiBold,
+    fontSize: FontSize.sm,
+    color: colors.text.secondary,
+  },
+  datePillIcon: {
+    fontSize: FontSize.xs,
+    color: colors.text.muted,
+  },
+  dateStatic: {
+    fontFamily: FontFamily.body,
+    fontSize: FontSize.sm,
+    color: colors.text.muted,
+  },
+
+  // ---- Edit date sheet ----
+  dateSheet: {
+    backgroundColor: colors.bg.sheet,
+    paddingHorizontal: Spacing.xl,
+    paddingTop: Spacing.lg,
+    paddingBottom: Spacing['2xl'],
+  },
+  dateSheetTitle: {
+    fontFamily: FontFamily.displayBold,
+    fontSize: FontSize['2xl'],
+    color: colors.text.primary,
+    letterSpacing: 0.5,
+  },
+  dateInputError: {
+    borderColor: colors.accent.red,
+  },
+  dateErrorText: {
+    fontFamily: FontFamily.body,
+    fontSize: FontSize.xs,
+    color: colors.accent.red,
+    marginTop: -Spacing.sm,
+    marginBottom: Spacing.md,
+  },
 });

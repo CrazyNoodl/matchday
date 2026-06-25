@@ -16,9 +16,23 @@ export const makeStyles = (colors: AppColors) => StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border.medium,
   },
+  imageWrapper: {
+    width: '100%',
+    height: '100%',
+  },
   image: {
     width: THUMB_WIDTH,
     height: THUMB_HEIGHT,
+  },
+  videoOverlay: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  videoPlayIcon: {
+    fontSize: 24,
+    color: '#fff',
   },
   placeholder: {
     flex: 1,

@@ -172,20 +172,26 @@ export default function HomeScreen() {
             )}
 
             {/* Current leader inset row */}
-            {leader && (
+            {hasPlayedGames && (
               <View style={styles.leaderInset}>
-                <Text style={styles.leaderLabel}>{t('home.currentLeader')}</Text>
-                <View style={styles.leaderContent}>
-                  <Avatar playerId={leader.id} size="sm" />
-                  <Text style={styles.leaderName}>
-                    {leader.nick ?? leader.name}
-                  </Text>
-                  {standings[0] && (
-                    <Text style={styles.leaderPts}>
-                      {standings[0].pts} {t('common.pts')}
-                    </Text>
-                  )}
-                </View>
+                {leader ? (
+                  <>
+                    <Text style={styles.leaderLabel}>{t('home.currentLeader')}</Text>
+                    <View style={styles.leaderContent}>
+                      <Avatar playerId={leader.id} size="sm" />
+                      <Text style={styles.leaderName}>
+                        {leader.nick ?? leader.name}
+                      </Text>
+                      {standings[0] && (
+                        <Text style={styles.leaderPts}>
+                          {standings[0].pts} {t('common.pts')}
+                        </Text>
+                      )}
+                    </View>
+                  </>
+                ) : (
+                  <Text style={styles.leaderLabel}>{t('home.noLeaderTie')}</Text>
+                )}
               </View>
             )}
           </TouchableOpacity>

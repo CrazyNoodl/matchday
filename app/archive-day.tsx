@@ -1,15 +1,17 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity,  } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, TextInput } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useGoBack } from '@/utils/useGoBack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '@/store';
 import { calculateStandings } from '@/utils/standings';
+import { formatShortDate, formatEditableDate, parseEditableDate } from '@/utils/dateFormat';
 import { useColors } from '@/theme';
-import { NavHeader, SectionLabel, MatchCard, ShareRoundModal, CardAvatar, StandingsTable, getStandingsTableColumns, GlowBackground } from '@/components';
+import { NavHeader, SectionLabel, MatchCard, ShareRoundModal, CardAvatar, StandingsTable, getStandingsTableColumns, GlowBackground, Sheet } from '@/components';
 import { Match } from '@/store/types';
 import { makeStyles } from '@/screens/archive-day/archive-day.styles';
+import { makeInputStyles } from '@/screens/tournament/tournament.styles';
 
 // ---------------------------------------------------------------------------
 // Day Winner Banner
@@ -59,7 +61,19 @@ export default function ArchiveDayScreen() {
   );
   const tournamentName = useStore((s) => s.viewingTournament?.name ?? s.tournamentName ?? '');
   const players = useStore((s) => s.players);
+  const hasTournament = useStore((s) => s.hasTournament);
+  const updateRoundDate = useStore((s) => s.updateRoundDate);
+  // Editable only while the round still lives in the open tournament's
+  // archivedRounds — once closeTournament() runs it moves to closedTournaments
+  // and becomes read-only, same rule as match editing (see CLAUDE.md).
+  const isEditableRound = useStore((s) =>
+    hasTournament && !!viewingRound && s.archivedRounds.some((r) => r.id === viewingRound.id),
+  );
   const [shareVisible, setShareVisible] = useState(false);
+  const [editDateVisible, setEditDateVisible] = useState(false);
+  const [dateValue, setDateValue] = useState('');
+  const [dateError, setDateError] = useState(false);
+  const inputStyles = makeInputStyles(colors);
 
   const playerIds = useMemo(() => {
     if (!liveRound) return [];
@@ -88,7 +102,23 @@ export default function ArchiveDayScreen() {
     );
   }
 
-  const { winner, matches } = liveRound;
+  const { winner, matches, date } = liveRound;
+
+  const openDateEditor = () => {
+    setDateValue(formatEditableDate(date));
+    setDateError(false);
+    setEditDateVisible(true);
+  };
+
+  const saveDate = () => {
+    const iso = parseEditableDate(dateValue, date);
+    if (!iso) {
+      setDateError(true);
+      return;
+    }
+    updateRoundDate(liveRound.id, iso);
+    setEditDateVisible(false);
+  };
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
@@ -109,6 +139,22 @@ export default function ArchiveDayScreen() {
           </TouchableOpacity>
         }
       />
+
+      {/* Round date */}
+      <View style={styles.dateRow}>
+        {isEditableRound ? (
+          <TouchableOpacity
+            style={styles.datePill}
+            onPress={openDateEditor}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.datePillText}>{formatShortDate(date)}</Text>
+            <Text style={styles.datePillIcon}>✎</Text>
+          </TouchableOpacity>
+        ) : (
+          <Text style={styles.dateStatic}>{formatShortDate(date)}</Text>
+        )}
+      </View>
 
       <ScrollView
         style={styles.scroll}
@@ -171,6 +217,46 @@ export default function ArchiveDayScreen() {
           tournamentName={tournamentName}
         />
       )}
+
+      {/* Edit round date sheet */}
+      <Sheet visible={editDateVisible} onClose={() => setEditDateVisible(false)}>
+        <View style={styles.dateSheet}>
+          <Text style={styles.dateSheetTitle}>{t('archive.editDate.title')}</Text>
+          <TextInput
+            style={[inputStyles.input, dateError && styles.dateInputError]}
+            value={dateValue}
+            onChangeText={(text) => {
+              setDateValue(text);
+              setDateError(false);
+            }}
+            placeholder={t('archive.editDate.placeholder')}
+            placeholderTextColor={colors.text.placeholder}
+            autoFocus
+            keyboardType="numbers-and-punctuation"
+            returnKeyType="done"
+            onSubmitEditing={saveDate}
+          />
+          {dateError ? (
+            <Text style={styles.dateErrorText}>{t('archive.editDate.invalid')}</Text>
+          ) : null}
+          <View style={inputStyles.actions}>
+            <TouchableOpacity
+              style={inputStyles.cancelBtn}
+              onPress={() => setEditDateVisible(false)}
+              activeOpacity={0.75}
+            >
+              <Text style={inputStyles.cancelText}>{t('archive.editDate.cancel')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={inputStyles.saveBtn}
+              onPress={saveDate}
+              activeOpacity={0.85}
+            >
+              <Text style={inputStyles.saveText}>{t('archive.editDate.save')}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Sheet>
     </SafeAreaView>
   );
 }

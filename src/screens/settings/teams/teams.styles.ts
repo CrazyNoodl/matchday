@@ -34,6 +34,19 @@ export const makeStyles = (colors: AppColors) => StyleSheet.create({
     padding: Spacing.md,
     gap: Spacing.md,
   },
+  teamBadgeWrap: {
+    position: 'relative',
+  },
+  teamColorSwatch: {
+    position: 'absolute',
+    bottom: -2,
+    right: -2,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: colors.bg.surface,
+  },
   teamInfo: {
     flex: 1,
     gap: 2,

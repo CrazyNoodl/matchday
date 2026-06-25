@@ -36,6 +36,7 @@ const en = {
     roundInfo: 'Round {{round}} / {{total}} · Today',
     progressRounds: '{{done}} / {{total}} ranked rounds',
     currentLeader: 'CURRENT LEADER',
+    noLeaderTie: 'NO LEADER — TIE',
     noActiveTournament: 'NO ACTIVE TOURNAMENT',
     noActiveTournamentDesc: 'Start a new tournament to track standings and match history',
     startNewTournament: 'START NEW TOURNAMENT',
@@ -249,6 +250,13 @@ const en = {
     openCurrent: 'Open current match day',
     allMatches: 'ALL MATCHES · tap for stats',
     noMatchesRecorded: 'No matches recorded.',
+    editDate: {
+      title: 'EDIT ROUND DATE',
+      placeholder: 'DD/MM/YYYY',
+      invalid: 'Enter a valid date',
+      cancel: 'Cancel',
+      save: 'Save',
+    },
   },
 
   settings: {

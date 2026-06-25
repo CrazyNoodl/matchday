@@ -20,7 +20,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStore } from '@/store';
 import type { MediaItem, Match } from '@/store/types';
 import { useColors } from '@/theme';
-import { NavHeader, Avatar, SectionLabel, StatsRow, GlowBackground, Sheet } from '@/components';
+import { NavHeader, Avatar, SectionLabel, StatsRow, GlowBackground, Sheet, MediaSlider } from '@/components';
 import { extractStatsFromPhoto, type ExtractedStat } from '@/utils/extractStats';
 import { useTranslation } from 'react-i18next';
 import { fetchMatchById } from '@/supabase/sync';
@@ -474,20 +474,12 @@ export default function MatchDetailScreen() {
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            style={styles.mediaScroll}
-            contentContainerStyle={styles.mediaContent}
+            contentContainerStyle={styles.mediaScroll}
           >
             {match.media!.map((item, idx) => (
               <View key={idx} style={styles.mediaThumbnail}>
-                <TouchableOpacity
-                  onPress={() => setViewingMediaIndex(idx)}
-                  activeOpacity={0.85}
-                >
-                  <Image
-                    source={{ uri: item.uri }}
-                    style={styles.mediaImage}
-                    resizeMode="cover"
-                  />
+                <TouchableOpacity onPress={() => setViewingMediaIndex(idx)} activeOpacity={0.85}>
+                  <Image source={{ uri: item.uri }} style={styles.mediaImage} resizeMode="cover" />
                   {item.type === 'video' && (
                     <View style={styles.videoOverlay}>
                       <Text style={styles.videoPlayIcon}>▶</Text>
@@ -638,18 +630,13 @@ export default function MatchDetailScreen() {
         onRequestClose={() => setViewingMediaIndex(null)}
         statusBarTranslucent
       >
-        <Pressable
-          style={styles.mediaViewerOverlay}
-          onPress={() => setViewingMediaIndex(null)}
-        >
-          {viewingMediaIndex !== null && match.media?.[viewingMediaIndex] && (
-            <Image
-              source={{ uri: match.media[viewingMediaIndex].uri }}
-              style={styles.mediaViewerImage}
-              resizeMode="contain"
-            />
-          )}
-        </Pressable>
+        {viewingMediaIndex !== null && match.media && match.media.length > 0 && (
+          <MediaSlider
+            items={match.media}
+            initialIndex={viewingMediaIndex}
+            onClose={() => setViewingMediaIndex(null)}
+          />
+        )}
       </Modal>
 
       {/* ── EDIT STATS MODAL ── */}

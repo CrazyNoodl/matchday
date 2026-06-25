@@ -36,6 +36,7 @@ const uk = {
     roundInfo: 'Раунд {{round}} / {{total}} · Сьогодні',
     progressRounds: '{{done}} / {{total}} рейтингових раундів',
     currentLeader: 'ПОТОЧНИЙ ЛІДЕР',
+    noLeaderTie: 'НЕМАЄ ЛІДЕРА — НІЧИЯ',
     noActiveTournament: 'НЕМАЄ АКТИВНОГО ТУРНІРУ',
     noActiveTournamentDesc: 'Розпочніть новий турнір для відстеження результатів та матчів',
     startNewTournament: 'НОВИЙ ТУРНІР',
@@ -249,6 +250,13 @@ const uk = {
     openCurrent: 'Відкрити поточний ігровий день',
     allMatches: 'УСІ МАТЧІ · натисніть для статистики',
     noMatchesRecorded: 'Матчів не записано.',
+    editDate: {
+      title: 'РЕДАГУВАТИ ДАТУ РАУНДУ',
+      placeholder: 'ДД/ММ/РРРР',
+      invalid: 'Введіть коректну дату',
+      cancel: 'Скасувати',
+      save: 'Зберегти',
+    },
   },
 
   settings: {
