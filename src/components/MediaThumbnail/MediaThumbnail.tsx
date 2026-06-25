@@ -6,27 +6,43 @@ import {
   TouchableOpacity,
   StyleSheet,
   ViewStyle,
+  ImageStyle,
 } from 'react-native';
 import { useColors } from '../../theme';
 import { makeStyles, THUMB_WIDTH } from './MediaThumbnail.styles';
 
 interface MediaThumbnailProps {
   uri?: string;
+  type?: 'image' | 'video';
   onRemove?: () => void;
+  onPress?: () => void;
   style?: ViewStyle;
+  imageStyle?: ImageStyle;
 }
 
-export function MediaThumbnail({ uri, onRemove, style }: MediaThumbnailProps) {
+export function MediaThumbnail({ uri, type, onRemove, onPress, style, imageStyle }: MediaThumbnailProps) {
   const colors = useColors();
   const styles = makeStyles(colors);
+  const Wrapper = onPress ? TouchableOpacity : View;
   return (
     <View style={[styles.container, style]}>
       {uri ? (
-        <Image
-          source={{ uri }}
-          style={styles.image}
-          resizeMode="cover"
-        />
+        <Wrapper
+          style={styles.imageWrapper}
+          onPress={onPress}
+          activeOpacity={onPress ? 0.85 : undefined}
+        >
+          <Image
+            source={{ uri }}
+            style={[styles.image, imageStyle]}
+            resizeMode="cover"
+          />
+          {type === 'video' && (
+            <View style={styles.videoOverlay}>
+              <Text style={styles.videoPlayIcon}>▶</Text>
+            </View>
+          )}
+        </Wrapper>
       ) : (
         // Hatched placeholder
         <View style={styles.placeholder}>
