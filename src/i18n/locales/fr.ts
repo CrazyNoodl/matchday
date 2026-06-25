@@ -250,6 +250,13 @@ const fr = {
     openCurrent: 'Ouvrir la journée en cours',
     allMatches: 'TOUS LES MATCHS · appuyer pour les stats',
     noMatchesRecorded: 'Aucun match enregistré.',
+    editDate: {
+      title: 'MODIFIER LA DATE',
+      placeholder: 'JJ/MM/AAAA',
+      invalid: 'Saisissez une date valide',
+      cancel: 'Annuler',
+      save: 'Enregistrer',
+    },
   },
 
   settings: {
