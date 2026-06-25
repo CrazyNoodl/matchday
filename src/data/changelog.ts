@@ -9,6 +9,24 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.7.0',
+    fixed: [
+      'Removing a photo now correctly clears OCR stats — removing a video leaves stats intact (#48)',
+      'A failed media upload now shows an error alert instead of silently discarding the match (#48)',
+      'Picking photos in multiple batches now scans all of them together and correctly merges stats by confidence (#48)',
+      'Add Media button and Back/Cancel are disabled while photo stats are being read — prevents overlapping scans (#48)',
+      'Back/Cancel is blocked while the match is saving — prevents navigating away mid-save (#48)',
+      'Cancel from step 1 closes the modal exactly once, even on devices where React runs effects twice in development (#48)',
+      'Tapping Save Match twice rapidly no longer creates duplicate match entries (#48)',
+      'Selecting more photos than the 7-item limit now caps both the gallery and OCR processing — no phantom scans on over-limit items (#48)',
+      'After choosing Skip on stats, picking more photos no longer re-triggers scanning and potentially re-blocks the Next button (#48)',
+      'Stats from a previous successful scan no longer survive into a failed state and get silently saved when the user taps Skip (#48)',
+    ],
+    notes: [
+      'Add-match flow now has 26 dedicated tests covering every edge case of the OCR, media, and save paths — 274 total (#48)',
+    ],
+  },
+  {
     version: '1.6.9',
     notes: [
       'Internal stability pass: match detail and settings screens split into focused hook + modal files (#45)',

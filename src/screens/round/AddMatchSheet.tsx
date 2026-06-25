@@ -185,8 +185,12 @@ export function AddMatchSheet({
           ))}
           {addMatch.media.length < 7 && (
             <TouchableOpacity
-              style={sheetStyles.addMediaBtn}
+              style={[
+                sheetStyles.addMediaBtn,
+                addMatch.ocrStatus === 'scanning' && sheetStyles.nextBtnDisabled,
+              ]}
               onPress={handlePickMedia}
+              disabled={addMatch.ocrStatus === 'scanning'}
               activeOpacity={0.75}
             >
               <Text style={sheetStyles.addMediaIcon}>+</Text>
@@ -219,7 +223,7 @@ export function AddMatchSheet({
             <Text style={sheetStyles.ocrRetryText}>{t('matchday.ocr.retry')}</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={() => setAddMatch((p) => ({ ...p, ocrStatus: 'skipped' }))}
+            onPress={() => setAddMatch((p) => ({ ...p, ocrStatus: 'skipped', pendingStats: null }))}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
             <Text style={sheetStyles.ocrSkipText}>{t('matchday.ocr.skip')}</Text>
@@ -313,16 +317,16 @@ export function AddMatchSheet({
           <TouchableOpacity
             style={[
               sheetStyles.backActionBtn,
-              addMatch.ocrStatus === 'scanning' && sheetStyles.nextBtnDisabled,
+              (addMatch.ocrStatus === 'scanning' || isSavingMatch) && sheetStyles.nextBtnDisabled,
             ]}
             onPress={handleBack}
-            disabled={addMatch.ocrStatus === 'scanning'}
+            disabled={addMatch.ocrStatus === 'scanning' || isSavingMatch}
             activeOpacity={0.75}
           >
             <Text
               style={[
                 sheetStyles.backActionText,
-                addMatch.ocrStatus === 'scanning' && sheetStyles.nextBtnTextDisabled,
+                (addMatch.ocrStatus === 'scanning' || isSavingMatch) && sheetStyles.nextBtnTextDisabled,
               ]}
             >
               {addMatch.step === 1 ? t('common.cancel') : t('common.back')}

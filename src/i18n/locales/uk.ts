@@ -15,6 +15,7 @@ const uk = {
     matches: 'матчів',
     games: 'ігор',
     share: '↑ Поділитись',
+    error: 'Помилка',
   },
 
   table: {
@@ -86,6 +87,7 @@ const uk = {
     commentaryHint: 'Додайте коментар (необов\'язково)',
     commentaryPlaceholder: 'Як пройшов матч?',
     saveMatch: 'ЗБЕРЕГТИ МАТЧ',
+    saveMatchError: 'Не вдалося зберегти матч. Спробуйте ще раз.',
     dialogs: {
       finishTitle: 'ЗАВЕРШИТИ РАУНД?',
       finishDesc: 'Визначте переможця раунду. Результати будуть збережені і це не можна буде скасувати.',
