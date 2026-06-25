@@ -15,6 +15,7 @@ const fr = {
     matches: 'matchs',
     games: 'matchs',
     share: '↑ Partager',
+    error: 'Erreur',
   },
 
   table: {
@@ -86,7 +87,7 @@ const fr = {
     commentaryHint: 'Ajouter un commentaire (optionnel)',
     commentaryPlaceholder: 'Comment s\'est passé le match ?',
     saveMatch: 'SAUVEGARDER LE MATCH',
-    saveError: 'Impossible de sauvegarder le match. Veuillez réessayer.',
+    saveMatchError: 'Échec de la sauvegarde du match. Veuillez réessayer.',
     dialogs: {
       finishTitle: 'TERMINER LE TOUR ?',
       finishDesc: 'Couronnez le vainqueur de ce tour. Les résultats seront archivés et ne pourront pas être annulés.',
