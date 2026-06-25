@@ -153,15 +153,11 @@ export function useMatchDetail() {
           const newItem: MediaItem = remoteUrl !== null
             ? { uri: remoteUrl, type }
             : { uri: asset.uri, type, pendingUpload: true };
-          const uploaded = remoteUrl !== null;
           // Bug 2 fix: read fresh media from store at write time, not from stale closure
           const freshMedia = useStore.getState().matches.find((m) => m.id === matchId)?.media
             ?? useStore.getState().archivedRounds.flatMap((r) => r.matches).find((m) => m.id === matchId)?.media
             ?? [];
           store.updateMatchMedia(matchId, [...freshMedia, newItem]);
-          if (!uploaded) {
-            setShowUploadWarning(true);
-          }
         } finally {
           setUploadingMedia(false);
         }

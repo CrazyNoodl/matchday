@@ -354,7 +354,7 @@ describe('handleAddMedia', () => {
     expect(media).toHaveLength(1);
     expect(media![0].uri).toBe('file://photo.jpg');
     expect(media![0].pendingUpload).toBe(true);
-    expect(result.current.showUploadWarning).toBe(true);
+    expect(result.current.showUploadWarning).toBe(false);
   });
 });
 
@@ -733,7 +733,7 @@ describe('Bug 10 — handleAddMedia: upload throws → photo lost (not saved loc
     expect(media).toHaveLength(1);
     expect(media![0].uri).toBe('file://s.jpg');
     expect(media![0].pendingUpload).toBe(true);
-    expect(result.current.showUploadWarning).toBe(true);
+    expect(result.current.showUploadWarning).toBe(false);
   });
 });
 
