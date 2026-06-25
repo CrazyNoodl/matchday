@@ -23,11 +23,13 @@ export function useAddMatchFlow({
 }: UseAddMatchFlowParams) {
   const [addMatch, setAddMatch] = useState<AddMatchState>(initAddMatch());
   const [isSavingMatch, setIsSavingMatch] = useState(false);
+  const [saveError, setSaveError] = useState(false);
 
   const totalSteps = tournamentRanked ? 4 : 5;
 
   const reset = useCallback(() => {
     setAddMatch(initAddMatch());
+    setSaveError(false);
   }, []);
 
   const handleNext = useCallback(() => {
@@ -48,6 +50,7 @@ export function useAddMatchFlow({
   const handleSaveMatch = useCallback(async () => {
     if (!addMatch.homeId || !addMatch.awayId) return;
     setIsSavingMatch(true);
+    setSaveError(false);
     try {
       const homePlayer = players.find((p) => p.id === addMatch.homeId);
       const awayPlayer = players.find((p) => p.id === addMatch.awayId);
@@ -74,6 +77,8 @@ export function useAddMatchFlow({
       addMatchToStore(match);
       closeModal();
       reset();
+    } catch {
+      setSaveError(true);
     } finally {
       setIsSavingMatch(false);
     }
@@ -161,13 +166,10 @@ export function useAddMatchFlow({
   }, [runOcr]);
 
   const handleRetryOcr = useCallback(() => {
-    setAddMatch((prev) => {
-      if (prev.ocrAssets.length > 0) {
-        runOcr(prev.ocrAssets, true);
-      }
-      return prev;
-    });
-  }, [runOcr]);
+    if (addMatch.ocrAssets.length > 0) {
+      runOcr(addMatch.ocrAssets, true);
+    }
+  }, [addMatch.ocrAssets, runOcr]);
 
   const handleRemoveMedia = useCallback((idx: number) => {
     setAddMatch((prev) => {
@@ -180,6 +182,7 @@ export function useAddMatchFlow({
     addMatch,
     setAddMatch,
     isSavingMatch,
+    saveError,
     totalSteps,
     reset,
     handleNext,

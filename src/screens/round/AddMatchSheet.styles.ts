@@ -230,6 +230,14 @@ export const makeSheetStyles = (colors: AppColors) => StyleSheet.create({
     color: colors.text.primary,
     minHeight: 120,
   },
+  saveErrorText: {
+    fontFamily: FontFamily.body,
+    fontSize: FontSize.sm,
+    color: colors.accent.red,
+    textAlign: 'center',
+    paddingHorizontal: Spacing.lg,
+    paddingBottom: Spacing.sm,
+  },
   actions: {
     flexDirection: 'row',
     gap: Spacing.md,

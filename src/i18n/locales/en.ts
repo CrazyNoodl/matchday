@@ -86,6 +86,7 @@ const en = {
     commentaryHint: 'Add a comment (optional)',
     commentaryPlaceholder: 'How did the match go?',
     saveMatch: 'SAVE MATCH',
+    saveError: 'Failed to save match. Please try again.',
     dialogs: {
       finishTitle: 'FINISH ROUND?',
       finishDesc: 'Crown the winner of this round. This will archive results and cannot be undone.',

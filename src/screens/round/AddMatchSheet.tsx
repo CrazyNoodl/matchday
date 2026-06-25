@@ -37,6 +37,7 @@ export function AddMatchSheet({
     addMatch,
     setAddMatch,
     isSavingMatch,
+    saveError,
     totalSteps,
     handleNext,
     handleBack,
@@ -183,7 +184,7 @@ export function AddMatchSheet({
               onRemove={addMatch.ocrStatus === 'scanning' ? undefined : () => handleRemoveMedia(idx)}
             />
           ))}
-          {addMatch.media.length < 7 && (
+          {addMatch.media.length < 7 && addMatch.ocrStatus !== 'scanning' && (
             <TouchableOpacity
               style={sheetStyles.addMediaBtn}
               onPress={handlePickMedia}
@@ -307,6 +308,10 @@ export function AddMatchSheet({
         >
           {renderStepContent()}
         </BottomSheetScrollView>
+
+        {saveError && (
+          <Text style={sheetStyles.saveErrorText}>{t('matchday.saveError')}</Text>
+        )}
 
         {/* Actions */}
         <View style={sheetStyles.actions}>
