@@ -2,6 +2,10 @@ jest.mock('react-native-mmkv', () => ({
   createMMKV: () => ({ getString: () => null, set: jest.fn(), remove: jest.fn() }),
 }));
 
+jest.mock('react-i18next', () => ({
+  useTranslation: () => ({ t: (k: string) => k }),
+}));
+
 const mockReplace = jest.fn();
 const mockRouter = { replace: mockReplace };
 
@@ -31,9 +35,14 @@ jest.mock('expo-image-picker', () => ({
 }));
 
 import { renderHook, act } from '@testing-library/react-native';
+import { Alert } from 'react-native';
 import { useMatchDetail } from '../useMatchDetail';
 import { useStore } from '@/store';
 import type { Match, ArchivedRound, ClosedTournament } from '@/store/types';
+
+const mockUpload = jest.mocked(require('@/supabase/storage').uploadMediaItem);
+const mockExtractStats = jest.mocked(require('@/utils/extractStats').extractStatsFromPhoto);
+const mockPicker = jest.mocked(require('expo-image-picker').launchImageLibraryAsync);
 
 const MATCH: Match = {
   id: 'match-1',
@@ -68,8 +77,15 @@ const CLOSED_TOURNAMENT: ClosedTournament = {
   players: ['player-a', 'player-b'],
 };
 
+let alertSpy: jest.SpyInstance;
+
 beforeEach(() => {
-  jest.clearAllMocks();
+  jest.resetAllMocks();
+  mockPicker.mockResolvedValue({ canceled: true });
+  mockUpload.mockResolvedValue(null);
+  mockExtractStats.mockResolvedValue([]);
+  jest.mocked(require('@/supabase/sync').fetchMatchById).mockResolvedValue(null);
+  alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(jest.fn());
   useStore.getState().resetStore();
 });
 
@@ -299,5 +315,528 @@ describe('dialog visibility flags', () => {
     const { result } = await renderHook(() => useMatchDetail());
     await act(async () => { result.current.handleSwapSides(); });
     expect(result.current.showSwapSides).toBe(true);
+  });
+});
+
+// ── handleAddMedia ─────────────────────────────────────────────────────────────
+
+describe('handleAddMedia', () => {
+  it('does nothing if picker is canceled', async () => {
+    useStore.setState({ matches: [MATCH] });
+    mockPicker.mockResolvedValueOnce({ canceled: true });
+    const { result } = await renderHook(() => useMatchDetail());
+    await act(async () => { await result.current.handleAddMedia(); });
+    expect(useStore.getState().matches[0].media).toBeUndefined();
+  });
+
+  it('saves with remote URL when upload succeeds', async () => {
+    useStore.setState({ matches: [MATCH] });
+    mockPicker.mockResolvedValueOnce({
+      canceled: false,
+      assets: [{ uri: 'file://photo.jpg', type: 'image' }],
+    });
+    mockUpload.mockResolvedValueOnce('https://cdn.example.com/photo.jpg');
+    const { result } = await renderHook(() => useMatchDetail());
+    await act(async () => { await result.current.handleAddMedia(); });
+    const media = useStore.getState().matches[0].media;
+    expect(media).toHaveLength(1);
+    expect(media![0].uri).toBe('https://cdn.example.com/photo.jpg');
+    expect(media![0].pendingUpload).toBeUndefined();
+    expect(alertSpy).not.toHaveBeenCalled();
+  });
+
+  it('saves locally with pendingUpload flag and shows alert when upload fails', async () => {
+    useStore.setState({ matches: [MATCH] });
+    mockPicker.mockResolvedValueOnce({
+      canceled: false,
+      assets: [{ uri: 'file://photo.jpg', type: 'image' }],
+    });
+    mockUpload.mockResolvedValueOnce(null);
+    const { result } = await renderHook(() => useMatchDetail());
+    await act(async () => { await result.current.handleAddMedia(); });
+    const media = useStore.getState().matches[0].media;
+    expect(media).toHaveLength(1);
+    expect(media![0].uri).toBe('file://photo.jpg');
+    expect(media![0].pendingUpload).toBe(true);
+    expect(alertSpy).toHaveBeenCalledWith(
+      'matchDetail.media.uploadFailed',
+      'matchDetail.media.uploadFailedDesc',
+    );
+  });
+});
+
+// ── handleImportStats ─────────────────────────────────────────────────────────
+
+describe('handleImportStats', () => {
+  it('does nothing if picker is canceled', async () => {
+    useStore.setState({ matches: [MATCH] });
+    mockPicker.mockResolvedValueOnce({ canceled: true });
+    const { result } = await renderHook(() => useMatchDetail());
+    await act(async () => { await result.current.handleImportStats(); });
+    expect(useStore.getState().matches[0].media).toBeUndefined();
+    expect(alertSpy).not.toHaveBeenCalled();
+  });
+
+  it('upload fails: saves locally with pendingUpload flag, skips OCR, shows alert', async () => {
+    useStore.setState({ matches: [MATCH] });
+    mockPicker.mockResolvedValueOnce({
+      canceled: false,
+      assets: [{ uri: 'file://stats.jpg', type: 'image', base64: 'abc', mimeType: 'image/jpeg' }],
+    });
+    mockUpload.mockResolvedValueOnce(null);
+    const { result } = await renderHook(() => useMatchDetail());
+    await act(async () => { await result.current.handleImportStats(); });
+    // Photo saved locally (no existing media → should save)
+    const media = useStore.getState().matches[0].media;
+    expect(media).toHaveLength(1);
+    expect(media![0].uri).toBe('file://stats.jpg');
+    expect(media![0].pendingUpload).toBe(true);
+    // OCR skipped
+    expect(mockExtractStats).not.toHaveBeenCalled();
+    // Alert shown
+    expect(alertSpy).toHaveBeenCalledWith(
+      'matchDetail.media.uploadFailed',
+      'matchDetail.media.uploadFailedDesc',
+    );
+  });
+
+  it('upload fails: does NOT add media when match already has photos', async () => {
+    const matchWithMedia = { ...MATCH, media: [{ uri: 'https://cdn/existing.jpg', type: 'image' as const }] };
+    useStore.setState({ matches: [matchWithMedia] });
+    mockPicker.mockResolvedValueOnce({
+      canceled: false,
+      assets: [{ uri: 'file://stats.jpg', type: 'image', base64: 'abc', mimeType: 'image/jpeg' }],
+    });
+    mockUpload.mockResolvedValueOnce(null);
+    const { result } = await renderHook(() => useMatchDetail());
+    await act(async () => { await result.current.handleImportStats(); });
+    // Existing media untouched
+    const media = useStore.getState().matches[0].media;
+    expect(media).toHaveLength(1);
+    expect(media![0].uri).toBe('https://cdn/existing.jpg');
+    expect(mockExtractStats).not.toHaveBeenCalled();
+  });
+
+  it('upload succeeds: runs OCR and auto-applies stats without opening modal', async () => {
+    useStore.setState({ matches: [MATCH] });
+    mockPicker.mockResolvedValueOnce({
+      canceled: false,
+      assets: [{ uri: 'file://stats.jpg', type: 'image', base64: 'abc', mimeType: 'image/jpeg' }],
+    });
+    mockUpload.mockResolvedValueOnce('https://cdn/stats.jpg');
+    mockExtractStats.mockResolvedValueOnce([
+      { key: 'shots', label: 'Shots', home: 7, away: 3, confidence: 'high' },
+    ]);
+    const { result } = await renderHook(() => useMatchDetail());
+    await act(async () => { await result.current.handleImportStats(); });
+    expect(mockExtractStats).toHaveBeenCalledWith('abc', 'image/jpeg');
+    const saved = useStore.getState().matches[0];
+    expect(saved.statsOverride?.shots).toEqual({ a: 7, b: 3 });
+    expect(useStore.getState().modal).toBeNull();
+    expect(alertSpy).not.toHaveBeenCalled();
+  });
+
+  it('upload succeeds but OCR finds no stats: shows no-stats alert', async () => {
+    useStore.setState({ matches: [MATCH] });
+    mockPicker.mockResolvedValueOnce({
+      canceled: false,
+      assets: [{ uri: 'file://stats.jpg', type: 'image', base64: 'abc', mimeType: 'image/jpeg' }],
+    });
+    mockUpload.mockResolvedValueOnce('https://cdn/stats.jpg');
+    mockExtractStats.mockResolvedValueOnce([]);
+    const { result } = await renderHook(() => useMatchDetail());
+    await act(async () => { await result.current.handleImportStats(); });
+    expect(alertSpy).toHaveBeenCalledWith(
+      'matchDetail.ocr.noStats',
+      'matchDetail.ocr.noStatsDesc',
+    );
+    expect(useStore.getState().matches[0].statsOverride).toBeUndefined();
+  });
+
+  it('upload succeeds but OCR throws: shows ocr-failed alert', async () => {
+    useStore.setState({ matches: [MATCH] });
+    mockPicker.mockResolvedValueOnce({
+      canceled: false,
+      assets: [{ uri: 'file://stats.jpg', type: 'image', base64: 'abc', mimeType: 'image/jpeg' }],
+    });
+    mockUpload.mockResolvedValueOnce('https://cdn/stats.jpg');
+    mockExtractStats.mockRejectedValueOnce(new Error('OCR service down'));
+    const { result } = await renderHook(() => useMatchDetail());
+    await act(async () => { await result.current.handleImportStats(); });
+    expect(alertSpy).toHaveBeenCalledWith(
+      'matchDetail.ocr.failed',
+      'matchDetail.ocr.failedDesc',
+    );
+  });
+
+  it('partial upload failure (one of two fails): skips OCR and saves both locally', async () => {
+    useStore.setState({ matches: [MATCH] });
+    mockPicker.mockResolvedValueOnce({
+      canceled: false,
+      assets: [
+        { uri: 'file://a.jpg', type: 'image', base64: 'aaa', mimeType: 'image/jpeg' },
+        { uri: 'file://b.jpg', type: 'image', base64: 'bbb', mimeType: 'image/jpeg' },
+      ],
+    });
+    mockUpload
+      .mockResolvedValueOnce('https://cdn/a.jpg')
+      .mockResolvedValueOnce(null);
+    const { result } = await renderHook(() => useMatchDetail());
+    await act(async () => { await result.current.handleImportStats(); });
+    expect(mockExtractStats).not.toHaveBeenCalled();
+    const media = useStore.getState().matches[0].media;
+    expect(media).toHaveLength(2);
+    expect(media![0].uri).toBe('https://cdn/a.jpg');
+    expect(media![0].pendingUpload).toBeUndefined();
+    expect(media![1].uri).toBe('file://b.jpg');
+    expect(media![1].pendingUpload).toBe(true);
+  });
+
+  it('highest-confidence stat wins when multiple photos have same key', async () => {
+    useStore.setState({ matches: [MATCH] });
+    mockPicker.mockResolvedValueOnce({
+      canceled: false,
+      assets: [
+        { uri: 'file://a.jpg', type: 'image', base64: 'aaa', mimeType: 'image/jpeg' },
+        { uri: 'file://b.jpg', type: 'image', base64: 'bbb', mimeType: 'image/jpeg' },
+      ],
+    });
+    mockUpload
+      .mockResolvedValueOnce('https://cdn/a.jpg')
+      .mockResolvedValueOnce('https://cdn/b.jpg');
+    mockExtractStats
+      .mockResolvedValueOnce([
+        { key: 'shots', label: 'Shots', home: 5, away: 2, confidence: 'low' },
+      ])
+      .mockResolvedValueOnce([
+        { key: 'shots', label: 'Shots', home: 7, away: 3, confidence: 'high' },
+      ]);
+    const { result } = await renderHook(() => useMatchDetail());
+    await act(async () => { await result.current.handleImportStats(); });
+    const saved = useStore.getState().matches[0];
+    expect(saved.statsOverride?.shots).toEqual({ a: 7, b: 3 });
+  });
+});
+
+// ── Bug hunt ─────────────────────────────────────────────────────────────────
+
+describe('Bug 11 — handleImportStats: picker throws → importingStatsRef stuck true forever', () => {
+  it('second call succeeds after first call where picker throws', async () => {
+    useStore.setState({ matches: [MATCH] });
+    mockPicker
+      .mockRejectedValueOnce(new Error('permission denied'))
+      .mockResolvedValueOnce({
+        canceled: false,
+        assets: [{ uri: 'file://s.jpg', type: 'image', base64: 'abc', mimeType: 'image/jpeg' }],
+      });
+    mockUpload.mockResolvedValueOnce('https://cdn/s.jpg');
+    mockExtractStats.mockResolvedValueOnce([
+      { key: 'shots', label: 'Shots', home: 5, away: 2, confidence: 'high' },
+    ]);
+    const { result } = await renderHook(() => useMatchDetail());
+
+    // First call: picker throws (permission denied) → ref should be released
+    await act(async () => {
+      try { await result.current.handleImportStats(); } catch {}
+    });
+
+    // Bug: importingStatsRef.current stays true → second call silently returns
+    await act(async () => { await result.current.handleImportStats(); });
+
+    const saved = useStore.getState().matches[0];
+    expect(saved.statsOverride?.shots).toEqual({ a: 5, b: 2 });
+  });
+});
+
+describe('Bug 9 — handleImportStats: upload throw loses photos (not saved locally)', () => {
+  it('saves with pendingUpload=true and shows uploadFailed alert when upload rejects', async () => {
+    useStore.setState({ matches: [MATCH] });
+    mockPicker.mockResolvedValueOnce({
+      canceled: false,
+      assets: [{ uri: 'file://s.jpg', type: 'image', base64: 'abc', mimeType: 'image/jpeg' }],
+    });
+    // uploadMediaItem THROWS (not returns null) — simulates unexpected network error
+    mockUpload.mockRejectedValueOnce(new Error('network timeout'));
+    const { result } = await renderHook(() => useMatchDetail());
+    await act(async () => { await result.current.handleImportStats(); });
+
+    // Bug: Promise.all rejects → outer catch fires → shows ocrFailed alert, photos NOT saved
+    // Fix: per-upload catch should treat throw as null (save locally with pendingUpload)
+    const media = useStore.getState().matches[0].media;
+    expect(media).toHaveLength(1);
+    expect(media![0].pendingUpload).toBe(true);
+    expect(alertSpy).toHaveBeenCalledWith(
+      'matchDetail.media.uploadFailed',
+      'matchDetail.media.uploadFailedDesc',
+    );
+    expect(alertSpy).not.toHaveBeenCalledWith(
+      'matchDetail.ocr.failed',
+      'matchDetail.ocr.failedDesc',
+    );
+  });
+});
+
+describe('Bug 1 — handleImportStats: upload throws → importingStats stuck at true', () => {
+  it('resets importingStats to false even when uploadMediaItem rejects', async () => {
+    useStore.setState({ matches: [MATCH] });
+    mockPicker.mockResolvedValueOnce({
+      canceled: false,
+      assets: [{ uri: 'file://stats.jpg', type: 'image', base64: 'abc', mimeType: 'image/jpeg' }],
+    });
+    // uploadMediaItem rejects (throws) rather than returning null
+    mockUpload.mockRejectedValueOnce(new Error('network error'));
+    const { result } = await renderHook(() => useMatchDetail());
+    await act(async () => {
+      try { await result.current.handleImportStats(); } catch { /* expected throw */ }
+    });
+    // Bug: setImportingStats(false) is never called → spinner stuck at true
+    expect(result.current.importingStats).toBe(false);
+  });
+});
+
+describe('Bug 2 — handleAddMedia: stale match.media snapshot overwrites sync update', () => {
+  it('appends to current store media, not the closure snapshot from before sync', async () => {
+    // Start with an existing media item
+    const matchWithOne = { ...MATCH, media: [{ uri: 'https://cdn/old.jpg', type: 'image' as const }] };
+    useStore.setState({ matches: [matchWithOne] });
+    const { result } = await renderHook(() => useMatchDetail());
+
+    // Capture the callback NOW (it holds a closure over match.media = [old.jpg])
+    const { handleAddMedia } = result.current;
+
+    // Sync fires BEFORE we call handleAddMedia: adds a second photo
+    await act(async () => {
+      useStore.setState({
+        matches: [{ ...matchWithOne, media: [
+          { uri: 'https://cdn/old.jpg', type: 'image' as const },
+          { uri: 'https://cdn/synced.jpg', type: 'image' as const },
+        ] }],
+      });
+    });
+
+    // Call the stale callback: its closure still sees match.media = [old.jpg]
+    mockUpload.mockResolvedValueOnce('https://cdn/new.jpg');
+    mockPicker.mockResolvedValueOnce({
+      canceled: false,
+      assets: [{ uri: 'file://new.jpg', type: 'image' }],
+    });
+    await act(async () => { await handleAddMedia(); });
+
+    // Expected: [old.jpg, synced.jpg, new.jpg] — all 3 present
+    // Bug: stale closure writes [...[old.jpg], new.jpg] → synced.jpg is LOST
+    const media = useStore.getState().matches[0].media;
+    expect(media).toHaveLength(3);
+    expect(media!.some((m) => m.uri === 'https://cdn/synced.jpg')).toBe(true);
+  });
+});
+
+describe('Bug 3 — handleAddMedia: double-tap: ref guard blocks second call', () => {
+  it('second concurrent call is a no-op — first result is preserved, not clobbered', async () => {
+    useStore.setState({ matches: [MATCH] });
+    mockPicker
+      .mockResolvedValueOnce({ canceled: false, assets: [{ uri: 'file://a.jpg', type: 'image' }] })
+      .mockResolvedValueOnce({ canceled: false, assets: [{ uri: 'file://b.jpg', type: 'image' }] });
+    mockUpload
+      .mockResolvedValueOnce('https://cdn/a.jpg')
+      .mockResolvedValueOnce('https://cdn/b.jpg');
+
+    const { result } = await renderHook(() => useMatchDetail());
+    const { handleAddMedia } = result.current;
+
+    await act(async () => {
+      await Promise.all([handleAddMedia(), handleAddMedia()]);
+    });
+
+    // Ref guard blocks second call immediately — only first upload is saved
+    const media = useStore.getState().matches[0].media;
+    expect(media).toHaveLength(1);
+    expect(media![0].uri).toBe('https://cdn/a.jpg');
+  });
+});
+
+describe('Bug 4 — handleImportStats: stale noExistingMedia overwrites synced media', () => {
+  it('does not clobber media added by sync while handleImportStats was running', async () => {
+    useStore.setState({ matches: [MATCH] }); // no media initially
+
+    const { result } = await renderHook(() => useMatchDetail());
+
+    // Capture callback — it sees noExistingMedia = true (match.media = [])
+    const { handleImportStats } = result.current;
+
+    // Sync fires and adds a photo BEFORE we call handleImportStats
+    await act(async () => {
+      useStore.setState({
+        matches: [{ ...MATCH, media: [{ uri: 'https://cdn/synced.jpg', type: 'image' as const }] }],
+      });
+    });
+
+    // Call stale callback: noExistingMedia is STILL true in its closure
+    mockUpload.mockResolvedValueOnce('https://cdn/stats.jpg');
+    mockExtractStats.mockResolvedValueOnce([
+      { key: 'shots', label: 'Shots', home: 5, away: 2, confidence: 'high' },
+    ]);
+    mockPicker.mockResolvedValueOnce({
+      canceled: false,
+      assets: [{ uri: 'file://stats.jpg', type: 'image', base64: 'abc', mimeType: 'image/jpeg' }],
+    });
+    await act(async () => { await handleImportStats(); });
+
+    // Bug: stale noExistingMedia=true → overwrites [synced.jpg] with [stats.jpg] → synced.jpg LOST
+    const media = useStore.getState().matches[0].media;
+    expect(media!.some((m) => m.uri === 'https://cdn/synced.jpg')).toBe(true);
+  });
+});
+
+describe('Bug 5 — handleAddMedia: uploadMediaItem throws → uploadingMedia stuck, future calls blocked', () => {
+  it('resets uploadingMedia to false even when uploadMediaItem throws', async () => {
+    useStore.setState({ matches: [MATCH] });
+    mockPicker.mockResolvedValueOnce({
+      canceled: false,
+      assets: [{ uri: 'file://photo.jpg', type: 'image' }],
+    });
+    mockUpload.mockRejectedValueOnce(new Error('network timeout'));
+    const { result } = await renderHook(() => useMatchDetail());
+    await act(async () => {
+      try { await result.current.handleAddMedia(); } catch { /* expected throw */ }
+    });
+    // Bug: uploadingMedia stays true → next call hits guard and silently returns
+    expect(result.current.uploadingMedia).toBe(false);
+  });
+
+  it('allows subsequent call after upload throws (first saved locally, second saved remotely)', async () => {
+    useStore.setState({ matches: [MATCH] });
+    mockPicker
+      .mockResolvedValueOnce({ canceled: false, assets: [{ uri: 'file://a.jpg', type: 'image' }] })
+      .mockResolvedValueOnce({ canceled: false, assets: [{ uri: 'file://b.jpg', type: 'image' }] });
+    mockUpload
+      .mockRejectedValueOnce(new Error('network timeout'))
+      .mockResolvedValueOnce('https://cdn/b.jpg');
+    const { result } = await renderHook(() => useMatchDetail());
+
+    // First call: upload throws → a.jpg saved locally with pendingUpload (Bug 10 fix)
+    await act(async () => { await result.current.handleAddMedia(); });
+    // Second call must not be blocked (Bug 5 fix)
+    await act(async () => { await result.current.handleAddMedia(); });
+
+    const media = useStore.getState().matches[0].media;
+    // Both items saved: a.jpg local (pendingUpload) + b.jpg remote
+    expect(media).toHaveLength(2);
+    expect(media!.find((m) => m.uri === 'file://a.jpg')?.pendingUpload).toBe(true);
+    expect(media!.find((m) => m.uri === 'https://cdn/b.jpg')?.pendingUpload).toBeUndefined();
+  });
+});
+
+describe('Bug 10 — handleAddMedia: upload throws → photo lost (not saved locally)', () => {
+  it('saves with pendingUpload=true and shows uploadFailed alert when upload rejects', async () => {
+    useStore.setState({ matches: [MATCH] });
+    mockPicker.mockResolvedValueOnce({
+      canceled: false,
+      assets: [{ uri: 'file://s.jpg', type: 'image' }],
+    });
+    // uploadMediaItem THROWS (not returns null)
+    mockUpload.mockRejectedValueOnce(new Error('network timeout'));
+    const { result } = await renderHook(() => useMatchDetail());
+    await act(async () => { await result.current.handleAddMedia(); });
+
+    // Bug: upload throws → inner try propagates to outer finally → photo NOT saved
+    // Fix: catch upload throw and treat as null (save locally with pendingUpload)
+    const media = useStore.getState().matches[0].media;
+    expect(media).toHaveLength(1);
+    expect(media![0].uri).toBe('file://s.jpg');
+    expect(media![0].pendingUpload).toBe(true);
+    expect(alertSpy).toHaveBeenCalledWith(
+      'matchDetail.media.uploadFailed',
+      'matchDetail.media.uploadFailedDesc',
+    );
+  });
+});
+
+describe('Bug 6 — handleImportStats: no concurrency guard, double-trigger runs twice', () => {
+  it('second call while importingStats=true is a no-op', async () => {
+    useStore.setState({ matches: [MATCH] });
+    let resolveFirst!: (v: string) => void;
+    mockUpload.mockImplementationOnce(() => new Promise((res) => { resolveFirst = res; }));
+    mockPicker.mockResolvedValue({
+      canceled: false,
+      assets: [{ uri: 'file://s.jpg', type: 'image', base64: 'abc', mimeType: 'image/jpeg' }],
+    });
+    mockExtractStats.mockResolvedValue([
+      { key: 'shots', label: 'Shots', home: 5, away: 2, confidence: 'high' },
+    ]);
+
+    const { result } = await renderHook(() => useMatchDetail());
+
+    // Start first call (upload hangs)
+    const firstCall = result.current.handleImportStats();
+
+    // While first is in progress, importingStats should now be true — second call should be blocked
+    // But there's no guard! Both calls proceed:
+    mockUpload.mockResolvedValueOnce('https://cdn/s2.jpg');
+    await act(async () => { await result.current.handleImportStats(); });
+
+    // Resolve first
+    await act(async () => {
+      resolveFirst('https://cdn/s1.jpg');
+      await firstCall;
+    });
+
+    // extractStatsFromPhoto should have been called exactly once (second call was a no-op)
+    expect(mockExtractStats).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('Bug 8 — handleImportStats: importingStats=true shown while picker is open', () => {
+  it('importingStats stays false while picker is resolving (before user selects)', async () => {
+    useStore.setState({ matches: [MATCH] });
+    let resolvePicker!: (v: object) => void;
+    mockPicker.mockReturnValueOnce(new Promise((res) => { resolvePicker = res; }));
+    const { result } = await renderHook(() => useMatchDetail());
+
+    // Start handleImportStats without awaiting — picker is "open" (Promise pending)
+    result.current.handleImportStats();
+
+    // Flush React's pending state updates while the picker Promise is still hanging.
+    // If setImportingStats(true) was called BEFORE launchImageLibraryAsync resolves,
+    // this flush will deliver it and importingStats will be true — wrong.
+    // If it's called only AFTER picker confirms a selection, it stays false — correct.
+    await act(async () => { await Promise.resolve(); });
+    expect(result.current.importingStats).toBe(false);
+
+    // Cleanup
+    await act(async () => { resolvePicker({ canceled: true, assets: [] }); });
+  });
+});
+
+describe('Bug 7 — handleImportStats: per-photo OCR throw discards stats from earlier photos', () => {
+  it('applies stats from photos that succeeded OCR even if a later photo throws', async () => {
+    useStore.setState({ matches: [MATCH] });
+    mockPicker.mockResolvedValueOnce({
+      canceled: false,
+      assets: [
+        { uri: 'file://a.jpg', type: 'image', base64: 'aaa', mimeType: 'image/jpeg' },
+        { uri: 'file://b.jpg', type: 'image', base64: 'bbb', mimeType: 'image/jpeg' },
+      ],
+    });
+    mockUpload
+      .mockResolvedValueOnce('https://cdn/a.jpg')
+      .mockResolvedValueOnce('https://cdn/b.jpg');
+    mockExtractStats
+      .mockResolvedValueOnce([
+        { key: 'shots', label: 'Shots', home: 7, away: 3, confidence: 'high' },
+      ])
+      .mockRejectedValueOnce(new Error('OCR service error on photo b'));
+
+    const { result } = await renderHook(() => useMatchDetail());
+    await act(async () => { await result.current.handleImportStats(); });
+
+    // Bug: outer catch fires, stats from photo A (shots) are DISCARDED
+    // Expected: shots should be applied from photo A even though photo B failed
+    const saved = useStore.getState().matches[0];
+    expect(saved.statsOverride?.shots).toEqual({ a: 7, b: 3 });
+    // And alert should NOT have fired with ocrFailed (partial success)
+    expect(alertSpy).not.toHaveBeenCalledWith(
+      'matchDetail.ocr.failed',
+      'matchDetail.ocr.failedDesc',
+    );
   });
 });

@@ -347,6 +347,16 @@ const fr = {
     draw: 'MATCH NUL',
     noData: 'Données du match introuvables.',
     commentary: 'COMMENTAIRE',
+    media: {
+      uploadFailed: 'Échec du chargement',
+      uploadFailedDesc: 'Photo enregistrée localement. Les stats seront disponibles une fois la connexion rétablie.',
+    },
+    ocr: {
+      noStats: 'Aucune stat trouvée',
+      noStatsDesc: 'Impossible d\'extraire les stats de cette photo. Essayez une capture d\'écran plus nette.',
+      failed: 'Impossible de lire les stats',
+      failedDesc: 'Veuillez réessayer avec une image plus nette.',
+    },
   },
 
   players: {

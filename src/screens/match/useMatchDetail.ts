@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { Dimensions } from 'react-native';
+import { Alert, Dimensions } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useGoBack } from '@/utils/useGoBack';
@@ -11,6 +12,7 @@ import { uploadMediaItem, deleteMediaItem } from '@/supabase/storage';
 import { buildMergedStats } from '@/utils/mergedStats';
 
 export function useMatchDetail() {
+  const { t } = useTranslation();
   const router = useRouter();
   const goBack = useGoBack();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -59,7 +61,9 @@ export function useMatchDetail() {
   const [editNoteValue, setEditNoteValue] = useState('');
   const [uploadingMedia, setUploadingMedia] = useState(false);
   const [importingStats, setImportingStats] = useState(false);
-  const [importedStats, setImportedStats] = useState<ExtractedStat[] | null>(null);
+  // Refs for concurrency guards — updated synchronously, unlike state
+  const uploadingMediaRef = useRef(false);
+  const importingStatsRef = useRef(false);
   const [showClearStats, setShowClearStats] = useState(false);
   const [showSwapSides, setShowSwapSides] = useState(false);
   const [showStatsMenu, setShowStatsMenu] = useState(false);
@@ -125,76 +129,149 @@ export function useMatchDetail() {
 
   const handleAddMedia = useCallback(async () => {
     if (!match) return;
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.All,
-      allowsMultipleSelection: false,
-      quality: 0.8,
-    });
-    if (!result.canceled && result.assets[0]) {
-      const asset = result.assets[0];
-      const type: 'image' | 'video' = asset.type === 'video' ? 'video' : 'image';
-      setUploadingMedia(true);
-      const remoteUrl = await uploadMediaItem(asset.uri, type);
-      setUploadingMedia(false);
-      const newItem: MediaItem = { uri: remoteUrl ?? asset.uri, type };
-      store.updateMatchMedia(match.id, [...(match.media ?? []), newItem]);
+    // Ref guard: synchronously blocks concurrent calls (state would be stale in closure)
+    if (uploadingMediaRef.current) return;
+    uploadingMediaRef.current = true;
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images', 'videos'] as unknown as ImagePicker.MediaTypeOptions,
+        allowsMultipleSelection: false,
+        quality: 0.8,
+      });
+      if (!result.canceled && result.assets[0]) {
+        const asset = result.assets[0];
+        const matchId = match.id;
+        const type: 'image' | 'video' = asset.type === 'video' ? 'video' : 'image';
+        // Show spinner only during the actual upload, not while picker is open
+        setUploadingMedia(true);
+        try {
+          // Bug 10 fix: catch upload throw and treat it as null (same as upload-failed),
+          // so the photo is always saved locally with pendingUpload when upload fails.
+          let remoteUrl: string | null;
+          try { remoteUrl = await uploadMediaItem(asset.uri, type); } catch { remoteUrl = null; }
+          const newItem: MediaItem = remoteUrl !== null
+            ? { uri: remoteUrl, type }
+            : { uri: asset.uri, type, pendingUpload: true };
+          const uploaded = remoteUrl !== null;
+          // Bug 2 fix: read fresh media from store at write time, not from stale closure
+          const freshMedia = useStore.getState().matches.find((m) => m.id === matchId)?.media
+            ?? useStore.getState().archivedRounds.flatMap((r) => r.matches).find((m) => m.id === matchId)?.media
+            ?? [];
+          store.updateMatchMedia(matchId, [...freshMedia, newItem]);
+          if (!uploaded) {
+            Alert.alert(t('matchDetail.media.uploadFailed'), t('matchDetail.media.uploadFailedDesc'));
+          }
+        } finally {
+          setUploadingMedia(false);
+        }
+      }
+    } finally {
+      uploadingMediaRef.current = false;
     }
-  }, [match, store]);
+  }, [match, store, t]);
 
   const handleImportStats = useCallback(async () => {
     if (!match) return;
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'] as unknown as ImagePicker.MediaTypeOptions,
-      allowsMultipleSelection: true,
-      selectionLimit: 4,
-      quality: 0.85,
-      base64: true,
-    });
-    if (result.canceled || !result.assets.length) return;
+    // Bug 6 fix: ref guard is synchronously updated — prevents concurrent invocations
+    // even when state batching would give a stale importingStats value in the closure
+    if (importingStatsRef.current) return;
+    importingStatsRef.current = true;
 
-    const noExistingMedia = !match.media?.length;
-
-    setImportingStats(true);
+    // Bug 11 fix: outer try/finally ensures the ref is ALWAYS released,
+    // even if launchImageLibraryAsync itself throws (e.g. OS permission error).
     try {
-      const allResults: ExtractedStat[][] = [];
-      for (const asset of result.assets) {
-        if (!asset.base64) continue;
-        const stats = await extractStatsFromPhoto(asset.base64, asset.mimeType ?? 'image/jpeg');
-        allResults.push(stats);
-      }
-      const map = new Map<string, ExtractedStat>();
-      const rank = (c: ExtractedStat['confidence']) => (c === 'high' ? 3 : c === 'medium' ? 2 : 1);
-      for (const stats of allResults) {
-        for (const stat of stats) {
-          const existing = map.get(stat.key);
-          if (!existing || rank(stat.confidence) > rank(existing.confidence)) {
-            map.set(stat.key, stat);
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'] as unknown as ImagePicker.MediaTypeOptions,
+        allowsMultipleSelection: true,
+        selectionLimit: 4,
+        quality: 0.85,
+        base64: true,
+      });
+      if (result.canceled || !result.assets.length) return;
+
+      // Bug 8 fix: spinner shown only after user confirms selection, not during picker display
+      setImportingStats(true);
+      const matchId = match.id;
+
+      // Bug 1 fix: inner try/finally resets the spinner after upload/OCR completes.
+      try {
+        // Upload-first: try to upload all photos before running OCR.
+        // If any upload fails (null return OR throw) we save locally and skip OCR.
+        // Bug 9 fix: catch per-upload so a throw is treated as null (not a fatal error).
+        const uploadResults = await Promise.all(
+          result.assets.map(async (asset) => {
+            try {
+              const remoteUrl = await uploadMediaItem(asset.uri, 'image');
+              return { asset, remoteUrl };
+            } catch {
+              return { asset, remoteUrl: null };
+            }
+          }),
+        );
+
+        const allUploaded = uploadResults.every((r) => r.remoteUrl !== null);
+
+        // Bug 4 fix: read fresh match.media at write time to avoid clobbering
+        // media added by sync while uploads were in-flight.
+        const getMedia = () =>
+          useStore.getState().matches.find((m) => m.id === matchId)?.media
+          ?? useStore.getState().archivedRounds.flatMap((r) => r.matches).find((m) => m.id === matchId)?.media;
+
+        if (!getMedia()?.length) {
+          const mediaItems: MediaItem[] = uploadResults.map(({ asset, remoteUrl }) => ({
+            uri: remoteUrl ?? asset.uri,
+            type: 'image' as const,
+            ...(remoteUrl === null ? { pendingUpload: true } : {}),
+          }));
+          store.updateMatchMedia(matchId, mediaItems);
+        }
+
+        if (!allUploaded) {
+          // Safeguard: upload failed — photos saved locally, skip OCR until re-scan
+          Alert.alert(t('matchDetail.media.uploadFailed'), t('matchDetail.media.uploadFailedDesc'));
+          return;
+        }
+
+        // All photos uploaded — run OCR and auto-apply stats (no review modal)
+        const map = new Map<string, ExtractedStat>();
+        const rank = (c: ExtractedStat['confidence']) => (c === 'high' ? 3 : c === 'medium' ? 2 : 1);
+        // Bug 7 fix: catch per-photo so a failure on photo N doesn't discard
+        // stats already collected from photos 1..N-1. Track whether any photo
+        // threw to distinguish "service error" from "genuinely no stats found".
+        let anyPhotoOcrFailed = false;
+        for (const { asset } of uploadResults) {
+          if (!asset.base64) continue;
+          try {
+            const stats = await extractStatsFromPhoto(asset.base64, asset.mimeType ?? 'image/jpeg');
+            for (const stat of stats) {
+              const existing = map.get(stat.key);
+              if (!existing || rank(stat.confidence) > rank(existing.confidence)) {
+                map.set(stat.key, stat);
+              }
+            }
+          } catch {
+            anyPhotoOcrFailed = true;
           }
         }
-      }
-      setImportedStats(Array.from(map.values()));
-      store.setModal('importStats');
 
-      if (noExistingMedia) {
-        const matchId = match.id;
-        Promise.all(
-          result.assets.map(async (asset) => {
-            const remoteUrl = await uploadMediaItem(asset.uri, 'image');
-            return { uri: remoteUrl ?? asset.uri, type: 'image' as const };
-          }),
-        ).then((items) => {
-          store.updateMatchMedia(matchId, items);
-        }).catch((e) => {
-          console.warn('[match] background stat-photo upload failed:', e);
-        });
+        if (map.size > 0) {
+          const override: Record<string, { a: number; b: number }> = {};
+          map.forEach((stat) => { override[stat.key] = { a: stat.home, b: stat.away }; });
+          store.updateMatchStats(matchId, override);
+        } else if (anyPhotoOcrFailed) {
+          Alert.alert(t('matchDetail.ocr.failed'), t('matchDetail.ocr.failedDesc'));
+        } else {
+          Alert.alert(t('matchDetail.ocr.noStats'), t('matchDetail.ocr.noStatsDesc'));
+        }
+      } catch {
+        Alert.alert(t('matchDetail.ocr.failed'), t('matchDetail.ocr.failedDesc'));
+      } finally {
+        setImportingStats(false);
       }
-    } catch {
-      store.setModal('importStats');
-      setImportedStats(null);
     } finally {
-      setImportingStats(false);
+      importingStatsRef.current = false;
     }
-  }, [match, store]);
+  }, [match, store, t]);
 
   const handleClearStats = useCallback(() => setShowClearStats(true), []);
   const handleSwapSides = useCallback(() => setShowSwapSides(true), []);
@@ -206,17 +283,6 @@ export function useMatchDetail() {
       setShowStatsMenu(true);
     });
   }, []);
-
-  const handleApplyImportedStats = useCallback(() => {
-    if (!importedStats || !match) return;
-    const override: Record<string, { a: number; b: number }> = {};
-    for (const stat of importedStats) {
-      override[stat.key] = { a: stat.home, b: stat.away };
-    }
-    store.updateMatchStats(match.id, override);
-    store.setModal(null);
-    setImportedStats(null);
-  }, [importedStats, match, store]);
 
   const handleDeleteMedia = useCallback(async (idx: number) => {
     if (!match) return;
@@ -268,7 +334,6 @@ export function useMatchDetail() {
     editNoteValue,
     uploadingMedia,
     importingStats,
-    importedStats,
     showClearStats,
     showSwapSides,
     showStatsMenu,
@@ -295,7 +360,6 @@ export function useMatchDetail() {
     handleImportStats,
     handleClearStats,
     handleSwapSides,
-    handleApplyImportedStats,
     handleDeleteMedia,
     openEditNote,
     handleSaveNote,

@@ -12,7 +12,7 @@ import {
 import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { useTranslation } from 'react-i18next';
 import { useColors } from '@/theme';
-import { Sheet, StatsRow, MediaSlider } from '@/components';
+import { Sheet, MediaSlider } from '@/components';
 import { makeStyles } from '@/screens/match/match.styles';
 import type { MatchDetailHook } from './useMatchDetail';
 
@@ -239,83 +239,6 @@ export function MatchModals({ d }: MatchModalsProps) {
               <Text style={styles.saveBtnText}>{t('common.save')}</Text>
             </TouchableOpacity>
           </View>
-        </View>
-      </Sheet>
-
-      {/* ── IMPORT STATS MODAL ── */}
-      <Sheet
-        visible={modal === 'importStats'}
-        onClose={() => { d.store.setModal(null); }}
-        snapToMax
-      >
-        <View style={styles.sheetHeader}>
-          <Text style={styles.sheetTitle}>IMPORT STATS</Text>
-          <Text style={styles.sheetSubtitle}>
-            {d.importedStats ? `${d.importedStats.length} stats found` : 'Scan failed'}
-          </Text>
-        </View>
-
-        {d.importedStats && d.importedStats.length > 0 ? (
-          <BottomSheetScrollView style={styles.sheetScrollFlex} showsVerticalScrollIndicator={false}>
-            {d.importedStats.map((stat, i) => {
-              const aLeads = stat.home >= stat.away;
-              const isLow = stat.confidence === 'low';
-              const isMed = stat.confidence === 'medium';
-              return (
-                <View
-                  key={`${stat.key}-${i}`}
-                  style={[
-                    styles.importStatRow,
-                    isLow && styles.importStatRowLow,
-                    isMed && styles.importStatRowMed,
-                  ]}
-                >
-                  {(isLow || isMed) && (
-                    <View
-                      style={[
-                        styles.importConfStripe,
-                        { backgroundColor: isLow ? '#ffa032' : colors.accent.yellow },
-                      ]}
-                    />
-                  )}
-                  <View style={styles.importStatContent}>
-                    <StatsRow
-                      label={stat.label}
-                      aValue={stat.home}
-                      bValue={stat.away}
-                      aWins={aLeads}
-                    />
-                  </View>
-                </View>
-              );
-            })}
-            <View style={{ height: 8 }} />
-          </BottomSheetScrollView>
-        ) : (
-          <View style={styles.importErrorBody}>
-            <Text style={styles.importErrorText}>
-              Could not extract stats from the selected photo. Try a clearer screenshot.
-            </Text>
-          </View>
-        )}
-
-        <View style={styles.sheetButtons}>
-          <TouchableOpacity
-            style={styles.cancelBtn}
-            onPress={() => { d.store.setModal(null); }}
-            activeOpacity={0.75}
-          >
-            <Text style={styles.cancelBtnText}>Cancel</Text>
-          </TouchableOpacity>
-          {d.importedStats && d.importedStats.length > 0 && (
-            <TouchableOpacity
-              style={styles.saveBtn}
-              onPress={d.handleApplyImportedStats}
-              activeOpacity={0.75}
-            >
-              <Text style={styles.saveBtnText}>Apply</Text>
-            </TouchableOpacity>
-          )}
         </View>
       </Sheet>
 
