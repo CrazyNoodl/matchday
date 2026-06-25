@@ -42,12 +42,15 @@ export default function MatchDetailScreen() {
   const isEditableMatch =
     isCurrentRoundMatch ||
     (store.hasTournament && archivedRounds.flatMap((r) => r.matches).some((m) => m.id === id));
-  const localMatch: Match | undefined =
-    matches.find((m) => m.id === id) ??
-    archivedRounds.flatMap((r) => r.matches).find((m) => m.id === id) ??
-    closedTournaments
-      .flatMap((t) => t.rounds.flatMap((r) => r.matches))
-      .find((m) => m.id === id);
+  const localMatch = useMemo<Match | undefined>(
+    () =>
+      matches.find((m) => m.id === id) ??
+      archivedRounds.flatMap((r) => r.matches).find((m) => m.id === id) ??
+      closedTournaments
+        .flatMap((t) => t.rounds.flatMap((r) => r.matches))
+        .find((m) => m.id === id),
+    [id, matches, archivedRounds, closedTournaments],
+  );
 
   const [remoteMatch, setRemoteMatch] = useState<Match | null>(null);
   const [remoteLoading, setRemoteLoading] = useState(false);
@@ -228,7 +231,9 @@ export default function MatchDetailScreen() {
           }),
         ).then((items) => {
           store.updateMatchMedia(match.id, items);
-        }).catch(() => {});
+        }).catch((e) => {
+          console.warn('[match] background stat-photo upload failed:', e);
+        });
       }
     } catch (e: any) {
       store.setModal('importStats');
