@@ -1,0 +1,28 @@
+# dependencies
+node_modules/
+
+# Expo
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# generated native folders
+/ios
+/android
+
+# build artifacts / logs
+*.tsbuildinfo
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+debug-storybook.log
+
+# macOS
+.DS_Store
+
+# coverage
+coverage/
+
+# cloudflare worker deps
+cloudflare-worker/.wrangler/
