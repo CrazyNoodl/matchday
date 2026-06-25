@@ -11,6 +11,7 @@ export interface Database {
         };
         Insert: { id: string };
         Update: { id?: string };
+        Relationships: [];
       };
       players: {
         Row: {
@@ -23,8 +24,9 @@ export interface Database {
           photo: string | null;
           updated_at: string;
         };
-        Insert: Omit<Database['public']['Tables']['players']['Row'], 'updated_at'>;
+        Insert: Omit<Database['public']['Tables']['players']['Row'], 'updated_at'> & { updated_at?: string };
         Update: Partial<Database['public']['Tables']['players']['Insert']>;
+        Relationships: [];
       };
       teams: {
         Row: {
@@ -37,8 +39,9 @@ export interface Database {
           logo: string | null;
           updated_at: string;
         };
-        Insert: Omit<Database['public']['Tables']['teams']['Row'], 'updated_at'>;
+        Insert: Omit<Database['public']['Tables']['teams']['Row'], 'updated_at'> & { updated_at?: string };
         Update: Partial<Database['public']['Tables']['teams']['Insert']>;
+        Relationships: [];
       };
       tournaments: {
         Row: {
@@ -54,8 +57,9 @@ export interface Database {
           status: 'active' | 'closed';
           updated_at: string;
         };
-        Insert: Omit<Database['public']['Tables']['tournaments']['Row'], 'updated_at'>;
+        Insert: Omit<Database['public']['Tables']['tournaments']['Row'], 'updated_at'> & { updated_at?: string };
         Update: Partial<Database['public']['Tables']['tournaments']['Insert']>;
+        Relationships: [];
       };
       matches: {
         Row: {
@@ -74,8 +78,9 @@ export interface Database {
           stats_override: string | null; // JSON
           updated_at: string;
         };
-        Insert: Omit<Database['public']['Tables']['matches']['Row'], 'updated_at'>;
+        Insert: Omit<Database['public']['Tables']['matches']['Row'], 'updated_at'> & { updated_at?: string };
         Update: Partial<Database['public']['Tables']['matches']['Insert']>;
+        Relationships: [];
       };
       rounds: {
         Row: {
@@ -92,8 +97,9 @@ export interface Database {
           status: 'open' | 'archived';
           updated_at: string;
         };
-        Insert: Omit<Database['public']['Tables']['rounds']['Row'], 'updated_at'>;
+        Insert: Omit<Database['public']['Tables']['rounds']['Row'], 'updated_at'> & { updated_at?: string };
         Update: Partial<Database['public']['Tables']['rounds']['Insert']>;
+        Relationships: [];
       };
       closed_tournaments: {
         Row: {
@@ -108,9 +114,12 @@ export interface Database {
           player_ids: string[];
           updated_at: string;
         };
-        Insert: Omit<Database['public']['Tables']['closed_tournaments']['Row'], 'updated_at'>;
+        Insert: Omit<Database['public']['Tables']['closed_tournaments']['Row'], 'updated_at'> & { updated_at?: string };
         Update: Partial<Database['public']['Tables']['closed_tournaments']['Insert']>;
+        Relationships: [];
       };
     };
+    Views: Record<string, never>;
+    Functions: Record<string, never>;
   };
 }
