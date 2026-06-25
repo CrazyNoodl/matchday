@@ -14,7 +14,7 @@ import { useStore } from '@/store';
 import { calculateStandings } from '@/utils/standings';
 import { formatShortDate } from '@/utils/dateFormat';
 import { useColors } from '@/theme';
-import { SectionLabel, GlowBackground, RoundCard, ShareStandingsModal, NewRoundModal, Sheet, StandingsTable } from '@/components';
+import { SectionLabel, GlowBackground, RoundCard, ShareStandingsModal, NewRoundModal, Sheet, StandingsTable, getStandingsTableColumns } from '@/components';
 import { useTranslation } from 'react-i18next';
 import { makeStyles, makeSheetStyles, makeInputStyles, makeDialogStyles } from '@/screens/tournament/tournament.styles';
 
@@ -127,18 +127,7 @@ export default function TournamentScreen() {
           players={players}
           playerLabel={t('table.player')}
           emptyLabel={t('tournament.noMatches')}
-          columns={[
-            { key: 'played', label: t('table.played') },
-            { key: 'wins', label: t('table.wins') },
-            { key: 'draws', label: t('table.draws') },
-            { key: 'losses', label: t('table.losses') },
-            { key: 'gf', label: t('table.gf') },
-            { key: 'ga', label: t('table.ga') },
-            { key: 'gd', label: t('table.gd') },
-            { key: 'pts', label: t('table.pts') },
-            { key: 'gfPerGame', label: t('table.gfPerGame') },
-            { key: 'gaPerGame', label: t('table.gaPerGame') },
-          ]}
+          columns={getStandingsTableColumns(t)}
         />
 
         {/* ---- CURRENT MATCH DAY (only if roundOpen) ---- */}
