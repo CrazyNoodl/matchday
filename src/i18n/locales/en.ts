@@ -88,6 +88,11 @@ const en = {
     commentaryPlaceholder: 'How did the match go?',
     saveMatch: 'SAVE MATCH',
     saveMatchError: 'Failed to save match. Please try again.',
+    discard: {
+      title: 'Discard match?',
+      message: 'Your progress will be lost, including any photos you\'ve added.',
+      confirm: 'Discard',
+    },
     dialogs: {
       finishTitle: 'FINISH ROUND?',
       finishDesc: 'Crown the winner of this round. This will archive results and cannot be undone.',

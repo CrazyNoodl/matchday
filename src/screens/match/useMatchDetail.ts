@@ -130,7 +130,7 @@ export function useMatchDetail() {
   const handleAddMedia = useCallback(async () => {
     if (!match) return;
     // Ref guard: synchronously blocks concurrent calls (state would be stale in closure)
-    if (uploadingMediaRef.current) return;
+    if (uploadingMediaRef.current || importingStatsRef.current) return;
     uploadingMediaRef.current = true;
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
@@ -174,7 +174,7 @@ export function useMatchDetail() {
     if (!match) return;
     // Bug 6 fix: ref guard is synchronously updated — prevents concurrent invocations
     // even when state batching would give a stale importingStats value in the closure
-    if (importingStatsRef.current) return;
+    if (importingStatsRef.current || uploadingMediaRef.current) return;
     importingStatsRef.current = true;
 
     // Bug 11 fix: outer try/finally ensures the ref is ALWAYS released,

@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { Alert } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import * as ImagePicker from 'expo-image-picker';
@@ -8,6 +8,7 @@ import { extractStatsFromPhoto } from '@/utils/extractStats';
 import {
   AddMatchState,
   initAddMatch,
+  isAddMatchDirty,
 } from '@/utils/addMatchState';
 
 interface UseAddMatchFlowParams {
@@ -26,10 +27,12 @@ export function useAddMatchFlow({
   const { t } = useTranslation();
   const [addMatch, setAddMatch] = useState<AddMatchState>(initAddMatch());
   const [isSavingMatch, setIsSavingMatch] = useState(false);
+  const ocrCancelledRef = useRef(false);
 
   const totalSteps = tournamentRanked ? 4 : 5;
 
   const reset = useCallback(() => {
+    ocrCancelledRef.current = true;
     setAddMatch(initAddMatch());
   }, []);
 
@@ -40,12 +43,23 @@ export function useAddMatchFlow({
   const handleBack = useCallback(() => {
     if (addMatch.ocrStatus === 'scanning' || isSavingMatch) return;
     if (addMatch.step <= 1) {
-      setAddMatch(initAddMatch());
-      closeModal();
+      if (isAddMatchDirty(addMatch)) {
+        Alert.alert(t('matchday.discard.title'), t('matchday.discard.message'), [
+          { text: t('common.cancel'), style: 'cancel' },
+          {
+            text: t('matchday.discard.confirm'),
+            style: 'destructive',
+            onPress: () => { setAddMatch(initAddMatch()); closeModal(); },
+          },
+        ]);
+      } else {
+        setAddMatch(initAddMatch());
+        closeModal();
+      }
     } else {
       setAddMatch((prev) => ({ ...prev, step: prev.step - 1 }));
     }
-  }, [addMatch.ocrStatus, addMatch.step, isSavingMatch, closeModal]);
+  }, [addMatch, isSavingMatch, closeModal, t]);
 
   const handleSaveMatch = useCallback(async () => {
     if (!addMatch.homeId || !addMatch.awayId) return;
@@ -86,6 +100,7 @@ export function useAddMatchFlow({
 
   const runOcr = useCallback(
     async (assets: Array<{ base64: string; mimeType: string }>, isRetry = false) => {
+      ocrCancelledRef.current = false;
       setAddMatch((prev) => ({
         ...prev,
         ocrScanning: true,
@@ -98,6 +113,7 @@ export function useAddMatchFlow({
 
         for (const asset of assets) {
           const stats = await extractStatsFromPhoto(asset.base64, asset.mimeType);
+          if (ocrCancelledRef.current) return;
           for (const s of stats) {
             const existing = map.get(s.key);
             if (!existing || rank(s.confidence) > rank(existing.__conf)) {
@@ -106,6 +122,7 @@ export function useAddMatchFlow({
           }
         }
 
+        if (ocrCancelledRef.current) return;
         const pendingStats: Record<string, { a: number; b: number }> = {};
         map.forEach((v, k) => { pendingStats[k] = { a: v.a, b: v.b }; });
 
@@ -116,6 +133,7 @@ export function useAddMatchFlow({
           pendingStats: Object.keys(pendingStats).length > 0 ? pendingStats : null,
         }));
       } catch {
+        if (ocrCancelledRef.current) return;
         if (isRetry) {
           // Second failure — skip stats, unblock Next
           setAddMatch((prev) => ({

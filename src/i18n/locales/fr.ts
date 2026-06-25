@@ -88,6 +88,11 @@ const fr = {
     commentaryPlaceholder: 'Comment s\'est passé le match ?',
     saveMatch: 'SAUVEGARDER LE MATCH',
     saveMatchError: 'Échec de la sauvegarde du match. Veuillez réessayer.',
+    discard: {
+      title: 'Annuler le match ?',
+      message: 'Votre progression sera perdue, y compris les photos ajoutées.',
+      confirm: 'Annuler',
+    },
     dialogs: {
       finishTitle: 'TERMINER LE TOUR ?',
       finishDesc: 'Couronnez le vainqueur de ce tour. Les résultats seront archivés et ne pourront pas être annulés.',
