@@ -168,7 +168,10 @@ export default function TeamsScreen() {
         ) : (
           teams.map((team) => (
             <View key={team.code} style={styles.teamRow}>
-              <TeamBadge teamCode={team.code} size="lg" />
+              <View style={styles.teamBadgeWrap}>
+                <TeamBadge teamCode={team.code} size="lg" />
+                <View style={[styles.teamColorSwatch, { backgroundColor: team.color }]} />
+              </View>
               <View style={styles.teamInfo}>
                 <Text style={styles.teamName}>{team.name}</Text>
                 <Text style={styles.teamCode}>{team.short}</Text>
