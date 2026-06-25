@@ -226,13 +226,9 @@ export function useMatchDetail() {
           store.updateMatchMedia(matchId, mediaItems);
         }
 
-        if (!allUploaded) {
-          // Safeguard: upload failed — photos saved locally, skip OCR until re-scan
-          Alert.alert(t('matchDetail.media.uploadFailed'), t('matchDetail.media.uploadFailedDesc'));
-          return;
-        }
-
-        // All photos uploaded — run OCR and auto-apply stats (no review modal)
+        // Run OCR regardless of upload status — base64 is already in memory from the picker.
+        // If upload failed, photos are already saved locally; OCR should still extract stats.
+        // Run OCR and auto-apply stats (no review modal)
         const map = new Map<string, ExtractedStat>();
         const rank = (c: ExtractedStat['confidence']) => (c === 'high' ? 3 : c === 'medium' ? 2 : 1);
         // Bug 7 fix: catch per-photo so a failure on photo N doesn't discard
@@ -262,6 +258,10 @@ export function useMatchDetail() {
           Alert.alert(t('matchDetail.ocr.failed'), t('matchDetail.ocr.failedDesc'));
         } else {
           Alert.alert(t('matchDetail.ocr.noStats'), t('matchDetail.ocr.noStatsDesc'));
+        }
+
+        if (!allUploaded) {
+          Alert.alert(t('matchDetail.media.uploadFailed'), t('matchDetail.media.uploadFailedDesc'));
         }
       } catch {
         Alert.alert(t('matchDetail.ocr.failed'), t('matchDetail.ocr.failedDesc'));

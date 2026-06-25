@@ -377,7 +377,7 @@ describe('handleImportStats', () => {
     expect(alertSpy).not.toHaveBeenCalled();
   });
 
-  it('upload fails: saves locally with pendingUpload flag, skips OCR, shows alert', async () => {
+  it('upload fails: saves locally with pendingUpload flag, runs OCR, shows both alerts', async () => {
     useStore.setState({ matches: [MATCH] });
     mockPicker.mockResolvedValueOnce({
       canceled: false,
@@ -391,16 +391,20 @@ describe('handleImportStats', () => {
     expect(media).toHaveLength(1);
     expect(media![0].uri).toBe('file://stats.jpg');
     expect(media![0].pendingUpload).toBe(true);
-    // OCR skipped
-    expect(mockExtractStats).not.toHaveBeenCalled();
-    // Alert shown
+    // OCR still runs — base64 is in memory regardless of upload status
+    expect(mockExtractStats).toHaveBeenCalledWith('abc', 'image/jpeg');
+    // Both alerts shown: noStats (OCR returned []) then uploadFailed
+    expect(alertSpy).toHaveBeenCalledWith(
+      'matchDetail.ocr.noStats',
+      'matchDetail.ocr.noStatsDesc',
+    );
     expect(alertSpy).toHaveBeenCalledWith(
       'matchDetail.media.uploadFailed',
       'matchDetail.media.uploadFailedDesc',
     );
   });
 
-  it('upload fails: does NOT add media when match already has photos', async () => {
+  it('upload fails: does NOT add media when match already has photos, but still runs OCR', async () => {
     const matchWithMedia = { ...MATCH, media: [{ uri: 'https://cdn/existing.jpg', type: 'image' as const }] };
     useStore.setState({ matches: [matchWithMedia] });
     mockPicker.mockResolvedValueOnce({
@@ -410,11 +414,16 @@ describe('handleImportStats', () => {
     mockUpload.mockResolvedValueOnce(null);
     const { result } = await renderHook(() => useMatchDetail());
     await act(async () => { await result.current.handleImportStats(); });
-    // Existing media untouched
+    // Existing media untouched (new photo not saved since match already has media)
     const media = useStore.getState().matches[0].media;
     expect(media).toHaveLength(1);
     expect(media![0].uri).toBe('https://cdn/existing.jpg');
-    expect(mockExtractStats).not.toHaveBeenCalled();
+    // OCR still runs even though upload failed
+    expect(mockExtractStats).toHaveBeenCalledWith('abc', 'image/jpeg');
+    expect(alertSpy).toHaveBeenCalledWith(
+      'matchDetail.media.uploadFailed',
+      'matchDetail.media.uploadFailedDesc',
+    );
   });
 
   it('upload succeeds: runs OCR and auto-applies stats without opening modal', async () => {
@@ -469,7 +478,7 @@ describe('handleImportStats', () => {
     );
   });
 
-  it('partial upload failure (one of two fails): skips OCR and saves both locally', async () => {
+  it('partial upload failure (one of two fails): saves mixed media, still runs OCR', async () => {
     useStore.setState({ matches: [MATCH] });
     mockPicker.mockResolvedValueOnce({
       canceled: false,
@@ -483,13 +492,20 @@ describe('handleImportStats', () => {
       .mockResolvedValueOnce(null);
     const { result } = await renderHook(() => useMatchDetail());
     await act(async () => { await result.current.handleImportStats(); });
-    expect(mockExtractStats).not.toHaveBeenCalled();
+    // OCR runs on both photos regardless of partial upload failure
+    expect(mockExtractStats).toHaveBeenCalledTimes(2);
+    expect(mockExtractStats).toHaveBeenCalledWith('aaa', 'image/jpeg');
+    expect(mockExtractStats).toHaveBeenCalledWith('bbb', 'image/jpeg');
     const media = useStore.getState().matches[0].media;
     expect(media).toHaveLength(2);
     expect(media![0].uri).toBe('https://cdn/a.jpg');
     expect(media![0].pendingUpload).toBeUndefined();
     expect(media![1].uri).toBe('file://b.jpg');
     expect(media![1].pendingUpload).toBe(true);
+    expect(alertSpy).toHaveBeenCalledWith(
+      'matchDetail.media.uploadFailed',
+      'matchDetail.media.uploadFailedDesc',
+    );
   });
 
   it('highest-confidence stat wins when multiple photos have same key', async () => {
