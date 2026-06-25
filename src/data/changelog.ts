@@ -9,6 +9,17 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.8.0',
+    added: [
+      'Closing the add-match sheet with unsaved progress (photos, score, or players selected) now shows a confirmation dialog — accidental swipe-to-dismiss no longer silently discards your match (#48)',
+    ],
+    fixed: [
+      'Cancelling an in-flight OCR scan when the sheet is reset — no longer processes photos for a match that was already discarded (#48)',
+      '"Import Stats" and "Add Media" buttons in match detail are now cross-blocked — starting one disables the other to prevent race conditions (#48)',
+      'Sheet no longer fires its onClose callback when disableClose is active — prevents double-close side effects',
+    ],
+  },
+  {
     version: '1.7.0',
     fixed: [
       'Removing a photo now correctly clears OCR stats — removing a video leaves stats intact (#48)',
