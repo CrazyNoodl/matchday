@@ -436,6 +436,32 @@ export function MatchModals({ d }: MatchModalsProps) {
         </View>
       </Modal>
 
+      {/* ── PHOTO LOST ── */}
+      <Modal
+        visible={d.showPhotoLost}
+        transparent
+        animationType="fade"
+        onRequestClose={() => d.setShowPhotoLost(false)}
+        statusBarTranslucent
+      >
+        <View style={styles.dialogOverlay}>
+          <Pressable style={StyleSheet.absoluteFill} onPress={() => d.setShowPhotoLost(false)} />
+          <View style={styles.dialog}>
+            <Text style={styles.dialogTitle}>{t('matchDetail.media.photoLost')}</Text>
+            <Text style={styles.dialogDesc}>{t('matchDetail.media.photoLostDesc')}</Text>
+            <View style={styles.dialogActions}>
+              <TouchableOpacity
+                style={styles.dialogCancel}
+                onPress={() => d.setShowPhotoLost(false)}
+                activeOpacity={0.75}
+              >
+                <Text style={styles.dialogCancelText}>OK</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       {/* ── DELETE MATCH MODAL ── */}
       <Modal
         visible={modal === 'delMatch'}

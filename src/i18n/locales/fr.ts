@@ -355,6 +355,9 @@ const fr = {
     media: {
       uploadFailed: 'Échec du chargement',
       uploadFailedDesc: 'Photo enregistrée localement. Les stats seront disponibles une fois la connexion rétablie.',
+      retryUpload: 'Appuyer pour réessayer',
+      photoLost: 'Photo indisponible',
+      photoLostDesc: 'Le fichier original est introuvable. Veuillez ajouter la photo à nouveau.',
     },
     ocr: {
       noStats: 'Aucune stat trouvée',

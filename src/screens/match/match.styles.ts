@@ -553,6 +553,24 @@ export const makeStyles = (colors: AppColors) => StyleSheet.create({
     color: '#fff',
     lineHeight: 16,
   },
+  pendingUploadOverlay: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: 'rgba(0,0,0,0.65)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+  },
+  pendingUploadIcon: {
+    fontSize: 20,
+    color: colors.accent.yellow,
+  },
+  pendingUploadText: {
+    fontFamily: FontFamily.body,
+    fontSize: 9,
+    color: colors.text.secondary,
+    textAlign: 'center',
+    paddingHorizontal: 6,
+  },
 
   // Note edit
   noteEditBody: {

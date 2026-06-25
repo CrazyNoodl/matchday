@@ -4,6 +4,7 @@ import {
   Text,
   Image,
   TouchableOpacity,
+  ActivityIndicator,
   StyleSheet,
   ViewStyle,
   ImageStyle,
@@ -16,30 +17,58 @@ interface MediaThumbnailProps {
   type?: 'image' | 'video';
   onRemove?: () => void;
   onPress?: () => void;
+  onRetryUpload?: () => void;
+  pendingUpload?: boolean;
+  retrying?: boolean;
+  retryLabel?: string;
   style?: ViewStyle;
   imageStyle?: ImageStyle;
 }
 
-export function MediaThumbnail({ uri, type, onRemove, onPress, style, imageStyle }: MediaThumbnailProps) {
+export function MediaThumbnail({
+  uri,
+  type,
+  onRemove,
+  onPress,
+  onRetryUpload,
+  pendingUpload,
+  retrying,
+  retryLabel,
+  style,
+  imageStyle,
+}: MediaThumbnailProps) {
   const colors = useColors();
   const styles = makeStyles(colors);
-  const Wrapper = onPress ? TouchableOpacity : View;
+  const effectiveOnPress = pendingUpload ? onRetryUpload : onPress;
+  const Wrapper = effectiveOnPress ? TouchableOpacity : View;
   return (
     <View style={[styles.container, style]}>
       {uri ? (
         <Wrapper
           style={styles.imageWrapper}
-          onPress={onPress}
-          activeOpacity={onPress ? 0.85 : undefined}
+          onPress={effectiveOnPress}
+          activeOpacity={effectiveOnPress ? 0.85 : undefined}
         >
           <Image
             source={{ uri }}
             style={[styles.image, imageStyle]}
             resizeMode="cover"
           />
-          {type === 'video' && (
+          {type === 'video' && !pendingUpload && (
             <View style={styles.videoOverlay}>
               <Text style={styles.videoPlayIcon}>▶</Text>
+            </View>
+          )}
+          {pendingUpload && (
+            <View style={styles.pendingOverlay}>
+              {retrying ? (
+                <ActivityIndicator size="small" color={colors.accent.yellow} style={styles.pendingSpinner} />
+              ) : (
+                <Text style={styles.pendingIcon}>⚠</Text>
+              )}
+              {!retrying && retryLabel ? (
+                <Text style={styles.pendingText}>{retryLabel}</Text>
+              ) : null}
             </View>
           )}
         </Wrapper>
