@@ -9,6 +9,12 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.6.7',
+    notes: [
+      'Internal cleanup: extracted screen styles into dedicated .styles.ts files, split the global store into per-domain slices, and broke the round screen down into smaller focused files (add-match flow, dialogs)',
+    ],
+  },
+  {
     version: '1.6.6',
     added: [
       'Light theme — toggle between dark and light appearance in Settings → Display',
