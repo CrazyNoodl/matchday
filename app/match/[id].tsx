@@ -470,40 +470,35 @@ export default function MatchDetailScreen() {
           )}
         </View>
 
-        {hasMediaFiles && match.media!.length > 1 ? (
-          <MediaSlider
-            items={match.media!}
-            onPressItem={(idx) => setViewingMediaIndex(idx)}
-            onRemoveItem={isEditableMatch ? (idx) => handleDeleteMedia(idx) : undefined}
-          />
-        ) : hasMediaFiles ? (
-          <View style={styles.mediaThumbnail}>
-            <TouchableOpacity
-              onPress={() => setViewingMediaIndex(0)}
-              activeOpacity={0.85}
-            >
-              <Image
-                source={{ uri: match.media![0].uri }}
-                style={styles.mediaImage}
-                resizeMode="cover"
-              />
-              {match.media![0].type === 'video' && (
-                <View style={styles.videoOverlay}>
-                  <Text style={styles.videoPlayIcon}>▶</Text>
-                </View>
-              )}
-            </TouchableOpacity>
-            {isEditableMatch && (
-              <TouchableOpacity
-                style={styles.mediaDeleteBtn}
-                onPress={() => handleDeleteMedia(0)}
-                hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.mediaDeleteBtnText}>×</Text>
-              </TouchableOpacity>
-            )}
-          </View>
+        {hasMediaFiles ? (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.mediaScroll}
+          >
+            {match.media!.map((item, idx) => (
+              <View key={idx} style={styles.mediaThumbnail}>
+                <TouchableOpacity onPress={() => setViewingMediaIndex(idx)} activeOpacity={0.85}>
+                  <Image source={{ uri: item.uri }} style={styles.mediaImage} resizeMode="cover" />
+                  {item.type === 'video' && (
+                    <View style={styles.videoOverlay}>
+                      <Text style={styles.videoPlayIcon}>▶</Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
+                {isEditableMatch && (
+                  <TouchableOpacity
+                    style={styles.mediaDeleteBtn}
+                    onPress={() => handleDeleteMedia(idx)}
+                    hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.mediaDeleteBtnText}>×</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            ))}
+          </ScrollView>
         ) : (
           <TouchableOpacity
             style={styles.mediaEmpty}
@@ -635,18 +630,13 @@ export default function MatchDetailScreen() {
         onRequestClose={() => setViewingMediaIndex(null)}
         statusBarTranslucent
       >
-        <Pressable
-          style={styles.mediaViewerOverlay}
-          onPress={() => setViewingMediaIndex(null)}
-        >
-          {viewingMediaIndex !== null && match.media?.[viewingMediaIndex] && (
-            <Image
-              source={{ uri: match.media[viewingMediaIndex].uri }}
-              style={styles.mediaViewerImage}
-              resizeMode="contain"
-            />
-          )}
-        </Pressable>
+        {viewingMediaIndex !== null && match.media && match.media.length > 0 && (
+          <MediaSlider
+            items={match.media}
+            initialIndex={viewingMediaIndex}
+            onClose={() => setViewingMediaIndex(null)}
+          />
+        )}
       </Modal>
 
       {/* ── EDIT STATS MODAL ── */}
