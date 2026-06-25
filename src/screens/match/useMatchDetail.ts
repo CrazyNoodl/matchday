@@ -68,6 +68,8 @@ export function useMatchDetail() {
   const [showUploadWarning, setShowUploadWarning] = useState(false);
   const [showOcrFailed, setShowOcrFailed] = useState(false);
   const [showOcrNoStats, setShowOcrNoStats] = useState(false);
+  const [showPhotoLost, setShowPhotoLost] = useState(false);
+  const [retryingMediaUri, setRetryingMediaUri] = useState<string | null>(null);
   const [statsMenuPos, setStatsMenuPos] = useState({ top: 0, right: 0 });
   const statsMenuBtnRef = useRef<import('react-native').View>(null);
 
@@ -270,6 +272,38 @@ export function useMatchDetail() {
     }
   }, [match, store]);
 
+  const handleRetryUpload = useCallback(async (itemUri: string) => {
+    if (!match || retryingMediaUri !== null) return;
+    const item = match.media?.find((m) => m.uri === itemUri);
+    if (!item?.pendingUpload) return;
+
+    setRetryingMediaUri(itemUri);
+    const matchId = match.id;
+
+    const getFreshMedia = () =>
+      useStore.getState().matches.find((m) => m.id === matchId)?.media
+      ?? useStore.getState().archivedRounds.flatMap((r) => r.matches).find((m) => m.id === matchId)?.media
+      ?? [];
+
+    try {
+      let remoteUrl: string | null;
+      try { remoteUrl = await uploadMediaItem(itemUri, item.type); } catch { remoteUrl = null; }
+
+      const freshMedia = getFreshMedia();
+      if (remoteUrl !== null) {
+        store.updateMatchMedia(matchId, freshMedia.map((m) =>
+          m.uri === itemUri ? { uri: remoteUrl!, type: item.type } : m,
+        ));
+      } else {
+        // File gone or upload failed — remove item, inform user
+        store.updateMatchMedia(matchId, freshMedia.filter((m) => m.uri !== itemUri));
+        setShowPhotoLost(true);
+      }
+    } finally {
+      setRetryingMediaUri(null);
+    }
+  }, [match, store, retryingMediaUri]);
+
   const handleClearStats = useCallback(() => setShowClearStats(true), []);
   const handleSwapSides = useCallback(() => setShowSwapSides(true), []);
 
@@ -340,6 +374,8 @@ export function useMatchDetail() {
     showUploadWarning,
     showOcrFailed,
     showOcrNoStats,
+    showPhotoLost,
+    retryingMediaUri,
     goBack,
     store,
     setEditAScore,
@@ -353,6 +389,7 @@ export function useMatchDetail() {
     setShowUploadWarning,
     setShowOcrFailed,
     setShowOcrNoStats,
+    setShowPhotoLost,
     openEditScore,
     openEditStats,
     openStatsMenu,
@@ -361,6 +398,7 @@ export function useMatchDetail() {
     handleDeleteMatch,
     handleAddMedia,
     handleImportStats,
+    handleRetryUpload,
     handleClearStats,
     handleSwapSides,
     handleDeleteMedia,

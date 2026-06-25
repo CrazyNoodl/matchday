@@ -355,6 +355,9 @@ const en = {
     media: {
       uploadFailed: 'Upload Failed',
       uploadFailedDesc: 'Photo saved locally. Stats will be available for re-scan once connection is restored.',
+      retryUpload: 'Tap to retry upload',
+      photoLost: 'Photo No Longer Available',
+      photoLostDesc: 'The original file could not be found. Please add the photo again.',
     },
     ocr: {
       noStats: 'No Stats Found',

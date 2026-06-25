@@ -38,6 +38,7 @@ export default function MatchDetailScreen() {
     remoteLoading,
     importingStats,
     uploadingMedia,
+    retryingMediaUri,
     statsMenuBtnRef,
   } = d;
 
@@ -236,31 +237,49 @@ export default function MatchDetailScreen() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.mediaScroll}
           >
-            {match.media!.map((item, idx) => (
-              <View key={idx} style={styles.mediaThumbnail}>
-                <TouchableOpacity
-                  onPress={() => d.setViewingMediaIndex(idx)}
-                  activeOpacity={0.85}
-                >
-                  <Image source={{ uri: item.uri }} style={styles.mediaImage} resizeMode="cover" />
-                  {item.type === 'video' && (
-                    <View style={styles.videoOverlay}>
-                      <Text style={styles.videoPlayIcon}>▶</Text>
-                    </View>
-                  )}
-                </TouchableOpacity>
-                {isEditableMatch && (
+            {match.media!.map((item, idx) => {
+              const isRetrying = retryingMediaUri === item.uri;
+              return (
+                <View key={idx} style={styles.mediaThumbnail}>
                   <TouchableOpacity
-                    style={styles.mediaDeleteBtn}
-                    onPress={() => d.handleDeleteMedia(idx)}
-                    hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
-                    activeOpacity={0.8}
+                    onPress={item.pendingUpload
+                      ? () => d.handleRetryUpload(item.uri)
+                      : () => d.setViewingMediaIndex(idx)}
+                    activeOpacity={0.85}
+                    disabled={isRetrying}
                   >
-                    <Text style={styles.mediaDeleteBtnText}>×</Text>
+                    <Image source={{ uri: item.uri }} style={styles.mediaImage} resizeMode="cover" />
+                    {item.type === 'video' && !item.pendingUpload && (
+                      <View style={styles.videoOverlay}>
+                        <Text style={styles.videoPlayIcon}>▶</Text>
+                      </View>
+                    )}
+                    {item.pendingUpload && (
+                      <View style={styles.pendingUploadOverlay}>
+                        {isRetrying ? (
+                          <ActivityIndicator size="small" color={colors.accent.yellow} />
+                        ) : (
+                          <>
+                            <Text style={styles.pendingUploadIcon}>⚠</Text>
+                            <Text style={styles.pendingUploadText}>{t('matchDetail.media.retryUpload')}</Text>
+                          </>
+                        )}
+                      </View>
+                    )}
                   </TouchableOpacity>
-                )}
-              </View>
-            ))}
+                  {isEditableMatch && (
+                    <TouchableOpacity
+                      style={styles.mediaDeleteBtn}
+                      onPress={() => d.handleDeleteMedia(idx)}
+                      hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
+                      activeOpacity={0.8}
+                    >
+                      <Text style={styles.mediaDeleteBtnText}>×</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              );
+            })}
           </ScrollView>
         ) : (
           <TouchableOpacity

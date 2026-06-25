@@ -66,4 +66,25 @@ export const makeStyles = (colors: AppColors) => StyleSheet.create({
     textAlign: 'center',
     includeFontPadding: false,
   },
+  pendingOverlay: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: 'rgba(0,0,0,0.65)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+  },
+  pendingIcon: {
+    fontSize: 20,
+    color: colors.accent.yellow,
+  },
+  pendingText: {
+    fontFamily: FontFamily.body,
+    fontSize: 9,
+    color: colors.text.secondary,
+    textAlign: 'center',
+    paddingHorizontal: 6,
+  },
+  pendingSpinner: {
+    marginBottom: 2,
+  },
 });

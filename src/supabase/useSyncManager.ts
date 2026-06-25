@@ -1,8 +1,17 @@
 import { useEffect, useRef } from 'react';
 import { useStore } from '@/store';
+import type { Match } from '@/store/types';
 import { getCurrentUserId } from './auth';
 import { pushState, pullState, subscribeToChanges } from './sync';
 import { supabaseConfigured } from './client';
+
+function stripPendingMedia(matches: Match[]): Match[] {
+  return matches.map((m) =>
+    m.media?.some((item) => item.pendingUpload)
+      ? { ...m, media: m.media!.filter((item) => !item.pendingUpload) }
+      : m,
+  );
+}
 
 const PUSH_DEBOUNCE_MS = 2000;
 const PULL_DEBOUNCE_MS = 400;
@@ -64,9 +73,18 @@ export function useSyncManager() {
         tournamentId: s.tournamentId,
         players: s.players,
         teams: s.teams,
-        matches: s.matches,
-        archivedRounds: s.archivedRounds,
-        closedTournaments: s.closedTournaments,
+        matches: stripPendingMedia(s.matches),
+        archivedRounds: s.archivedRounds.map((r) => ({
+          ...r,
+          matches: stripPendingMedia(r.matches),
+        })),
+        closedTournaments: s.closedTournaments.map((t) => ({
+          ...t,
+          rounds: t.rounds.map((r) => ({
+            ...r,
+            matches: stripPendingMedia(r.matches),
+          })),
+        })),
         tournament: {
           name: s.tournamentName,
           ranked: s.tournamentRanked,
