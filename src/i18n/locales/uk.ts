@@ -250,6 +250,13 @@ const uk = {
     openCurrent: 'Відкрити поточний ігровий день',
     allMatches: 'УСІ МАТЧІ · натисніть для статистики',
     noMatchesRecorded: 'Матчів не записано.',
+    editDate: {
+      title: 'РЕДАГУВАТИ ДАТУ РАУНДУ',
+      placeholder: 'ДД/ММ/РРРР',
+      invalid: 'Введіть коректну дату',
+      cancel: 'Скасувати',
+      save: 'Зберегти',
+    },
   },
 
   settings: {

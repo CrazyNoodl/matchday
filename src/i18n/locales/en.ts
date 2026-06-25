@@ -250,6 +250,13 @@ const en = {
     openCurrent: 'Open current match day',
     allMatches: 'ALL MATCHES · tap for stats',
     noMatchesRecorded: 'No matches recorded.',
+    editDate: {
+      title: 'EDIT ROUND DATE',
+      placeholder: 'DD/MM/YYYY',
+      invalid: 'Enter a valid date',
+      cancel: 'Cancel',
+      save: 'Save',
+    },
   },
 
   settings: {
