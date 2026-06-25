@@ -15,6 +15,22 @@ export interface StandingsColumn {
   label: string;
 }
 
+/** Full default column set for the standings table, in canonical order. */
+export function getStandingsTableColumns(t: (key: string) => string): StandingsColumn[] {
+  return [
+    { key: 'played', label: t('table.played') },
+    { key: 'wins', label: t('table.wins') },
+    { key: 'draws', label: t('table.draws') },
+    { key: 'losses', label: t('table.losses') },
+    { key: 'gf', label: t('table.gf') },
+    { key: 'ga', label: t('table.ga') },
+    { key: 'gd', label: t('table.gd') },
+    { key: 'pts', label: t('table.pts') },
+    { key: 'gfPerGame', label: t('table.gfPerGame') },
+    { key: 'gaPerGame', label: t('table.gaPerGame') },
+  ];
+}
+
 interface StandingsTableProps {
   standings: Standing[];
   players: Player[];
