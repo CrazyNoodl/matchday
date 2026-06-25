@@ -10,7 +10,7 @@ import {
 import { useRouter } from 'expo-router';
 import { useGoBack } from '@/utils/useGoBack';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { NavHeader } from '@/components/NavHeader';
+import { NavHeader } from '@/components';
 import { useStore } from '@/store';
 import { parseRoundText } from '@/utils/importRound';
 import { useColors, AppColors } from '@/theme';

@@ -12,10 +12,7 @@ import {
 import * as ImagePicker from 'expo-image-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useGoBack } from '@/utils/useGoBack';
-import { NavHeader } from '@/components/NavHeader';
-import { SectionLabel } from '@/components/SectionLabel';
-import { StatsRow } from '@/components/StatsRow';
-import { GlowBackground } from '@/components/GlowBackground';
+import { NavHeader, SectionLabel, StatsRow, GlowBackground } from '@/components';
 import { useColors, AppColors } from '@/theme';
 import { FontFamily, FontSize } from '@/theme/typography';
 import { Radius, Spacing } from '@/theme/spacing';

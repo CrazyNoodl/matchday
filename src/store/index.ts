@@ -1,20 +1,16 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { Platform } from 'react-native';
-import {
-  Player,
-  Team,
-  Match,
-  ArchivedRound,
-  ClosedTournament,
-  Modal,
-  RealDataBackup,
-} from './types';
-import { ParsedMatch } from '../utils/importRound';
+import { Player, Team, Match, ArchivedRound, ClosedTournament } from './types';
 import { deleteMediaItem } from '../supabase/storage';
-import { DEMO_STATE } from '../demo/data';
-import { calculateStandings, isTopTied } from '../utils/standings';
-import { Colors, ColorScheme } from '../theme/colors';
+import {
+  createTournamentSlice,
+  TournamentSlice,
+} from './slices/tournamentSlice';
+import { createPlayersSlice, PlayersSlice } from './slices/playersSlice';
+import { createTeamsSlice, TeamsSlice } from './slices/teamsSlice';
+import { createSettingsSlice, SettingsSlice } from './slices/settingsSlice';
+import { createUiSlice, UiSlice } from './slices/uiSlice';
 
 // ---------------------------------------------------------------------------
 // Storage adapter — MMKV on native, localStorage on web
@@ -57,79 +53,11 @@ const buildStorage = () => {
 
 const mmkvStorage = buildStorage();
 
-
 // ---------------------------------------------------------------------------
-// State interface
+// Root-level actions — cross-cutting concerns that touch most/all slices,
+// so they don't belong to any single domain slice.
 // ---------------------------------------------------------------------------
-interface AppState {
-  // Tournament state
-  tournamentId: string;
-  hasTournament: boolean;
-  tournamentName: string;
-  round: number;
-  roundOpen: boolean;
-  tournamentRanked: boolean;
-  tournamentRounds: number;
-  tournamentPlayers: string[];
-  roundPlayers: string[];
-  matches: Match[];
-  archivedRounds: ArchivedRound[];
-  closedTournaments: ClosedTournament[];
-
-  // Settings
-  players: Player[];
-  teams: Team[];
-  showNick: boolean;
-  showTeamLogo: boolean;
-  colorScheme: ColorScheme;
-  language: string;
-  demoMode: boolean;
-  realDataBackup: RealDataBackup | null;
-
-  // UI state (not persisted)
-  modal: Modal;
-  selectedMatchId: string | null;
-  viewingRound: ArchivedRound | null;
-  viewingTournament: ClosedTournament | null;
-  syncStatus: 'idle' | 'syncing' | 'error';
-}
-
-// ---------------------------------------------------------------------------
-// Actions interface
-// ---------------------------------------------------------------------------
-interface Actions {
-  // Tournament
-  startTournament: (name: string, playerIds: string[], ranked: boolean, tournamentRounds?: number) => void;
-  startRound: (ranked: boolean, playerIds: string[]) => void;
-  addMatch: (match: Match) => void;
-  deleteMatch: (id: string) => void;
-  updateMatchMedia: (id: string, media: import('./types').MediaItem[]) => void;
-  updateMatchNote: (id: string, note: string) => void;
-  updateMatchScore: (id: string, aScore: number, bScore: number) => void;
-  updateMatchStats: (
-    id: string,
-    stats: Record<string, { a: number; b: number }> | undefined,
-  ) => void;
-  swapMatchSides: (id: string) => void;
-  finishRound: () => void;
-  closeTournament: () => void;
-  renameTournament: (name: string) => void;
-
-  // Players
-  addPlayer: (player: Player) => void;
-  updatePlayer: (player: Player) => void;
-  deletePlayer: (id: string) => void;
-
-  // Teams
-  addTeam: (team: Team) => void;
-  updateTeam: (team: Team) => void;
-  deleteTeam: (code: string) => void;
-
-  // UI
-  setModal: (modal: Modal) => void;
-  setSelectedMatch: (id: string | null) => void;
-  setViewingRound: (round: ArchivedRound | null) => void;
-  setSyncStatus: (status: 'idle' | 'syncing' | 'error') => void;
+interface RootActions {
   applyCloudState: (pulled: {
     players: Player[];
     teams: Team[];
@@ -146,266 +74,26 @@ interface Actions {
     roundOpen: boolean;
     roundPlayers: string[];
   }) => void;
-  setViewingTournament: (t: ClosedTournament | null) => void;
-  setShowNick: (v: boolean) => void;
-  setShowTeamLogo: (v: boolean) => void;
-  setColorScheme: (scheme: ColorScheme) => void;
-  setLanguage: (lang: string) => void;
-  setDemoMode: (on: boolean) => void;
   resetStore: () => Promise<void>;
-  bulkImportMatches: (parsed: ParsedMatch[]) => void;
 }
 
 // ---------------------------------------------------------------------------
-// Helper — generate short initials from a player name
+// Combined store type — every consumer still calls useStore() exactly as before
 // ---------------------------------------------------------------------------
-function initials(name: string): string {
-  const parts = name.trim().split(/\s+/);
-  if (parts.length >= 2) {
-    return (parts[0][0] + parts[1][0]).toUpperCase();
-  }
-  return name.slice(0, 2).toUpperCase();
-}
-
-// ---------------------------------------------------------------------------
-// Helper — patch a single match wherever it lives (current matches + archived rounds)
-// ---------------------------------------------------------------------------
-function patchMatchEverywhere(
-  s: Pick<AppState, 'matches' | 'archivedRounds'>,
-  id: string,
-  patch: Partial<Match>,
-): Pick<AppState, 'matches' | 'archivedRounds'> {
-  return {
-    matches: s.matches.map((m) => (m.id === id ? { ...m, ...patch } : m)),
-    archivedRounds: s.archivedRounds.map((r) => ({
-      ...r,
-      matches: r.matches.map((m) => (m.id === id ? { ...m, ...patch } : m)),
-    })),
-  };
-}
-
-// ---------------------------------------------------------------------------
-// Helper — collect every match across current round, archived rounds, and closed tournaments
-// ---------------------------------------------------------------------------
-function collectAllMatches(
-  s: Pick<AppState, 'matches' | 'archivedRounds' | 'closedTournaments'>,
-): Match[] {
-  return [
-    ...s.matches,
-    ...s.archivedRounds.flatMap((r) => r.matches),
-    ...s.closedTournaments.flatMap((t) => t.rounds.flatMap((r) => r.matches)),
-  ];
-}
+export type RootState = TournamentSlice & PlayersSlice & TeamsSlice & SettingsSlice & UiSlice & RootActions;
 
 // ---------------------------------------------------------------------------
 // Store
 // ---------------------------------------------------------------------------
-export const useStore = create<AppState & Actions>()(
+export const useStore = create<RootState>()(
   persist(
-    (set, get) => ({
-      // -----------------------------------------------------------------------
-      // Initial state
-      // -----------------------------------------------------------------------
-      tournamentId: '',
-      hasTournament: false,
-      tournamentName: '',
-      round: 0,
-      roundOpen: false,
-      tournamentRanked: true,
-      tournamentRounds: 0,
-      tournamentPlayers: [],
-      roundPlayers: [],
-      matches: [],
-      archivedRounds: [],
-      closedTournaments: [],
+    (set, get, store) => ({
+      ...createTournamentSlice(set, get, store),
+      ...createPlayersSlice(set, get, store),
+      ...createTeamsSlice(set, get, store),
+      ...createSettingsSlice(set, get, store),
+      ...createUiSlice(set, get, store),
 
-      players: [],
-      teams: [],
-      showNick: true,
-      showTeamLogo: true,
-      colorScheme: 'dark' as ColorScheme,
-      language: 'en',
-      demoMode: false,
-      realDataBackup: null,
-
-      // UI state
-      modal: null,
-      selectedMatchId: null,
-      viewingRound: null,
-      viewingTournament: null,
-      syncStatus: 'idle',
-
-      // -----------------------------------------------------------------------
-      // Tournament actions
-      // -----------------------------------------------------------------------
-      startTournament: (name, playerIds, ranked, tournamentRounds = 0) =>
-        set({
-          tournamentId: `tour-${Date.now()}`,
-          hasTournament: true,
-          tournamentName: name,
-          round: 1,
-          roundOpen: false,
-          tournamentRanked: ranked,
-          tournamentRounds,
-          tournamentPlayers: playerIds,
-          matches: [],
-          archivedRounds: [],
-        }),
-
-      startRound: (ranked, playerIds) =>
-        set((s) => ({
-          roundOpen: true,
-          tournamentRanked: ranked,
-          matches: [],
-          round: s.archivedRounds.length + 1,
-          roundPlayers: playerIds,
-          tournamentPlayers: [...new Set([...s.tournamentPlayers, ...playerIds])],
-        })),
-
-      addMatch: (match) =>
-        set((s) => ({ matches: [...s.matches, match] })),
-
-      deleteMatch: (id) =>
-        set((s) => ({ matches: s.matches.filter((m) => m.id !== id) })),
-
-      updateMatchScore: (id, aScore, bScore) =>
-        set((s) => patchMatchEverywhere(s, id, { aScore, bScore })),
-
-      updateMatchMedia: (id, media) =>
-        set((s) => patchMatchEverywhere(s, id, { media })),
-
-      updateMatchNote: (id, note) =>
-        set((s) => patchMatchEverywhere(s, id, { note })),
-
-      updateMatchStats: (id, stats) =>
-        set((s) => patchMatchEverywhere(s, id, { statsOverride: stats })),
-
-      swapMatchSides: (id) =>
-        set((s) => {
-          const match =
-            s.matches.find((m) => m.id === id) ??
-            s.archivedRounds.flatMap((r) => r.matches).find((m) => m.id === id);
-          if (!match) return s;
-          return patchMatchEverywhere(s, id, {
-            aId: match.bId,
-            bId: match.aId,
-            aTeam: match.bTeam,
-            bTeam: match.aTeam,
-            aScore: match.bScore,
-            bScore: match.aScore,
-          });
-        }),
-
-      finishRound: () => {
-        const s = get();
-        const standings = calculateStandings(s.matches, s.roundPlayers);
-        const isTrueDraw = isTopTied(standings, s.matches);
-        const winnerId = isTrueDraw || !standings[0] ? '' : standings[0].playerId;
-
-        const newRound: ArchivedRound = {
-          id: `round-${Date.now()}`,
-          n: s.round,
-          date: new Date().toISOString(),
-          winner: winnerId,
-          games: s.matches.length,
-          ranked: s.tournamentRanked,
-          matches: [...s.matches],
-          name: `Round ${s.round}`,
-          players: [...s.roundPlayers],
-        };
-
-        set({
-          archivedRounds: [...s.archivedRounds, newRound],
-          matches: [],
-          roundOpen: false,
-          roundPlayers: [],
-        });
-      },
-
-      closeTournament: () => {
-        const s = get();
-
-        // Calculate overall champion from all ranked archived rounds
-        const allMatches = s.archivedRounds
-          .filter((r) => r.ranked)
-          .flatMap((r) => r.matches);
-
-        const standings = calculateStandings(allMatches, s.tournamentPlayers);
-        const champId = standings[0]?.playerId ?? '';
-        const champPlayer = s.players.find((p) => p.id === champId);
-
-        const closed: ClosedTournament = {
-          id: s.tournamentId || `tour-${Date.now()}`,
-          name: s.tournamentName,
-          date: new Date().toISOString(),
-          rounds: [...s.archivedRounds],
-          champId,
-          champName: champPlayer?.name ?? '',
-          champColor: champPlayer?.color ?? Colors.player[0],
-          champInit: champPlayer ? initials(champPlayer.name) : '',
-          players: [...s.tournamentPlayers],
-        };
-
-        set({
-          closedTournaments: [...s.closedTournaments, closed],
-          tournamentId: '',
-          hasTournament: false,
-          tournamentName: '',
-          round: 0,
-          roundOpen: false,
-          tournamentRounds: 0,
-          tournamentPlayers: [],
-          matches: [],
-          archivedRounds: [],
-        });
-      },
-
-      renameTournament: (name) => set({ tournamentName: name }),
-
-      // -----------------------------------------------------------------------
-      // Player actions
-      // -----------------------------------------------------------------------
-      addPlayer: (player) =>
-        set((s) => ({ players: [...s.players, player] })),
-
-      updatePlayer: (player) =>
-        set((s) => ({
-          players: s.players.map((p) => (p.id === player.id ? player : p)),
-        })),
-
-      deletePlayer: (id) => {
-        const s = get();
-        const allMatches = collectAllMatches(s);
-        if (allMatches.some((m) => m.aId === id || m.bId === id)) return;
-        if (s.closedTournaments.some((t) => t.players.includes(id))) return;
-        set({ players: s.players.filter((p) => p.id !== id) });
-      },
-
-      // -----------------------------------------------------------------------
-      // Team actions
-      // -----------------------------------------------------------------------
-      addTeam: (team) =>
-        set((s) => ({ teams: [...s.teams, team] })),
-
-      updateTeam: (team) =>
-        set((s) => ({
-          teams: s.teams.map((t) => (t.code === team.code ? team : t)),
-        })),
-
-      deleteTeam: (code) => {
-        const s = get();
-        const allMatches = collectAllMatches(s);
-        if (allMatches.some((m) => m.aTeam === code || m.bTeam === code)) return;
-        set({ teams: s.teams.filter((t) => t.code !== code) });
-      },
-
-      // -----------------------------------------------------------------------
-      // UI actions
-      // -----------------------------------------------------------------------
-      setModal: (modal) => set({ modal }),
-      setSelectedMatch: (id) => set({ selectedMatchId: id }),
-      setViewingRound: (round) => set({ viewingRound: round }),
-      setSyncStatus: (status) => set({ syncStatus: status }),
       applyCloudState: (pulled) => {
         const s = get();
         if (s.demoMode) return;
@@ -431,121 +119,6 @@ export const useStore = create<AppState & Actions>()(
           round: pulled.round,
           roundOpen: pulled.roundOpen,
           roundPlayers: pulled.roundPlayers,
-        });
-      },
-      setViewingTournament: (t) => set({ viewingTournament: t }),
-      setShowNick: (v) => set({ showNick: v }),
-      setShowTeamLogo: (v) => set({ showTeamLogo: v }),
-      setColorScheme: (scheme) => set({ colorScheme: scheme }),
-      setLanguage: (lang) => set({ language: lang }),
-
-      setDemoMode: (on) => {
-        const s = get();
-        if (on === s.demoMode) return;
-        if (on) {
-          const backup: RealDataBackup = {
-            tournamentId: s.tournamentId,
-            hasTournament: s.hasTournament,
-            tournamentName: s.tournamentName,
-            round: s.round,
-            roundOpen: s.roundOpen,
-            tournamentRanked: s.tournamentRanked,
-            tournamentRounds: s.tournamentRounds,
-            tournamentPlayers: s.tournamentPlayers,
-            roundPlayers: s.roundPlayers,
-            matches: s.matches,
-            archivedRounds: s.archivedRounds,
-            closedTournaments: s.closedTournaments,
-            players: s.players,
-            teams: s.teams,
-          };
-          set({
-            demoMode: true,
-            realDataBackup: backup,
-            ...DEMO_STATE,
-            modal: null,
-            selectedMatchId: null,
-            viewingRound: null,
-            viewingTournament: null,
-          });
-        } else {
-          const backup = s.realDataBackup;
-          set({
-            demoMode: false,
-            realDataBackup: null,
-            ...(backup ?? {}),
-            modal: null,
-            selectedMatchId: null,
-            viewingRound: null,
-            viewingTournament: null,
-          });
-        }
-      },
-
-      bulkImportMatches: (parsed) => {
-        const s = get();
-        const ts = Date.now();
-        const newPlayers: Player[] = [];
-        const newMatches: Match[] = [];
-
-        const playerByName = new Map<string, Player>(
-          s.players.map((p) => [p.name.toLowerCase(), p]),
-        );
-
-        for (let i = 0; i < parsed.length; i++) {
-          const m = parsed[i];
-
-          const resolvePlayer = (name: string): Player => {
-            const key = name.toLowerCase();
-            let player = playerByName.get(key);
-            if (!player) {
-              player = {
-                id: `player-import-${ts}-${newPlayers.length}`,
-                name,
-                color: Colors.player[(s.players.length + newPlayers.length) % Colors.player.length],
-                teamCode: s.teams[0]?.code ?? 'JUV',
-              };
-              newPlayers.push(player);
-              playerByName.set(key, player);
-            }
-            return player;
-          };
-
-          const playerA = resolvePlayer(m.playerAName);
-          const playerB = resolvePlayer(m.playerBName);
-
-          const resolveTeam = (code: string | null, fallback: string): string => {
-            if (!code) return fallback;
-            const found = s.teams.find(
-              (t) => t.code.toUpperCase() === code.toUpperCase(),
-            );
-            return found ? found.code : fallback;
-          };
-
-          newMatches.push({
-            id: `match-import-${ts}-${i}`,
-            aId: playerA.id,
-            bId: playerB.id,
-            aTeam: resolveTeam(m.teamACode, playerA.teamCode),
-            bTeam: resolveTeam(m.teamBCode, playerB.teamCode),
-            aScore: m.scoreA,
-            bScore: m.scoreB,
-          });
-        }
-
-        const allMatchPlayerIds = [
-          ...new Set(newMatches.flatMap((m) => [m.aId, m.bId])),
-        ];
-        const missingFromTournament = allMatchPlayerIds.filter(
-          (id) => !s.tournamentPlayers.includes(id),
-        );
-
-        set({
-          players: [...s.players, ...newPlayers],
-          matches: [...s.matches, ...newMatches],
-          tournamentPlayers: [
-            ...new Set([...s.tournamentPlayers, ...missingFromTournament]),
-          ],
         });
       },
 
@@ -587,7 +160,7 @@ export const useStore = create<AppState & Actions>()(
           teams: [],
           showNick: true,
           showTeamLogo: true,
-          colorScheme: 'dark' as ColorScheme,
+          colorScheme: 'dark',
           language: 'en',
           demoMode: false,
           realDataBackup: null,
@@ -632,8 +205,8 @@ export const useStore = create<AppState & Actions>()(
 // ---------------------------------------------------------------------------
 // Convenience selectors
 // ---------------------------------------------------------------------------
-export const selectPlayer = (id: string) => (s: AppState & Actions) =>
+export const selectPlayer = (id: string) => (s: RootState) =>
   s.players.find((p) => p.id === id);
 
-export const selectTeam = (code: string) => (s: AppState & Actions) =>
+export const selectTeam = (code: string) => (s: RootState) =>
   s.teams.find((t) => t.code === code);

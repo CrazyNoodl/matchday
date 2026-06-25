@@ -27,7 +27,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'expo-router';
 import { useSyncManager } from '@/supabase/useSyncManager';
 import { supabase, supabaseConfigured } from '@/supabase/client';
-import { LoginScreen } from '@/components/LoginScreen';
+import { LoginScreen } from '@/components';
 import type { Session } from '@supabase/supabase-js';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

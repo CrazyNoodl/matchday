@@ -8,9 +8,7 @@ import { useStore } from '@/store';
 import { useColors, AppColors } from '@/theme';
 import { FontFamily, FontSize } from '@/theme/typography';
 import { Radius, Spacing } from '@/theme/spacing';
-import { NavHeader } from '@/components/NavHeader';
-import { Avatar } from '@/components/Avatar';
-import { GlowBackground } from '@/components/GlowBackground';
+import { NavHeader, Avatar, GlowBackground } from '@/components';
 
 export default function TournamentsScreen() {
   const colors = useColors();

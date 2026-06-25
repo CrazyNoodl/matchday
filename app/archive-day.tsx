@@ -15,12 +15,7 @@ import { calculateStandings } from '@/utils/standings';
 import { useColors, AppColors } from '@/theme';
 import { FontFamily, FontSize } from '@/theme/typography';
 import { Radius, Spacing } from '@/theme/spacing';
-import { NavHeader } from '@/components/NavHeader';
-import { SectionLabel } from '@/components/SectionLabel';
-import { MatchCard } from '@/components/MatchCard';
-import { ShareRoundModal, CardAvatar } from '@/components/ShareRoundModal';
-import { StandingsTable } from '@/components/StandingsTable';
-import { GlowBackground } from '@/components/GlowBackground';
+import { NavHeader, SectionLabel, MatchCard, ShareRoundModal, CardAvatar, StandingsTable, GlowBackground } from '@/components';
 import { Match } from '@/store/types';
 
 // ---------------------------------------------------------------------------

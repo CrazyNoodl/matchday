@@ -8,9 +8,7 @@ import { useStore } from '@/store';
 import { useColors } from '@/theme';
 import { FontFamily, FontSize } from '@/theme/typography';
 import { Radius, Spacing } from '@/theme/spacing';
-import { NavHeader } from '@/components/NavHeader';
-import { GlowBackground } from '@/components/GlowBackground';
-import type { ColorScheme } from '@/theme';
+import { NavHeader, GlowBackground } from '@/components';
 
 export default function DisplaySettingsScreen() {
   const router = useRouter();
