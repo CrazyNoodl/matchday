@@ -10,6 +10,11 @@ export interface ChangelogEntry {
 export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '1.6.8',
+    added: [
+      'Match media viewer is now a swipeable slider — tap any thumbnail to open fullscreen and swipe between photos and videos',
+      'Round date on the archive screen can now be edited while the tournament is open — tap the date to change it',
+      'Teams screen now shows a small color swatch next to each team logo so you can see the fallback color at a glance',
+    ],
     fixed: [
       'Home tournament card no longer hides the leader section when the top of the standings is tied — now shows "No leader — tie" instead',
     ],
