@@ -35,7 +35,6 @@ jest.mock('expo-image-picker', () => ({
 }));
 
 import { renderHook, act } from '@testing-library/react-native';
-import { Alert } from 'react-native';
 import { useMatchDetail } from '../useMatchDetail';
 import { useStore } from '@/store';
 import type { Match, ArchivedRound, ClosedTournament } from '@/store/types';
@@ -77,15 +76,12 @@ const CLOSED_TOURNAMENT: ClosedTournament = {
   players: ['player-a', 'player-b'],
 };
 
-let alertSpy: jest.SpyInstance;
-
 beforeEach(() => {
   jest.resetAllMocks();
   mockPicker.mockResolvedValue({ canceled: true });
   mockUpload.mockResolvedValue(null);
   mockExtractStats.mockResolvedValue([]);
   jest.mocked(require('@/supabase/sync').fetchMatchById).mockResolvedValue(null);
-  alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(jest.fn());
   useStore.getState().resetStore();
 });
 
@@ -342,10 +338,10 @@ describe('handleAddMedia', () => {
     expect(media).toHaveLength(1);
     expect(media![0].uri).toBe('https://cdn.example.com/photo.jpg');
     expect(media![0].pendingUpload).toBeUndefined();
-    expect(alertSpy).not.toHaveBeenCalled();
+    expect(result.current.showUploadWarning).toBe(false);
   });
 
-  it('saves locally with pendingUpload flag and shows alert when upload fails', async () => {
+  it('saves locally with pendingUpload flag and shows upload warning when upload fails', async () => {
     useStore.setState({ matches: [MATCH] });
     mockPicker.mockResolvedValueOnce({
       canceled: false,
@@ -358,10 +354,7 @@ describe('handleAddMedia', () => {
     expect(media).toHaveLength(1);
     expect(media![0].uri).toBe('file://photo.jpg');
     expect(media![0].pendingUpload).toBe(true);
-    expect(alertSpy).toHaveBeenCalledWith(
-      'matchDetail.media.uploadFailed',
-      'matchDetail.media.uploadFailedDesc',
-    );
+    expect(result.current.showUploadWarning).toBe(true);
   });
 });
 
@@ -374,7 +367,9 @@ describe('handleImportStats', () => {
     const { result } = await renderHook(() => useMatchDetail());
     await act(async () => { await result.current.handleImportStats(); });
     expect(useStore.getState().matches[0].media).toBeUndefined();
-    expect(alertSpy).not.toHaveBeenCalled();
+    expect(result.current.showUploadWarning).toBe(false);
+    expect(result.current.showOcrFailed).toBe(false);
+    expect(result.current.showOcrNoStats).toBe(false);
   });
 
   it('upload fails: saves locally with pendingUpload flag, runs OCR, shows both alerts', async () => {
@@ -393,15 +388,9 @@ describe('handleImportStats', () => {
     expect(media![0].pendingUpload).toBe(true);
     // OCR still runs — base64 is in memory regardless of upload status
     expect(mockExtractStats).toHaveBeenCalledWith('abc', 'image/jpeg');
-    // Both alerts shown: noStats (OCR returned []) then uploadFailed
-    expect(alertSpy).toHaveBeenCalledWith(
-      'matchDetail.ocr.noStats',
-      'matchDetail.ocr.noStatsDesc',
-    );
-    expect(alertSpy).toHaveBeenCalledWith(
-      'matchDetail.media.uploadFailed',
-      'matchDetail.media.uploadFailedDesc',
-    );
+    // Both notifications shown: noStats (OCR returned []) then uploadFailed
+    expect(result.current.showOcrNoStats).toBe(true);
+    expect(result.current.showUploadWarning).toBe(true);
   });
 
   it('upload fails: does NOT add media when match already has photos, but still runs OCR', async () => {
@@ -420,10 +409,7 @@ describe('handleImportStats', () => {
     expect(media![0].uri).toBe('https://cdn/existing.jpg');
     // OCR still runs even though upload failed
     expect(mockExtractStats).toHaveBeenCalledWith('abc', 'image/jpeg');
-    expect(alertSpy).toHaveBeenCalledWith(
-      'matchDetail.media.uploadFailed',
-      'matchDetail.media.uploadFailedDesc',
-    );
+    expect(result.current.showUploadWarning).toBe(true);
   });
 
   it('upload succeeds: runs OCR and auto-applies stats without opening modal', async () => {
@@ -442,10 +428,12 @@ describe('handleImportStats', () => {
     const saved = useStore.getState().matches[0];
     expect(saved.statsOverride?.shots).toEqual({ a: 7, b: 3 });
     expect(useStore.getState().modal).toBeNull();
-    expect(alertSpy).not.toHaveBeenCalled();
+    expect(result.current.showUploadWarning).toBe(false);
+    expect(result.current.showOcrFailed).toBe(false);
+    expect(result.current.showOcrNoStats).toBe(false);
   });
 
-  it('upload succeeds but OCR finds no stats: shows no-stats alert', async () => {
+  it('upload succeeds but OCR finds no stats: shows no-stats notification', async () => {
     useStore.setState({ matches: [MATCH] });
     mockPicker.mockResolvedValueOnce({
       canceled: false,
@@ -455,14 +443,11 @@ describe('handleImportStats', () => {
     mockExtractStats.mockResolvedValueOnce([]);
     const { result } = await renderHook(() => useMatchDetail());
     await act(async () => { await result.current.handleImportStats(); });
-    expect(alertSpy).toHaveBeenCalledWith(
-      'matchDetail.ocr.noStats',
-      'matchDetail.ocr.noStatsDesc',
-    );
+    expect(result.current.showOcrNoStats).toBe(true);
     expect(useStore.getState().matches[0].statsOverride).toBeUndefined();
   });
 
-  it('upload succeeds but OCR throws: shows ocr-failed alert', async () => {
+  it('upload succeeds but OCR throws: shows ocr-failed notification', async () => {
     useStore.setState({ matches: [MATCH] });
     mockPicker.mockResolvedValueOnce({
       canceled: false,
@@ -472,10 +457,7 @@ describe('handleImportStats', () => {
     mockExtractStats.mockRejectedValueOnce(new Error('OCR service down'));
     const { result } = await renderHook(() => useMatchDetail());
     await act(async () => { await result.current.handleImportStats(); });
-    expect(alertSpy).toHaveBeenCalledWith(
-      'matchDetail.ocr.failed',
-      'matchDetail.ocr.failedDesc',
-    );
+    expect(result.current.showOcrFailed).toBe(true);
   });
 
   it('partial upload failure (one of two fails): saves mixed media, still runs OCR', async () => {
@@ -502,10 +484,7 @@ describe('handleImportStats', () => {
     expect(media![0].pendingUpload).toBeUndefined();
     expect(media![1].uri).toBe('file://b.jpg');
     expect(media![1].pendingUpload).toBe(true);
-    expect(alertSpy).toHaveBeenCalledWith(
-      'matchDetail.media.uploadFailed',
-      'matchDetail.media.uploadFailedDesc',
-    );
+    expect(result.current.showUploadWarning).toBe(true);
   });
 
   it('highest-confidence stat wins when multiple photos have same key', async () => {
@@ -581,14 +560,8 @@ describe('Bug 9 — handleImportStats: upload throw loses photos (not saved loca
     const media = useStore.getState().matches[0].media;
     expect(media).toHaveLength(1);
     expect(media![0].pendingUpload).toBe(true);
-    expect(alertSpy).toHaveBeenCalledWith(
-      'matchDetail.media.uploadFailed',
-      'matchDetail.media.uploadFailedDesc',
-    );
-    expect(alertSpy).not.toHaveBeenCalledWith(
-      'matchDetail.ocr.failed',
-      'matchDetail.ocr.failedDesc',
-    );
+    expect(result.current.showUploadWarning).toBe(true);
+    expect(result.current.showOcrFailed).toBe(false);
   });
 });
 
@@ -760,10 +733,7 @@ describe('Bug 10 — handleAddMedia: upload throws → photo lost (not saved loc
     expect(media).toHaveLength(1);
     expect(media![0].uri).toBe('file://s.jpg');
     expect(media![0].pendingUpload).toBe(true);
-    expect(alertSpy).toHaveBeenCalledWith(
-      'matchDetail.media.uploadFailed',
-      'matchDetail.media.uploadFailedDesc',
-    );
+    expect(result.current.showUploadWarning).toBe(true);
   });
 });
 
@@ -849,10 +819,7 @@ describe('Bug 7 — handleImportStats: per-photo OCR throw discards stats from e
     // Expected: shots should be applied from photo A even though photo B failed
     const saved = useStore.getState().matches[0];
     expect(saved.statsOverride?.shots).toEqual({ a: 7, b: 3 });
-    // And alert should NOT have fired with ocrFailed (partial success)
-    expect(alertSpy).not.toHaveBeenCalledWith(
-      'matchDetail.ocr.failed',
-      'matchDetail.ocr.failedDesc',
-    );
+    // OCR failed notification should NOT have shown (partial success is fine)
+    expect(result.current.showOcrFailed).toBe(false);
   });
 });

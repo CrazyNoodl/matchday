@@ -358,6 +358,84 @@ export function MatchModals({ d }: MatchModalsProps) {
         </View>
       </Modal>
 
+      {/* ── UPLOAD WARNING ── */}
+      <Modal
+        visible={d.showUploadWarning}
+        transparent
+        animationType="fade"
+        onRequestClose={() => d.setShowUploadWarning(false)}
+        statusBarTranslucent
+      >
+        <View style={styles.dialogOverlay}>
+          <Pressable style={StyleSheet.absoluteFill} onPress={() => d.setShowUploadWarning(false)} />
+          <View style={styles.dialog}>
+            <Text style={styles.dialogTitle}>{t('matchDetail.media.uploadFailed')}</Text>
+            <Text style={styles.dialogDesc}>{t('matchDetail.media.uploadFailedDesc')}</Text>
+            <View style={styles.dialogActions}>
+              <TouchableOpacity
+                style={styles.dialogCancel}
+                onPress={() => d.setShowUploadWarning(false)}
+                activeOpacity={0.75}
+              >
+                <Text style={styles.dialogCancelText}>OK</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* ── OCR FAILED ── */}
+      <Modal
+        visible={d.showOcrFailed}
+        transparent
+        animationType="fade"
+        onRequestClose={() => d.setShowOcrFailed(false)}
+        statusBarTranslucent
+      >
+        <View style={styles.dialogOverlay}>
+          <Pressable style={StyleSheet.absoluteFill} onPress={() => d.setShowOcrFailed(false)} />
+          <View style={styles.dialog}>
+            <Text style={styles.dialogTitle}>{t('matchDetail.ocr.failed')}</Text>
+            <Text style={styles.dialogDesc}>{t('matchDetail.ocr.failedDesc')}</Text>
+            <View style={styles.dialogActions}>
+              <TouchableOpacity
+                style={styles.dialogCancel}
+                onPress={() => d.setShowOcrFailed(false)}
+                activeOpacity={0.75}
+              >
+                <Text style={styles.dialogCancelText}>OK</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* ── OCR NO STATS ── */}
+      <Modal
+        visible={d.showOcrNoStats}
+        transparent
+        animationType="fade"
+        onRequestClose={() => d.setShowOcrNoStats(false)}
+        statusBarTranslucent
+      >
+        <View style={styles.dialogOverlay}>
+          <Pressable style={StyleSheet.absoluteFill} onPress={() => d.setShowOcrNoStats(false)} />
+          <View style={styles.dialog}>
+            <Text style={styles.dialogTitle}>{t('matchDetail.ocr.noStats')}</Text>
+            <Text style={styles.dialogDesc}>{t('matchDetail.ocr.noStatsDesc')}</Text>
+            <View style={styles.dialogActions}>
+              <TouchableOpacity
+                style={styles.dialogCancel}
+                onPress={() => d.setShowOcrNoStats(false)}
+                activeOpacity={0.75}
+              >
+                <Text style={styles.dialogCancelText}>OK</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       {/* ── DELETE MATCH MODAL ── */}
       <Modal
         visible={modal === 'delMatch'}

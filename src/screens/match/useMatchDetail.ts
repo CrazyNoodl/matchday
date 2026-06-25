@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { Alert, Dimensions } from 'react-native';
-import { useTranslation } from 'react-i18next';
+import { Dimensions } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useGoBack } from '@/utils/useGoBack';
@@ -12,7 +11,6 @@ import { uploadMediaItem, deleteMediaItem } from '@/supabase/storage';
 import { buildMergedStats } from '@/utils/mergedStats';
 
 export function useMatchDetail() {
-  const { t } = useTranslation();
   const router = useRouter();
   const goBack = useGoBack();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -67,6 +65,9 @@ export function useMatchDetail() {
   const [showClearStats, setShowClearStats] = useState(false);
   const [showSwapSides, setShowSwapSides] = useState(false);
   const [showStatsMenu, setShowStatsMenu] = useState(false);
+  const [showUploadWarning, setShowUploadWarning] = useState(false);
+  const [showOcrFailed, setShowOcrFailed] = useState(false);
+  const [showOcrNoStats, setShowOcrNoStats] = useState(false);
   const [statsMenuPos, setStatsMenuPos] = useState({ top: 0, right: 0 });
   const statsMenuBtnRef = useRef<import('react-native').View>(null);
 
@@ -159,7 +160,7 @@ export function useMatchDetail() {
             ?? [];
           store.updateMatchMedia(matchId, [...freshMedia, newItem]);
           if (!uploaded) {
-            Alert.alert(t('matchDetail.media.uploadFailed'), t('matchDetail.media.uploadFailedDesc'));
+            setShowUploadWarning(true);
           }
         } finally {
           setUploadingMedia(false);
@@ -168,7 +169,7 @@ export function useMatchDetail() {
     } finally {
       uploadingMediaRef.current = false;
     }
-  }, [match, store, t]);
+  }, [match, store]);
 
   const handleImportStats = useCallback(async () => {
     if (!match) return;
@@ -255,23 +256,23 @@ export function useMatchDetail() {
           map.forEach((stat) => { override[stat.key] = { a: stat.home, b: stat.away }; });
           store.updateMatchStats(matchId, override);
         } else if (anyPhotoOcrFailed) {
-          Alert.alert(t('matchDetail.ocr.failed'), t('matchDetail.ocr.failedDesc'));
+          setShowOcrFailed(true);
         } else {
-          Alert.alert(t('matchDetail.ocr.noStats'), t('matchDetail.ocr.noStatsDesc'));
+          setShowOcrNoStats(true);
         }
 
         if (!allUploaded) {
-          Alert.alert(t('matchDetail.media.uploadFailed'), t('matchDetail.media.uploadFailedDesc'));
+          setShowUploadWarning(true);
         }
       } catch {
-        Alert.alert(t('matchDetail.ocr.failed'), t('matchDetail.ocr.failedDesc'));
+        setShowOcrFailed(true);
       } finally {
         setImportingStats(false);
       }
     } finally {
       importingStatsRef.current = false;
     }
-  }, [match, store, t]);
+  }, [match, store]);
 
   const handleClearStats = useCallback(() => setShowClearStats(true), []);
   const handleSwapSides = useCallback(() => setShowSwapSides(true), []);
@@ -340,6 +341,9 @@ export function useMatchDetail() {
     statsMenuPos,
     statsMenuBtnRef,
     viewingMediaIndex,
+    showUploadWarning,
+    showOcrFailed,
+    showOcrNoStats,
     goBack,
     store,
     setEditAScore,
@@ -350,6 +354,9 @@ export function useMatchDetail() {
     setShowStatsMenu,
     setShowClearStats,
     setShowSwapSides,
+    setShowUploadWarning,
+    setShowOcrFailed,
+    setShowOcrNoStats,
     openEditScore,
     openEditStats,
     openStatsMenu,
