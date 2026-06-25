@@ -37,6 +37,7 @@ export interface TournamentActions {
   finishRound: () => void;
   closeTournament: () => void;
   renameTournament: (name: string) => void;
+  updateRoundDate: (id: string, date: string) => void;
   bulkImportMatches: (parsed: ParsedMatch[]) => void;
 }
 
@@ -179,6 +180,19 @@ export const createTournamentSlice: StateCreator<RootState, [], [], TournamentSl
   },
 
   renameTournament: (name) => set({ tournamentName: name }),
+
+  // Only rounds in the still-open tournament's archivedRounds can have their
+  // date edited. Once closeTournament() runs, rounds move into
+  // closedTournaments and become read-only — this no-ops there.
+  updateRoundDate: (id, date) =>
+    set((s) => {
+      if (!s.hasTournament) return s;
+      return {
+        archivedRounds: s.archivedRounds.map((r) =>
+          r.id === id ? { ...r, date } : r,
+        ),
+      };
+    }),
 
   bulkImportMatches: (parsed) => {
     const s = get();

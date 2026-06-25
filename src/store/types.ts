@@ -98,4 +98,5 @@ export type Modal =
   | 'editTeam'
   | 'tourSettings'
   | 'newRound'
-  | 'delMatch';
+  | 'delMatch'
+  | 'editRoundDate';
