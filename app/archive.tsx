@@ -15,9 +15,7 @@ import { useStore } from '@/store';
 import { Colors } from '@/theme/colors';
 import { FontFamily, FontSize } from '@/theme/typography';
 import { Radius, Spacing } from '@/theme/spacing';
-import { NavHeader } from '@/components/NavHeader';
-import { GlowBackground } from '@/components/GlowBackground';
-import { RoundCard } from '@/components/RoundCard';
+import { NavHeader, GlowBackground, RoundCard } from '@/components';
 import { ArchivedRound, ClosedTournament } from '@/store/types';
 import { formatShortDate, formatYearShort } from '@/utils/dateFormat';
 

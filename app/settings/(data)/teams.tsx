@@ -3,7 +3,6 @@ import {
   View,
   Text,
   Image,
-  StyleSheet,
   ScrollView,
   TouchableOpacity,
   TextInput,
@@ -17,16 +16,12 @@ import { useGoBack } from '@/utils/useGoBack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStore } from '@/store';
 import { Colors } from '@/theme/colors';
-import { FontFamily, FontSize } from '@/theme/typography';
-import { Radius, Spacing } from '@/theme/spacing';
-import { NavHeader } from '@/components/NavHeader';
-import { TeamBadge } from '@/components/TeamBadge';
-import { Sheet } from '@/components/Sheet/Sheet';
-import { EmptyState } from '@/components/EmptyState';
-import { GlowBackground } from '@/components/GlowBackground';
+import { NavHeader, TeamBadge, Sheet, EmptyState, GlowBackground } from '@/components';
 import { Team } from '@/store/types';
 import { useTranslation } from 'react-i18next';
 import { uploadTeamLogo } from '@/supabase/storage';
+import { generateTeamCode } from '@/utils/teamCode';
+import { styles } from '@/screens/settings/teams/teams.styles';
 
 const TEAM_COLORS = Colors.team;
 
@@ -104,7 +99,7 @@ export default function TeamsScreen() {
     if (editingTeam) {
       updateTeam({ ...editingTeam, name, short, color: formColor, logo: formLogo });
     } else {
-      const code = short + Date.now().toString(36).slice(-3).toUpperCase();
+      const code = generateTeamCode(short);
       addTeam({
         code,
         name,
@@ -372,266 +367,3 @@ export default function TeamsScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: Colors.bg.base },
-  addBtn: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.xs,
-    borderRadius: Radius.full,
-    backgroundColor: Colors.accent.greenSubtle,
-    borderWidth: 1,
-    borderColor: Colors.accent.greenBorder,
-  },
-  addBtnText: {
-    fontFamily: FontFamily.bodySemiBold,
-    fontSize: FontSize.sm,
-    color: Colors.accent.green,
-  },
-  scroll: { flex: 1 },
-  scrollContent: {
-    paddingHorizontal: Spacing.xl,
-    paddingTop: Spacing.lg,
-    gap: Spacing.sm,
-  },
-  teamRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.bg.surface,
-    borderRadius: Radius.md,
-    borderWidth: 1,
-    borderColor: Colors.border.default,
-    padding: Spacing.md,
-    gap: Spacing.md,
-  },
-  teamInfo: {
-    flex: 1,
-    gap: 2,
-  },
-  teamName: {
-    fontFamily: FontFamily.bodySemiBold,
-    fontSize: FontSize.base,
-    color: Colors.text.primary,
-  },
-  teamCode: {
-    fontFamily: FontFamily.body,
-    fontSize: FontSize.xs,
-    color: Colors.text.muted,
-  },
-  teamActions: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
-  },
-  actionBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: Radius.sm,
-    backgroundColor: Colors.bg.elevated,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: Colors.border.medium,
-  },
-  deleteBtn: {
-    backgroundColor: Colors.accent.redSubtle,
-    borderColor: Colors.accent.red + '44',
-  },
-  editIcon: { fontSize: 14 },
-  deleteIcon: {
-    fontFamily: FontFamily.bodyBold,
-    fontSize: FontSize.xl,
-    color: Colors.accent.red,
-    lineHeight: 22,
-  },
-  sheet: {
-    backgroundColor: Colors.bg.sheet,
-    paddingHorizontal: Spacing.xl,
-    paddingTop: Spacing.lg,
-    paddingBottom: Platform.OS === 'ios' ? 32 : Spacing['2xl'],
-  },
-  sheetTitle: {
-    fontFamily: FontFamily.displayBold,
-    fontSize: FontSize['2xl'],
-    color: Colors.text.primary,
-    letterSpacing: 0.5,
-    textAlign: 'center',
-    marginBottom: Spacing.xl,
-  },
-  formGroup: {
-    gap: Spacing.sm,
-    marginBottom: Spacing.lg,
-  },
-  formLabel: {
-    fontFamily: FontFamily.bodyBold,
-    fontSize: FontSize.xs,
-    color: Colors.text.muted,
-    letterSpacing: 1,
-  },
-  input: {
-    backgroundColor: Colors.bg.elevated,
-    borderRadius: Radius.md,
-    borderWidth: 1,
-    borderColor: Colors.border.default,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-    fontFamily: FontFamily.body,
-    fontSize: FontSize.base,
-    color: Colors.text.primary,
-  },
-  logoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.md,
-  },
-  logoPickerBtn: {
-    width: 64,
-    height: 64,
-    borderRadius: Radius.md,
-    backgroundColor: Colors.bg.elevated,
-    borderWidth: 1,
-    borderColor: Colors.border.default,
-    borderStyle: 'dashed',
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
-  },
-  logoPreview: {
-    width: '100%',
-    height: '100%',
-  },
-  logoPickerIcon: {
-    fontSize: 24,
-  },
-  logoRemoveBtn: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: Colors.accent.redSubtle,
-    borderWidth: 1,
-    borderColor: Colors.accent.red + '44',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  logoRemoveText: {
-    fontFamily: FontFamily.bodyBold,
-    fontSize: FontSize.lg,
-    color: Colors.accent.red,
-    lineHeight: 20,
-  },
-  colorPicker: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.sm,
-  },
-  colorDot: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-  },
-  colorDotSelected: {
-    borderWidth: 3,
-    borderColor: '#fff',
-  },
-  sheetActions: {
-    flexDirection: 'row',
-    gap: Spacing.md,
-    marginTop: Spacing.md,
-  },
-  cancelBtn: {
-    flex: 1,
-    backgroundColor: Colors.bg.elevated,
-    borderRadius: Radius.md,
-    paddingVertical: Spacing.lg,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: Colors.border.medium,
-  },
-  cancelBtnText: {
-    fontFamily: FontFamily.displayBold,
-    fontSize: FontSize.base,
-    color: Colors.text.muted,
-    letterSpacing: 0.5,
-  },
-  saveBtn: {
-    flex: 2,
-    backgroundColor: Colors.accent.green,
-    borderRadius: Radius.md,
-    paddingVertical: Spacing.lg,
-    alignItems: 'center',
-  },
-  saveBtnDisabled: {
-    backgroundColor: Colors.bg.elevated,
-    borderWidth: 1,
-    borderColor: Colors.border.medium,
-  },
-  saveBtnText: {
-    fontFamily: FontFamily.displayBold,
-    fontSize: FontSize.base,
-    color: Colors.accent.greenDark,
-    letterSpacing: 0.5,
-  },
-  saveBtnTextDisabled: {
-    color: Colors.text.ghost,
-  },
-  dialogOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.75)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: Spacing['2xl'],
-  },
-  dialog: {
-    backgroundColor: Colors.bg.surface,
-    borderRadius: Radius['2xl'],
-    borderWidth: 1,
-    borderColor: Colors.border.medium,
-    padding: Spacing['2xl'],
-    width: '100%',
-    gap: Spacing.md,
-    alignItems: 'center',
-  },
-  dialogTitle: {
-    fontFamily: FontFamily.displayBold,
-    fontSize: FontSize.xl,
-    color: Colors.text.primary,
-    letterSpacing: 0.5,
-  },
-  dialogDesc: {
-    fontFamily: FontFamily.body,
-    fontSize: FontSize.base,
-    color: Colors.text.muted,
-    textAlign: 'center',
-  },
-  dialogActions: {
-    flexDirection: 'row',
-    gap: Spacing.md,
-    width: '100%',
-  },
-  dialogCancel: {
-    flex: 1,
-    backgroundColor: Colors.bg.elevated,
-    borderRadius: Radius.md,
-    paddingVertical: Spacing.md,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: Colors.border.medium,
-  },
-  dialogCancelText: {
-    fontFamily: FontFamily.bodySemiBold,
-    fontSize: FontSize.base,
-    color: Colors.text.muted,
-  },
-  dialogConfirm: {
-    flex: 1,
-    backgroundColor: Colors.accent.red,
-    borderRadius: Radius.md,
-    paddingVertical: Spacing.md,
-    alignItems: 'center',
-  },
-  dialogConfirmText: {
-    fontFamily: FontFamily.displayBold,
-    fontSize: FontSize.base,
-    color: '#fff',
-    letterSpacing: 0.3,
-  },
-});

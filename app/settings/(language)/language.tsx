@@ -9,8 +9,7 @@ import i18n, { LANGUAGES, Language } from '@/i18n';
 import { Colors } from '@/theme/colors';
 import { FontFamily, FontSize } from '@/theme/typography';
 import { Radius, Spacing } from '@/theme/spacing';
-import { NavHeader } from '@/components/NavHeader';
-import { GlowBackground } from '@/components/GlowBackground';
+import { NavHeader, GlowBackground } from '@/components';
 
 export default function LanguageScreen() {
   const router = useRouter();

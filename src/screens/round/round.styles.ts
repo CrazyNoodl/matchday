@@ -1,0 +1,533 @@
+import { Platform, StyleSheet } from 'react-native';
+import { Colors } from '@/theme/colors';
+import { FontFamily, FontSize } from '@/theme/typography';
+import { Radius, Spacing } from '@/theme/spacing';
+
+export const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+    backgroundColor: Colors.bg.base,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border.default,
+  },
+  backBtn: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  backChevron: {
+    fontFamily: FontFamily.display,
+    fontSize: FontSize['2xl'],
+    color: Colors.text.secondary,
+    lineHeight: 28,
+  },
+  headerCenter: {
+    flex: 1,
+    alignItems: 'center',
+    gap: 1,
+  },
+  headerTitle: {
+    fontFamily: FontFamily.displayBold,
+    fontSize: FontSize.xl,
+    color: Colors.text.primary,
+    letterSpacing: 0.3,
+  },
+  headerSubtitle: {
+    fontFamily: FontFamily.body,
+    fontSize: FontSize.xs,
+    color: Colors.text.muted,
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+    width: 80,
+    justifyContent: 'flex-end',
+  },
+  statsBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: Colors.bg.elevated,
+    borderWidth: 1,
+    borderColor: Colors.border.medium,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  statsBtnIcon: {
+    fontSize: 14,
+  },
+  finishBtn: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs + 2,
+    borderRadius: Radius.full,
+    borderWidth: 1,
+    borderColor: Colors.accent.yellow,
+    backgroundColor: 'rgba(246,195,80,0.12)',
+  },
+  finishBtnText: {
+    fontFamily: FontFamily.displayBold,
+    fontSize: FontSize.sm,
+    color: Colors.accent.yellow,
+    letterSpacing: 0.5,
+  },
+  toggleContainer: {
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.md,
+  },
+  scroll: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: Spacing.xl,
+    paddingBottom: Spacing['3xl'],
+  },
+  cardsContainer: {
+    marginBottom: Spacing.lg,
+  },
+  matchesSection: {
+    gap: Spacing.md,
+  },
+  matchesList: {
+    gap: 0,
+  },
+  fab: {
+    position: 'absolute',
+    bottom: Platform.OS === 'ios' ? 32 : 20,
+    left: Spacing.xl,
+    right: Spacing.xl,
+  },
+  fabBtn: {
+    backgroundColor: Colors.accent.green,
+    borderRadius: Radius.lg,
+    paddingVertical: Spacing.lg,
+    alignItems: 'center',
+    shadowColor: Colors.accent.green,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  fabText: {
+    fontFamily: FontFamily.displayBold,
+    fontSize: FontSize.lg,
+    color: Colors.accent.greenDark,
+    letterSpacing: 0.8,
+  },
+});
+
+export const sheetStyles = StyleSheet.create({
+  sheet: {
+    backgroundColor: Colors.bg.sheet,
+    paddingHorizontal: Spacing.xl,
+    paddingTop: Spacing.lg,
+  },
+  progressBar: {
+    flexDirection: 'row',
+    gap: 4,
+    marginBottom: Spacing.lg,
+  },
+  progressSegment: {
+    flex: 1,
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: Colors.bg.elevated,
+  },
+  progressSegmentFilled: {
+    backgroundColor: Colors.accent.green,
+  },
+  stepTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: Spacing.md,
+  },
+  stepTitle: {
+    fontFamily: FontFamily.displayBold,
+    fontSize: FontSize['2xl'],
+    color: Colors.text.primary,
+    letterSpacing: 0.4,
+    flex: 1,
+  },
+  stepIndicator: {
+    fontFamily: FontFamily.bodyBold,
+    fontSize: FontSize.xs,
+    color: Colors.text.muted,
+    letterSpacing: 0.8,
+  },
+  contentScroll: {
+    maxHeight: 420,
+  },
+  contentScrollPad: {
+    paddingBottom: Spacing.xl,
+  },
+  stepContent: {
+    gap: Spacing.md,
+  },
+  stepHint: {
+    fontFamily: FontFamily.body,
+    fontSize: FontSize.sm,
+    color: Colors.text.muted,
+    letterSpacing: 0.3,
+  },
+  playerChips: {
+    gap: Spacing.sm,
+  },
+  playerChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.bg.elevated,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: Colors.border.default,
+    padding: Spacing.md,
+    gap: Spacing.md,
+  },
+  playerChipHome: {
+    backgroundColor: Colors.accent.greenSubtle,
+    borderColor: Colors.accent.greenBorder,
+  },
+  playerChipAway: {
+    backgroundColor: Colors.accent.blueSubtle,
+    borderColor: Colors.accent.blue + '44',
+  },
+  playerChipName: {
+    flex: 1,
+    fontFamily: FontFamily.bodySemiBold,
+    fontSize: FontSize.base,
+    color: Colors.text.muted,
+  },
+  homeLabel: {
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 2,
+    borderRadius: Radius.xs,
+    backgroundColor: Colors.accent.greenSubtle,
+  },
+  homeLabelText: {
+    fontFamily: FontFamily.bodyBold,
+    fontSize: FontSize.xs,
+    color: Colors.accent.green,
+    letterSpacing: 0.5,
+  },
+  awayLabel: {
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 2,
+    borderRadius: Radius.xs,
+    backgroundColor: Colors.accent.blueSubtle,
+  },
+  awayLabelText: {
+    fontFamily: FontFamily.bodyBold,
+    fontSize: FontSize.xs,
+    color: Colors.accent.blue,
+    letterSpacing: 0.5,
+  },
+  scoreRow: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
+  },
+  scoreDivider: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: Spacing.sm,
+    gap: Spacing.sm,
+  },
+  scoreDividerText: {
+    fontFamily: FontFamily.displayBold,
+    fontSize: FontSize.xl,
+    color: Colors.text.ghost,
+  },
+  resultPill: {
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 3,
+    backgroundColor: Colors.bg.elevated,
+    borderRadius: Radius.xs,
+  },
+  resultLabel: {
+    fontFamily: FontFamily.bodyBold,
+    fontSize: FontSize.xs,
+    letterSpacing: 0.5,
+  },
+  mediaScroll: {
+    flexGrow: 0,
+  },
+  mediaRow: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+    paddingBottom: Spacing.sm,
+  },
+  addMediaBtn: {
+    width: 90,
+    height: 118,
+    borderRadius: Radius.sm,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: Colors.border.strong,
+    backgroundColor: Colors.bg.elevated,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.xs,
+  },
+  addMediaIcon: {
+    fontFamily: FontFamily.bodyBold,
+    fontSize: FontSize['2xl'],
+    color: Colors.text.muted,
+    lineHeight: 28,
+  },
+  addMediaText: {
+    fontFamily: FontFamily.bodyBold,
+    fontSize: FontSize.xs,
+    color: Colors.text.muted,
+    letterSpacing: 0.5,
+  },
+  ocrStatus: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    marginTop: Spacing.md,
+    paddingHorizontal: Spacing.xs,
+  },
+  ocrStatusText: {
+    fontFamily: FontFamily.body,
+    fontSize: FontSize.sm,
+    color: Colors.accent.blue,
+  },
+  ocrFoundText: {
+    fontFamily: FontFamily.bodySemiBold,
+    fontSize: FontSize.sm,
+    color: Colors.accent.green,
+  },
+  ocrError: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+    marginTop: Spacing.md,
+    paddingHorizontal: Spacing.xs,
+  },
+  ocrErrorText: {
+    fontFamily: FontFamily.body,
+    fontSize: FontSize.sm,
+    color: Colors.accent.red,
+    flex: 1,
+  },
+  ocrRetryBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: Radius.sm,
+    borderWidth: 1,
+    borderColor: Colors.accent.blue,
+  },
+  ocrRetryText: {
+    fontFamily: FontFamily.bodySemiBold,
+    fontSize: FontSize.sm,
+    color: Colors.accent.blue,
+  },
+  ocrSkipText: {
+    fontFamily: FontFamily.body,
+    fontSize: FontSize.sm,
+    color: Colors.text.muted,
+  },
+  ocrSkippedText: {
+    fontFamily: FontFamily.body,
+    fontSize: FontSize.sm,
+    color: Colors.text.placeholder,
+  },
+  commentInput: {
+    backgroundColor: Colors.bg.elevated,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: Colors.border.default,
+    padding: Spacing.lg,
+    fontFamily: FontFamily.body,
+    fontSize: FontSize.base,
+    color: Colors.text.primary,
+    minHeight: 120,
+  },
+  actions: {
+    flexDirection: 'row',
+    gap: Spacing.md,
+    paddingVertical: Spacing.lg,
+  },
+  backActionBtn: {
+    flex: 1,
+    backgroundColor: Colors.bg.elevated,
+    borderRadius: Radius.md,
+    paddingVertical: Spacing.lg,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Colors.border.medium,
+  },
+  backActionText: {
+    fontFamily: FontFamily.displayBold,
+    fontSize: FontSize.base,
+    color: Colors.text.muted,
+    letterSpacing: 0.5,
+  },
+  nextBtn: {
+    flex: 2,
+    backgroundColor: Colors.accent.green,
+    borderRadius: Radius.md,
+    paddingVertical: Spacing.lg,
+    alignItems: 'center',
+  },
+  nextBtnDisabled: {
+    backgroundColor: Colors.bg.elevated,
+    borderWidth: 1,
+    borderColor: Colors.border.medium,
+  },
+  nextBtnText: {
+    fontFamily: FontFamily.displayBold,
+    fontSize: FontSize.base,
+    color: Colors.accent.greenDark,
+    letterSpacing: 0.5,
+  },
+  nextBtnTextDisabled: {
+    color: Colors.text.ghost,
+  },
+});
+
+export const dialogStyles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.75)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: Spacing['2xl'],
+  },
+  dialog: {
+    backgroundColor: Colors.bg.surface,
+    borderRadius: Radius['2xl'],
+    borderWidth: 1,
+    borderColor: Colors.border.medium,
+    padding: Spacing['2xl'],
+    width: '100%',
+    gap: Spacing.md,
+    alignItems: 'center',
+  },
+  dialogIcon: {
+    fontSize: 36,
+  },
+  dialogTitle: {
+    fontFamily: FontFamily.displayBold,
+    fontSize: FontSize['2xl'],
+    color: Colors.text.primary,
+    letterSpacing: 0.5,
+    textAlign: 'center',
+  },
+  dialogDesc: {
+    fontFamily: FontFamily.body,
+    fontSize: FontSize.base,
+    color: Colors.text.muted,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  actions: {
+    flexDirection: 'row',
+    gap: Spacing.md,
+    width: '100%',
+    marginTop: Spacing.sm,
+  },
+  cancelBtn: {
+    flex: 1,
+    backgroundColor: Colors.bg.elevated,
+    borderRadius: Radius.md,
+    paddingVertical: Spacing.md,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Colors.border.medium,
+  },
+  cancelText: {
+    fontFamily: FontFamily.bodySemiBold,
+    fontSize: FontSize.base,
+    color: Colors.text.muted,
+  },
+  confirmBtn: {
+    flex: 1,
+    backgroundColor: Colors.accent.green,
+    borderRadius: Radius.md,
+    paddingVertical: Spacing.md,
+    alignItems: 'center',
+  },
+  confirmText: {
+    fontFamily: FontFamily.displayBold,
+    fontSize: FontSize.base,
+    color: Colors.accent.greenDark,
+    letterSpacing: 0.3,
+  },
+  equalRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    width: '100%',
+    backgroundColor: Colors.bg.elevated,
+    borderRadius: Radius.sm,
+    padding: Spacing.sm,
+  },
+  equalName: {
+    flex: 1,
+    fontFamily: FontFamily.bodySemiBold,
+    fontSize: FontSize.base,
+    color: Colors.text.primary,
+  },
+  equalCount: {
+    fontFamily: FontFamily.body,
+    fontSize: FontSize.sm,
+    color: Colors.text.muted,
+  },
+});
+
+export const winnerStyles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.85)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  content: {
+    alignItems: 'center',
+    gap: Spacing.lg,
+    paddingHorizontal: Spacing['3xl'],
+  },
+  matchDayLabel: {
+    fontFamily: FontFamily.displayBold,
+    fontSize: FontSize.sm,
+    color: Colors.accent.gold,
+    letterSpacing: 2,
+  },
+  trophyEmoji: {
+    fontSize: 64,
+  },
+  winnerName: {
+    fontFamily: FontFamily.displayBold,
+    fontSize: FontSize['4xl'],
+    color: Colors.accent.green,
+    letterSpacing: 1,
+    textAlign: 'center',
+  },
+  winnerRecord: {
+    fontFamily: FontFamily.bodySemiBold,
+    fontSize: FontSize.base,
+    color: Colors.text.muted,
+    letterSpacing: 0.5,
+  },
+  doneBtn: {
+    backgroundColor: Colors.accent.green,
+    borderRadius: Radius.lg,
+    paddingHorizontal: Spacing['3xl'],
+    paddingVertical: Spacing.lg,
+    marginTop: Spacing.md,
+  },
+  doneBtnText: {
+    fontFamily: FontFamily.displayBold,
+    fontSize: FontSize.lg,
+    color: Colors.accent.greenDark,
+    letterSpacing: 0.8,
+  },
+});
