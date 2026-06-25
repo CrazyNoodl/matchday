@@ -4,7 +4,7 @@
 jest.mock('@/supabase/client', () => ({
   supabase: {
     auth: {
-      getUser: jest.fn(),
+      getSession: jest.fn(),
       signInWithPassword: jest.fn(),
       signUp: jest.fn(),
       signOut: jest.fn(),
@@ -16,7 +16,7 @@ jest.mock('@/supabase/client', () => ({
 import { getCurrentUserId, signInWithEmail, signUpWithEmail, signOut } from '../auth';
 import { supabase } from '@/supabase/client';
 
-const mockGetUser = supabase.auth.getUser as jest.Mock;
+const mockGetSession = supabase.auth.getSession as jest.Mock;
 const mockSignInWithPassword = supabase.auth.signInWithPassword as jest.Mock;
 const mockSignUp = supabase.auth.signUp as jest.Mock;
 const mockSignOut = supabase.auth.signOut as jest.Mock;
@@ -29,17 +29,17 @@ beforeEach(() => {
 
 describe('getCurrentUserId', () => {
   it('returns the user ID when a session exists', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: { id: 'user-abc-123' } } });
+    mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'user-abc-123' } } } });
     expect(await getCurrentUserId()).toBe('user-abc-123');
   });
 
-  it('returns null when getUser returns null user', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: null } });
+  it('returns null when session is null', async () => {
+    mockGetSession.mockResolvedValue({ data: { session: null } });
     expect(await getCurrentUserId()).toBeNull();
   });
 
-  it('returns null when getUser returns undefined user', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: undefined } });
+  it('returns null when session is undefined', async () => {
+    mockGetSession.mockResolvedValue({ data: { session: undefined } });
     expect(await getCurrentUserId()).toBeNull();
   });
 });

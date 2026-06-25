@@ -2,8 +2,8 @@ import { supabase, supabaseConfigured } from './client';
 
 export async function getCurrentUserId(): Promise<string | null> {
   if (!supabaseConfigured) return null;
-  const { data: { user } } = await supabase.auth.getUser();
-  return user?.id ?? null;
+  const { data: { session } } = await supabase.auth.getSession();
+  return session?.user?.id ?? null;
 }
 
 export async function signInWithEmail(
