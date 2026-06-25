@@ -36,6 +36,7 @@ const uk = {
     roundInfo: 'Раунд {{round}} / {{total}} · Сьогодні',
     progressRounds: '{{done}} / {{total}} рейтингових раундів',
     currentLeader: 'ПОТОЧНИЙ ЛІДЕР',
+    noLeaderTie: 'НЕМАЄ ЛІДЕРА — НІЧИЯ',
     noActiveTournament: 'НЕМАЄ АКТИВНОГО ТУРНІРУ',
     noActiveTournamentDesc: 'Розпочніть новий турнір для відстеження результатів та матчів',
     startNewTournament: 'НОВИЙ ТУРНІР',

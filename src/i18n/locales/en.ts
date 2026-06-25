@@ -36,6 +36,7 @@ const en = {
     roundInfo: 'Round {{round}} / {{total}} · Today',
     progressRounds: '{{done}} / {{total}} ranked rounds',
     currentLeader: 'CURRENT LEADER',
+    noLeaderTie: 'NO LEADER — TIE',
     noActiveTournament: 'NO ACTIVE TOURNAMENT',
     noActiveTournamentDesc: 'Start a new tournament to track standings and match history',
     startNewTournament: 'START NEW TOURNAMENT',
