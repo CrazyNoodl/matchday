@@ -34,6 +34,12 @@ main  ← stable releases only
 # Merges branch into dev, removes worktree, deletes local branch
 ```
 
+**Never run `finish-feature.sh` (or otherwise merge a feature/fix/test branch into `dev`) without the user explicitly confirming first.** Finishing work in a worktree and merging it are separate steps — wait for direct approval before merging, even if the work appears complete.
+
+**When implementation in a worktree is done, automatically start the local dev server and open it in a browser for testing** — don't wait to be asked. Set the browser tab title to the GitHub issue number being worked on (e.g. `#23 — media slider`) so the user can tell which tab corresponds to which issue/worktree when several are open at once. This title is a transient local-testing aid only (e.g. set via `document.title` in the test session) — it must never be committed or written into `app.config.js`'s permanent `web.name`/`shortName`.
+
+**Before declaring a worktree feature done, cover it with tests and run the suite (`npm test`).** Add/update Jest tests for the new behavior (see `src/store/__tests__/` for the existing pattern), then run `npm test` and make sure it's green — don't just type-check and eyeball the browser. Only after tests pass and the browser smoke-test looks right should you tell the user it's ready for merge review.
+
 **List active worktrees:**
 ```bash
 git worktree list
@@ -44,10 +50,7 @@ Worktrees live at `../matchday-wt-<name>` (sibling of this directory). Each has 
 ## Commands
 
 ```bash
-# Start dev server (Metro bundler)
-npx expo start
-
-# Start with QR code accessible from phone on same WiFi
+# Start dev server (Metro bundler) — QR code for phone on same WiFi shown by default
 npx expo start
 
 # Type-check
@@ -58,7 +61,15 @@ npx expo start --ios
 npx expo start --android
 ```
 
-No test suite is configured.
+```bash
+# Run tests
+npm test
+
+# Run tests in CI mode with coverage
+npm run test:ci
+```
+
+Jest is configured (`jest-expo` preset). Tests live alongside the code they cover, e.g. `src/store/__tests__/`.
 
 ## Architecture
 
@@ -163,20 +174,4 @@ MMKV (`react-native-mmkv`) on native, `localStorage` on web. The adapter is buil
 
 ## Known Pitfalls
 
-### i18n: No duplicate top-level keys in locale files
-
-`src/i18n/locales/*.ts` are plain JS objects exported `as const`. TypeScript does **not** error on duplicate object keys — the second definition silently overwrites the first at runtime, with no warning. This caused `stats.*` screen strings (title, ranking, h2hGames, etc.) to disappear entirely because a second `stats:` block for match-stat labels was added further down the file.
-
-**Rule:** When adding a new translation group, always `grep` for the key name in all three locale files before creating a new top-level block. If the key already exists, add the new entries inside the existing block.
-
-```bash
-grep -n "^  <key>:" src/i18n/locales/en.ts src/i18n/locales/uk.ts src/i18n/locales/fr.ts
-```
-
-### Bottom sheets: scrollable content requires `snapToMax`
-
-`Sheet` has two modes:
-- **Dynamic height** (default): wraps children in `BottomSheetView` + `onLayout`, snaps to measured content height. Use for short, fixed-height content (score editor, confirmation). Do **not** use with a `ScrollView` — the sheet will size to full content height until it hits `MAX_HEIGHT`, then clip instead of scroll.
-- **Full-height** (`snapToMax` prop): snaps to 85% of screen height, children rendered directly. Use whenever the sheet contains a list that could be long (stats editor, import results, player pickers).
-
-For scrollable sheets, always pair `snapToMax` with `style={styles.sheetScrollFlex}` (`flex: 1`) on `BottomSheetScrollView`, and wrap children in a `flex: 1` container. See the `editStats` and `importStats` sheets in `app/match/[id].tsx` as the canonical pattern.
+See `docs/pitfalls.md` for details. Read it before: adding/editing i18n locale keys, or building a bottom sheet with scrollable content (`Sheet` + `snapToMax`).

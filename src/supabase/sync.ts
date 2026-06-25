@@ -39,8 +39,7 @@ export async function pushState(payload: SyncPayload): Promise<void> {
   if (!userId) return;
 
   const now = new Date().toISOString();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const db = supabase as any;
+  const db = supabase;
 
   // 1. Players
   if (payload.players.length > 0) {
@@ -335,8 +334,7 @@ export async function pullState(): Promise<PulledState | null> {
   const userId = await getCurrentUserId();
   if (!userId) return null;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const db = supabase as any;
+  const db = supabase;
 
   const results = await Promise.all([
     db.from('players').select('*').eq('user_id', userId),
@@ -453,13 +451,13 @@ export async function pullState(): Promise<PulledState | null> {
       teamCode: p.team_code,
       photo: p.photo ?? undefined,
     })),
-    teams: ((teamsData ?? []) as Record<string, string>[]).map((t) => ({
-      code: t.code,
-      name: t.name,
-      short: t.short,
-      color: t.color,
+    teams: ((teamsData ?? []) as Record<string, unknown>[]).map((t) => ({
+      code: t.code as string,
+      name: t.name as string,
+      short: t.short as string,
+      color: t.color as string,
       custom: Boolean(t.custom),
-      logo: t.logo ?? undefined,
+      logo: (t.logo as string | null) ?? undefined,
     })),
     matches: currentRoundMatches.map(dbMatchToLocal),
     archivedRounds,
@@ -473,8 +471,7 @@ export async function pullState(): Promise<PulledState | null> {
 // ---------------------------------------------------------------------------
 
 export function subscribeToChanges(userId: string, onUpdate: () => void) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const db = supabase as any;
+  const db = supabase;
   return db
     .channel(`user-${userId}`)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'players', filter: `user_id=eq.${userId}` }, onUpdate)
@@ -492,8 +489,7 @@ export function subscribeToChanges(userId: string, onUpdate: () => void) {
 
 export async function fetchMatchById(matchId: string): Promise<Match | null> {
   if (!supabaseConfigured) return null;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const db = supabase as any;
+  const db = supabase;
   const { data, error } = await db
     .from('matches')
     .select('*')

@@ -21,8 +21,7 @@ export async function uploadMediaItem(
     const path = `${userId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
     const mimeType = type === 'video' ? 'video/mp4' : 'image/jpeg';
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { error } = await (supabase as any).storage
+    const { error } = await supabase.storage
       .from(BUCKET)
       .upload(path, blob, { contentType: mimeType, upsert: false });
 
@@ -31,8 +30,7 @@ export async function uploadMediaItem(
       return null;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data } = (supabase as any).storage.from(BUCKET).getPublicUrl(path);
+    const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
     return data?.publicUrl ?? null;
   } catch (e) {
     console.warn('[storage] upload error:', e);
@@ -52,8 +50,7 @@ export async function uploadTeamLogo(localUri: string): Promise<string | null> {
     const blob = await uriToBlob(localUri);
     const path = `${userId}/team-logos/${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { error } = await (supabase as any).storage
+    const { error } = await supabase.storage
       .from(BUCKET)
       .upload(path, blob, { contentType: 'image/jpeg', upsert: false });
 
@@ -62,8 +59,7 @@ export async function uploadTeamLogo(localUri: string): Promise<string | null> {
       return null;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data } = (supabase as any).storage.from(BUCKET).getPublicUrl(path);
+    const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
     return data?.publicUrl ?? null;
   } catch (e) {
     console.warn('[storage] team logo upload error:', e);
@@ -97,8 +93,7 @@ export async function deleteMediaItem(publicUrl: string): Promise<void> {
   try {
     const path = extractStoragePath(publicUrl);
     if (!path) return;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (supabase as any).storage.from(BUCKET).remove([path]);
+    await supabase.storage.from(BUCKET).remove([path]);
   } catch (e) {
     console.warn('[storage] delete error:', e);
   }

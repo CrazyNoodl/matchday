@@ -108,41 +108,58 @@ export async function extractStatsFromPhoto(
     headers['x-api-key'] = ANTHROPIC_API_KEY;
   }
 
-  const response = await fetch(API_ENDPOINT, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 2048,
-      messages: [
-        {
-          role: 'user',
-          content: [
-            {
-              type: 'image',
-              source: { type: 'base64', media_type: mimeType, data: base64 },
-            },
-            { type: 'text', text: PROMPT },
-          ],
-        },
-      ],
-    }),
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 30_000);
 
-  if (!response.ok) {
-    const err = await response.text();
-    throw new Error(`API ${response.status}: ${err.slice(0, 200)}`);
+  try {
+    const response = await fetch(API_ENDPOINT, {
+      method: 'POST',
+      headers,
+      signal: controller.signal,
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 2048,
+        messages: [
+          {
+            role: 'user',
+            content: [
+              {
+                type: 'image',
+                source: { type: 'base64', media_type: mimeType, data: base64 },
+              },
+              { type: 'text', text: PROMPT },
+            ],
+          },
+        ],
+      }),
+    });
+
+    if (!response.ok) {
+      const err = await response.text();
+      throw new Error(`API ${response.status}: ${err.slice(0, 200)}`);
+    }
+
+    const data = await response.json();
+    const text: string = data.content?.[0]?.text ?? '';
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error('No JSON in response');
+
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(jsonMatch[0]);
+    } catch {
+      throw new Error('Malformed JSON in AI response');
+    }
+
+    if (!parsed || typeof parsed !== 'object' || !Array.isArray((parsed as Record<string, unknown>).stats)) {
+      throw new Error('Invalid response format');
+    }
+
+    return ((parsed as Record<string, unknown>).stats as ExtractedStat[]).map((s) => ({
+      ...s,
+      key: normalizeKey(s.key),
+    }));
+  } finally {
+    clearTimeout(timeoutId);
   }
-
-  const data = await response.json();
-  const text: string = data.content?.[0]?.text ?? '';
-  const jsonMatch = text.match(/\{[\s\S]*\}/);
-  if (!jsonMatch) throw new Error('No JSON in response');
-  const parsed = JSON.parse(jsonMatch[0]);
-  if (!Array.isArray(parsed.stats)) throw new Error('Invalid response format');
-
-  return (parsed.stats as ExtractedStat[]).map((s) => ({
-    ...s,
-    key: normalizeKey(s.key),
-  }));
 }
