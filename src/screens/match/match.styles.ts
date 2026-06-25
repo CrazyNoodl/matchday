@@ -223,14 +223,6 @@ export const makeStyles = (colors: AppColors) => StyleSheet.create({
   },
 
   // Media
-  mediaScroll: {
-    flexGrow: 0,
-  },
-  mediaContent: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
-    paddingBottom: Spacing.sm,
-  },
   mediaThumbnail: {
     width: 90,
     height: 118,

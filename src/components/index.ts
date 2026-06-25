@@ -6,6 +6,7 @@ export * from './FormChip';
 export * from './GlowBackground';
 export * from './LoginScreen';
 export * from './MatchCard';
+export * from './MediaSlider';
 export * from './MediaThumbnail';
 export * from './NavHeader';
 export * from './NewRoundModal';
