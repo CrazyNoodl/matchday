@@ -347,6 +347,16 @@ const en = {
     draw: 'DRAW',
     noData: 'No match data found.',
     commentary: 'COMMENTARY',
+    media: {
+      uploadFailed: 'Upload Failed',
+      uploadFailedDesc: 'Photo saved locally. Stats will be available for re-scan once connection is restored.',
+    },
+    ocr: {
+      noStats: 'No Stats Found',
+      noStatsDesc: 'Could not extract stats from this photo. Try a clearer screenshot.',
+      failed: 'Could Not Read Stats',
+      failedDesc: 'Please try again with a clearer image.',
+    },
   },
 
   players: {
