@@ -1,0 +1,134 @@
+import { useState, useEffect } from 'react';
+import { useRouter } from 'expo-router';
+import { useGoBack } from '@/utils/useGoBack';
+import { useStore } from '@/store';
+import { LANGUAGES } from '@/i18n';
+import { signOut } from '@/supabase/auth';
+import { supabase, supabaseConfigured } from '@/supabase/client';
+
+export function useSettings() {
+  const router = useRouter();
+  const goBack = useGoBack();
+  const store = useStore();
+
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
+  const [showSignOutConfirm, setShowSignOutConfirm] = useState(false);
+  const [showDemoConfirm, setShowDemoConfirm] = useState(false);
+  const [versionTaps, setVersionTaps] = useState(0);
+  const [devUnlocked, setDevUnlocked] = useState(false);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!supabaseConfigured) return;
+    supabase.auth.getUser().then(({ data }) => setUserEmail(data.user?.email ?? null));
+  }, []);
+
+  const {
+    players, teams, showNick, showTeamLogo, colorScheme,
+    hasTournament, tournamentName, language,
+    archivedRounds, closedTournaments, demoMode,
+  } = store;
+
+  const currentLang = LANGUAGES.find((l) => l.code === language) ?? LANGUAGES[0];
+
+  const SEED_PLAYER_IDS = ['player-1', 'player-2', 'player-3'];
+  const SEED_TEAM_CODES = ['JUV', 'TOT', 'GAL'];
+  const isDefaultState =
+    !hasTournament &&
+    archivedRounds.length === 0 &&
+    closedTournaments.length === 0 &&
+    players.length === SEED_PLAYER_IDS.length &&
+    players.every((p) => SEED_PLAYER_IDS.includes(p.id)) &&
+    teams.length === SEED_TEAM_CODES.length &&
+    teams.every((t) => SEED_TEAM_CODES.includes(t.code)) &&
+    showNick === true &&
+    showTeamLogo === true &&
+    language === 'en';
+
+  const handleReset = async () => {
+    if (demoMode) store.setDemoMode(false);
+    setIsResetting(true);
+    await store.resetStore();
+    setIsResetting(false);
+    setShowResetConfirm(false);
+    router.dismissAll();
+    router.replace('/');
+  };
+
+  const handleVersionTap = () => {
+    if (devUnlocked) return;
+    const next = versionTaps + 1;
+    setVersionTaps(next);
+    if (next === 3) {
+      router.push('/settings/changelog');
+      return;
+    }
+    if (next >= 10) {
+      setDevUnlocked(true);
+      setVersionTaps(0);
+    }
+  };
+
+  const handleSignOut = () => setShowSignOutConfirm(true);
+
+  const confirmSignOut = async () => {
+    setShowSignOutConfirm(false);
+    try {
+      await signOut();
+    } catch (e) {
+      console.warn('[signOut]', e);
+    }
+  };
+
+  const handleDemoToggle = (on: boolean) => {
+    if (on && hasTournament) {
+      setShowDemoConfirm(true);
+      return;
+    }
+    store.setDemoMode(on);
+    if (on) { router.dismissAll(); router.replace('/'); }
+  };
+
+  const confirmEnableDemo = () => {
+    setShowDemoConfirm(false);
+    store.setDemoMode(true);
+    router.dismissAll();
+    router.replace('/');
+  };
+
+  return {
+    router,
+    goBack,
+    store,
+    players,
+    teams,
+    showNick,
+    showTeamLogo,
+    colorScheme,
+    hasTournament,
+    tournamentName,
+    language,
+    demoMode,
+    currentLang,
+    isDefaultState,
+    userEmail,
+    versionTaps,
+    devUnlocked,
+    showResetConfirm,
+    isResetting,
+    showSignOutConfirm,
+    showDemoConfirm,
+    setShowResetConfirm,
+    setShowSignOutConfirm,
+    setShowDemoConfirm,
+    handleReset,
+    handleVersionTap,
+    handleSignOut,
+    confirmSignOut,
+    handleDemoToggle,
+    confirmEnableDemo,
+  };
+}
+
+export type SettingsHook = ReturnType<typeof useSettings>;
