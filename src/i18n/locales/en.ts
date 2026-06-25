@@ -15,6 +15,7 @@ const en = {
     matches: 'matches',
     games: 'games',
     share: '↑ Share',
+    error: 'Error',
   },
 
   table: {
@@ -86,6 +87,12 @@ const en = {
     commentaryHint: 'Add a comment (optional)',
     commentaryPlaceholder: 'How did the match go?',
     saveMatch: 'SAVE MATCH',
+    saveMatchError: 'Failed to save match. Please try again.',
+    discard: {
+      title: 'Discard match?',
+      message: 'Your progress will be lost, including any photos you\'ve added.',
+      confirm: 'Discard',
+    },
     dialogs: {
       finishTitle: 'FINISH ROUND?',
       finishDesc: 'Crown the winner of this round. This will archive results and cannot be undone.',
@@ -345,6 +352,16 @@ const en = {
     draw: 'DRAW',
     noData: 'No match data found.',
     commentary: 'COMMENTARY',
+    media: {
+      uploadFailed: 'Upload Failed',
+      uploadFailedDesc: 'Photo saved locally. Stats will be available for re-scan once connection is restored.',
+    },
+    ocr: {
+      noStats: 'No Stats Found',
+      noStatsDesc: 'Could not extract stats from this photo. Try a clearer screenshot.',
+      failed: 'Could Not Read Stats',
+      failedDesc: 'Please try again with a clearer image.',
+    },
   },
 
   players: {

@@ -52,6 +52,16 @@ export function getAddMatchStepLabel(step: number, tournamentRanked: boolean, t:
   ] as string[])[step - 1] ?? '';
 }
 
+export function isAddMatchDirty(state: AddMatchState): boolean {
+  return (
+    state.homeId !== null ||
+    state.media.length > 0 ||
+    state.homeScore > 0 ||
+    state.awayScore > 0 ||
+    state.note.trim() !== ''
+  );
+}
+
 export function canAddMatchGoNext(state: AddMatchState, tournamentRanked: boolean): boolean {
   const { step } = state;
   const isMediaStep = tournamentRanked ? step === 3 : step === 4;

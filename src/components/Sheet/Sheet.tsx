@@ -22,6 +22,7 @@ interface SheetProps {
   onClose: () => void;
   children: React.ReactNode;
   snapToMax?: boolean;
+  disableClose?: boolean;
 }
 
 // Sizes itself to its actual content height via onLayout, rather than a
@@ -37,7 +38,7 @@ interface SheetProps {
 // Open/close are driven imperatively via ref (snapToIndex/close), not the
 // declarative `index` prop — the declarative path was unreliable for
 // closing the sheet from a button (e.g. Cancel) in this app.
-export function Sheet({ visible, onClose, children, snapToMax }: SheetProps) {
+export function Sheet({ visible, onClose, children, snapToMax, disableClose = false }: SheetProps) {
   const colors = useColors();
   const ref = useRef<BottomSheet>(null);
   const [height, setHeight] = useState(MIN_HEIGHT);
@@ -65,9 +66,10 @@ export function Sheet({ visible, onClose, children, snapToMax }: SheetProps) {
         appearsOnIndex={0}
         disappearsOnIndex={-1}
         opacity={0.65}
+        pressBehavior={disableClose ? 'none' : 'close'}
       />
     ),
-    [],
+    [disableClose],
   );
 
   return (
@@ -77,13 +79,13 @@ export function Sheet({ visible, onClose, children, snapToMax }: SheetProps) {
       snapPoints={[snapToMax ? MAX_HEIGHT : height]}
       enableDynamicSizing={false}
       animationConfigs={ANIMATION_CONFIGS}
-      enablePanDownToClose
+      enablePanDownToClose={!disableClose}
       keyboardBehavior="interactive"
       keyboardBlurBehavior="restore"
       backdropComponent={renderBackdrop}
       backgroundStyle={{ backgroundColor: colors.bg.sheet }}
       handleIndicatorStyle={{ backgroundColor: colors.border.strong }}
-      onClose={onClose}
+      onClose={disableClose ? undefined : onClose}
     >
       {everOpened && (snapToMax ? children : <BottomSheetView onLayout={handleLayout}>{children}</BottomSheetView>)}
     </BottomSheet>

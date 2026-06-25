@@ -1,4 +1,6 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
+import { Alert } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import * as ImagePicker from 'expo-image-picker';
 import { Player, Match, MediaItem } from '@/store/types';
 import { uploadMediaItems } from '@/supabase/storage';
@@ -6,6 +8,7 @@ import { extractStatsFromPhoto } from '@/utils/extractStats';
 import {
   AddMatchState,
   initAddMatch,
+  isAddMatchDirty,
 } from '@/utils/addMatchState';
 
 interface UseAddMatchFlowParams {
@@ -21,12 +24,15 @@ export function useAddMatchFlow({
   addMatchToStore,
   closeModal,
 }: UseAddMatchFlowParams) {
+  const { t } = useTranslation();
   const [addMatch, setAddMatch] = useState<AddMatchState>(initAddMatch());
   const [isSavingMatch, setIsSavingMatch] = useState(false);
+  const ocrCancelledRef = useRef(false);
 
   const totalSteps = tournamentRanked ? 4 : 5;
 
   const reset = useCallback(() => {
+    ocrCancelledRef.current = true;
     setAddMatch(initAddMatch());
   }, []);
 
@@ -35,18 +41,29 @@ export function useAddMatchFlow({
   }, [totalSteps]);
 
   const handleBack = useCallback(() => {
-    setAddMatch((prev) => {
-      if (prev.ocrStatus === 'scanning') return prev;
-      if (prev.step <= 1) {
+    if (addMatch.ocrStatus === 'scanning' || isSavingMatch) return;
+    if (addMatch.step <= 1) {
+      if (isAddMatchDirty(addMatch)) {
+        Alert.alert(t('matchday.discard.title'), t('matchday.discard.message'), [
+          { text: t('common.cancel'), style: 'cancel' },
+          {
+            text: t('matchday.discard.confirm'),
+            style: 'destructive',
+            onPress: () => { setAddMatch(initAddMatch()); closeModal(); },
+          },
+        ]);
+      } else {
+        setAddMatch(initAddMatch());
         closeModal();
-        return initAddMatch();
       }
-      return { ...prev, step: prev.step - 1 };
-    });
-  }, [closeModal]);
+    } else {
+      setAddMatch((prev) => ({ ...prev, step: prev.step - 1 }));
+    }
+  }, [addMatch, isSavingMatch, closeModal, t]);
 
   const handleSaveMatch = useCallback(async () => {
     if (!addMatch.homeId || !addMatch.awayId) return;
+    if (isSavingMatch) return;
     setIsSavingMatch(true);
     try {
       const homePlayer = players.find((p) => p.id === addMatch.homeId);
@@ -74,13 +91,16 @@ export function useAddMatchFlow({
       addMatchToStore(match);
       closeModal();
       reset();
+    } catch {
+      Alert.alert(t('common.error'), t('matchday.saveMatchError'));
     } finally {
       setIsSavingMatch(false);
     }
-  }, [addMatch, players, addMatchToStore, closeModal, reset]);
+  }, [addMatch, isSavingMatch, players, addMatchToStore, closeModal, reset, t]);
 
   const runOcr = useCallback(
     async (assets: Array<{ base64: string; mimeType: string }>, isRetry = false) => {
+      ocrCancelledRef.current = false;
       setAddMatch((prev) => ({
         ...prev,
         ocrScanning: true,
@@ -93,6 +113,7 @@ export function useAddMatchFlow({
 
         for (const asset of assets) {
           const stats = await extractStatsFromPhoto(asset.base64, asset.mimeType);
+          if (ocrCancelledRef.current) return;
           for (const s of stats) {
             const existing = map.get(s.key);
             if (!existing || rank(s.confidence) > rank(existing.__conf)) {
@@ -101,6 +122,7 @@ export function useAddMatchFlow({
           }
         }
 
+        if (ocrCancelledRef.current) return;
         const pendingStats: Record<string, { a: number; b: number }> = {};
         map.forEach((v, k) => { pendingStats[k] = { a: v.a, b: v.b }; });
 
@@ -111,6 +133,7 @@ export function useAddMatchFlow({
           pendingStats: Object.keys(pendingStats).length > 0 ? pendingStats : null,
         }));
       } catch {
+        if (ocrCancelledRef.current) return;
         if (isRetry) {
           // Second failure — skip stats, unblock Next
           setAddMatch((prev) => ({
@@ -124,6 +147,9 @@ export function useAddMatchFlow({
             ...prev,
             ocrScanning: false,
             ocrStatus: 'error',
+            // Clear stale pendingStats — the combined run failed, old partial results
+            // are no longer trustworthy and must not silently survive to save time.
+            pendingStats: null,
           }));
         }
       }
@@ -132,47 +158,71 @@ export function useAddMatchFlow({
   );
 
   const handlePickMedia = useCallback(async () => {
+    if (addMatch.ocrStatus === 'scanning') return;
+    const slotsLeft = 7 - addMatch.media.length;
+    if (slotsLeft <= 0) return;
+
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images', 'videos'],
       allowsMultipleSelection: true,
+      selectionLimit: slotsLeft,
       quality: 0.85,
       base64: true,
     });
     if (result.canceled) return;
 
-    const newItems: MediaItem[] = result.assets.map((a) => ({
+    // Respect the 7-item cap — only keep assets that actually fit into media
+    const fittingAssets = result.assets.slice(0, slotsLeft);
+
+    const newItems: MediaItem[] = fittingAssets.map((a) => ({
       uri: a.uri,
       type: a.type === 'video' ? 'video' : 'image',
     }));
 
-    const imageAssets = result.assets
+    const newImageAssets = fittingAssets
       .filter((a) => a.type !== 'video' && a.base64)
       .map((a) => ({ base64: a.base64!, mimeType: a.mimeType ?? 'image/jpeg' }));
 
+    // If user already explicitly skipped stats, don't re-enter the OCR flow on
+    // subsequent picks — they've made their decision; don't re-block Next on failure.
+    const userSkippedOcr = addMatch.ocrStatus === 'skipped';
+
+    // Combine with previously scanned assets so second pick doesn't lose first OCR data
+    const allImageAssets = [...addMatch.ocrAssets, ...newImageAssets];
+
     setAddMatch((prev) => ({
       ...prev,
-      media: [...prev.media, ...newItems].slice(0, 7),
-      ocrStatus: imageAssets.length > 0 ? 'scanning' : 'idle',
+      media: [...prev.media, ...newItems],
+      ocrStatus: (newImageAssets.length > 0 && !userSkippedOcr) ? 'scanning' : prev.ocrStatus,
     }));
 
-    if (imageAssets.length > 0) {
-      runOcr(imageAssets);
+    if (newImageAssets.length > 0 && !userSkippedOcr) {
+      runOcr(allImageAssets);
     }
-  }, [runOcr]);
+  }, [addMatch.ocrAssets, addMatch.ocrStatus, addMatch.media.length, runOcr]);
 
   const handleRetryOcr = useCallback(() => {
-    setAddMatch((prev) => {
-      if (prev.ocrAssets.length > 0) {
-        runOcr(prev.ocrAssets, true);
-      }
-      return prev;
-    });
-  }, [runOcr]);
+    if (addMatch.ocrAssets.length > 0) {
+      runOcr(addMatch.ocrAssets, true);
+    }
+  }, [addMatch.ocrAssets, runOcr]);
 
   const handleRemoveMedia = useCallback((idx: number) => {
     setAddMatch((prev) => {
       if (prev.ocrStatus === 'scanning') return prev;
-      return { ...prev, media: prev.media.filter((_, i) => i !== idx) };
+      const removedIsImage = prev.media[idx]?.type === 'image';
+      const ocrWasRun = prev.ocrStatus !== 'idle';
+      return {
+        ...prev,
+        media: prev.media.filter((_, i) => i !== idx),
+        // Only invalidate OCR data when an image is removed — videos don't affect stats
+        ...(ocrWasRun && removedIsImage ? {
+          pendingStats: null,
+          ocrStatus: 'idle' as const,
+          ocrAssets: [],
+          ocrScanning: false,
+        } : {}),
+      };
     });
   }, []);
 

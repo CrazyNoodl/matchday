@@ -19,6 +19,7 @@ export interface Team {
 export interface MediaItem {
   uri: string;
   type: 'image' | 'video';
+  pendingUpload?: boolean;
 }
 
 export interface Match {
@@ -87,7 +88,6 @@ export type Modal =
   | 'needEqual'
   | 'needBreakTie'
   | 'editStats'
-  | 'importStats'
   | 'editScore'
   | 'editTourName'
   | 'closeTour'

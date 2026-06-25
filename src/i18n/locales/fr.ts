@@ -15,6 +15,7 @@ const fr = {
     matches: 'matchs',
     games: 'matchs',
     share: '↑ Partager',
+    error: 'Erreur',
   },
 
   table: {
@@ -86,6 +87,12 @@ const fr = {
     commentaryHint: 'Ajouter un commentaire (optionnel)',
     commentaryPlaceholder: 'Comment s\'est passé le match ?',
     saveMatch: 'SAUVEGARDER LE MATCH',
+    saveMatchError: 'Échec de la sauvegarde du match. Veuillez réessayer.',
+    discard: {
+      title: 'Annuler le match ?',
+      message: 'Votre progression sera perdue, y compris les photos ajoutées.',
+      confirm: 'Annuler',
+    },
     dialogs: {
       finishTitle: 'TERMINER LE TOUR ?',
       finishDesc: 'Couronnez le vainqueur de ce tour. Les résultats seront archivés et ne pourront pas être annulés.',
@@ -345,6 +352,16 @@ const fr = {
     draw: 'MATCH NUL',
     noData: 'Données du match introuvables.',
     commentary: 'COMMENTAIRE',
+    media: {
+      uploadFailed: 'Échec du chargement',
+      uploadFailedDesc: 'Photo enregistrée localement. Les stats seront disponibles une fois la connexion rétablie.',
+    },
+    ocr: {
+      noStats: 'Aucune stat trouvée',
+      noStatsDesc: 'Impossible d\'extraire les stats de cette photo. Essayez une capture d\'écran plus nette.',
+      failed: 'Impossible de lire les stats',
+      failedDesc: 'Veuillez réessayer avec une image plus nette.',
+    },
   },
 
   players: {
