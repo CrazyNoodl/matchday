@@ -15,19 +15,19 @@ import {
   Sora_700Bold,
 } from '@expo-google-fonts/sora';
 import React from 'react';
-import { Platform, View, ActivityIndicator, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { Platform, View, ActivityIndicator, Text, TextInput, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Constants from 'expo-constants';
-import { Colors, ThemeProvider, useColors } from '@/theme';
-import { FontFamily, FontSize } from '@/theme/typography';
+import { ThemeProvider, useColors } from '@/theme';
 import { useStore } from '@/store';
+import { errorStyles, bannerStyles } from '@/screens/layout/layout.styles';
 import i18n from '@/i18n';
 import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'expo-router';
 import { useSyncManager } from '@/supabase/useSyncManager';
 import { supabase, supabaseConfigured } from '@/supabase/client';
-import { LoginScreen } from '@/components/LoginScreen';
+import { LoginScreen } from '@/components';
 import type { Session } from '@supabase/supabase-js';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -75,48 +75,6 @@ class AppErrorBoundary extends React.Component<
   }
 }
 
-const errorStyles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: Colors.bg.base,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 32,
-    gap: 12,
-  },
-  emoji: {
-    fontSize: 48,
-    marginBottom: 8,
-  },
-  title: {
-    fontFamily: FontFamily.displayBold,
-    fontSize: FontSize.lg,
-    color: Colors.text.primary,
-    textAlign: 'center',
-  },
-  sub: {
-    fontFamily: FontFamily.body,
-    fontSize: FontSize.sm,
-    color: Colors.text.muted,
-    textAlign: 'center',
-  },
-  btn: {
-    marginTop: 16,
-    paddingHorizontal: 24,
-    paddingVertical: 10,
-    borderRadius: 8,
-    backgroundColor: Colors.accent.green + '22',
-    borderWidth: 1,
-    borderColor: Colors.accent.green + '55',
-  },
-  btnText: {
-    fontFamily: FontFamily.displayBold,
-    fontSize: FontSize.sm,
-    color: Colors.accent.green,
-    letterSpacing: 1.2,
-  },
-});
-
 function SyncManager() {
   useSyncManager();
   return null;
@@ -160,54 +118,6 @@ function DemoBanner() {
     </View>
   );
 }
-
-// Banner uses fixed yellow-themed colors regardless of color scheme
-const bannerStyles = StyleSheet.create({
-  root: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    zIndex: 999,
-    elevation: 999,
-    backgroundColor: '#2a1f00',
-    borderTopWidth: 1,
-    borderTopColor: Colors.accent.yellow + '55',
-    paddingTop: 10,
-    paddingHorizontal: 20,
-  },
-  inner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  title: {
-    fontFamily: FontFamily.displayBold,
-    fontSize: FontSize.xs,
-    color: Colors.accent.yellow,
-    letterSpacing: 1.2,
-  },
-  sub: {
-    fontFamily: FontFamily.body,
-    fontSize: 10,
-    color: Colors.accent.yellow + 'aa',
-    marginTop: 1,
-  },
-  exitBtn: {
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 8,
-    backgroundColor: Colors.accent.yellow + '22',
-    borderWidth: 1,
-    borderColor: Colors.accent.yellow + '55',
-  },
-  exitText: {
-    fontFamily: FontFamily.bodySemiBold,
-    fontSize: FontSize.xs,
-    color: Colors.accent.yellow,
-    letterSpacing: 0.8,
-  },
-});
 
 function AppContent({ fontsLoaded, session }: { fontsLoaded: boolean; session: Session | null | undefined }) {
   const colors = useColors();
