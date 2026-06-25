@@ -276,7 +276,7 @@ export function AddMatchSheet({
   };
 
   return (
-    <Sheet visible={visible} onClose={onClose}>
+    <Sheet visible={visible} onClose={onClose} disableClose={addMatch.ocrStatus === 'scanning'}>
       <View style={sheetStyles.sheet}>
         {/* Progress bar */}
         <View style={sheetStyles.progressBar}>
