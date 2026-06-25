@@ -9,6 +9,17 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.6.9',
+    notes: [
+      'Internal stability pass: match detail and settings screens split into focused hook + modal files (#45)',
+      'AI stats import now has a 30-second timeout — no more infinite spinner if the network stalls (#45)',
+      'Match lookup wrapped in useMemo to avoid redundant scans on every render (#45)',
+      'Supabase client fully typed — removed all `as any` casts from storage and sync layers (#44)',
+      'i18n guard: duplicate locale keys now caught in CI before they reach users (#44)',
+      'Added 40 new tests covering store slices, utils, and screen hooks — 248 total (#43, #44, #45)',
+    ],
+  },
+  {
     version: '1.6.8',
     added: [
       'Match media viewer is now a swipeable slider — tap any thumbnail to open fullscreen and swipe between photos and videos',
