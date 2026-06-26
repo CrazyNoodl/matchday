@@ -99,6 +99,24 @@ export const makeStyles = (colors: AppColors) => StyleSheet.create({
   matchesList: {
     gap: 0,
   },
+  matchBlock: {
+    borderRadius: Radius.xl,
+    borderWidth: 1,
+    borderColor: colors.border.default,
+    overflow: 'hidden',
+  },
+  matchCardInBlock: {
+    borderRadius: 0,
+    borderWidth: 0,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.default,
+    marginBottom: 0,
+  },
+  matchCardInBlockLast: {
+    borderRadius: 0,
+    borderWidth: 0,
+    marginBottom: 0,
+  },
   fab: {
     position: 'absolute',
     bottom: Platform.OS === 'ios' ? 32 : 20,

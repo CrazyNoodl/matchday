@@ -187,18 +187,24 @@ export default function MatchdayScreen() {
                 ctaText={roundOpen ? t('matchday.noMatchesAction') : undefined}
                 onPress={roundOpen ? () => store.setModal('add') : undefined}
               />
-            ) : (
-              [...matches].reverse().map((m) => (
-                <MatchCard
-                  key={m.id}
-                  match={m}
-                  onPress={() => {
-                    store.setSelectedMatch(m.id);
-                    router.push(`/match/${m.id}`);
-                  }}
-                />
-              ))
-            )}
+            ) : (() => {
+              const reversed = [...matches].reverse();
+              return (
+                <View style={styles.matchBlock}>
+                  {reversed.map((m, idx) => (
+                    <MatchCard
+                      key={m.id}
+                      match={m}
+                      style={idx < reversed.length - 1 ? styles.matchCardInBlock : styles.matchCardInBlockLast}
+                      onPress={() => {
+                        store.setSelectedMatch(m.id);
+                        router.push(`/match/${m.id}`);
+                      }}
+                    />
+                  ))}
+                </View>
+              );
+            })()}
           </View>
         </View>
 

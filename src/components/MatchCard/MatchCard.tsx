@@ -3,6 +3,7 @@ import {
   View,
   Text,
   TouchableOpacity,
+  StyleProp,
   ViewStyle,
 } from 'react-native';
 import { useStore } from '../../store';
@@ -15,9 +16,10 @@ interface MatchCardProps {
   match: Match;
   onPress?: () => void;
   readonly?: boolean;
+  style?: StyleProp<ViewStyle>;
 }
 
-export function MatchCard({ match, onPress, readonly = false }: MatchCardProps) {
+export function MatchCard({ match, onPress, readonly = false, style }: MatchCardProps) {
   const colors = useColors();
   const styles = makeStyles(colors);
   const players = useStore((s) => s.players);
@@ -40,7 +42,7 @@ export function MatchCard({ match, onPress, readonly = false }: MatchCardProps) 
   return (
     <Container
       {...containerProps}
-      style={styles.card}
+      style={[styles.card, style]}
     >
       {/* Side A */}
       <View style={styles.side}>
