@@ -5,7 +5,6 @@ import {
   Modal,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
   Platform,
   ScrollView,
 } from 'react-native';
@@ -136,12 +135,13 @@ function StandingsCard({ tournamentName, subtitle, standings }: StandingsCardPro
 
 export function ShareStandingsModal({ visible, onClose, tournamentName, subtitle, standings }: ShareStandingsModalProps) {
   const [loading, setLoading] = useState(false);
+  const [saveMessage, setSaveMessage] = useState<{ ok: boolean; text: string } | null>(null);
   const cardRef = useRef<View>(null);
   const colors = useColors();
   const modalStyles = makeModalStyles(colors);
 
   useEffect(() => {
-    if (!visible) setLoading(false);
+    if (!visible) { setLoading(false); setSaveMessage(null); }
   }, [visible]);
 
   const captureNative = async (): Promise<string | null> => {
@@ -149,7 +149,7 @@ export function ShareStandingsModal({ visible, onClose, tournamentName, subtitle
       const { captureRef } = await import('react-native-view-shot') as { captureRef: CaptureRef };
       return await captureRef(cardRef, { format: 'png', quality: 1.0, result: 'tmpfile' });
     } catch {
-      Alert.alert('Error', 'Could not capture image. Please try again.');
+      setSaveMessage({ ok: false, text: 'Could not capture image. Please try again.' });
       return null;
     }
   };
@@ -169,7 +169,7 @@ export function ShareStandingsModal({ visible, onClose, tournamentName, subtitle
         canvas.toBlob((blob) => resolve(blob), 'image/png', 1.0);
       });
     } catch {
-      Alert.alert('Error', 'Could not capture image. Please try again.');
+      setSaveMessage({ ok: false, text: 'Could not capture image. Please try again.' });
       return null;
     }
   };
@@ -192,14 +192,16 @@ export function ShareStandingsModal({ visible, onClose, tournamentName, subtitle
         const MediaLibrary = await import('expo-media-library') as MediaLibraryModule;
         const { status } = await MediaLibrary.requestPermissionsAsync(true);
         if (status !== 'granted') {
-          Alert.alert('Permission required', 'Allow access to Photos to save the image.');
+          setSaveMessage({ ok: false, text: 'Photos permission required. Allow access in Settings.' });
           return;
         }
         const uri = await captureNative();
         if (!uri) return;
         await MediaLibrary.saveToLibraryAsync(uri);
-        Alert.alert('Saved!', 'Image saved to your Photos.');
+        setSaveMessage({ ok: true, text: 'Saved to Photos!' });
       }
+    } catch {
+      setSaveMessage({ ok: false, text: 'Could not save. Please try again.' });
     } finally {
       setLoading(false);
     }
@@ -223,7 +225,7 @@ export function ShareStandingsModal({ visible, onClose, tournamentName, subtitle
         const Sharing = await import('expo-sharing') as SharingModule;
         const canShare = await Sharing.isAvailableAsync();
         if (!canShare) {
-          Alert.alert('Not available', 'Sharing is not available on this device.');
+          setSaveMessage({ ok: false, text: 'Sharing is not available on this device.' });
           return;
         }
         await Sharing.shareAsync(uri, { mimeType: 'image/png', dialogTitle: 'Share Standings' });
@@ -256,6 +258,11 @@ export function ShareStandingsModal({ visible, onClose, tournamentName, subtitle
         </ScrollView>
 
         {/* Action buttons */}
+        {saveMessage && (
+          <Text style={[modalStyles.saveMsg, saveMessage.ok ? modalStyles.saveMsgOk : modalStyles.saveMsgErr]}>
+            {saveMessage.text}
+          </Text>
+        )}
         <View style={modalStyles.actions}>
           <TouchableOpacity
             style={[modalStyles.actionBtn, modalStyles.saveBtn]}

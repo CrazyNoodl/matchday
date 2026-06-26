@@ -6,7 +6,6 @@ import {
   Modal,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
   Platform,
   ScrollView,
   Switch,
@@ -310,13 +309,14 @@ export function ShareRoundModal({ visible, onClose, round, tournamentName }: Sha
   const [loading, setLoading] = useState(false);
   const [includeMatches, setIncludeMatches] = useState(false);
   const [includeStandings, setIncludeStandings] = useState(false);
+  const [saveMessage, setSaveMessage] = useState<{ ok: boolean; text: string } | null>(null);
   const colors = useColors();
   const modalStyles = makeModalStyles(colors);
 
   const cardRef = useRef<View>(null);
 
   useEffect(() => {
-    if (!visible) setLoading(false);
+    if (!visible) { setLoading(false); setSaveMessage(null); }
   }, [visible]);
 
   const captureNative = async (): Promise<string | null> => {
@@ -324,7 +324,7 @@ export function ShareRoundModal({ visible, onClose, round, tournamentName }: Sha
       const { captureRef } = await import('react-native-view-shot') as { captureRef: CaptureRef };
       return await captureRef(cardRef, { format: 'png', quality: 1.0, result: 'tmpfile' });
     } catch {
-      Alert.alert('Error', 'Could not capture image. Please try again.');
+      setSaveMessage({ ok: false, text: 'Could not capture image. Please try again.' });
       return null;
     }
   };
@@ -344,7 +344,7 @@ export function ShareRoundModal({ visible, onClose, round, tournamentName }: Sha
         canvas.toBlob((blob) => resolve(blob), 'image/png', 1.0);
       });
     } catch {
-      Alert.alert('Error', 'Could not capture image. Please try again.');
+      setSaveMessage({ ok: false, text: 'Could not capture image. Please try again.' });
       return null;
     }
   };
@@ -367,14 +367,16 @@ export function ShareRoundModal({ visible, onClose, round, tournamentName }: Sha
         const MediaLibrary = await import('expo-media-library') as MediaLibraryModule;
         const { status } = await MediaLibrary.requestPermissionsAsync(true);
         if (status !== 'granted') {
-          Alert.alert('Permission required', 'Allow access to Photos to save the image.');
+          setSaveMessage({ ok: false, text: 'Photos permission required. Allow access in Settings.' });
           return;
         }
         const uri = await captureNative();
         if (!uri) return;
         await MediaLibrary.saveToLibraryAsync(uri);
-        Alert.alert('Saved!', 'Image saved to your Photos.');
+        setSaveMessage({ ok: true, text: 'Saved to Photos!' });
       }
+    } catch {
+      setSaveMessage({ ok: false, text: 'Could not save. Please try again.' });
     } finally {
       setLoading(false);
     }
@@ -398,7 +400,7 @@ export function ShareRoundModal({ visible, onClose, round, tournamentName }: Sha
         const Sharing = await import('expo-sharing') as SharingModule;
         const canShare = await Sharing.isAvailableAsync();
         if (!canShare) {
-          Alert.alert('Not available', 'Sharing is not available on this device.');
+          setSaveMessage({ ok: false, text: 'Sharing is not available on this device.' });
           return;
         }
         await Sharing.shareAsync(uri, { mimeType: 'image/png', dialogTitle: 'Share Round Results' });
@@ -449,7 +451,7 @@ export function ShareRoundModal({ visible, onClose, round, tournamentName }: Sha
             value={includeStandings}
             onValueChange={setIncludeStandings}
             trackColor={{ false: colors.bg.elevated, true: colors.accent.green }}
-            thumbColor={colors.text.primary}
+            thumbColor="#ffffff"
           />
         </View>
         <View style={modalStyles.optionRow}>
@@ -458,11 +460,16 @@ export function ShareRoundModal({ visible, onClose, round, tournamentName }: Sha
             value={includeMatches}
             onValueChange={setIncludeMatches}
             trackColor={{ false: colors.bg.elevated, true: colors.accent.green }}
-            thumbColor={colors.text.primary}
+            thumbColor="#ffffff"
           />
         </View>
 
         {/* Action buttons */}
+        {saveMessage && (
+          <Text style={[modalStyles.saveMsg, saveMessage.ok ? modalStyles.saveMsgOk : modalStyles.saveMsgErr]}>
+            {saveMessage.text}
+          </Text>
+        )}
         <View style={modalStyles.actions}>
           <TouchableOpacity
             style={[modalStyles.actionBtn, modalStyles.saveBtn]}

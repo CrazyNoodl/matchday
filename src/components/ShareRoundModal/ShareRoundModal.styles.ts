@@ -342,4 +342,17 @@ export const makeModalStyles = (colors: AppColors) => StyleSheet.create({
     fontSize: FontSize.base,
     color: colors.text.primary,
   },
+  saveMsg: {
+    fontFamily: FontFamily.body,
+    fontSize: FontSize.sm,
+    textAlign: 'center',
+    paddingHorizontal: Spacing.xl,
+    paddingBottom: Spacing.sm,
+  },
+  saveMsgOk: {
+    color: colors.accent.green,
+  },
+  saveMsgErr: {
+    color: colors.accent.red,
+  },
 });
