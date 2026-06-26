@@ -8,7 +8,7 @@ export interface TourGroup {
 export function groupMatchesByTour(matches: Match[], playerCount: number): TourGroup[] {
   const tourSize = playerCount > 1 ? (playerCount * (playerCount - 1)) / 2 : 0;
 
-  if (tourSize < 2 || matches.length === 0) {
+  if (tourSize === 0 || matches.length === 0) {
     return [{ tourNumber: 1, matches }];
   }
 
