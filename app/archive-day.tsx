@@ -237,7 +237,7 @@ export default function ArchiveDayScreen() {
       )}
 
       {/* Edit round date sheet */}
-      <Sheet visible={editDateVisible} onClose={() => setEditDateVisible(false)}>
+      <Sheet visible={editDateVisible} onClose={() => setEditDateVisible(false)} keyboardBehavior="extend">
         <View style={styles.dateSheet}>
           <Text style={styles.dateSheetTitle}>{t('archive.editDate.title')}</Text>
           <TextInput

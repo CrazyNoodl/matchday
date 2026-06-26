@@ -23,6 +23,7 @@ interface SheetProps {
   children: React.ReactNode;
   snapToMax?: boolean;
   disableClose?: boolean;
+  keyboardBehavior?: 'interactive' | 'extend' | 'fillParent';
 }
 
 // Sizes itself to its actual content height via onLayout, rather than a
@@ -38,7 +39,7 @@ interface SheetProps {
 // Open/close are driven imperatively via ref (snapToIndex/close), not the
 // declarative `index` prop — the declarative path was unreliable for
 // closing the sheet from a button (e.g. Cancel) in this app.
-export function Sheet({ visible, onClose, children, snapToMax, disableClose = false }: SheetProps) {
+export function Sheet({ visible, onClose, children, snapToMax, disableClose = false, keyboardBehavior = 'interactive' }: SheetProps) {
   const colors = useColors();
   const ref = useRef<BottomSheet>(null);
   const [height, setHeight] = useState(MIN_HEIGHT);
@@ -80,7 +81,7 @@ export function Sheet({ visible, onClose, children, snapToMax, disableClose = fa
       enableDynamicSizing={false}
       animationConfigs={ANIMATION_CONFIGS}
       enablePanDownToClose={!disableClose}
-      keyboardBehavior="interactive"
+      keyboardBehavior={keyboardBehavior}
       keyboardBlurBehavior="restore"
       backdropComponent={renderBackdrop}
       backgroundStyle={{ backgroundColor: colors.bg.sheet }}
