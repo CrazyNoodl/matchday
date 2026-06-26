@@ -293,6 +293,7 @@ export const makeModalStyles = (colors: AppColors) => StyleSheet.create({
     flexGrow: 1,
     alignItems: 'center',
     paddingVertical: Spacing.xl,
+    backgroundColor: '#0c0e10',
   },
   cardWrap: {
     shadowColor: '#000',

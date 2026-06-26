@@ -295,7 +295,7 @@ export const makeStyles = (colors: AppColors) => StyleSheet.create({
     justifyContent: 'center',
   },
   newMatchDayIconActive: {
-    backgroundColor: colors.accent.greenDark,
+    backgroundColor: 'rgba(0,0,0,0.2)',
   },
   newMatchDayIconDisabled: {
     backgroundColor: colors.bg.elevated,
