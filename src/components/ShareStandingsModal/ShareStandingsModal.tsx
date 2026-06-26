@@ -11,7 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 // Native-only modules loaded dynamically so web build doesn't crash
 type CaptureRef = typeof import('react-native-view-shot')['captureRef'];
-type MediaLibraryModule = typeof import('expo-media-library');
+type MediaLibraryModule = typeof import('expo-media-library/legacy');
 type SharingModule = typeof import('expo-sharing');
 type Html2Canvas = typeof import('html2canvas').default;
 import { useStore } from '@/store';
@@ -189,7 +189,7 @@ export function ShareStandingsModal({ visible, onClose, tournamentName, subtitle
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
       } else {
-        const MediaLibrary = await import('expo-media-library') as MediaLibraryModule;
+        const MediaLibrary = await import('expo-media-library/legacy') as MediaLibraryModule;
         const { status } = await MediaLibrary.requestPermissionsAsync(true);
         if (status !== 'granted') {
           setSaveMessage({ ok: false, text: 'Photos permission required. Allow access in Settings.' });
