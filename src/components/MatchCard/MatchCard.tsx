@@ -31,8 +31,8 @@ export function MatchCard({ match, onPress, readonly = false }: MatchCardProps) 
 
   const aNameColor = !bWins ? colors.text.primary : colors.text.muted;
   const bNameColor = !aWins ? colors.text.primary : colors.text.muted;
-  const aScoreColor = aWins ? colors.accent.green : isDraw ? colors.text.secondary : '#7c8388';
-  const bScoreColor = bWins ? colors.accent.green : isDraw ? colors.text.secondary : '#7c8388';
+  const aScoreColor = aWins ? colors.accent.green : isDraw ? colors.text.secondary : colors.text.ghost;
+  const bScoreColor = bWins ? colors.accent.green : isDraw ? colors.text.secondary : colors.text.ghost;
 
   const Container = onPress && !readonly ? TouchableOpacity : View;
   const containerProps = onPress && !readonly ? { onPress, activeOpacity: 0.75 } : {};

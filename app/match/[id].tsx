@@ -115,7 +115,7 @@ export default function MatchDetailScreen() {
                 style={[
                   styles.heroScoreNum,
                   aWins && { color: colors.accent.green },
-                  !aWins && !isDraw && { color: '#7c8388' },
+                  !aWins && !isDraw && { color: colors.text.ghost },
                 ]}
               >
                 {match.aScore}
@@ -125,7 +125,7 @@ export default function MatchDetailScreen() {
                 style={[
                   styles.heroScoreNum,
                   bWins && { color: colors.accent.green },
-                  !bWins && !isDraw && { color: '#7c8388' },
+                  !bWins && !isDraw && { color: colors.text.ghost },
                 ]}
               >
                 {match.bScore}

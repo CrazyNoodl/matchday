@@ -42,7 +42,7 @@ export const makeStyles = (colors: AppColors) => StyleSheet.create({
     position: 'absolute',
     width: THUMB_WIDTH * 3,
     height: 1,
-    backgroundColor: 'rgba(255,255,255,0.04)',
+    backgroundColor: colors.border.default,
     transform: [{ rotate: '45deg' }],
   },
   removeBtn: {
@@ -56,7 +56,7 @@ export const makeStyles = (colors: AppColors) => StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.15)',
+    borderColor: colors.border.strong,
   },
   removeIcon: {
     fontFamily: FontFamily.bodyBold,

@@ -38,7 +38,7 @@ export const makeConfig = (colors: AppColors): Record<BadgeType, BadgeConfig> =>
   },
   archived: {
     label: 'ARCHIVED',
-    bg: 'rgba(255,255,255,0.05)',
+    bg: colors.bg.elevated,
     textColor: colors.text.muted,
     borderColor: colors.border.default,
   },
@@ -50,7 +50,7 @@ export const makeConfig = (colors: AppColors): Record<BadgeType, BadgeConfig> =>
   },
   auto: {
     label: 'AUTO',
-    bg: 'rgba(255,255,255,0.05)',
+    bg: colors.bg.elevated,
     textColor: colors.text.muted,
     borderColor: colors.border.default,
   },

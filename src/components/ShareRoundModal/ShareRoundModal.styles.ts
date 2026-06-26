@@ -8,11 +8,11 @@ export const CARD_W = 320;
 export const makeWinnerStyles = (colors: AppColors) => StyleSheet.create({
   card: {
     width: CARD_W,
-    backgroundColor: '#0c0e10',
+    backgroundColor: colors.bg.base,
     borderRadius: Radius.xl,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: colors.border.medium,
   },
   glow: {
     position: 'absolute',
@@ -43,7 +43,7 @@ export const makeWinnerStyles = (colors: AppColors) => StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: 'rgba(255,255,255,0.06)',
+    backgroundColor: colors.border.default,
   },
   hero: {
     alignItems: 'center',
@@ -95,7 +95,7 @@ export const makeWinnerStyles = (colors: AppColors) => StyleSheet.create({
     alignItems: 'center',
     gap: Spacing.xs,
     marginTop: Spacing.xs,
-    backgroundColor: 'rgba(255,255,255,0.04)',
+    backgroundColor: colors.bg.elevated,
     borderRadius: Radius.lg,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
@@ -131,7 +131,7 @@ export const makeWinnerStyles = (colors: AppColors) => StyleSheet.create({
   statSep: {
     width: 1,
     height: 28,
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: colors.border.medium,
     marginHorizontal: 4,
   },
   footer: {
@@ -169,7 +169,7 @@ export const makeWinnerStyles = (colors: AppColors) => StyleSheet.create({
   },
   matchRowBorder: {
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.06)',
+    borderBottomColor: colors.border.default,
   },
   matchSide: {
     flex: 1,
@@ -293,6 +293,7 @@ export const makeModalStyles = (colors: AppColors) => StyleSheet.create({
     flexGrow: 1,
     alignItems: 'center',
     paddingVertical: Spacing.xl,
+    backgroundColor: colors.bg.base,
   },
   cardWrap: {
     shadowColor: '#000',
@@ -341,5 +342,18 @@ export const makeModalStyles = (colors: AppColors) => StyleSheet.create({
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.base,
     color: colors.text.primary,
+  },
+  saveMsg: {
+    fontFamily: FontFamily.body,
+    fontSize: FontSize.sm,
+    textAlign: 'center',
+    paddingHorizontal: Spacing.xl,
+    paddingBottom: Spacing.sm,
+  },
+  saveMsgOk: {
+    color: colors.accent.green,
+  },
+  saveMsgErr: {
+    color: colors.accent.red,
   },
 });

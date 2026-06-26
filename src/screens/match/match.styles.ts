@@ -63,10 +63,10 @@ export const makeStyles = (colors: AppColors) => StyleSheet.create({
   scoreHero: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0f1f14',
+    backgroundColor: colors.bg.surface,
     borderRadius: Radius.xl,
     borderWidth: 1,
-    borderColor: 'rgba(61,220,132,0.2)',
+    borderColor: colors.accent.greenBorder,
     padding: Spacing.xl,
     marginTop: Spacing.lg,
     gap: Spacing.sm,

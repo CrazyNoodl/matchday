@@ -36,9 +36,9 @@ export const makeStyles = (colors: AppColors) => StyleSheet.create({
   // ---- Day Winner Banner ----
   winnerCard: {
     alignItems: 'center',
-    backgroundColor: '#0c0e10',
+    backgroundColor: colors.bg.surface,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: colors.border.medium,
     borderRadius: Radius.xl,
     paddingVertical: Spacing.xl,
     gap: Spacing.xs,
