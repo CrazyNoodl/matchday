@@ -9,6 +9,21 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.8.1',
+    fixed: [
+      'Matches within a round are now grouped into tour blocks — a tour is complete when every player has faced every other player once (N×(N-1)/2 matches); with 2 players each match is its own tour (#42)',
+      'Round date chip in archived round view now scrolls with the content instead of staying fixed above it (#41)',
+      'Standings table rows now have correct horizontal padding — cells no longer touch the card edge (#39)',
+      'Keyboard no longer covers text inputs on the tournament name and add-match screens (#36)',
+      'Demo mode banner no longer overlaps the primary CTA button (#40)',
+      'All hardcoded colours replaced with theme tokens — light theme is now fully consistent across standings cards, share modals, and score display (#37, #38)',
+      '"Save to Photos" button now shows a success/failure response and works correctly on iOS (#35)',
+      'App no longer crashes during sync when a match has malformed JSON in its media or statsOverride fields (#15)',
+      'OCR stats extraction now runs even when the Supabase upload fails — stats are not lost on connectivity issues (#49)',
+      'Upload and OCR error messages now use in-app dialogs instead of native Alert — fixes broken file picker on web (#50)',
+    ],
+  },
+  {
     version: '1.8.0',
     added: [
       'Closing the add-match sheet with unsaved progress (photos, score, or players selected) now shows a confirmation dialog — accidental swipe-to-dismiss no longer silently discards your match (#48)',
