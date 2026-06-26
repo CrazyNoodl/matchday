@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '@/store';
 import { useColors } from '@/theme';
-import { NavHeader, Avatar, GlowBackground } from '@/components';
+import { NavHeader, Avatar, GlowBackground, Sheet } from '@/components';
 import { makeStyles } from '@/screens/settings/tournaments/tournaments.styles';
 
 export default function TournamentsScreen() {
@@ -150,17 +150,9 @@ export default function TournamentsScreen() {
         <View style={{ height: 40 }} />
       </ScrollView>
 
-      {/* Rename Modal */}
-      <Modal
-        visible={modal === 'editTourName'}
-        transparent
-        animationType="slide"
-        statusBarTranslucent
-        onRequestClose={() => store.setModal(null)}
-      >
-        <View style={styles.sheetOverlay} />
-        <View style={styles.sheet}>
-          <View style={styles.sheetHandle} />
+      {/* Rename Sheet */}
+      <Sheet visible={modal === 'editTourName'} onClose={() => store.setModal(null)}>
+        <View style={styles.sheetContent}>
           <Text style={styles.sheetTitle}>{t('tournament.rename.title')}</Text>
           <TextInput
             style={styles.renameInput}
@@ -193,7 +185,7 @@ export default function TournamentsScreen() {
           </View>
           {Platform.OS === 'ios' && <View style={{ height: 16 }} />}
         </View>
-      </Modal>
+      </Sheet>
 
       {/* Close Tournament Dialog */}
       <Modal
