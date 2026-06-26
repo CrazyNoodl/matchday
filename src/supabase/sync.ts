@@ -15,6 +15,10 @@ import type { Player, Team, Match, ArchivedRound, ClosedTournament } from '../st
 // Push — local → Supabase
 // ---------------------------------------------------------------------------
 
+export type DirtyTable = 'players' | 'teams' | 'activeTournament' | 'openMatches' | 'closedTournaments';
+
+const ALL_DIRTY = new Set<DirtyTable>(['players', 'teams', 'activeTournament', 'openMatches', 'closedTournaments']);
+
 export interface SyncPayload {
   tournamentId: string;
   players: Player[];
@@ -34,64 +38,70 @@ export interface SyncPayload {
   };
 }
 
-export async function pushState(payload: SyncPayload): Promise<void> {
+export async function pushState(payload: SyncPayload, dirty: Set<DirtyTable> = ALL_DIRTY): Promise<void> {
   const userId = await getCurrentUserId();
   if (!userId) return;
+
+  console.log('[sync] pushing dirty:', [...dirty]);
 
   const now = new Date().toISOString();
   const db = supabase;
 
   // 1. Players
-  if (payload.players.length > 0) {
-    await db.from('players').upsert(
-      payload.players.map((p) => ({
-        id: p.id,
-        user_id: userId,
-        name: p.name,
-        nick: p.nick ?? null,
-        color: p.color,
-        team_code: p.teamCode,
-        photo: p.photo ?? null,
-        updated_at: now,
-      })),
-      { onConflict: 'id,user_id' },
-    );
-  }
-  const playerIds = payload.players.map((p) => p.id);
-  if (playerIds.length > 0) {
-    await db.from('players').delete().eq('user_id', userId).not('id', 'in', `(${playerIds})`);
-  } else {
-    await db.from('players').delete().eq('user_id', userId);
+  if (dirty.has('players')) {
+    if (payload.players.length > 0) {
+      await db.from('players').upsert(
+        payload.players.map((p) => ({
+          id: p.id,
+          user_id: userId,
+          name: p.name,
+          nick: p.nick ?? null,
+          color: p.color,
+          team_code: p.teamCode,
+          photo: p.photo ?? null,
+          updated_at: now,
+        })),
+        { onConflict: 'id,user_id' },
+      );
+    }
+    const playerIds = payload.players.map((p) => p.id);
+    if (playerIds.length > 0) {
+      await db.from('players').delete().eq('user_id', userId).not('id', 'in', `(${playerIds})`);
+    } else {
+      await db.from('players').delete().eq('user_id', userId);
+    }
   }
 
   // 2. Teams
-  if (payload.teams.length > 0) {
-    await db.from('teams').upsert(
-      payload.teams.map((t) => ({
-        code: t.code,
-        user_id: userId,
-        name: t.name,
-        short: t.short,
-        color: t.color,
-        custom: t.custom ?? false,
-        logo: t.logo ?? null,
-        updated_at: now,
-      })),
-      { onConflict: 'code,user_id' },
-    );
-  }
-  const teamCodes = payload.teams.map((t) => t.code);
-  if (teamCodes.length > 0) {
-    await db.from('teams').delete().eq('user_id', userId).not('code', 'in', `(${teamCodes})`);
-  } else {
-    await db.from('teams').delete().eq('user_id', userId);
+  if (dirty.has('teams')) {
+    if (payload.teams.length > 0) {
+      await db.from('teams').upsert(
+        payload.teams.map((t) => ({
+          code: t.code,
+          user_id: userId,
+          name: t.name,
+          short: t.short,
+          color: t.color,
+          custom: t.custom ?? false,
+          logo: t.logo ?? null,
+          updated_at: now,
+        })),
+        { onConflict: 'code,user_id' },
+      );
+    }
+    const teamCodes = payload.teams.map((t) => t.code);
+    if (teamCodes.length > 0) {
+      await db.from('teams').delete().eq('user_id', userId).not('code', 'in', `(${teamCodes})`);
+    } else {
+      await db.from('teams').delete().eq('user_id', userId);
+    }
   }
 
   // 3. Active tournament + its archived rounds and their matches
   const { hasTournament } = payload.tournament;
   const tournamentId = payload.tournamentId;
 
-  if (hasTournament && tournamentId) {
+  if (dirty.has('activeTournament')) if (hasTournament && tournamentId) {
     await db.from('tournaments').upsert(
       {
         id: tournamentId,
@@ -174,138 +184,142 @@ export async function pushState(payload: SyncPayload): Promise<void> {
   }
 
   // 4. Current open round matches (round_id = null)
-  if (payload.matches.length > 0) {
-    await db.from('matches').upsert(
-      payload.matches.map((m) => ({
-        id: m.id,
-        user_id: userId,
-        tournament_id: tournamentId || null,
-        round_id: null,
-        a_id: m.aId,
-        b_id: m.bId,
-        a_team: m.aTeam,
-        b_team: m.bTeam,
-        a_score: m.aScore,
-        b_score: m.bScore,
-        media: m.media ? JSON.stringify(m.media) : null,
-        note: m.note ?? null,
-        stats_override: m.statsOverride ? JSON.stringify(m.statsOverride) : null,
-        updated_at: now,
-      })),
-      { onConflict: 'id' },
-    );
-  }
-  const matchIds = payload.matches.map((m) => m.id);
-  if (matchIds.length > 0) {
-    await db
-      .from('matches')
-      .delete()
-      .eq('user_id', userId)
-      .is('round_id', null)
-      .not('id', 'in', `(${matchIds})`);
-  } else {
-    await db.from('matches').delete().eq('user_id', userId).is('round_id', null);
-  }
-
-  // 5. Closed tournaments (upsert one by one to ensure tournaments row exists for FK)
-  for (const ct of payload.closedTournaments) {
-    // Keep a tournaments row (status: closed) so rounds can reference tournaments.id via FK
-    await db.from('tournaments').upsert(
-      {
-        id: ct.id,
-        user_id: userId,
-        name: ct.name,
-        ranked: false,
-        rounds_target: ct.rounds.length,
-        player_ids: ct.players,
-        round: ct.rounds.length,
-        round_open: false,
-        round_players: [],
-        status: 'closed',
-        updated_at: now,
-      },
-      { onConflict: 'id' },
-    );
-
-    await db.from('closed_tournaments').upsert(
-      {
-        id: ct.id,
-        user_id: userId,
-        name: ct.name,
-        date: ct.date,
-        champ_id: ct.champId,
-        champ_name: ct.champName,
-        champ_color: ct.champColor,
-        champ_init: ct.champInit,
-        player_ids: ct.players,
-        updated_at: now,
-      },
-      { onConflict: 'id' },
-    );
-
-    if (ct.rounds.length > 0) {
-      await db.from('rounds').upsert(
-        ct.rounds.map((r) => ({
-          id: r.id,
+  if (dirty.has('openMatches')) {
+    if (payload.matches.length > 0) {
+      await db.from('matches').upsert(
+        payload.matches.map((m) => ({
+          id: m.id,
           user_id: userId,
-          tournament_id: ct.id,
-          n: r.n,
-          date: r.date,
-          winner: r.winner,
-          games: r.games,
-          ranked: r.ranked,
-          name: r.name,
-          player_ids: r.players ?? [],
-          status: 'archived',
+          tournament_id: tournamentId || null,
+          round_id: null,
+          a_id: m.aId,
+          b_id: m.bId,
+          a_team: m.aTeam,
+          b_team: m.bTeam,
+          a_score: m.aScore,
+          b_score: m.bScore,
+          media: m.media ? JSON.stringify(m.media) : null,
+          note: m.note ?? null,
+          stats_override: m.statsOverride ? JSON.stringify(m.statsOverride) : null,
           updated_at: now,
         })),
         { onConflict: 'id' },
       );
+    }
+    const matchIds = payload.matches.map((m) => m.id);
+    if (matchIds.length > 0) {
+      await db
+        .from('matches')
+        .delete()
+        .eq('user_id', userId)
+        .is('round_id', null)
+        .not('id', 'in', `(${matchIds})`);
+    } else {
+      await db.from('matches').delete().eq('user_id', userId).is('round_id', null);
+    }
+  }
 
-      const closedMatches = ct.rounds.flatMap((r) =>
-        r.matches.map((m) => ({ ...m, roundId: r.id })),
+  // 5. Closed tournaments (upsert one by one to ensure tournaments row exists for FK)
+  if (dirty.has('closedTournaments')) {
+    for (const ct of payload.closedTournaments) {
+      // Keep a tournaments row (status: closed) so rounds can reference tournaments.id via FK
+      await db.from('tournaments').upsert(
+        {
+          id: ct.id,
+          user_id: userId,
+          name: ct.name,
+          ranked: false,
+          rounds_target: ct.rounds.length,
+          player_ids: ct.players,
+          round: ct.rounds.length,
+          round_open: false,
+          round_players: [],
+          status: 'closed',
+          updated_at: now,
+        },
+        { onConflict: 'id' },
       );
-      if (closedMatches.length > 0) {
-        await db.from('matches').upsert(
-          closedMatches.map((m) => ({
-            id: m.id,
+
+      await db.from('closed_tournaments').upsert(
+        {
+          id: ct.id,
+          user_id: userId,
+          name: ct.name,
+          date: ct.date,
+          champ_id: ct.champId,
+          champ_name: ct.champName,
+          champ_color: ct.champColor,
+          champ_init: ct.champInit,
+          player_ids: ct.players,
+          updated_at: now,
+        },
+        { onConflict: 'id' },
+      );
+
+      if (ct.rounds.length > 0) {
+        await db.from('rounds').upsert(
+          ct.rounds.map((r) => ({
+            id: r.id,
             user_id: userId,
             tournament_id: ct.id,
-            round_id: m.roundId,
-            a_id: m.aId,
-            b_id: m.bId,
-            a_team: m.aTeam,
-            b_team: m.bTeam,
-            a_score: m.aScore,
-            b_score: m.bScore,
-            media: m.media ? JSON.stringify(m.media) : null,
-            note: m.note ?? null,
-            stats_override: m.statsOverride ? JSON.stringify(m.statsOverride) : null,
+            n: r.n,
+            date: r.date,
+            winner: r.winner,
+            games: r.games,
+            ranked: r.ranked,
+            name: r.name,
+            player_ids: r.players ?? [],
+            status: 'archived',
             updated_at: now,
           })),
           { onConflict: 'id' },
         );
+
+        const closedMatches = ct.rounds.flatMap((r) =>
+          r.matches.map((m) => ({ ...m, roundId: r.id })),
+        );
+        if (closedMatches.length > 0) {
+          await db.from('matches').upsert(
+            closedMatches.map((m) => ({
+              id: m.id,
+              user_id: userId,
+              tournament_id: ct.id,
+              round_id: m.roundId,
+              a_id: m.aId,
+              b_id: m.bId,
+              a_team: m.aTeam,
+              b_team: m.bTeam,
+              a_score: m.aScore,
+              b_score: m.bScore,
+              media: m.media ? JSON.stringify(m.media) : null,
+              note: m.note ?? null,
+              stats_override: m.statsOverride ? JSON.stringify(m.statsOverride) : null,
+              updated_at: now,
+            })),
+            { onConflict: 'id' },
+          );
+        }
       }
     }
-  }
 
-  // Delete closed tournaments not in local state (rounds + matches cascade via tournaments.id)
-  const closedTourIds = payload.closedTournaments.map((t) => t.id);
-  if (closedTourIds.length > 0) {
-    await db
-      .from('closed_tournaments')
-      .delete()
-      .eq('user_id', userId)
-      .not('id', 'in', `(${closedTourIds})`);
-    await db
-      .from('tournaments')
-      .delete()
-      .eq('user_id', userId)
-      .eq('status', 'closed')
-      .not('id', 'in', `(${closedTourIds})`);
-  } else {
-    await db.from('closed_tournaments').delete().eq('user_id', userId);
-    await db.from('tournaments').delete().eq('user_id', userId).eq('status', 'closed');
+    // Delete closed tournaments not in local state (rounds + matches cascade via tournaments.id)
+    const closedTourIds = payload.closedTournaments.map((t) => t.id);
+    if (closedTourIds.length > 0) {
+      await db
+        .from('closed_tournaments')
+        .delete()
+        .eq('user_id', userId)
+        .not('id', 'in', `(${closedTourIds})`);
+      await db
+        .from('tournaments')
+        .delete()
+        .eq('user_id', userId)
+        .eq('status', 'closed')
+        .not('id', 'in', `(${closedTourIds})`);
+    } else {
+      await db.from('closed_tournaments').delete().eq('user_id', userId);
+      await db.from('tournaments').delete().eq('user_id', userId).eq('status', 'closed');
+    }
   }
 }
 
