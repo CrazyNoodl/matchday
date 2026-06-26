@@ -65,10 +65,8 @@ export function useMatchDetail() {
   const [showClearStats, setShowClearStats] = useState(false);
   const [showSwapSides, setShowSwapSides] = useState(false);
   const [showStatsMenu, setShowStatsMenu] = useState(false);
-  const [showUploadWarning, setShowUploadWarning] = useState(false);
   const [showOcrFailed, setShowOcrFailed] = useState(false);
   const [showOcrNoStats, setShowOcrNoStats] = useState(false);
-  const [showPhotoLost, setShowPhotoLost] = useState(false);
   const [retryingMediaUri, setRetryingMediaUri] = useState<string | null>(null);
   const [statsMenuPos, setStatsMenuPos] = useState({ top: 0, right: 0 });
   const statsMenuBtnRef = useRef<import('react-native').View>(null);
@@ -259,9 +257,6 @@ export function useMatchDetail() {
           setShowOcrNoStats(true);
         }
 
-        if (!allUploaded) {
-          setShowUploadWarning(true);
-        }
       } catch {
         setShowOcrFailed(true);
       } finally {
@@ -294,11 +289,8 @@ export function useMatchDetail() {
         store.updateMatchMedia(matchId, freshMedia.map((m) =>
           m.uri === itemUri ? { uri: remoteUrl!, type: item.type } : m,
         ));
-      } else {
-        // File gone or upload failed — remove item, inform user
-        store.updateMatchMedia(matchId, freshMedia.filter((m) => m.uri !== itemUri));
-        setShowPhotoLost(true);
       }
+      // On failure: keep item with pendingUpload:true so user can retry again
     } finally {
       setRetryingMediaUri(null);
     }
@@ -371,10 +363,8 @@ export function useMatchDetail() {
     statsMenuPos,
     statsMenuBtnRef,
     viewingMediaIndex,
-    showUploadWarning,
     showOcrFailed,
     showOcrNoStats,
-    showPhotoLost,
     retryingMediaUri,
     goBack,
     store,
@@ -386,10 +376,8 @@ export function useMatchDetail() {
     setShowStatsMenu,
     setShowClearStats,
     setShowSwapSides,
-    setShowUploadWarning,
     setShowOcrFailed,
     setShowOcrNoStats,
-    setShowPhotoLost,
     openEditScore,
     openEditStats,
     openStatsMenu,

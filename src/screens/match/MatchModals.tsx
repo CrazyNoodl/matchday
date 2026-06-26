@@ -293,7 +293,6 @@ export function MatchModals({ d }: MatchModalsProps) {
         statusBarTranslucent
       >
         <View style={styles.dialogOverlay}>
-          <Pressable style={StyleSheet.absoluteFill} onPress={() => d.setShowClearStats(false)} />
           <View style={styles.dialog}>
             <Text style={styles.dialogTitle}>CLEAR STATS</Text>
             <Text style={styles.dialogDesc}>Remove all match statistics?</Text>
@@ -329,7 +328,6 @@ export function MatchModals({ d }: MatchModalsProps) {
         statusBarTranslucent
       >
         <View style={styles.dialogOverlay}>
-          <Pressable style={StyleSheet.absoluteFill} onPress={() => d.setShowSwapSides(false)} />
           <View style={styles.dialog}>
             <Text style={styles.dialogTitle}>SWAP SIDES</Text>
             <Text style={styles.dialogDesc}>
@@ -358,31 +356,6 @@ export function MatchModals({ d }: MatchModalsProps) {
         </View>
       </Modal>
 
-      {/* ── UPLOAD WARNING ── */}
-      <Modal
-        visible={d.showUploadWarning}
-        transparent
-        animationType="fade"
-        onRequestClose={() => d.setShowUploadWarning(false)}
-        statusBarTranslucent
-      >
-        <View style={styles.dialogOverlay}>
-          <Pressable style={StyleSheet.absoluteFill} onPress={() => d.setShowUploadWarning(false)} />
-          <View style={styles.dialog}>
-            <Text style={styles.dialogTitle}>{t('matchDetail.media.uploadFailed')}</Text>
-            <Text style={styles.dialogDesc}>{t('matchDetail.media.uploadFailedDesc')}</Text>
-            <View style={styles.dialogActions}>
-              <TouchableOpacity
-                style={styles.dialogCancel}
-                onPress={() => d.setShowUploadWarning(false)}
-                activeOpacity={0.75}
-              >
-                <Text style={styles.dialogCancelText}>OK</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
 
       {/* ── OCR FAILED ── */}
       <Modal
@@ -393,7 +366,6 @@ export function MatchModals({ d }: MatchModalsProps) {
         statusBarTranslucent
       >
         <View style={styles.dialogOverlay}>
-          <Pressable style={StyleSheet.absoluteFill} onPress={() => d.setShowOcrFailed(false)} />
           <View style={styles.dialog}>
             <Text style={styles.dialogTitle}>{t('matchDetail.ocr.failed')}</Text>
             <Text style={styles.dialogDesc}>{t('matchDetail.ocr.failedDesc')}</Text>
@@ -419,7 +391,6 @@ export function MatchModals({ d }: MatchModalsProps) {
         statusBarTranslucent
       >
         <View style={styles.dialogOverlay}>
-          <Pressable style={StyleSheet.absoluteFill} onPress={() => d.setShowOcrNoStats(false)} />
           <View style={styles.dialog}>
             <Text style={styles.dialogTitle}>{t('matchDetail.ocr.noStats')}</Text>
             <Text style={styles.dialogDesc}>{t('matchDetail.ocr.noStatsDesc')}</Text>
@@ -436,31 +407,6 @@ export function MatchModals({ d }: MatchModalsProps) {
         </View>
       </Modal>
 
-      {/* ── PHOTO LOST ── */}
-      <Modal
-        visible={d.showPhotoLost}
-        transparent
-        animationType="fade"
-        onRequestClose={() => d.setShowPhotoLost(false)}
-        statusBarTranslucent
-      >
-        <View style={styles.dialogOverlay}>
-          <Pressable style={StyleSheet.absoluteFill} onPress={() => d.setShowPhotoLost(false)} />
-          <View style={styles.dialog}>
-            <Text style={styles.dialogTitle}>{t('matchDetail.media.photoLost')}</Text>
-            <Text style={styles.dialogDesc}>{t('matchDetail.media.photoLostDesc')}</Text>
-            <View style={styles.dialogActions}>
-              <TouchableOpacity
-                style={styles.dialogCancel}
-                onPress={() => d.setShowPhotoLost(false)}
-                activeOpacity={0.75}
-              >
-                <Text style={styles.dialogCancelText}>OK</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
 
       {/* ── DELETE MATCH MODAL ── */}
       <Modal

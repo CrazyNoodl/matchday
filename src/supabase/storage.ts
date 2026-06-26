@@ -16,19 +16,12 @@ export async function uploadMediaItem(
   if (!userId) return null;
 
   try {
-    const blob = await uriToBlob(localUri);
     const ext = type === 'video' ? 'mp4' : 'jpg';
     const path = `${userId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
     const mimeType = type === 'video' ? 'video/mp4' : 'image/jpeg';
 
-    const { error } = await supabase.storage
-      .from(BUCKET)
-      .upload(path, blob, { contentType: mimeType, upsert: false });
-
-    if (error) {
-      console.warn('[storage] upload failed:', error.message);
-      return null;
-    }
+    const ok = await uploadViaFetch(localUri, path, mimeType);
+    if (!ok) return null;
 
     const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
     return data?.publicUrl ?? null;
@@ -47,17 +40,10 @@ export async function uploadTeamLogo(localUri: string): Promise<string | null> {
   if (!userId) return null;
 
   try {
-    const blob = await uriToBlob(localUri);
     const path = `${userId}/team-logos/${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`;
 
-    const { error } = await supabase.storage
-      .from(BUCKET)
-      .upload(path, blob, { contentType: 'image/jpeg', upsert: false });
-
-    if (error) {
-      console.warn('[storage] team logo upload failed:', error.message);
-      return null;
-    }
+    const ok = await uploadViaFetch(localUri, path, 'image/jpeg');
+    if (!ok) return null;
 
     const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
     return data?.publicUrl ?? null;
@@ -115,8 +101,39 @@ function extractStoragePath(publicUrl: string): string | null {
   return publicUrl.slice(idx + marker.length);
 }
 
-async function uriToBlob(uri: string): Promise<Blob> {
-  // Works on web (fetch) and React Native (fetch also works for local file URIs)
-  const response = await fetch(uri);
-  return response.blob();
+// Bypasses supabase-js storage client to avoid internal new Blob() calls
+// that Hermes (iOS 26+) does not support. Uses the Supabase REST API directly
+// with a native blob body — React Native's networking layer handles it natively.
+async function uploadViaFetch(
+  localUri: string,
+  path: string,
+  mimeType: string,
+): Promise<boolean> {
+  const { data: sessionData } = await supabase.auth.getSession();
+  const token = sessionData.session?.access_token;
+  if (!token) return false;
+
+  const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL ?? '';
+  const anonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? '';
+
+  const arrayBuffer = await fetch(localUri).then(r => r.arrayBuffer());
+
+  const response = await fetch(
+    `${supabaseUrl}/storage/v1/object/${BUCKET}/${path}`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        apikey: anonKey,
+        'Content-Type': mimeType,
+      },
+      body: arrayBuffer,
+    },
+  );
+
+  if (!response.ok) {
+    const text = await response.text();
+    console.warn('[storage] upload failed:', text);
+  }
+  return response.ok;
 }

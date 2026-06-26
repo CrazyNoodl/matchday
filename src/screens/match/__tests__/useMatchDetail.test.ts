@@ -338,10 +338,9 @@ describe('handleAddMedia', () => {
     expect(media).toHaveLength(1);
     expect(media![0].uri).toBe('https://cdn.example.com/photo.jpg');
     expect(media![0].pendingUpload).toBeUndefined();
-    expect(result.current.showUploadWarning).toBe(false);
   });
 
-  it('saves locally with pendingUpload flag and shows upload warning when upload fails', async () => {
+  it('saves locally with pendingUpload flag when upload fails', async () => {
     useStore.setState({ matches: [MATCH] });
     mockPicker.mockResolvedValueOnce({
       canceled: false,
@@ -354,7 +353,6 @@ describe('handleAddMedia', () => {
     expect(media).toHaveLength(1);
     expect(media![0].uri).toBe('file://photo.jpg');
     expect(media![0].pendingUpload).toBe(true);
-    expect(result.current.showUploadWarning).toBe(false);
   });
 });
 
@@ -367,12 +365,11 @@ describe('handleImportStats', () => {
     const { result } = await renderHook(() => useMatchDetail());
     await act(async () => { await result.current.handleImportStats(); });
     expect(useStore.getState().matches[0].media).toBeUndefined();
-    expect(result.current.showUploadWarning).toBe(false);
     expect(result.current.showOcrFailed).toBe(false);
     expect(result.current.showOcrNoStats).toBe(false);
   });
 
-  it('upload fails: saves locally with pendingUpload flag, runs OCR, shows both alerts', async () => {
+  it('upload fails: saves locally with pendingUpload flag, runs OCR', async () => {
     useStore.setState({ matches: [MATCH] });
     mockPicker.mockResolvedValueOnce({
       canceled: false,
@@ -388,9 +385,7 @@ describe('handleImportStats', () => {
     expect(media![0].pendingUpload).toBe(true);
     // OCR still runs — base64 is in memory regardless of upload status
     expect(mockExtractStats).toHaveBeenCalledWith('abc', 'image/jpeg');
-    // Both notifications shown: noStats (OCR returned []) then uploadFailed
     expect(result.current.showOcrNoStats).toBe(true);
-    expect(result.current.showUploadWarning).toBe(true);
   });
 
   it('upload fails: does NOT add media when match already has photos, but still runs OCR', async () => {
@@ -409,7 +404,6 @@ describe('handleImportStats', () => {
     expect(media![0].uri).toBe('https://cdn/existing.jpg');
     // OCR still runs even though upload failed
     expect(mockExtractStats).toHaveBeenCalledWith('abc', 'image/jpeg');
-    expect(result.current.showUploadWarning).toBe(true);
   });
 
   it('upload succeeds: runs OCR and auto-applies stats without opening modal', async () => {
@@ -428,7 +422,6 @@ describe('handleImportStats', () => {
     const saved = useStore.getState().matches[0];
     expect(saved.statsOverride?.shots).toEqual({ a: 7, b: 3 });
     expect(useStore.getState().modal).toBeNull();
-    expect(result.current.showUploadWarning).toBe(false);
     expect(result.current.showOcrFailed).toBe(false);
     expect(result.current.showOcrNoStats).toBe(false);
   });
@@ -484,7 +477,6 @@ describe('handleImportStats', () => {
     expect(media![0].pendingUpload).toBeUndefined();
     expect(media![1].uri).toBe('file://b.jpg');
     expect(media![1].pendingUpload).toBe(true);
-    expect(result.current.showUploadWarning).toBe(true);
   });
 
   it('highest-confidence stat wins when multiple photos have same key', async () => {
@@ -560,7 +552,6 @@ describe('Bug 9 — handleImportStats: upload throw loses photos (not saved loca
     const media = useStore.getState().matches[0].media;
     expect(media).toHaveLength(1);
     expect(media![0].pendingUpload).toBe(true);
-    expect(result.current.showUploadWarning).toBe(true);
     expect(result.current.showOcrFailed).toBe(false);
   });
 });
@@ -733,7 +724,6 @@ describe('Bug 10 — handleAddMedia: upload throws → photo lost (not saved loc
     expect(media).toHaveLength(1);
     expect(media![0].uri).toBe('file://s.jpg');
     expect(media![0].pendingUpload).toBe(true);
-    expect(result.current.showUploadWarning).toBe(false);
   });
 });
 
