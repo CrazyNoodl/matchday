@@ -293,7 +293,6 @@ export function MatchModals({ d }: MatchModalsProps) {
         statusBarTranslucent
       >
         <View style={styles.dialogOverlay}>
-          <Pressable style={StyleSheet.absoluteFill} onPress={() => d.setShowClearStats(false)} />
           <View style={styles.dialog}>
             <Text style={styles.dialogTitle}>CLEAR STATS</Text>
             <Text style={styles.dialogDesc}>Remove all match statistics?</Text>
@@ -329,7 +328,6 @@ export function MatchModals({ d }: MatchModalsProps) {
         statusBarTranslucent
       >
         <View style={styles.dialogOverlay}>
-          <Pressable style={StyleSheet.absoluteFill} onPress={() => d.setShowSwapSides(false)} />
           <View style={styles.dialog}>
             <Text style={styles.dialogTitle}>SWAP SIDES</Text>
             <Text style={styles.dialogDesc}>
@@ -357,6 +355,58 @@ export function MatchModals({ d }: MatchModalsProps) {
           </View>
         </View>
       </Modal>
+
+
+      {/* ── OCR FAILED ── */}
+      <Modal
+        visible={d.showOcrFailed}
+        transparent
+        animationType="fade"
+        onRequestClose={() => d.setShowOcrFailed(false)}
+        statusBarTranslucent
+      >
+        <View style={styles.dialogOverlay}>
+          <View style={styles.dialog}>
+            <Text style={styles.dialogTitle}>{t('matchDetail.ocr.failed')}</Text>
+            <Text style={styles.dialogDesc}>{t('matchDetail.ocr.failedDesc')}</Text>
+            <View style={styles.dialogActions}>
+              <TouchableOpacity
+                style={styles.dialogCancel}
+                onPress={() => d.setShowOcrFailed(false)}
+                activeOpacity={0.75}
+              >
+                <Text style={styles.dialogCancelText}>OK</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* ── OCR NO STATS ── */}
+      <Modal
+        visible={d.showOcrNoStats}
+        transparent
+        animationType="fade"
+        onRequestClose={() => d.setShowOcrNoStats(false)}
+        statusBarTranslucent
+      >
+        <View style={styles.dialogOverlay}>
+          <View style={styles.dialog}>
+            <Text style={styles.dialogTitle}>{t('matchDetail.ocr.noStats')}</Text>
+            <Text style={styles.dialogDesc}>{t('matchDetail.ocr.noStatsDesc')}</Text>
+            <View style={styles.dialogActions}>
+              <TouchableOpacity
+                style={styles.dialogCancel}
+                onPress={() => d.setShowOcrNoStats(false)}
+                activeOpacity={0.75}
+              >
+                <Text style={styles.dialogCancelText}>OK</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
 
       {/* ── DELETE MATCH MODAL ── */}
       <Modal

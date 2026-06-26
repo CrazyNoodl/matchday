@@ -99,7 +99,7 @@ export default function HomeScreen() {
 
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, store.demoMode && { paddingBottom: 112 }]}
         showsVerticalScrollIndicator={false}
       >
         {/* Sport chips */}

@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { Alert, Dimensions } from 'react-native';
-import { useTranslation } from 'react-i18next';
+import { Dimensions } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useGoBack } from '@/utils/useGoBack';
@@ -12,7 +11,6 @@ import { uploadMediaItem, deleteMediaItem } from '@/supabase/storage';
 import { buildMergedStats } from '@/utils/mergedStats';
 
 export function useMatchDetail() {
-  const { t } = useTranslation();
   const router = useRouter();
   const goBack = useGoBack();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -67,6 +65,9 @@ export function useMatchDetail() {
   const [showClearStats, setShowClearStats] = useState(false);
   const [showSwapSides, setShowSwapSides] = useState(false);
   const [showStatsMenu, setShowStatsMenu] = useState(false);
+  const [showOcrFailed, setShowOcrFailed] = useState(false);
+  const [showOcrNoStats, setShowOcrNoStats] = useState(false);
+  const [retryingMediaUri, setRetryingMediaUri] = useState<string | null>(null);
   const [statsMenuPos, setStatsMenuPos] = useState({ top: 0, right: 0 });
   const statsMenuBtnRef = useRef<import('react-native').View>(null);
 
@@ -152,15 +153,11 @@ export function useMatchDetail() {
           const newItem: MediaItem = remoteUrl !== null
             ? { uri: remoteUrl, type }
             : { uri: asset.uri, type, pendingUpload: true };
-          const uploaded = remoteUrl !== null;
           // Bug 2 fix: read fresh media from store at write time, not from stale closure
           const freshMedia = useStore.getState().matches.find((m) => m.id === matchId)?.media
             ?? useStore.getState().archivedRounds.flatMap((r) => r.matches).find((m) => m.id === matchId)?.media
             ?? [];
           store.updateMatchMedia(matchId, [...freshMedia, newItem]);
-          if (!uploaded) {
-            Alert.alert(t('matchDetail.media.uploadFailed'), t('matchDetail.media.uploadFailedDesc'));
-          }
         } finally {
           setUploadingMedia(false);
         }
@@ -168,7 +165,7 @@ export function useMatchDetail() {
     } finally {
       uploadingMediaRef.current = false;
     }
-  }, [match, store, t]);
+  }, [match, store]);
 
   const handleImportStats = useCallback(async () => {
     if (!match) return;
@@ -226,13 +223,9 @@ export function useMatchDetail() {
           store.updateMatchMedia(matchId, mediaItems);
         }
 
-        if (!allUploaded) {
-          // Safeguard: upload failed — photos saved locally, skip OCR until re-scan
-          Alert.alert(t('matchDetail.media.uploadFailed'), t('matchDetail.media.uploadFailedDesc'));
-          return;
-        }
-
-        // All photos uploaded — run OCR and auto-apply stats (no review modal)
+        // Run OCR regardless of upload status — base64 is already in memory from the picker.
+        // If upload failed, photos are already saved locally; OCR should still extract stats.
+        // Run OCR and auto-apply stats (no review modal)
         const map = new Map<string, ExtractedStat>();
         const rank = (c: ExtractedStat['confidence']) => (c === 'high' ? 3 : c === 'medium' ? 2 : 1);
         // Bug 7 fix: catch per-photo so a failure on photo N doesn't discard
@@ -259,19 +252,49 @@ export function useMatchDetail() {
           map.forEach((stat) => { override[stat.key] = { a: stat.home, b: stat.away }; });
           store.updateMatchStats(matchId, override);
         } else if (anyPhotoOcrFailed) {
-          Alert.alert(t('matchDetail.ocr.failed'), t('matchDetail.ocr.failedDesc'));
+          setShowOcrFailed(true);
         } else {
-          Alert.alert(t('matchDetail.ocr.noStats'), t('matchDetail.ocr.noStatsDesc'));
+          setShowOcrNoStats(true);
         }
+
       } catch {
-        Alert.alert(t('matchDetail.ocr.failed'), t('matchDetail.ocr.failedDesc'));
+        setShowOcrFailed(true);
       } finally {
         setImportingStats(false);
       }
     } finally {
       importingStatsRef.current = false;
     }
-  }, [match, store, t]);
+  }, [match, store]);
+
+  const handleRetryUpload = useCallback(async (itemUri: string) => {
+    if (!match || retryingMediaUri !== null) return;
+    const item = match.media?.find((m) => m.uri === itemUri);
+    if (!item?.pendingUpload) return;
+
+    setRetryingMediaUri(itemUri);
+    const matchId = match.id;
+
+    const getFreshMedia = () =>
+      useStore.getState().matches.find((m) => m.id === matchId)?.media
+      ?? useStore.getState().archivedRounds.flatMap((r) => r.matches).find((m) => m.id === matchId)?.media
+      ?? [];
+
+    try {
+      let remoteUrl: string | null;
+      try { remoteUrl = await uploadMediaItem(itemUri, item.type); } catch { remoteUrl = null; }
+
+      const freshMedia = getFreshMedia();
+      if (remoteUrl !== null) {
+        store.updateMatchMedia(matchId, freshMedia.map((m) =>
+          m.uri === itemUri ? { uri: remoteUrl!, type: item.type } : m,
+        ));
+      }
+      // On failure: keep item with pendingUpload:true so user can retry again
+    } finally {
+      setRetryingMediaUri(null);
+    }
+  }, [match, store, retryingMediaUri]);
 
   const handleClearStats = useCallback(() => setShowClearStats(true), []);
   const handleSwapSides = useCallback(() => setShowSwapSides(true), []);
@@ -340,6 +363,9 @@ export function useMatchDetail() {
     statsMenuPos,
     statsMenuBtnRef,
     viewingMediaIndex,
+    showOcrFailed,
+    showOcrNoStats,
+    retryingMediaUri,
     goBack,
     store,
     setEditAScore,
@@ -350,6 +376,8 @@ export function useMatchDetail() {
     setShowStatsMenu,
     setShowClearStats,
     setShowSwapSides,
+    setShowOcrFailed,
+    setShowOcrNoStats,
     openEditScore,
     openEditStats,
     openStatsMenu,
@@ -358,6 +386,7 @@ export function useMatchDetail() {
     handleDeleteMatch,
     handleAddMedia,
     handleImportStats,
+    handleRetryUpload,
     handleClearStats,
     handleSwapSides,
     handleDeleteMedia,

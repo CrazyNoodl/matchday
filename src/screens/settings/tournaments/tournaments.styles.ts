@@ -180,30 +180,10 @@ export const makeStyles = (colors: AppColors) => StyleSheet.create({
     color: colors.text.muted,
     lineHeight: 24,
   },
-  // Sheet
-  sheetOverlay: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-  },
-  sheet: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: colors.bg.sheet,
-    borderTopLeftRadius: Radius['3xl'],
-    borderTopRightRadius: Radius['3xl'],
+  // Sheet content (Sheet component provides the backdrop + handle)
+  sheetContent: {
     paddingHorizontal: Spacing.xl,
-    paddingTop: Spacing.lg,
-    paddingBottom: Platform.OS === 'ios' ? 32 : Spacing['2xl'],
-  },
-  sheetHandle: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: colors.border.strong,
-    alignSelf: 'center',
-    marginBottom: Spacing.xl,
+    paddingBottom: Spacing.xl,
   },
   sheetTitle: {
     fontFamily: FontFamily.displayBold,

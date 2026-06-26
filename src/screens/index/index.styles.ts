@@ -41,9 +41,9 @@ export const makeStyles = (colors: AppColors) => StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#1a1d20',
+    backgroundColor: colors.bg.elevated,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: colors.border.medium,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -295,7 +295,7 @@ export const makeStyles = (colors: AppColors) => StyleSheet.create({
     justifyContent: 'center',
   },
   newMatchDayIconActive: {
-    backgroundColor: colors.accent.greenDark,
+    backgroundColor: 'rgba(0,0,0,0.2)',
   },
   newMatchDayIconDisabled: {
     backgroundColor: colors.bg.elevated,

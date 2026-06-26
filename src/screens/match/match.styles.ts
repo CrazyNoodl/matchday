@@ -63,10 +63,10 @@ export const makeStyles = (colors: AppColors) => StyleSheet.create({
   scoreHero: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0f1f14',
+    backgroundColor: colors.bg.surface,
     borderRadius: Radius.xl,
     borderWidth: 1,
-    borderColor: 'rgba(61,220,132,0.2)',
+    borderColor: colors.accent.greenBorder,
     padding: Spacing.xl,
     marginTop: Spacing.lg,
     gap: Spacing.sm,
@@ -552,6 +552,24 @@ export const makeStyles = (colors: AppColors) => StyleSheet.create({
     fontSize: 14,
     color: '#fff',
     lineHeight: 16,
+  },
+  pendingUploadOverlay: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: 'rgba(0,0,0,0.65)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+  },
+  pendingUploadIcon: {
+    fontSize: 20,
+    color: colors.accent.yellow,
+  },
+  pendingUploadText: {
+    fontFamily: FontFamily.body,
+    fontSize: 9,
+    color: colors.text.secondary,
+    textAlign: 'center',
+    paddingHorizontal: 6,
   },
 
   // Note edit

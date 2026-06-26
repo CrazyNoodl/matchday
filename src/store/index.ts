@@ -176,6 +176,20 @@ export const useStore = create<RootState>()(
     {
       name: 'matchday-store',
       storage: createJSONStorage(() => mmkvStorage),
+      onRehydrateStorage: () => (state) => {
+        if (!state) return;
+        const stripPending = (matches: Match[]) =>
+          matches.map((m) =>
+            m.media?.some((i) => i.pendingUpload)
+              ? { ...m, media: m.media!.filter((i) => !i.pendingUpload) }
+              : m,
+          );
+        state.matches = stripPending(state.matches);
+        state.archivedRounds = state.archivedRounds.map((r) => ({
+          ...r,
+          matches: stripPending(r.matches),
+        }));
+      },
       partialize: (state) => ({
         tournamentId: state.tournamentId,
         hasTournament: state.hasTournament,

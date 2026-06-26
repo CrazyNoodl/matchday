@@ -35,7 +35,6 @@ jest.mock('expo-image-picker', () => ({
 }));
 
 import { renderHook, act } from '@testing-library/react-native';
-import { Alert } from 'react-native';
 import { useMatchDetail } from '../useMatchDetail';
 import { useStore } from '@/store';
 import type { Match, ArchivedRound, ClosedTournament } from '@/store/types';
@@ -77,15 +76,12 @@ const CLOSED_TOURNAMENT: ClosedTournament = {
   players: ['player-a', 'player-b'],
 };
 
-let alertSpy: jest.SpyInstance;
-
 beforeEach(() => {
   jest.resetAllMocks();
   mockPicker.mockResolvedValue({ canceled: true });
   mockUpload.mockResolvedValue(null);
   mockExtractStats.mockResolvedValue([]);
   jest.mocked(require('@/supabase/sync').fetchMatchById).mockResolvedValue(null);
-  alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(jest.fn());
   useStore.getState().resetStore();
 });
 
@@ -342,10 +338,9 @@ describe('handleAddMedia', () => {
     expect(media).toHaveLength(1);
     expect(media![0].uri).toBe('https://cdn.example.com/photo.jpg');
     expect(media![0].pendingUpload).toBeUndefined();
-    expect(alertSpy).not.toHaveBeenCalled();
   });
 
-  it('saves locally with pendingUpload flag and shows alert when upload fails', async () => {
+  it('saves locally with pendingUpload flag when upload fails', async () => {
     useStore.setState({ matches: [MATCH] });
     mockPicker.mockResolvedValueOnce({
       canceled: false,
@@ -358,10 +353,6 @@ describe('handleAddMedia', () => {
     expect(media).toHaveLength(1);
     expect(media![0].uri).toBe('file://photo.jpg');
     expect(media![0].pendingUpload).toBe(true);
-    expect(alertSpy).toHaveBeenCalledWith(
-      'matchDetail.media.uploadFailed',
-      'matchDetail.media.uploadFailedDesc',
-    );
   });
 });
 
@@ -374,10 +365,11 @@ describe('handleImportStats', () => {
     const { result } = await renderHook(() => useMatchDetail());
     await act(async () => { await result.current.handleImportStats(); });
     expect(useStore.getState().matches[0].media).toBeUndefined();
-    expect(alertSpy).not.toHaveBeenCalled();
+    expect(result.current.showOcrFailed).toBe(false);
+    expect(result.current.showOcrNoStats).toBe(false);
   });
 
-  it('upload fails: saves locally with pendingUpload flag, skips OCR, shows alert', async () => {
+  it('upload fails: saves locally with pendingUpload flag, runs OCR', async () => {
     useStore.setState({ matches: [MATCH] });
     mockPicker.mockResolvedValueOnce({
       canceled: false,
@@ -391,16 +383,12 @@ describe('handleImportStats', () => {
     expect(media).toHaveLength(1);
     expect(media![0].uri).toBe('file://stats.jpg');
     expect(media![0].pendingUpload).toBe(true);
-    // OCR skipped
-    expect(mockExtractStats).not.toHaveBeenCalled();
-    // Alert shown
-    expect(alertSpy).toHaveBeenCalledWith(
-      'matchDetail.media.uploadFailed',
-      'matchDetail.media.uploadFailedDesc',
-    );
+    // OCR still runs — base64 is in memory regardless of upload status
+    expect(mockExtractStats).toHaveBeenCalledWith('abc', 'image/jpeg');
+    expect(result.current.showOcrNoStats).toBe(true);
   });
 
-  it('upload fails: does NOT add media when match already has photos', async () => {
+  it('upload fails: does NOT add media when match already has photos, but still runs OCR', async () => {
     const matchWithMedia = { ...MATCH, media: [{ uri: 'https://cdn/existing.jpg', type: 'image' as const }] };
     useStore.setState({ matches: [matchWithMedia] });
     mockPicker.mockResolvedValueOnce({
@@ -410,11 +398,12 @@ describe('handleImportStats', () => {
     mockUpload.mockResolvedValueOnce(null);
     const { result } = await renderHook(() => useMatchDetail());
     await act(async () => { await result.current.handleImportStats(); });
-    // Existing media untouched
+    // Existing media untouched (new photo not saved since match already has media)
     const media = useStore.getState().matches[0].media;
     expect(media).toHaveLength(1);
     expect(media![0].uri).toBe('https://cdn/existing.jpg');
-    expect(mockExtractStats).not.toHaveBeenCalled();
+    // OCR still runs even though upload failed
+    expect(mockExtractStats).toHaveBeenCalledWith('abc', 'image/jpeg');
   });
 
   it('upload succeeds: runs OCR and auto-applies stats without opening modal', async () => {
@@ -433,10 +422,11 @@ describe('handleImportStats', () => {
     const saved = useStore.getState().matches[0];
     expect(saved.statsOverride?.shots).toEqual({ a: 7, b: 3 });
     expect(useStore.getState().modal).toBeNull();
-    expect(alertSpy).not.toHaveBeenCalled();
+    expect(result.current.showOcrFailed).toBe(false);
+    expect(result.current.showOcrNoStats).toBe(false);
   });
 
-  it('upload succeeds but OCR finds no stats: shows no-stats alert', async () => {
+  it('upload succeeds but OCR finds no stats: shows no-stats notification', async () => {
     useStore.setState({ matches: [MATCH] });
     mockPicker.mockResolvedValueOnce({
       canceled: false,
@@ -446,14 +436,11 @@ describe('handleImportStats', () => {
     mockExtractStats.mockResolvedValueOnce([]);
     const { result } = await renderHook(() => useMatchDetail());
     await act(async () => { await result.current.handleImportStats(); });
-    expect(alertSpy).toHaveBeenCalledWith(
-      'matchDetail.ocr.noStats',
-      'matchDetail.ocr.noStatsDesc',
-    );
+    expect(result.current.showOcrNoStats).toBe(true);
     expect(useStore.getState().matches[0].statsOverride).toBeUndefined();
   });
 
-  it('upload succeeds but OCR throws: shows ocr-failed alert', async () => {
+  it('upload succeeds but OCR throws: shows ocr-failed notification', async () => {
     useStore.setState({ matches: [MATCH] });
     mockPicker.mockResolvedValueOnce({
       canceled: false,
@@ -463,13 +450,10 @@ describe('handleImportStats', () => {
     mockExtractStats.mockRejectedValueOnce(new Error('OCR service down'));
     const { result } = await renderHook(() => useMatchDetail());
     await act(async () => { await result.current.handleImportStats(); });
-    expect(alertSpy).toHaveBeenCalledWith(
-      'matchDetail.ocr.failed',
-      'matchDetail.ocr.failedDesc',
-    );
+    expect(result.current.showOcrFailed).toBe(true);
   });
 
-  it('partial upload failure (one of two fails): skips OCR and saves both locally', async () => {
+  it('partial upload failure (one of two fails): saves mixed media, still runs OCR', async () => {
     useStore.setState({ matches: [MATCH] });
     mockPicker.mockResolvedValueOnce({
       canceled: false,
@@ -483,7 +467,10 @@ describe('handleImportStats', () => {
       .mockResolvedValueOnce(null);
     const { result } = await renderHook(() => useMatchDetail());
     await act(async () => { await result.current.handleImportStats(); });
-    expect(mockExtractStats).not.toHaveBeenCalled();
+    // OCR runs on both photos regardless of partial upload failure
+    expect(mockExtractStats).toHaveBeenCalledTimes(2);
+    expect(mockExtractStats).toHaveBeenCalledWith('aaa', 'image/jpeg');
+    expect(mockExtractStats).toHaveBeenCalledWith('bbb', 'image/jpeg');
     const media = useStore.getState().matches[0].media;
     expect(media).toHaveLength(2);
     expect(media![0].uri).toBe('https://cdn/a.jpg');
@@ -565,14 +552,7 @@ describe('Bug 9 — handleImportStats: upload throw loses photos (not saved loca
     const media = useStore.getState().matches[0].media;
     expect(media).toHaveLength(1);
     expect(media![0].pendingUpload).toBe(true);
-    expect(alertSpy).toHaveBeenCalledWith(
-      'matchDetail.media.uploadFailed',
-      'matchDetail.media.uploadFailedDesc',
-    );
-    expect(alertSpy).not.toHaveBeenCalledWith(
-      'matchDetail.ocr.failed',
-      'matchDetail.ocr.failedDesc',
-    );
+    expect(result.current.showOcrFailed).toBe(false);
   });
 });
 
@@ -744,10 +724,6 @@ describe('Bug 10 — handleAddMedia: upload throws → photo lost (not saved loc
     expect(media).toHaveLength(1);
     expect(media![0].uri).toBe('file://s.jpg');
     expect(media![0].pendingUpload).toBe(true);
-    expect(alertSpy).toHaveBeenCalledWith(
-      'matchDetail.media.uploadFailed',
-      'matchDetail.media.uploadFailedDesc',
-    );
   });
 });
 
@@ -833,10 +809,7 @@ describe('Bug 7 — handleImportStats: per-photo OCR throw discards stats from e
     // Expected: shots should be applied from photo A even though photo B failed
     const saved = useStore.getState().matches[0];
     expect(saved.statsOverride?.shots).toEqual({ a: 7, b: 3 });
-    // And alert should NOT have fired with ocrFailed (partial success)
-    expect(alertSpy).not.toHaveBeenCalledWith(
-      'matchDetail.ocr.failed',
-      'matchDetail.ocr.failedDesc',
-    );
+    // OCR failed notification should NOT have shown (partial success is fine)
+    expect(result.current.showOcrFailed).toBe(false);
   });
 });

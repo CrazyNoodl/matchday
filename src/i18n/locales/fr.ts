@@ -64,6 +64,7 @@ const fr = {
     table: 'Tableau',
     cards: 'Cartes',
     matchesSection: 'MATCHS · {{count}}',
+    tour: 'TOUR {{n}}',
     addMatch: '+ AJOUTER UN MATCH',
     noMatches: 'Aucun match pour l\'instant. Appuyez sur + pour ajouter.',
     noMatchesAction: 'Ajouter un match',
@@ -355,6 +356,9 @@ const fr = {
     media: {
       uploadFailed: 'Échec du chargement',
       uploadFailedDesc: 'Photo enregistrée localement. Les stats seront disponibles une fois la connexion rétablie.',
+      retryUpload: 'Appuyer pour réessayer',
+      photoLost: 'Photo indisponible',
+      photoLostDesc: 'Le fichier original est introuvable. Veuillez ajouter la photo à nouveau.',
     },
     ocr: {
       noStats: 'Aucune stat trouvée',

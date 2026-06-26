@@ -3,6 +3,7 @@ import {
   View,
   Text,
   TouchableOpacity,
+  StyleProp,
   ViewStyle,
 } from 'react-native';
 import { useStore } from '../../store';
@@ -15,9 +16,10 @@ interface MatchCardProps {
   match: Match;
   onPress?: () => void;
   readonly?: boolean;
+  style?: StyleProp<ViewStyle>;
 }
 
-export function MatchCard({ match, onPress, readonly = false }: MatchCardProps) {
+export function MatchCard({ match, onPress, readonly = false, style }: MatchCardProps) {
   const colors = useColors();
   const styles = makeStyles(colors);
   const players = useStore((s) => s.players);
@@ -31,8 +33,8 @@ export function MatchCard({ match, onPress, readonly = false }: MatchCardProps) 
 
   const aNameColor = !bWins ? colors.text.primary : colors.text.muted;
   const bNameColor = !aWins ? colors.text.primary : colors.text.muted;
-  const aScoreColor = aWins ? colors.accent.green : isDraw ? colors.text.secondary : '#7c8388';
-  const bScoreColor = bWins ? colors.accent.green : isDraw ? colors.text.secondary : '#7c8388';
+  const aScoreColor = aWins ? colors.accent.green : isDraw ? colors.text.secondary : colors.text.ghost;
+  const bScoreColor = bWins ? colors.accent.green : isDraw ? colors.text.secondary : colors.text.ghost;
 
   const Container = onPress && !readonly ? TouchableOpacity : View;
   const containerProps = onPress && !readonly ? { onPress, activeOpacity: 0.75 } : {};
@@ -40,7 +42,7 @@ export function MatchCard({ match, onPress, readonly = false }: MatchCardProps) 
   return (
     <Container
       {...containerProps}
-      style={styles.card}
+      style={[styles.card, style]}
     >
       {/* Side A */}
       <View style={styles.side}>

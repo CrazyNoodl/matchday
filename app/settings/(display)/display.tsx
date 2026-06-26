@@ -68,7 +68,7 @@ export default function DisplaySettingsScreen() {
               value={showNick}
               onValueChange={store.setShowNick}
               trackColor={{ false: colors.bg.elevated, true: colors.accent.green }}
-              thumbColor={colors.text.primary}
+              thumbColor="#ffffff"
             />
           </View>
 
@@ -84,7 +84,7 @@ export default function DisplaySettingsScreen() {
               value={showTeamLogo}
               onValueChange={store.setShowTeamLogo}
               trackColor={{ false: colors.bg.elevated, true: colors.accent.green }}
-              thumbColor={colors.text.primary}
+              thumbColor="#ffffff"
             />
           </View>
         </View>

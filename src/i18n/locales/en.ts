@@ -64,6 +64,7 @@ const en = {
     table: 'Table',
     cards: 'Cards',
     matchesSection: 'MATCHES · {{count}}',
+    tour: 'TOUR {{n}}',
     addMatch: '+ ADD MATCH',
     noMatches: 'No matches yet. Tap + to add the first match.',
     noMatchesAction: 'Add Match',
@@ -355,6 +356,9 @@ const en = {
     media: {
       uploadFailed: 'Upload Failed',
       uploadFailedDesc: 'Photo saved locally. Stats will be available for re-scan once connection is restored.',
+      retryUpload: 'Tap to retry upload',
+      photoLost: 'Photo No Longer Available',
+      photoLostDesc: 'The original file could not be found. Please add the photo again.',
     },
     ocr: {
       noStats: 'No Stats Found',
