@@ -184,7 +184,7 @@ export default function ArchiveDayScreen() {
         )}
 
         {/* Section label */}
-        <View style={styles.sectionLabelRow}>
+        <View style={[styles.sectionLabelRow, standings.length > 0 && styles.sectionLabelRowTop]}>
           <SectionLabel label={t('archive.allMatches')} />
         </View>
 

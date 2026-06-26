@@ -72,6 +72,9 @@ export const makeStyles = (colors: AppColors) => StyleSheet.create({
   sectionLabelRow: {
     marginBottom: Spacing.md,
   },
+  sectionLabelRowTop: {
+    marginTop: Spacing.xl,
+  },
 
   // ---- Match list ----
   matchList: {
