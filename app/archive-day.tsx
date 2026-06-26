@@ -9,6 +9,7 @@ import { calculateStandings } from '@/utils/standings';
 import { formatShortDate, formatEditableDate, parseEditableDate } from '@/utils/dateFormat';
 import { useColors } from '@/theme';
 import { NavHeader, SectionLabel, MatchCard, ShareRoundModal, CardAvatar, StandingsTable, getStandingsTableColumns, GlowBackground, Sheet } from '@/components';
+import { groupMatchesByTour } from '@/utils/matchTours';
 import { Match } from '@/store/types';
 import { makeStyles } from '@/screens/archive-day/archive-day.styles';
 import { makeInputStyles } from '@/screens/tournament/tournament.styles';
@@ -140,27 +141,27 @@ export default function ArchiveDayScreen() {
         }
       />
 
-      {/* Round date */}
-      <View style={styles.dateRow}>
-        {isEditableRound ? (
-          <TouchableOpacity
-            style={styles.datePill}
-            onPress={openDateEditor}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.datePillText}>{formatShortDate(date)}</Text>
-            <Text style={styles.datePillIcon}>✎</Text>
-          </TouchableOpacity>
-        ) : (
-          <Text style={styles.dateStatic}>{formatShortDate(date)}</Text>
-        )}
-      </View>
-
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+        {/* Round date */}
+        <View style={styles.dateRow}>
+          {isEditableRound ? (
+            <TouchableOpacity
+              style={styles.datePill}
+              onPress={openDateEditor}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.datePillText}>{formatShortDate(date)}</Text>
+              <Text style={styles.datePillIcon}>✎</Text>
+            </TouchableOpacity>
+          ) : (
+            <Text style={styles.dateStatic}>{formatShortDate(date)}</Text>
+          )}
+        </View>
+
         {/* Day Winner Banner */}
         {winner ? (
           <DayWinnerBanner winnerId={winner} matchCount={matches.length} />
@@ -183,7 +184,7 @@ export default function ArchiveDayScreen() {
         )}
 
         {/* Section label */}
-        <View style={styles.sectionLabelRow}>
+        <View style={[styles.sectionLabelRow, standings.length > 0 && styles.sectionLabelRowTop]}>
           <SectionLabel label={t('archive.allMatches')} />
         </View>
 
@@ -192,19 +193,36 @@ export default function ArchiveDayScreen() {
           <View style={styles.emptyMatches}>
             <Text style={styles.emptyMatchesText}>{t('archive.noMatchesRecorded')}</Text>
           </View>
-        ) : (
-          <View style={styles.matchList}>
-            {[...matches].reverse().map((m: Match) => (
-              <TouchableOpacity
-                key={m.id}
-                activeOpacity={0.75}
-                onPress={() => router.push(`/match/${m.id}`)}
-              >
-                <MatchCard match={m} readonly />
-              </TouchableOpacity>
-            ))}
-          </View>
-        )}
+        ) : (() => {
+          const tours = groupMatchesByTour(matches, playerIds.length).reverse();
+          const tourSize = playerIds.length > 1 ? (playerIds.length * (playerIds.length - 1)) / 2 : 0;
+          const showTourLabel = tours.length > 1 || matches.length >= tourSize;
+          return tours.map((tour) => {
+            const reversed = [...tour.matches].reverse();
+            return (
+              <View key={tour.tourNumber} style={styles.tourGroup}>
+                {showTourLabel && (
+                  <Text style={styles.tourLabel}>{t('matchday.tour', { n: tour.tourNumber })}</Text>
+                )}
+                <View style={styles.matchBlock}>
+                  {reversed.map((m: Match, idx) => (
+                    <TouchableOpacity
+                      key={m.id}
+                      activeOpacity={0.75}
+                      onPress={() => router.push(`/match/${m.id}`)}
+                    >
+                      <MatchCard
+                        match={m}
+                        readonly
+                        style={idx < reversed.length - 1 ? styles.matchCardInBlock : styles.matchCardInBlockLast}
+                      />
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+            );
+          });
+        })()}
 
         <View style={{ height: 48 }} />
       </ScrollView>

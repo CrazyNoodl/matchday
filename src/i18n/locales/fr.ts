@@ -64,6 +64,7 @@ const fr = {
     table: 'Tableau',
     cards: 'Cartes',
     matchesSection: 'MATCHS · {{count}}',
+    tour: 'TOUR {{n}}',
     addMatch: '+ AJOUTER UN MATCH',
     noMatches: 'Aucun match pour l\'instant. Appuyez sur + pour ajouter.',
     noMatchesAction: 'Ajouter un match',

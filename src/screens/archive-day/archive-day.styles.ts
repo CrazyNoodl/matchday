@@ -72,10 +72,41 @@ export const makeStyles = (colors: AppColors) => StyleSheet.create({
   sectionLabelRow: {
     marginBottom: Spacing.md,
   },
+  sectionLabelRowTop: {
+    marginTop: Spacing.xl,
+  },
 
   // ---- Match list ----
   matchList: {
     gap: 0,
+  },
+  tourGroup: {
+    marginBottom: Spacing.lg,
+  },
+  tourLabel: {
+    fontFamily: FontFamily.bodyBold,
+    fontSize: FontSize.xs,
+    color: colors.text.muted,
+    letterSpacing: 1,
+    marginBottom: Spacing.sm,
+  },
+  matchBlock: {
+    borderRadius: Radius.xl,
+    borderWidth: 1,
+    borderColor: colors.border.default,
+    overflow: 'hidden',
+  },
+  matchCardInBlock: {
+    borderRadius: 0,
+    borderWidth: 0,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.default,
+    marginBottom: 0,
+  },
+  matchCardInBlockLast: {
+    borderRadius: 0,
+    borderWidth: 0,
+    marginBottom: 0,
   },
 
   // ---- Empty matches ----
@@ -101,11 +132,10 @@ export const makeStyles = (colors: AppColors) => StyleSheet.create({
     color: colors.text.muted,
   },
 
-  // ---- Round date ----
+  // ---- Round date (now lives inside ScrollView) ----
   dateRow: {
-    paddingHorizontal: Spacing.xl,
-    paddingTop: Spacing.sm,
     alignItems: 'flex-start',
+    marginBottom: Spacing.lg,
   },
   datePill: {
     flexDirection: 'row',

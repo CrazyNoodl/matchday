@@ -7,6 +7,7 @@ import { calculateStandings, isTopTied } from '@/utils/standings';
 import { useColors } from '@/theme';
 import { Spacing } from '@/theme/spacing';
 import { MatchCard, StandingCard, StandingsTable, getStandingsTableColumns, SectionLabel, EmptyState, GlowBackground, SegmentedControl } from '@/components';
+import { groupMatchesByTour } from '@/utils/matchTours';
 import { useTranslation } from 'react-i18next';
 import { makeStyles } from '@/screens/round/round.styles';
 import { useAddMatchFlow } from '@/screens/round/useAddMatchFlow';
@@ -187,18 +188,33 @@ export default function MatchdayScreen() {
                 ctaText={roundOpen ? t('matchday.noMatchesAction') : undefined}
                 onPress={roundOpen ? () => store.setModal('add') : undefined}
               />
-            ) : (
-              [...matches].reverse().map((m) => (
-                <MatchCard
-                  key={m.id}
-                  match={m}
-                  onPress={() => {
-                    store.setSelectedMatch(m.id);
-                    router.push(`/match/${m.id}`);
-                  }}
-                />
-              ))
-            )}
+            ) : (() => {
+              const tours = groupMatchesByTour(matches, roundPlayers.length).reverse();
+              const showTourLabel = tours.length > 1 || matches.length >= (roundPlayers.length * (roundPlayers.length - 1)) / 2;
+              return tours.map((tour) => {
+                const reversed = [...tour.matches].reverse();
+                return (
+                  <View key={tour.tourNumber} style={styles.tourGroup}>
+                    {showTourLabel && (
+                      <Text style={styles.tourLabel}>{t('matchday.tour', { n: tour.tourNumber })}</Text>
+                    )}
+                    <View style={styles.matchBlock}>
+                      {reversed.map((m, idx) => (
+                        <MatchCard
+                          key={m.id}
+                          match={m}
+                          style={idx < reversed.length - 1 ? styles.matchCardInBlock : styles.matchCardInBlockLast}
+                          onPress={() => {
+                            store.setSelectedMatch(m.id);
+                            router.push(`/match/${m.id}`);
+                          }}
+                        />
+                      ))}
+                    </View>
+                  </View>
+                );
+              });
+            })()}
           </View>
         </View>
 

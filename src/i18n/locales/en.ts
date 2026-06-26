@@ -64,6 +64,7 @@ const en = {
     table: 'Table',
     cards: 'Cards',
     matchesSection: 'MATCHES · {{count}}',
+    tour: 'TOUR {{n}}',
     addMatch: '+ ADD MATCH',
     noMatches: 'No matches yet. Tap + to add the first match.',
     noMatchesAction: 'Add Match',
