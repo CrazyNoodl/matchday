@@ -160,7 +160,7 @@ export function ShareStandingsModal({ visible, onClose, tournamentName, subtitle
       const element = cardRef.current as unknown as HTMLElement;
       if (!element) return null;
       const canvas = await html2canvas(element, {
-        backgroundColor: '#0c0e10',
+        backgroundColor: colors.bg.base,
         scale: 2,
         useCORS: true,
         logging: false,

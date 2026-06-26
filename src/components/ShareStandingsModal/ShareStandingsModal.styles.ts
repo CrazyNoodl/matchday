@@ -8,11 +8,11 @@ export const CARD_W = 320;
 export const makeCardStyles = (colors: AppColors) => StyleSheet.create({
   card: {
     width: CARD_W,
-    backgroundColor: '#0c0e10',
+    backgroundColor: colors.bg.base,
     borderRadius: Radius.xl,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: colors.border.medium,
   },
   glow: {
     position: 'absolute',
@@ -43,7 +43,7 @@ export const makeCardStyles = (colors: AppColors) => StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: 'rgba(255,255,255,0.06)',
+    backgroundColor: colors.border.default,
   },
   header: {
     alignItems: 'center',
@@ -89,7 +89,7 @@ export const makeCardStyles = (colors: AppColors) => StyleSheet.create({
   },
   rowBorder: {
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.06)',
+    borderBottomColor: colors.border.default,
   },
   rowLeader: {
     backgroundColor: colors.accent.greenSubtle,
@@ -165,7 +165,7 @@ export const makeModalStyles = (colors: AppColors) => StyleSheet.create({
     flexGrow: 1,
     alignItems: 'center',
     paddingVertical: Spacing.xl,
-    backgroundColor: '#0c0e10',
+    backgroundColor: colors.bg.base,
   },
   cardWrap: {
     shadowColor: '#000',

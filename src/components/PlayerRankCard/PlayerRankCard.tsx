@@ -50,7 +50,7 @@ export function PlayerRankCard({
       <View
         style={[
           styles.medalBadge,
-          { backgroundColor: medal ? medal.badgeBg : 'rgba(255,255,255,0.06)' },
+          { backgroundColor: medal ? medal.badgeBg : colors.bg.elevated },
         ]}
       >
         <Text style={[styles.medalText, { color: medal ? medal.badgeColor : colors.text.muted }]}>
