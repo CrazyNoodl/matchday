@@ -64,6 +64,7 @@ const uk = {
     table: 'Таблиця',
     cards: 'Картки',
     matchesSection: 'МАТЧІ · {{count}}',
+    tour: 'ТУР {{n}}',
     addMatch: '+ ДОДАТИ МАТЧ',
     noMatches: 'Ще немає матчів. Натисніть + щоб додати перший.',
     noMatchesAction: 'Додати матч',

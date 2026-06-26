@@ -99,6 +99,16 @@ export const makeStyles = (colors: AppColors) => StyleSheet.create({
   matchesList: {
     gap: 0,
   },
+  tourGroup: {
+    marginBottom: Spacing.lg,
+  },
+  tourLabel: {
+    fontFamily: FontFamily.bodyBold,
+    fontSize: FontSize.xs,
+    color: colors.text.muted,
+    letterSpacing: 1,
+    marginBottom: Spacing.sm,
+  },
   matchBlock: {
     borderRadius: Radius.xl,
     borderWidth: 1,
