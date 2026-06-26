@@ -504,6 +504,15 @@ export async function fetchMatchById(matchId: string): Promise<Match | null> {
 // Helpers
 // ---------------------------------------------------------------------------
 
+function tryParseJson<T>(raw: string): T | undefined {
+  try {
+    return JSON.parse(raw) as T;
+  } catch {
+    console.warn('[sync] malformed JSON, skipping field:', raw.slice(0, 80));
+    return undefined;
+  }
+}
+
 function dbMatchToLocal(m: Record<string, unknown>): Match {
   return {
     id: m.id as string,
@@ -513,8 +522,8 @@ function dbMatchToLocal(m: Record<string, unknown>): Match {
     bTeam: m.b_team as string,
     aScore: m.a_score as number,
     bScore: m.b_score as number,
-    media: m.media ? JSON.parse(m.media as string) : undefined,
+    media: m.media ? tryParseJson(m.media as string) : undefined,
     note: (m.note as string) ?? undefined,
-    statsOverride: m.stats_override ? JSON.parse(m.stats_override as string) : undefined,
+    statsOverride: m.stats_override ? tryParseJson(m.stats_override as string) : undefined,
   };
 }
