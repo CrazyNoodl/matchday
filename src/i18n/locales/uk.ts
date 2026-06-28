@@ -61,6 +61,7 @@ const uk = {
   matchday: {
     round: 'Раунд {{n}}',
     finish: 'ФІНІШ',
+    roundSettings: 'ПАРАМЕТРИ РАУНДУ',
     table: 'Таблиця',
     cards: 'Картки',
     matchesSection: 'МАТЧІ · {{count}}',
@@ -107,6 +108,9 @@ const uk = {
       deleteDesc: 'Цей матч буде назавжди видалений з раунду.',
       cancel: 'Скасувати',
       delete: 'Видалити',
+      deleteRoundTitle: 'ВИДАЛИТИ РАУНД?',
+      deleteRoundDesc: 'Всі матчі цього раунду будуть назавжди видалені.',
+      deleteRoundConfirm: 'Видалити раунд',
     },
     winner: {
       winnerLabel: 'ПЕРЕМОЖЕЦЬ ДНЯ',
@@ -265,6 +269,10 @@ const uk = {
       cancel: 'Скасувати',
       save: 'Зберегти',
     },
+    roundOptions: 'ПАРАМЕТРИ РАУНДУ',
+    deleteRoundTitle: 'ВИДАЛИТИ РАУНД?',
+    deleteRoundDesc: 'Всі матчі цього раунду будуть назавжди видалені.',
+    deleteRoundConfirm: 'Видалити раунд',
   },
 
   settings: {

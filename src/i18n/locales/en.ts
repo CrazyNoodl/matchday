@@ -61,6 +61,7 @@ const en = {
   matchday: {
     round: 'Round {{n}}',
     finish: 'FINISH',
+    roundSettings: 'ROUND OPTIONS',
     table: 'Table',
     cards: 'Cards',
     matchesSection: 'MATCHES · {{count}}',
@@ -107,6 +108,9 @@ const en = {
       deleteDesc: 'This match will be permanently removed from the round.',
       cancel: 'Cancel',
       delete: 'Delete',
+      deleteRoundTitle: 'DELETE ROUND?',
+      deleteRoundDesc: 'All matches in this round will be permanently removed.',
+      deleteRoundConfirm: 'Delete Round',
     },
     winner: {
       winnerLabel: 'MATCH DAY WINNER',
@@ -265,6 +269,10 @@ const en = {
       cancel: 'Cancel',
       save: 'Save',
     },
+    roundOptions: 'ROUND OPTIONS',
+    deleteRoundTitle: 'DELETE ROUND?',
+    deleteRoundDesc: 'All matches in this round will be permanently removed.',
+    deleteRoundConfirm: 'Delete Round',
   },
 
   settings: {

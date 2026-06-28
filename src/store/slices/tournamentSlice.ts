@@ -35,6 +35,8 @@ export interface TournamentActions {
   ) => void;
   swapMatchSides: (id: string) => void;
   finishRound: () => void;
+  deleteRound: () => void;
+  deleteArchivedRound: (id: string) => void;
   closeTournament: () => void;
   renameTournament: (name: string) => void;
   updateRoundDate: (id: string, date: string) => void;
@@ -140,6 +142,18 @@ export const createTournamentSlice: StateCreator<RootState, [], [], TournamentSl
       roundPlayers: [],
     });
   },
+
+  deleteRound: () =>
+    set({
+      matches: [],
+      roundOpen: false,
+      roundPlayers: [],
+    }),
+
+  deleteArchivedRound: (id) =>
+    set((s) => ({
+      archivedRounds: s.archivedRounds.filter((r) => r.id !== id),
+    })),
 
   closeTournament: () => {
     const s = get();
