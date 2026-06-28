@@ -61,6 +61,7 @@ const fr = {
   matchday: {
     round: 'Tour {{n}}',
     finish: 'TERMINER',
+    roundSettings: 'OPTIONS DU TOUR',
     table: 'Tableau',
     cards: 'Cartes',
     matchesSection: 'MATCHS · {{count}}',
@@ -107,6 +108,9 @@ const fr = {
       deleteDesc: 'Ce match sera définitivement supprimé du tour.',
       cancel: 'Annuler',
       delete: 'Supprimer',
+      deleteRoundTitle: 'SUPPRIMER LE TOUR ?',
+      deleteRoundDesc: 'Tous les matchs de ce tour seront définitivement supprimés.',
+      deleteRoundConfirm: 'Supprimer le tour',
     },
     winner: {
       winnerLabel: 'VAINQUEUR DU JOUR',
@@ -265,6 +269,10 @@ const fr = {
       cancel: 'Annuler',
       save: 'Enregistrer',
     },
+    roundOptions: 'OPTIONS DU TOUR',
+    deleteRoundTitle: 'SUPPRIMER LE TOUR ?',
+    deleteRoundDesc: 'Tous les matchs de ce tour seront définitivement supprimés.',
+    deleteRoundConfirm: 'Supprimer le tour',
   },
 
   settings: {
