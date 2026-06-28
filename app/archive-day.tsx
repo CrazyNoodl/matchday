@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, TextInput } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { useRouter } from 'expo-router';
 import { useGoBack } from '@/utils/useGoBack';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -237,10 +238,10 @@ export default function ArchiveDayScreen() {
       )}
 
       {/* Edit round date sheet */}
-      <Sheet visible={editDateVisible} onClose={() => setEditDateVisible(false)} keyboardBehavior="extend">
+      <Sheet visible={editDateVisible} onClose={() => setEditDateVisible(false)} avoidKeyboard>
         <View style={styles.dateSheet}>
           <Text style={styles.dateSheetTitle}>{t('archive.editDate.title')}</Text>
-          <TextInput
+          <BottomSheetTextInput
             style={[inputStyles.input, dateError && styles.dateInputError]}
             value={dateValue}
             onChangeText={(text) => {

@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Dimensions, type LayoutChangeEvent } from 'react-native';
+import { useKeyboardHeight } from '@/hooks/useKeyboardHeight';
 import BottomSheet, {
   BottomSheetView,
   BottomSheetBackdrop,
@@ -24,6 +25,7 @@ interface SheetProps {
   snapToMax?: boolean;
   disableClose?: boolean;
   keyboardBehavior?: 'interactive' | 'extend' | 'fillParent';
+  avoidKeyboard?: boolean;
 }
 
 // Sizes itself to its actual content height via onLayout, rather than a
@@ -39,12 +41,13 @@ interface SheetProps {
 // Open/close are driven imperatively via ref (snapToIndex/close), not the
 // declarative `index` prop — the declarative path was unreliable for
 // closing the sheet from a button (e.g. Cancel) in this app.
-export function Sheet({ visible, onClose, children, snapToMax, disableClose = false, keyboardBehavior = 'interactive' }: SheetProps) {
+export function Sheet({ visible, onClose, children, snapToMax, disableClose = false, keyboardBehavior = 'interactive', avoidKeyboard = false }: SheetProps) {
   const colors = useColors();
   const ref = useRef<BottomSheet>(null);
   const [height, setHeight] = useState(MIN_HEIGHT);
   const { bottom: bottomInset } = useSafeAreaInsets();
   const [everOpened, setEverOpened] = useState(false);
+  const keyboardHeight = useKeyboardHeight(avoidKeyboard);
 
   useEffect(() => {
     if (visible) {
@@ -73,15 +76,19 @@ export function Sheet({ visible, onClose, children, snapToMax, disableClose = fa
     [disableClose],
   );
 
+  const snapPoint = snapToMax
+    ? MAX_HEIGHT
+    : Math.min(height + keyboardHeight, MAX_HEIGHT);
+
   return (
     <BottomSheet
       ref={ref}
       index={-1}
-      snapPoints={[snapToMax ? MAX_HEIGHT : height]}
+      snapPoints={[snapPoint]}
       enableDynamicSizing={false}
       animationConfigs={ANIMATION_CONFIGS}
       enablePanDownToClose={!disableClose}
-      keyboardBehavior={keyboardBehavior}
+      keyboardBehavior={avoidKeyboard ? 'extend' : keyboardBehavior}
       keyboardBlurBehavior="restore"
       backdropComponent={renderBackdrop}
       backgroundStyle={{ backgroundColor: colors.bg.sheet }}
