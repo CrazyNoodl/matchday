@@ -5,9 +5,9 @@ import {
   ScrollView,
   TouchableOpacity,
   Modal,
-  TextInput,
   Platform,
 } from 'react-native';
+import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStore } from '@/store';
@@ -311,10 +311,10 @@ export default function TournamentScreen() {
       </Sheet>
 
       {/* ---- Edit Tournament Name Sheet ---- */}
-      <Sheet visible={modal === 'editTourName'} onClose={() => store.setModal('tourSettings')}>
+      <Sheet visible={modal === 'editTourName'} onClose={() => store.setModal('tourSettings')} avoidKeyboard>
           <View style={sheetStyles.sheet}>
             <Text style={sheetStyles.sheetTitle}>{t('tournament.rename.title')}</Text>
-            <TextInput
+            <BottomSheetTextInput
               style={inputStyles.input}
               value={renameValue}
               onChangeText={setRenameValue}

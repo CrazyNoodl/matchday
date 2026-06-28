@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, Platform } from 'react-native';
-import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
+import { BottomSheetScrollView, BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { useTranslation } from 'react-i18next';
 import { useColors } from '@/theme';
 import { Spacing } from '@/theme/spacing';
@@ -9,6 +9,7 @@ import { Player, Team } from '@/store/types';
 import { AddMatchState, getAddMatchStepLabel, canAddMatchGoNext, isAddMatchDirty } from '@/utils/addMatchState';
 import { makeSheetStyles } from './AddMatchSheet.styles';
 import { useAddMatchFlow } from './useAddMatchFlow';
+import { DiscardMatchDialog, SaveMatchErrorDialog } from './RoundDialogs';
 
 interface AddMatchSheetProps {
   visible: boolean;
@@ -241,7 +242,7 @@ export function AddMatchSheet({
   const renderStepCommentary = () => (
     <View style={sheetStyles.stepContent}>
       <Text style={sheetStyles.stepHint}>{t('matchday.commentaryHint')}</Text>
-      <TextInput
+      <BottomSheetTextInput
         style={sheetStyles.commentInput}
         value={addMatch.note}
         onChangeText={(v) => setAddMatch((p) => ({ ...p, note: v }))}
@@ -279,10 +280,12 @@ export function AddMatchSheet({
   };
 
   return (
+    <>
     <Sheet
       visible={visible}
       onClose={onClose}
       disableClose={addMatch.ocrStatus === 'scanning' || isAddMatchDirty(addMatch)}
+      avoidKeyboard
     >
       <View style={sheetStyles.sheet}>
         {/* Progress bar */}
@@ -373,5 +376,16 @@ export function AddMatchSheet({
         <View style={{ height: Platform.OS === 'ios' ? 32 : 20 }} />
       </View>
     </Sheet>
+
+    <DiscardMatchDialog
+      visible={flow.showDiscardDialog}
+      onCancel={() => flow.setShowDiscardDialog(false)}
+      onConfirm={flow.handleConfirmDiscard}
+    />
+    <SaveMatchErrorDialog
+      visible={flow.showSaveError}
+      onClose={() => flow.setShowSaveError(false)}
+    />
+    </>
   );
 }

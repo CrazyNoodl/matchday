@@ -5,11 +5,10 @@ import {
   StyleSheet,
   Modal,
   Pressable,
-  TextInput,
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
-import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
+import { BottomSheetScrollView, BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { useTranslation } from 'react-i18next';
 import { useColors } from '@/theme';
 import { Sheet, MediaSlider } from '@/components';
@@ -24,7 +23,6 @@ export function MatchModals({ d }: MatchModalsProps) {
   const { t } = useTranslation();
   const colors = useColors();
   const styles = makeStyles(colors);
-
   const { match, playerA, playerB, modal, mergedStats } = d;
 
   return (
@@ -204,14 +202,14 @@ export function MatchModals({ d }: MatchModalsProps) {
       </Sheet>
 
       {/* ── EDIT NOTE MODAL ── */}
-      <Sheet visible={d.editingNote} onClose={() => d.setEditingNote(false)}>
+      <Sheet visible={d.editingNote} onClose={() => d.setEditingNote(false)} avoidKeyboard>
         <View style={styles.sheet}>
           <View style={styles.sheetHeader}>
             <Text style={styles.sheetTitle}>COMMENTARY</Text>
             <Text style={styles.sheetSubtitle}>Add match notes</Text>
           </View>
           <View style={styles.noteEditBody}>
-            <TextInput
+            <BottomSheetTextInput
               style={styles.noteInput}
               value={d.editNoteValue}
               onChangeText={d.setEditNoteValue}

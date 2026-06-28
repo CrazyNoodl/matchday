@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Image, ActivityIndicator, Alert,  } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Image, ActivityIndicator, Modal } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useGoBack } from '@/utils/useGoBack';
@@ -7,6 +7,7 @@ import { NavHeader, SectionLabel, StatsRow, GlowBackground } from '@/components'
 import { useColors } from '@/theme';
 import { extractStatsFromPhoto, type ExtractedStat } from '@/utils/extractStats';
 import { makeStyles } from '@/screens/settings/ocr-lab/ocr-lab.styles';
+import { makeDialogStyles } from '@/screens/round/RoundDialogs.styles';
 
 interface PhotoItem {
   uri: string;
@@ -42,6 +43,7 @@ export default function OcrLabScreen() {
   const goBack = useGoBack();
   const colors = useColors();
   const styles = makeStyles(colors);
+  const dialogStyles = makeDialogStyles(colors);
 
   const getStripeColor = (c: ExtractedStat['confidence']): string | null => {
     if (c === 'low') return '#ffa032';
@@ -49,6 +51,7 @@ export default function OcrLabScreen() {
     return null;
   };
   const [photos, setPhotos] = useState<PhotoItem[]>([]);
+  const [showMaxPhotosDialog, setShowMaxPhotosDialog] = useState(false);
   const [scanning, setScanning] = useState(false);
   const [scanProgress, setScanProgress] = useState<string | null>(null);
   const [stats, setStats] = useState<ExtractedStat[] | null>(null);
@@ -56,7 +59,7 @@ export default function OcrLabScreen() {
 
   const addPhotos = async () => {
     if (photos.length >= 4) {
-      Alert.alert('Max 4 photos', 'Remove one first.');
+      setShowMaxPhotosDialog(true);
       return;
     }
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -239,6 +242,22 @@ export default function OcrLabScreen() {
 
         <View style={{ height: 48 }} />
       </ScrollView>
+
+      <Modal visible={showMaxPhotosDialog} transparent animationType="fade" statusBarTranslucent onRequestClose={() => setShowMaxPhotosDialog(false)}>
+        <View style={dialogStyles.overlay}>
+          <View style={dialogStyles.dialog}>
+            <Text style={dialogStyles.dialogTitle}>Max 4 photos</Text>
+            <Text style={dialogStyles.dialogDesc}>Remove one first.</Text>
+            <TouchableOpacity
+              style={dialogStyles.confirmBtn}
+              onPress={() => setShowMaxPhotosDialog(false)}
+              activeOpacity={0.85}
+            >
+              <Text style={dialogStyles.confirmText}>OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
