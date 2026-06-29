@@ -7,6 +7,70 @@ import { Player } from '@/store/types';
 import { Standing } from '@/utils/standings';
 import { makeDialogStyles, makeWinnerStyles } from './RoundDialogs.styles';
 
+interface DiscardMatchDialogProps {
+  visible: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
+}
+
+export function DiscardMatchDialog({ visible, onCancel, onConfirm }: DiscardMatchDialogProps) {
+  const { t } = useTranslation();
+  const colors = useColors();
+  const dialogStyles = makeDialogStyles(colors);
+
+  return (
+    <Modal visible={visible} transparent animationType="fade" statusBarTranslucent onRequestClose={onCancel}>
+      <View style={dialogStyles.overlay}>
+        <View style={dialogStyles.dialog}>
+          <Text style={dialogStyles.dialogTitle}>{t('matchday.discard.title')}</Text>
+          <Text style={dialogStyles.dialogDesc}>{t('matchday.discard.message')}</Text>
+          <View style={dialogStyles.actions}>
+            <TouchableOpacity style={dialogStyles.cancelBtn} onPress={onCancel} activeOpacity={0.75}>
+              <Text style={dialogStyles.cancelText}>{t('common.cancel')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[dialogStyles.confirmBtn, { backgroundColor: colors.accent.red }]}
+              onPress={onConfirm}
+              activeOpacity={0.85}
+            >
+              <Text style={[dialogStyles.confirmText, { color: '#fff' }]}>{t('matchday.discard.confirm')}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+interface SaveMatchErrorDialogProps {
+  visible: boolean;
+  onClose: () => void;
+}
+
+export function SaveMatchErrorDialog({ visible, onClose }: SaveMatchErrorDialogProps) {
+  const { t } = useTranslation();
+  const colors = useColors();
+  const dialogStyles = makeDialogStyles(colors);
+
+  return (
+    <Modal visible={visible} transparent animationType="fade" statusBarTranslucent onRequestClose={onClose}>
+      <View style={dialogStyles.overlay}>
+        <View style={dialogStyles.dialog}>
+          <Text style={dialogStyles.dialogTitle}>{t('common.error')}</Text>
+          <Text style={dialogStyles.dialogDesc}>{t('matchday.saveMatchError')}</Text>
+          <TouchableOpacity
+            style={[dialogStyles.confirmBtn, { backgroundColor: colors.accent.red }]}
+            onPress={onClose}
+            activeOpacity={0.85}
+          >
+            <Text style={[dialogStyles.confirmText, { color: '#fff' }]}>{t('common.done')}</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
 interface EndRoundDialogProps {
   visible: boolean;
   onClose: () => void;
@@ -110,6 +174,42 @@ export function DeleteMatchDialog({ visible, onClose, onConfirm }: DeleteMatchDi
               activeOpacity={0.85}
             >
               <Text style={[dialogStyles.confirmText, { color: '#fff' }]}>{t('matchday.dialogs.delete')}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+interface DeleteRoundDialogProps {
+  visible: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+}
+
+export function DeleteRoundDialog({ visible, onClose, onConfirm }: DeleteRoundDialogProps) {
+  const { t } = useTranslation();
+  const colors = useColors();
+  const dialogStyles = makeDialogStyles(colors);
+
+  return (
+    <Modal visible={visible} transparent animationType="fade" statusBarTranslucent onRequestClose={onClose}>
+      <View style={dialogStyles.overlay}>
+        <View style={dialogStyles.dialog}>
+          <Text style={[dialogStyles.dialogIcon, { color: colors.accent.red }]}>🗑</Text>
+          <Text style={dialogStyles.dialogTitle}>{t('matchday.dialogs.deleteRoundTitle')}</Text>
+          <Text style={dialogStyles.dialogDesc}>{t('matchday.dialogs.deleteRoundDesc')}</Text>
+          <View style={dialogStyles.actions}>
+            <TouchableOpacity style={dialogStyles.cancelBtn} onPress={onClose} activeOpacity={0.75}>
+              <Text style={dialogStyles.cancelText}>{t('matchday.dialogs.cancel')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[dialogStyles.confirmBtn, { backgroundColor: colors.accent.red }]}
+              onPress={onConfirm}
+              activeOpacity={0.85}
+            >
+              <Text style={[dialogStyles.confirmText, { color: '#fff' }]}>{t('matchday.dialogs.deleteRoundConfirm')}</Text>
             </TouchableOpacity>
           </View>
         </View>

@@ -3,6 +3,7 @@ import { useStore } from '@/store';
 import type { Match } from '@/store/types';
 import { getCurrentUserId } from './auth';
 import { pushState, pullState, subscribeToChanges } from './sync';
+import type { DirtyTable } from './sync';
 import { supabaseConfigured } from './client';
 
 function stripPendingMedia(matches: Match[]): Match[] {
@@ -13,8 +14,9 @@ function stripPendingMedia(matches: Match[]): Match[] {
   );
 }
 
-const PUSH_DEBOUNCE_MS = 2000;
+const PUSH_DEBOUNCE_MS = 300;
 const PULL_DEBOUNCE_MS = 400;
+const ALL_DIRTY = new Set<DirtyTable>(['players', 'teams', 'activeTournament', 'openMatches', 'closedTournaments']);
 
 export function useSyncManager() {
   const setSyncStatus = useStore((s) => s.setSyncStatus);
@@ -24,6 +26,7 @@ export function useSyncManager() {
   const pushTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pullTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pushingRef = useRef(false);
+  const dirtyRef = useRef<Set<DirtyTable>>(new Set());
   const prevDemoModeRef = useRef<boolean>(useStore.getState().demoMode);
 
   useEffect(() => {
@@ -56,12 +59,15 @@ export function useSyncManager() {
       return hasCloudData ? 'has-data' : 'empty';
     }
 
-    async function runPush() {
+    async function runPush(forceDirty?: Set<DirtyTable>) {
+      const dirty = forceDirty ?? new Set(dirtyRef.current);
+      if (!forceDirty) dirtyRef.current = new Set();
       pushingRef.current = true;
       try {
-        await pushState(buildPushPayload());
+        await pushState(buildPushPayload(), dirty);
       } catch {
         setSyncStatus('error');
+        if (!forceDirty) dirty.forEach((t) => dirtyRef.current.add(t));
       } finally {
         pushingRef.current = false;
       }
@@ -133,7 +139,7 @@ export function useSyncManager() {
             s.hasTournament ||
             s.closedTournaments.length > 0;
           if (!s.demoMode && hasLocalData) {
-            await runPush();
+            await runPush(ALL_DIRTY);
           }
         }
 
@@ -160,8 +166,30 @@ export function useSyncManager() {
 
     init();
 
-    const unsubscribe = useStore.subscribe((state) => {
+    const unsubscribe = useStore.subscribe((state, prevState) => {
+      // Detect which table groups changed (reference equality — Zustand+Immer
+      // creates new references only for mutated state, unchanged fields keep the same ref)
+      if (!applyingRef.current) {
+        if (state.players !== prevState.players) dirtyRef.current.add('players');
+        if (state.teams !== prevState.teams) dirtyRef.current.add('teams');
+        if (state.matches !== prevState.matches) dirtyRef.current.add('openMatches');
+        if (
+          state.archivedRounds !== prevState.archivedRounds ||
+          state.hasTournament !== prevState.hasTournament ||
+          state.tournamentId !== prevState.tournamentId ||
+          state.tournamentName !== prevState.tournamentName ||
+          state.tournamentRanked !== prevState.tournamentRanked ||
+          state.tournamentRounds !== prevState.tournamentRounds ||
+          state.tournamentPlayers !== prevState.tournamentPlayers ||
+          state.round !== prevState.round ||
+          state.roundOpen !== prevState.roundOpen ||
+          state.roundPlayers !== prevState.roundPlayers
+        ) dirtyRef.current.add('activeTournament');
+        if (state.closedTournaments !== prevState.closedTournaments) dirtyRef.current.add('closedTournaments');
+      }
+
       if (applyingRef.current) return;
+      if (dirtyRef.current.size === 0) return;
 
       const wasDemo = prevDemoModeRef.current;
       prevDemoModeRef.current = state.demoMode;
@@ -182,7 +210,7 @@ export function useSyncManager() {
         // Just exited demo mode: pull the latest cloud state first so we
         // don't overwrite changes made on another device while demo was active.
         pull().then(() => {
-          if (!useStore.getState().demoMode) runPush();
+          if (!useStore.getState().demoMode) runPush(ALL_DIRTY);
         });
         return;
       }

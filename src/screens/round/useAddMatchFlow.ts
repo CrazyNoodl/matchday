@@ -1,5 +1,4 @@
 import { useCallback, useRef, useState } from 'react';
-import { Alert } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import * as ImagePicker from 'expo-image-picker';
 import { Player, Match, MediaItem } from '@/store/types';
@@ -27,6 +26,8 @@ export function useAddMatchFlow({
   const { t } = useTranslation();
   const [addMatch, setAddMatch] = useState<AddMatchState>(initAddMatch());
   const [isSavingMatch, setIsSavingMatch] = useState(false);
+  const [showDiscardDialog, setShowDiscardDialog] = useState(false);
+  const [showSaveError, setShowSaveError] = useState(false);
   const ocrCancelledRef = useRef(false);
 
   const totalSteps = tournamentRanked ? 4 : 5;
@@ -44,14 +45,7 @@ export function useAddMatchFlow({
     if (addMatch.ocrStatus === 'scanning' || isSavingMatch) return;
     if (addMatch.step <= 1) {
       if (isAddMatchDirty(addMatch)) {
-        Alert.alert(t('matchday.discard.title'), t('matchday.discard.message'), [
-          { text: t('common.cancel'), style: 'cancel' },
-          {
-            text: t('matchday.discard.confirm'),
-            style: 'destructive',
-            onPress: () => { setAddMatch(initAddMatch()); closeModal(); },
-          },
-        ]);
+        setShowDiscardDialog(true);
       } else {
         setAddMatch(initAddMatch());
         closeModal();
@@ -92,7 +86,7 @@ export function useAddMatchFlow({
       closeModal();
       reset();
     } catch {
-      Alert.alert(t('common.error'), t('matchday.saveMatchError'));
+      setShowSaveError(true);
     } finally {
       setIsSavingMatch(false);
     }
@@ -226,10 +220,21 @@ export function useAddMatchFlow({
     });
   }, []);
 
+  const handleConfirmDiscard = useCallback(() => {
+    setShowDiscardDialog(false);
+    setAddMatch(initAddMatch());
+    closeModal();
+  }, [closeModal]);
+
   return {
     addMatch,
     setAddMatch,
     isSavingMatch,
+    showDiscardDialog,
+    setShowDiscardDialog,
+    showSaveError,
+    setShowSaveError,
+    handleConfirmDiscard,
     totalSteps,
     reset,
     handleNext,

@@ -99,4 +99,6 @@ export type Modal =
   | 'tourSettings'
   | 'newRound'
   | 'delMatch'
-  | 'editRoundDate';
+  | 'editRoundDate'
+  | 'roundSettings'
+  | 'delRound';

@@ -1,5 +1,6 @@
-import React, { useMemo, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, TextInput } from 'react-native';
+import React, { useMemo, useState, useRef, useCallback } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, Modal, Pressable, Dimensions, StyleSheet } from 'react-native';
+import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { useRouter } from 'expo-router';
 import { useGoBack } from '@/utils/useGoBack';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -11,8 +12,9 @@ import { useColors } from '@/theme';
 import { NavHeader, SectionLabel, MatchCard, ShareRoundModal, CardAvatar, StandingsTable, getStandingsTableColumns, GlowBackground, Sheet } from '@/components';
 import { groupMatchesByTour } from '@/utils/matchTours';
 import { Match } from '@/store/types';
-import { makeStyles } from '@/screens/archive-day/archive-day.styles';
+import { makeStyles, makeMenuStyles } from '@/screens/archive-day/archive-day.styles';
 import { makeInputStyles } from '@/screens/tournament/tournament.styles';
+import { makeDialogStyles } from '@/screens/round/RoundDialogs.styles';
 
 // ---------------------------------------------------------------------------
 // Day Winner Banner
@@ -70,11 +72,34 @@ export default function ArchiveDayScreen() {
   const isEditableRound = useStore((s) =>
     hasTournament && !!viewingRound && s.archivedRounds.some((r) => r.id === viewingRound.id),
   );
+  const deleteArchivedRound = useStore((s) => s.deleteArchivedRound);
+
   const [shareVisible, setShareVisible] = useState(false);
   const [editDateVisible, setEditDateVisible] = useState(false);
   const [dateValue, setDateValue] = useState('');
   const [dateError, setDateError] = useState(false);
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [menuPos, setMenuPos] = useState({ top: 0, right: 0 });
+  const [deleteVisible, setDeleteVisible] = useState(false);
+  const dotsBtnRef = useRef<View>(null);
   const inputStyles = makeInputStyles(colors);
+  const menuStyles = makeMenuStyles(colors);
+  const dialogStyles = makeDialogStyles(colors);
+
+  const openMenu = useCallback(() => {
+    dotsBtnRef.current?.measureInWindow((x, y, w, h) => {
+      const screenWidth = Dimensions.get('window').width;
+      setMenuPos({ top: y + h + 6, right: screenWidth - x - w });
+      setMenuVisible(true);
+    });
+  }, []);
+
+  const handleConfirmDelete = useCallback(() => {
+    if (!liveRound) return;
+    deleteArchivedRound(liveRound.id);
+    setDeleteVisible(false);
+    goBack();
+  }, [liveRound, deleteArchivedRound, goBack]);
 
   const playerIds = useMemo(() => {
     if (!liveRound) return [];
@@ -130,14 +155,26 @@ export default function ArchiveDayScreen() {
         title=""
         onBack={() => goBack()}
         rightElement={
-          <TouchableOpacity
-            style={styles.shareBtn}
-            onPress={() => setShareVisible(true)}
-            activeOpacity={0.7}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          >
-            <Text style={styles.shareBtnText}>{t('common.share')}</Text>
-          </TouchableOpacity>
+          isEditableRound ? (
+            <TouchableOpacity
+              ref={dotsBtnRef}
+              style={styles.dotsBtn}
+              onPress={openMenu}
+              activeOpacity={0.7}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Text style={styles.dotsIcon}>···</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              style={styles.shareBtn}
+              onPress={() => setShareVisible(true)}
+              activeOpacity={0.7}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Text style={styles.shareBtnText}>{t('common.share')}</Text>
+            </TouchableOpacity>
+          )
         }
       />
 
@@ -236,11 +273,66 @@ export default function ArchiveDayScreen() {
         />
       )}
 
+      {/* ── ROUND OPTIONS DROPDOWN ── */}
+      <Modal
+        visible={menuVisible}
+        transparent
+        animationType="none"
+        onRequestClose={() => setMenuVisible(false)}
+        statusBarTranslucent
+      >
+        <Pressable style={StyleSheet.absoluteFill} onPress={() => setMenuVisible(false)} />
+        <View style={[menuStyles.dropdown, { top: menuPos.top, right: menuPos.right }]}>
+          <TouchableOpacity
+            style={menuStyles.item}
+            onPress={() => { setMenuVisible(false); setShareVisible(true); }}
+          >
+            <Text style={menuStyles.itemText}>{t('common.share')}</Text>
+          </TouchableOpacity>
+          <View style={menuStyles.sep} />
+          <TouchableOpacity
+            style={menuStyles.item}
+            onPress={() => { setMenuVisible(false); setDeleteVisible(true); }}
+          >
+            <Text style={[menuStyles.itemText, { color: colors.accent.red }]}>{t('archive.deleteRoundConfirm')}</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
+
+      {/* ── DELETE ROUND CONFIRMATION ── */}
+      <Modal
+        visible={deleteVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setDeleteVisible(false)}
+        statusBarTranslucent
+      >
+        <View style={dialogStyles.overlay}>
+          <View style={dialogStyles.dialog}>
+            <Text style={[dialogStyles.dialogIcon, { color: colors.accent.red }]}>🗑</Text>
+            <Text style={dialogStyles.dialogTitle}>{t('archive.deleteRoundTitle')}</Text>
+            <Text style={dialogStyles.dialogDesc}>{t('archive.deleteRoundDesc')}</Text>
+            <View style={dialogStyles.actions}>
+              <TouchableOpacity style={dialogStyles.cancelBtn} onPress={() => setDeleteVisible(false)} activeOpacity={0.75}>
+                <Text style={dialogStyles.cancelText}>{t('matchday.dialogs.cancel')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[dialogStyles.confirmBtn, { backgroundColor: colors.accent.red }]}
+                onPress={handleConfirmDelete}
+                activeOpacity={0.85}
+              >
+                <Text style={[dialogStyles.confirmText, { color: '#fff' }]}>{t('archive.deleteRoundConfirm')}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       {/* Edit round date sheet */}
-      <Sheet visible={editDateVisible} onClose={() => setEditDateVisible(false)}>
+      <Sheet visible={editDateVisible} onClose={() => setEditDateVisible(false)} avoidKeyboard>
         <View style={styles.dateSheet}>
           <Text style={styles.dateSheetTitle}>{t('archive.editDate.title')}</Text>
-          <TextInput
+          <BottomSheetTextInput
             style={[inputStyles.input, dateError && styles.dateInputError]}
             value={dateValue}
             onChangeText={(text) => {

@@ -1,0 +1,146 @@
+# Project Context — Matchday
+
+> Read this first at the start of every session. Updated manually when features land or the picture changes.
+
+## What the app is
+
+1-vs-1 football/FIFA tournament tracker for small groups. Players compete in round-robin rounds, stats are recorded per match, standings are calculated with H2H tiebreaker. Cloud sync via Supabase.
+
+Platforms: iOS, Android, Web. Expo SDK 56, React Native 0.85.3, React 19.2.3.
+
+---
+
+## Delete round — implementation detail
+
+- **Open round** (`roundOpen = true`): `···` button in `/round` header opens a Sheet with Finish / Stats / Delete Round. `deleteRound()` clears `matches`, `roundPlayers`, sets `roundOpen = false`.
+- **Archived round** (inside still-open tournament): `···` button in `/archive-day` header opens a small positioned dropdown (same pattern as match stats menu). `deleteArchivedRound(id)` removes the round from `archivedRounds`.
+- Delete is only available while `hasTournament = true`. Closed tournaments are fully read-only.
+
+---
+
+## State model (non-obvious)
+
+```
+matches          — current open round only (cleared on finishRound)
+archivedRounds   — past rounds of the current active tournament
+closedTournaments — fully finished tournaments (hasTournament = false after closeTournament())
+```
+
+- Once `closeTournament()` fires, `hasTournament` → false, matches move into `closedTournaments`, all edit UI disappears.
+- Stats screen (`app/stats.tsx`) aggregates ALL three layers: `closedTournaments` + `archivedRounds` + `matches`.
+- Modal system is a discriminated union in `src/store/types.ts`; all modals rendered inline in their screen, driven by `store.setModal('name')`.
+
+---
+
+## What is fully implemented
+
+| Feature | Where |
+|---|---|
+| Tournament create/close/archive | `app/setup.tsx`, `app/tournament.tsx` |
+| Round management (add match, finish, archive, delete) | `app/round.tsx`, `app/archive-day.tsx` |
+| Match detail + 23-type stat entry | `app/match/[id].tsx` |
+| Standings with H2H tiebreaker | `src/utils/standings.ts` |
+| Form chips W/D/L (last 3) | `standings.ts → getFormChips` |
+| Share Round as image | `src/components/ShareRoundModal/` |
+| Share Standings as image | `src/components/ShareStandingsModal/` |
+| Stats screen — Ranking (all-time) + H2H pairs | `app/stats.tsx` |
+| Season stats | `app/season-stats.tsx` |
+| Archive (closed tournaments accordion) | `app/archive.tsx`, `app/archive-day.tsx` |
+| OCR stat import (AI, dev-only) | `app/settings/(developer)/ocr-lab.tsx` |
+| Player/team management | `app/settings/(data)/` |
+| Supabase sync (selective, debounced 300ms) | `src/store/` |
+| Demo mode | store flag |
+| i18n (uk / en / fr) | `src/i18n/locales/` |
+| Dark + light theme | `src/theme/` |
+
+### Share cards — implementation detail
+
+Both `ShareRoundModal` and `ShareStandingsModal` use:
+- Native: `react-native-view-shot` (`captureRef`) → save to Photos or `expo-sharing`
+- Web: `html2canvas` → download PNG or `navigator.share`
+
+Both modules are **dynamic imports** (`import('react-native-view-shot')`) so the web bundle doesn't crash. The pattern must be preserved when editing these components.
+
+`ShareRoundModal` has toggles: **Include standings** and **Include all matches** — switches that grow the card before capture.
+
+---
+
+## What is NOT implemented (gaps)
+
+### 1. Match stats not aggregated in season view — biggest gap
+
+23 stat types are collected per match (`src/utils/statDefinitions.ts`): possession, shots, xG, passes, tackles, interceptions, saves, fouls, cards, dribbles, accuracy, etc.
+
+**None of these appear in the season/tournament summary.** The stats screen shows only W/D/L/GF/GA/PTS. All the rich `statsOverride` data on each match is collected but never surfaced in aggregate.
+
+### 2. Records / milestones
+
+No biggest win, longest unbeaten streak, best xG match, etc. anywhere in the UI.
+
+### 3. Share single match result
+
+Share round (all matches) and share standings exist. Share for one specific match (e.g. "3:1 vs Петро") does not exist.
+
+### 4. Streak display
+
+`getFormChips` returns W/D/L but consecutive-win streaks are never counted or displayed on home or stats screen.
+
+---
+
+## Open GitHub issues (as of 2026-06-29)
+
+| # | Priority | Title |
+|---|---|---|
+| #15 | **HIGH** | Sync: malformed JSON in media/statsOverride crashes app on pull |
+| #17 | medium | OCR: one failed photo discards all successfully extracted stats |
+| #40 | medium | Demo mode banner overlaps "Continue Match Day" button |
+| #51 | — | Matchday header: tournament title overflow + kebab menu |
+| #52 | — | Round screen: number only ranked matches in ordinal count |
+| ~~#36~~ | ~~medium~~ | ~~Keyboard covers input field~~ — **closed** |
+| ~~#28~~ | ~~—~~ | ~~Allow deleting/closing an accidentally started round~~ — **closed** |
+| #26 | — | Add forgot password flow |
+| #20 | idea | Full player profile with list of tournaments |
+| #19 | idea | Share tournament via link (read-only) |
+| #18 | idea | Keep round local-only until finished, sync on finish |
+
+---
+
+## Keyboard avoidance in bottom sheets — implementation detail
+
+`Sheet` component (`src/components/Sheet/Sheet.tsx`) has an `avoidKeyboard` prop. When set:
+- Registers `Keyboard.addListener('keyboardWillShow/Hide')` via `useKeyboardHeight(enabled)` hook (`src/hooks/useKeyboardHeight.ts`)
+- Adds keyboard height to the snap point so the sheet expands exactly to keep content above the keyboard
+- Sets `keyboardBehavior='extend'` on the underlying BottomSheet
+
+Any sheet with a `TextInput` must: pass `avoidKeyboard` to `<Sheet>` and use `BottomSheetTextInput` from `@gorhom/bottom-sheet` instead of the native `TextInput`.
+
+Currently applied to: match commentary, add-match commentary step, edit round date, rename tournament.
+
+---
+
+## Key file locations
+
+```
+src/utils/statDefinitions.ts   — all 23 stat keys + labels
+src/utils/standings.ts         — standings calc + H2H tiebreaker + getFormChips
+src/utils/shareCard.ts         — shared column config for share cards
+src/components/ShareRoundModal/    — share round image modal
+src/components/ShareStandingsModal/ — share standings image modal
+app/stats.tsx                  — Ranking + H2H tabs (all-time aggregation)
+app/season-stats.tsx           — season-level stats screen
+src/store/types.ts             — all types incl. modal discriminated union
+src/store/index.ts             — Zustand store, MMKV/localStorage adapter
+docs/pitfalls.md               — read before touching i18n or Sheet+scroll
+```
+
+---
+
+## Worktree workflow reminder
+
+```bash
+./scripts/new-feature.sh <name> [fix|feature|test]   # creates ../matchday-wt-<name>
+cp .env ../matchday-wt-<name>/.env                    # always — Supabase won't work without it
+./scripts/finish-feature.sh <name>                    # only after explicit user confirmation
+```
+
+Never commit to `dev` directly. Never merge without the user explicitly saying so.

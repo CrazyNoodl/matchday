@@ -15,7 +15,6 @@ jest.mock('@/utils/extractStats', () => ({
 }));
 
 import { renderHook, act, waitFor } from '@testing-library/react-native';
-import { Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { uploadMediaItems } from '@/supabase/storage';
 import { extractStatsFromPhoto } from '@/utils/extractStats';
@@ -47,18 +46,11 @@ async function makeHook(overrides: Partial<Parameters<typeof useAddMatchFlow>[0]
   return { ...hook, addMatchToStore, closeModal };
 }
 
-let alertSpy: jest.SpyInstance;
-
 beforeEach(() => {
   // resetAllMocks clears mockResolvedValueOnce queues; clearAllMocks does not
   jest.resetAllMocks();
   mockUpload.mockResolvedValue([]);
   mockExtractStats.mockResolvedValue([]);
-  alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(jest.fn());
-});
-
-afterEach(() => {
-  alertSpy.mockRestore();
 });
 
 // ---------------------------------------------------------------------------
@@ -161,7 +153,7 @@ describe('handleRemoveMedia — ghost stats fix', () => {
 // ---------------------------------------------------------------------------
 
 describe('handleSaveMatch — upload error handling', () => {
-  it('shows an Alert and keeps modal open when uploadMediaItems throws', async () => {
+  it('sets showSaveError and keeps modal open when uploadMediaItems throws', async () => {
     mockUpload.mockRejectedValueOnce(new Error('network error'));
     const { result, closeModal } = await makeHook();
 
@@ -178,7 +170,7 @@ describe('handleSaveMatch — upload error handling', () => {
       await result.current.handleSaveMatch();
     });
 
-    expect(alertSpy).toHaveBeenCalledWith('common.error', 'matchday.saveMatchError');
+    expect(result.current.showSaveError).toBe(true);
     expect(closeModal).not.toHaveBeenCalled();
     expect(result.current.isSavingMatch).toBe(false);
   });
@@ -207,7 +199,7 @@ describe('handleSaveMatch — upload error handling', () => {
     expect(saved.aScore).toBe(2);
     expect(saved.bScore).toBe(1);
     expect(closeModal).toHaveBeenCalledTimes(1);
-    expect(alertSpy).not.toHaveBeenCalled();
+    expect(result.current.showSaveError).toBe(false);
   });
 
   it('does not call store when homeId is missing', async () => {
@@ -825,17 +817,16 @@ describe('handlePickMedia — no phantom OCR assets beyond media cap', () => {
 // ---------------------------------------------------------------------------
 
 describe('handleBack — discard confirmation', () => {
-  it('calls closeModal directly (no Alert) when state is clean', async () => {
+  it('calls closeModal directly when state is clean', async () => {
     const { result, closeModal } = await makeHook();
-    // initAddMatch() state → not dirty
 
     await act(async () => { result.current.handleBack(); });
 
-    expect(alertSpy).not.toHaveBeenCalled();
+    expect(result.current.showDiscardDialog).toBe(false);
     expect(closeModal).toHaveBeenCalledTimes(1);
   });
 
-  it('shows Alert (not closeModal) when homeId is set', async () => {
+  it('sets showDiscardDialog (not closeModal) when homeId is set', async () => {
     const { result, closeModal } = await makeHook();
 
     await act(async () => {
@@ -844,19 +835,11 @@ describe('handleBack — discard confirmation', () => {
 
     await act(async () => { result.current.handleBack(); });
 
-    expect(alertSpy).toHaveBeenCalledTimes(1);
-    expect(alertSpy).toHaveBeenCalledWith(
-      'matchday.discard.title',
-      'matchday.discard.message',
-      expect.arrayContaining([
-        expect.objectContaining({ style: 'cancel' }),
-        expect.objectContaining({ style: 'destructive' }),
-      ]),
-    );
+    expect(result.current.showDiscardDialog).toBe(true);
     expect(closeModal).not.toHaveBeenCalled();
   });
 
-  it('shows Alert when media is present', async () => {
+  it('sets showDiscardDialog when media is present', async () => {
     const { result, closeModal } = await makeHook();
 
     await act(async () => {
@@ -868,17 +851,11 @@ describe('handleBack — discard confirmation', () => {
 
     await act(async () => { result.current.handleBack(); });
 
-    expect(alertSpy).toHaveBeenCalledTimes(1);
+    expect(result.current.showDiscardDialog).toBe(true);
     expect(closeModal).not.toHaveBeenCalled();
   });
 
-  it('calls closeModal after user confirms Discard', async () => {
-    alertSpy.mockImplementation((_title, _msg, buttons) => {
-      const destructive = (buttons as Array<{ style: string; onPress?: () => void }>)
-        .find((b) => b.style === 'destructive');
-      destructive?.onPress?.();
-    });
-
+  it('calls closeModal after handleConfirmDiscard', async () => {
     const { result, closeModal } = await makeHook();
 
     await act(async () => {
@@ -886,14 +863,16 @@ describe('handleBack — discard confirmation', () => {
     });
 
     await act(async () => { result.current.handleBack(); });
+    expect(result.current.showDiscardDialog).toBe(true);
+
+    await act(async () => { result.current.handleConfirmDiscard(); });
 
     expect(closeModal).toHaveBeenCalledTimes(1);
     expect(result.current.addMatch.homeId).toBeNull();
+    expect(result.current.showDiscardDialog).toBe(false);
   });
 
-  it('does NOT call closeModal when user presses cancel in Alert', async () => {
-    alertSpy.mockImplementation(() => { /* simulate tapping "Cancel" — do nothing */ });
-
+  it('does NOT call closeModal when dialog is cancelled via setShowDiscardDialog(false)', async () => {
     const { result, closeModal } = await makeHook();
 
     await act(async () => {
@@ -901,14 +880,15 @@ describe('handleBack — discard confirmation', () => {
     });
 
     await act(async () => { result.current.handleBack(); });
+    expect(result.current.showDiscardDialog).toBe(true);
 
-    expect(alertSpy).toHaveBeenCalledTimes(1);
+    await act(async () => { result.current.setShowDiscardDialog(false); });
+
     expect(closeModal).not.toHaveBeenCalled();
-    // State is preserved — modal stays open
     expect(result.current.addMatch.homeId).toBe('p1');
   });
 
-  it('shows Alert when score > 0 even without players or media', async () => {
+  it('sets showDiscardDialog when score > 0 even without players or media', async () => {
     const { result, closeModal } = await makeHook();
 
     await act(async () => {
@@ -917,7 +897,7 @@ describe('handleBack — discard confirmation', () => {
 
     await act(async () => { result.current.handleBack(); });
 
-    expect(alertSpy).toHaveBeenCalledTimes(1);
+    expect(result.current.showDiscardDialog).toBe(true);
     expect(closeModal).not.toHaveBeenCalled();
   });
 });
