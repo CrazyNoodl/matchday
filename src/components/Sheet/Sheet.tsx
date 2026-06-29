@@ -48,12 +48,18 @@ export function Sheet({ visible, onClose, children, snapToMax, disableClose = fa
   const { bottom: bottomInset } = useSafeAreaInsets();
   const [everOpened, setEverOpened] = useState(false);
   const keyboardHeight = useKeyboardHeight(avoidKeyboard);
+  // Tracks whether the sheet was closed programmatically (visible→false) so
+  // we don't fire onClose when the library's animation finishes — that would
+  // reset modal state and dismiss any dialog that replaced this sheet.
+  const closedExternallyRef = useRef(false);
 
   useEffect(() => {
     if (visible) {
+      closedExternallyRef.current = false;
       setEverOpened(true);
       ref.current?.snapToIndex(0);
     } else {
+      closedExternallyRef.current = true;
       ref.current?.close();
     }
   }, [visible]);
@@ -93,7 +99,10 @@ export function Sheet({ visible, onClose, children, snapToMax, disableClose = fa
       backdropComponent={renderBackdrop}
       backgroundStyle={{ backgroundColor: colors.bg.sheet }}
       handleIndicatorStyle={{ backgroundColor: colors.border.strong }}
-      onClose={disableClose ? undefined : onClose}
+      onClose={disableClose ? undefined : () => {
+        if (!closedExternallyRef.current) onClose();
+        closedExternallyRef.current = false;
+      }}
     >
       {everOpened && (snapToMax ? children : <BottomSheetView onLayout={handleLayout}>{children}</BottomSheetView>)}
     </BottomSheet>
