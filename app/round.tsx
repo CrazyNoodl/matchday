@@ -101,7 +101,7 @@ export default function MatchdayScreen() {
   const handleConfirmDeleteRound = useCallback(() => {
     store.deleteRound();
     store.setModal(null);
-    router.push('/tournament');
+    router.replace('/tournament');
   }, [store, router]);
 
   const winner = localWinnerId ? players.find((p) => p.id === localWinnerId) : null;
