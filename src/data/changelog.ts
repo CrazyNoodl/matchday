@@ -9,6 +9,19 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.0',
+    fixed: [
+      'Keyboard no longer covers text inputs in the commentary editor, add-match commentary step, edit round date, and rename tournament sheets — the sheet now lifts above the keyboard automatically (#36)',
+      'Delete round modal no longer disappears after a few seconds — the sheet close animation no longer resets modal state when a dialog is shown on top (#52)',
+      'Navigating back after deleting a round no longer returns to the deleted round screen — navigation stack is replaced on delete (#52)',
+      'Add-match discard and save-error alerts replaced with in-app dialogs matching the rest of the app — no more native Alert popups in the add-match flow',
+      'Max-photos warning in OCR lab replaced with in-app dialog',
+    ],
+    notes: [
+      'Selective sync: only table groups with local changes are pushed to Supabase — reduces unnecessary writes on every autosave',
+    ],
+  },
+  {
     version: '1.8.1',
     fixed: [
       'Matches within a round are now grouped into tour blocks — a tour is complete when every player has faced every other player once (N×(N-1)/2 matches); with 2 players each match is its own tour (#42)',
