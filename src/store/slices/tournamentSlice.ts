@@ -4,7 +4,15 @@ import { ParsedMatch } from '@/utils/importRound';
 import { calculateStandings, isTopTied } from '@/utils/standings';
 import { Colors } from '@/theme/colors';
 import { initials, patchMatchEverywhere } from '../sliceHelpers';
+import { deleteMediaItem } from '@/supabase/storage';
 import type { RootState } from '../index';
+
+function scheduleMediaCleanup(matches: Match[]): void {
+  matches
+    .flatMap((m) => m.media ?? [])
+    .filter((item) => !item.pendingUpload)
+    .forEach((item) => { deleteMediaItem(item.uri).catch(() => {}); });
+}
 
 export interface TournamentState {
   tournamentId: string;
@@ -37,6 +45,7 @@ export interface TournamentActions {
   finishRound: () => void;
   deleteRound: () => void;
   deleteArchivedRound: (id: string) => void;
+  deleteClosedTournament: (id: string) => void;
   closeTournament: () => void;
   renameTournament: (name: string) => void;
   updateRoundDate: (id: string, date: string) => void;
@@ -86,8 +95,11 @@ export const createTournamentSlice: StateCreator<RootState, [], [], TournamentSl
   addMatch: (match) =>
     set((s) => ({ matches: [...s.matches, match] })),
 
-  deleteMatch: (id) =>
-    set((s) => ({ matches: s.matches.filter((m) => m.id !== id) })),
+  deleteMatch: (id) => {
+    const match = get().matches.find((m) => m.id === id);
+    if (match) scheduleMediaCleanup([match]);
+    set((s) => ({ matches: s.matches.filter((m) => m.id !== id) }));
+  },
 
   updateMatchScore: (id, aScore, bScore) =>
     set((s) => patchMatchEverywhere(s, id, { aScore, bScore })),
@@ -143,17 +155,22 @@ export const createTournamentSlice: StateCreator<RootState, [], [], TournamentSl
     });
   },
 
-  deleteRound: () =>
-    set({
-      matches: [],
-      roundOpen: false,
-      roundPlayers: [],
-    }),
+  deleteRound: () => {
+    scheduleMediaCleanup(get().matches);
+    set({ matches: [], roundOpen: false, roundPlayers: [] });
+  },
 
-  deleteArchivedRound: (id) =>
-    set((s) => ({
-      archivedRounds: s.archivedRounds.filter((r) => r.id !== id),
-    })),
+  deleteArchivedRound: (id) => {
+    const round = get().archivedRounds.find((r) => r.id === id);
+    if (round) scheduleMediaCleanup(round.matches);
+    set((s) => ({ archivedRounds: s.archivedRounds.filter((r) => r.id !== id) }));
+  },
+
+  deleteClosedTournament: (id) => {
+    const tour = get().closedTournaments.find((t) => t.id === id);
+    if (tour) scheduleMediaCleanup(tour.rounds.flatMap((r) => r.matches));
+    set((s) => ({ closedTournaments: s.closedTournaments.filter((t) => t.id !== id) }));
+  },
 
   closeTournament: () => {
     const s = get();
