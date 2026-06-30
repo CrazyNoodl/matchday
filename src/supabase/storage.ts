@@ -11,13 +11,17 @@ const BUCKET = 'match-media';
 export async function uploadMediaItem(
   localUri: string,
   type: 'image' | 'video',
+  context?: { tournamentId: string; matchId: string },
 ): Promise<string | null> {
   const userId = await getCurrentUserId();
   if (!userId) return null;
 
   try {
     const ext = type === 'video' ? 'mp4' : 'jpg';
-    const path = `${userId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const path = context?.tournamentId && context?.matchId
+      ? `${userId}/${context.tournamentId}/${context.matchId}/${filename}`
+      : `${userId}/${filename}`;
     const mimeType = type === 'video' ? 'video/mp4' : 'image/jpeg';
 
     const ok = await uploadViaFetch(localUri, path, mimeType);
@@ -58,11 +62,14 @@ export async function uploadTeamLogo(localUri: string): Promise<string | null> {
 // Items that fail upload are kept with their local URI as fallback
 // ---------------------------------------------------------------------------
 
-export async function uploadMediaItems(items: MediaItem[]): Promise<MediaItem[]> {
+export async function uploadMediaItems(
+  items: MediaItem[],
+  context?: { tournamentId: string; matchId: string },
+): Promise<MediaItem[]> {
   return Promise.all(
     items.map(async (item) => {
       if (isRemoteUrl(item.uri)) return item; // already uploaded
-      const remoteUrl = await uploadMediaItem(item.uri, item.type);
+      const remoteUrl = await uploadMediaItem(item.uri, item.type, context);
       return { ...item, uri: remoteUrl ?? item.uri };
     }),
   );

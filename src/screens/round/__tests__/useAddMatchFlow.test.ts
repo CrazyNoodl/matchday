@@ -37,6 +37,7 @@ async function makeHook(overrides: Partial<Parameters<typeof useAddMatchFlow>[0]
   const hook = await renderHook(() =>
     useAddMatchFlow({
       tournamentRanked: true,
+      tournamentId: 'test-tournament',
       players: PLAYERS,
       addMatchToStore,
       closeModal,
