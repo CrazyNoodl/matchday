@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import {
   View,
   Text,
@@ -24,6 +24,7 @@ export function MatchModals({ d }: MatchModalsProps) {
   const colors = useColors();
   const styles = makeStyles(colors);
   const { match, playerA, playerB, modal, mergedStats } = d;
+  const rescanAfterClose = useRef(false);
 
   return (
     <>
@@ -247,6 +248,12 @@ export function MatchModals({ d }: MatchModalsProps) {
         animationType="none"
         onRequestClose={() => d.setShowStatsMenu(false)}
         statusBarTranslucent
+        onDismiss={() => {
+          if (rescanAfterClose.current) {
+            rescanAfterClose.current = false;
+            d.handleImportStats();
+          }
+        }}
       >
         <Pressable style={StyleSheet.absoluteFill} onPress={() => d.setShowStatsMenu(false)} />
         <View
@@ -258,7 +265,7 @@ export function MatchModals({ d }: MatchModalsProps) {
           <TouchableOpacity
             style={styles.statsMenuItem}
             disabled={d.importingStats}
-            onPress={() => { d.setShowStatsMenu(false); d.handleImportStats(); }}
+            onPress={() => { rescanAfterClose.current = true; d.setShowStatsMenu(false); }}
           >
             {d.importingStats
               ? <ActivityIndicator size="small" color={colors.text.muted} />

@@ -2,21 +2,25 @@ import { StyleSheet } from 'react-native';
 import type { AppColors } from '../../theme';
 import { Radius, Spacing } from '../../theme/spacing';
 
-export const makeStyles = (colors: AppColors, screenWidth: number) => StyleSheet.create({
+export const makeStyles = (colors: AppColors, screenWidth: number, screenHeight: number) => StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.95)',
     justifyContent: 'center',
   },
+  list: {
+    height: screenHeight,
+    flexGrow: 0,
+  },
   slide: {
     width: screenWidth,
-    height: screenWidth,
+    height: screenHeight,
     justifyContent: 'center',
     alignItems: 'center',
   },
   slideImage: {
     width: screenWidth,
-    height: screenWidth,
+    height: screenHeight,
   },
   videoOverlay: {
     ...StyleSheet.absoluteFill,

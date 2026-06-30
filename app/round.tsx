@@ -50,6 +50,7 @@ export default function MatchdayScreen() {
   const closeModal = useCallback(() => store.setModal(null), [store]);
   const addMatchFlow = useAddMatchFlow({
     tournamentRanked,
+    tournamentId: store.tournamentId,
     players,
     addMatchToStore: store.addMatch,
     closeModal,

@@ -20,6 +20,7 @@ export interface MediaItem {
   uri: string;
   type: 'image' | 'video';
   pendingUpload?: boolean;
+  uploading?: boolean;
 }
 
 export interface Match {

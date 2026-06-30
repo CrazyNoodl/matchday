@@ -11,5 +11,26 @@
       "Bash(xcrun xctrace list)",
       "Bash(curl -s http://localhost:8081/status)"
     ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "if": "Bash(./scripts/finish-feature*)",
+            "command": "printf '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"additionalContext\":\"CONTEXT UPDATE REQUIRED before finish-feature.sh runs: Update /Users/artemrudenko/Projects/Match/matchday/docs/CONTEXT.md in the main repo (not the worktree). Add the completed feature to the implemented features table, remove it from the gaps section if listed there, update the GitHub issues list if any were closed, and note any non-obvious implementation details. Do this BEFORE finish-feature.sh — the worktree will be removed after.\"}}'",
+            "statusMessage": "Нагадую оновити CONTEXT.md..."
+          },
+          {
+            "type": "command",
+            "if": "Bash(git push*)",
+            "command": "printf '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"additionalContext\":\"PRE-PUSH CHECKLIST: (1) Is docs/CONTEXT.md up to date with the latest feature? (2) Did tests pass (npm test)? (3) Was the version bumped? (4) Was the changelog updated? (5) Were resolved GitHub issues closed? Confirm all before pushing.\"}}'",
+            "statusMessage": "Перевіряю pre-push checklist..."
+          }
+        ]
+      }
+    ]
   }
 }
