@@ -7,6 +7,7 @@ import {
   Pressable,
   TouchableOpacity,
   ActivityIndicator,
+  InteractionManager,
 } from 'react-native';
 import { BottomSheetScrollView, BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { useTranslation } from 'react-i18next';
@@ -258,7 +259,7 @@ export function MatchModals({ d }: MatchModalsProps) {
           <TouchableOpacity
             style={styles.statsMenuItem}
             disabled={d.importingStats}
-            onPress={() => { d.setShowStatsMenu(false); d.handleImportStats(); }}
+            onPress={() => { d.setShowStatsMenu(false); InteractionManager.runAfterInteractions(d.handleImportStats); }}
           >
             {d.importingStats
               ? <ActivityIndicator size="small" color={colors.text.muted} />
