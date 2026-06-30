@@ -9,6 +9,16 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.2',
+    added: [
+      'Select up to 5 photos/videos at once when adding media to a match — multi-select is always available; the picker limit adjusts automatically based on how many items are already attached',
+      'Photos appear instantly after picking — upload happens in the background while you continue using the app; each thumbnail shows a spinner while uploading and switches to a retry indicator if the upload fails',
+      'Media viewer now supports swipe gestures to move between photos — previously only the navigation arrows worked',
+      'Media viewer closes by tapping anywhere on the image or on the dark background — no longer requires tapping the ✕ button',
+      'Media viewer now uses full screen height for each slide — portrait photos are centred correctly instead of being cropped to a square',
+    ],
+  },
+  {
     version: '1.9.1',
     fixed: [
       'Re-scan in the stats context menu now reliably opens the photo picker on iOS — the picker was silently blocked when the stats dropdown modal had not yet fully dismissed',

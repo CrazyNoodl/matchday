@@ -46,12 +46,32 @@ closedTournaments — fully finished tournaments (hasTournament = false after cl
 | Stats screen — Ranking (all-time) + H2H pairs | `app/stats.tsx` |
 | Season stats | `app/season-stats.tsx` |
 | Archive (closed tournaments accordion) | `app/archive.tsx`, `app/archive-day.tsx` |
+| Match media: multi-select (up to 5), optimistic upload, full-screen swipeable viewer | `src/screens/match/useMatchDetail.ts`, `src/components/MediaSlider/` |
 | OCR stat import (AI, dev-only) | `app/settings/(developer)/ocr-lab.tsx` |
 | Player/team management | `app/settings/(data)/` |
 | Supabase sync (selective, debounced 300ms) | `src/store/` |
 | Demo mode | store flag |
 | i18n (uk / en / fr) | `src/i18n/locales/` |
 | Dark + light theme | `src/theme/` |
+
+## Media upload — implementation detail
+
+### Multi-select & slot cap
+
+Both `handleAddMedia` (match detail, `src/screens/match/useMatchDetail.ts`) and `handlePickMedia` (add-match flow, `src/screens/round/useAddMatchFlow.ts`) enforce a **5-item cap** per match. The picker's `selectionLimit` is set dynamically to `5 - currentMediaCount` so the OS enforces the cap in the picker itself. If slots are full the button is disabled (`isMediaFull`).
+
+### Optimistic upload
+
+`handleAddMedia` saves items to the store **immediately** with `{ uri: localUri, type, uploading: true }` before the upload starts. The FlatList thumbnail shows a green spinner. Upload runs in the background; navigation away does not interrupt it. On completion the item is replaced:
+
+- Upload OK → `{ uri: remoteUrl, type }` (remote URL, no flag)
+- Upload failed → `{ uri: localUri, type, pendingUpload: true }` (retry overlay with ⚠)
+
+`uploading: true` items are **stripped on store rehydration** (same as `pendingUpload`) so a crash during upload does not leave stuck spinners on next app launch. Implemented in `onRehydrateStorage` in `src/store/index.ts`.
+
+UI rules for `uploading: true` thumbnails: no delete button, tap is disabled (can't view or retry something still in flight).
+
+---
 
 ## Media cleanup on delete — implementation detail
 
@@ -133,6 +153,25 @@ Share round (all matches) and share standings exist. Share for one specific matc
 | #20 | idea | Full player profile with list of tournaments |
 | #19 | idea | Share tournament via link (read-only) |
 | #18 | idea | Keep round local-only until finished, sync on finish |
+
+---
+
+## MediaSlider — implementation detail
+
+`src/components/MediaSlider/MediaSlider.tsx` — full-screen photo/video viewer opened from the match detail screen via `Modal`.
+
+**Touch architecture (do not regress):**
+
+```
+Pressable overlay (onPress=onClose)   ← closes on tap outside slide
+  └── FlatList (horizontal, pagingEnabled)
+        └── Pressable slide (onPress=onClose)   ← closes on tap on image
+```
+
+- `FlatList` is a **direct child of the outer Pressable**, never wrapped inside another Pressable. Wrapping FlatList in a Pressable kills swipe gestures — the Pressable claims the touch responder before FlatList's pan handler can negotiate.
+- Each slide is a `Pressable` **inside** FlatList (standard RN pattern). FlatList steals the responder for horizontal pans via `onMoveShouldSetResponderCapture`; simple taps reach the slide Pressable and fire `onClose`.
+- Slide dimensions: `width × height` (full screen), not square. Image uses `resizeMode="contain"` so portrait and landscape photos are centred correctly.
+- `FlatList` has `style={{ height: screenHeight, flexGrow: 0 }}` to prevent vertical stretch in the flex container.
 
 ---
 
