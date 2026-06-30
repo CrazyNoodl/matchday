@@ -754,9 +754,9 @@ describe('handlePickMedia — skipped OCR is preserved when more images are adde
 // ---------------------------------------------------------------------------
 
 describe('handlePickMedia — no phantom OCR assets beyond media cap', () => {
-  it('only processes images that fit within the 7-item limit', async () => {
+  it('only processes images that fit within the 5-item limit', async () => {
     mockExtractStats.mockResolvedValue([]);
-    // Return 3 images from picker when only 1 slot remains (6 existing items)
+    // Return 3 images from picker when only 1 slot remains (4 existing items)
     mockPicker.mockResolvedValueOnce({
       canceled: false,
       assets: [
@@ -768,11 +768,11 @@ describe('handlePickMedia — no phantom OCR assets beyond media cap', () => {
 
     const { result } = await makeHook();
 
-    // Pre-fill 6 media slots
+    // Pre-fill 4 media slots
     await act(async () => {
       result.current.setAddMatch({
         ...initAddMatch(),
-        media: Array.from({ length: 6 }, (_, i) => ({
+        media: Array.from({ length: 4 }, (_, i) => ({
           uri: `file://existing${i}.jpg`,
           type: 'image' as const,
         })),
@@ -790,17 +790,17 @@ describe('handlePickMedia — no phantom OCR assets beyond media cap', () => {
     expect(mockExtractStats).not.toHaveBeenCalledWith('base_b', expect.anything());
     expect(mockExtractStats).not.toHaveBeenCalledWith('base_c', expect.anything());
 
-    // Exactly 7 items in media
-    expect(result.current.addMatch.media).toHaveLength(7);
+    // Exactly 5 items in media
+    expect(result.current.addMatch.media).toHaveLength(5);
   });
 
-  it('does not launch picker when all 7 slots are full', async () => {
+  it('does not launch picker when all 5 slots are full', async () => {
     const { result } = await makeHook();
 
     await act(async () => {
       result.current.setAddMatch({
         ...initAddMatch(),
-        media: Array.from({ length: 7 }, (_, i) => ({
+        media: Array.from({ length: 5 }, (_, i) => ({
           uri: `file://existing${i}.jpg`,
           type: 'image' as const,
         })),
