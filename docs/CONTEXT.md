@@ -53,6 +53,37 @@ closedTournaments — fully finished tournaments (hasTournament = false after cl
 | i18n (uk / en / fr) | `src/i18n/locales/` |
 | Dark + light theme | `src/theme/` |
 
+## Media cleanup on delete — implementation detail
+
+When any delete action removes matches, the associated Supabase Storage files are cleaned up automatically:
+
+- `deleteMatch(id)` — deletes media of the removed match
+- `deleteRound()` — deletes media of all current-round matches
+- `deleteArchivedRound(id)` — deletes media of all matches in that round
+- `deleteClosedTournament(id)` — deletes media across all rounds of a closed tournament (new action, no UI yet)
+- `resetStore()` — already handled full cleanup (unchanged)
+
+Pattern: fire-and-forget. Local state updates synchronously; `deleteMediaItem()` runs in the background without blocking the UI. Items with `pendingUpload=true` are skipped (they were never uploaded). Implemented in `scheduleMediaCleanup()` helper at the top of `tournamentSlice.ts`.
+
+---
+
+## Storage folder structure — implementation detail
+
+New uploads go into a hierarchical path inside the `match-media` bucket:
+
+```
+{userId}/{tournamentId}/{matchId}/{timestamp}-{randomId}.{ext}
+```
+
+`uploadMediaItem(localUri, type, context?)` and `uploadMediaItems(items, context?)` accept an optional `context: { tournamentId, matchId }`. When omitted, falls back to flat `{userId}/{filename}` (used for team logos and any call site that doesn't have tournament context).
+
+- `useAddMatchFlow` generates `matchId` before calling upload so the folder exists at write time.
+- `useMatchDetail` reads `store.tournamentId` (always correct for editable matches — closed tournaments are read-only).
+- `deleteMediaItem` extracts the full path from the public URL, so deletion works for both old (flat) and new (structured) paths without changes.
+- Old files in the flat structure remain valid; their URLs in the store keep working.
+
+---
+
 ### Share cards — implementation detail
 
 Both `ShareRoundModal` and `ShareStandingsModal` use:

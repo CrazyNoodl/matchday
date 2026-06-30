@@ -34,6 +34,15 @@ main  ← stable releases only
 # Merges branch into dev, removes worktree, deletes local branch
 ```
 
+**Before calling `finish-feature.sh`, update `docs/CONTEXT.md` in the main repo** (not the worktree) with what was built: add the feature to the "What is fully implemented" table, remove it from "What is NOT implemented" if it was listed there, update the open GitHub issues list if any were closed, and note any non-obvious implementation details discovered. The worktree is deleted after `finish-feature.sh` — update CONTEXT.md first.
+
+**Before any `git push` to `main` or `dev`, run through this checklist:**
+1. `docs/CONTEXT.md` is up to date
+2. `npm test` is green
+3. Version was bumped
+4. Changelog was updated
+5. Resolved GitHub issues are closed
+
 **Never run `finish-feature.sh` (or otherwise merge a feature/fix/test branch into `dev`) without the user explicitly confirming first.** Finishing work in a worktree and merging it are separate steps — wait for direct approval before merging, even if the work appears complete.
 
 **When implementation in a worktree is done, automatically start the local dev server and open it in a browser for testing** — don't wait to be asked. Set the browser tab title to the GitHub issue number being worked on (e.g. `#23 — media slider`) so the user can tell which tab corresponds to which issue/worktree when several are open at once. This title is a transient local-testing aid only (e.g. set via `document.title` in the test session) — it must never be committed or written into `app.config.js`'s permanent `web.name`/`shortName`.
