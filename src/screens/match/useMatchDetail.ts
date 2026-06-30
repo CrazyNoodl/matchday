@@ -149,7 +149,7 @@ export function useMatchDetail() {
           // Bug 10 fix: catch upload throw and treat it as null (same as upload-failed),
           // so the photo is always saved locally with pendingUpload when upload fails.
           let remoteUrl: string | null;
-          try { remoteUrl = await uploadMediaItem(asset.uri, type); } catch { remoteUrl = null; }
+          try { remoteUrl = await uploadMediaItem(asset.uri, type, { tournamentId: store.tournamentId, matchId }); } catch { remoteUrl = null; }
           const newItem: MediaItem = remoteUrl !== null
             ? { uri: remoteUrl, type }
             : { uri: asset.uri, type, pendingUpload: true };
@@ -198,7 +198,7 @@ export function useMatchDetail() {
         const uploadResults = await Promise.all(
           result.assets.map(async (asset) => {
             try {
-              const remoteUrl = await uploadMediaItem(asset.uri, 'image');
+              const remoteUrl = await uploadMediaItem(asset.uri, 'image', { tournamentId: store.tournamentId, matchId });
               return { asset, remoteUrl };
             } catch {
               return { asset, remoteUrl: null };
@@ -282,7 +282,7 @@ export function useMatchDetail() {
 
     try {
       let remoteUrl: string | null;
-      try { remoteUrl = await uploadMediaItem(itemUri, item.type); } catch { remoteUrl = null; }
+      try { remoteUrl = await uploadMediaItem(itemUri, item.type, { tournamentId: store.tournamentId, matchId }); } catch { remoteUrl = null; }
 
       const freshMedia = getFreshMedia();
       if (remoteUrl !== null) {

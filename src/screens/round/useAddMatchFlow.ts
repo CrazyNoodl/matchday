@@ -12,6 +12,7 @@ import {
 
 interface UseAddMatchFlowParams {
   tournamentRanked: boolean;
+  tournamentId: string;
   players: Player[];
   addMatchToStore: (match: Match) => void;
   closeModal: () => void;
@@ -19,6 +20,7 @@ interface UseAddMatchFlowParams {
 
 export function useAddMatchFlow({
   tournamentRanked,
+  tournamentId,
   players,
   addMatchToStore,
   closeModal,
@@ -65,13 +67,15 @@ export function useAddMatchFlow({
       const hTeam = addMatch.homeTeam || homePlayer?.teamCode || 'UNK';
       const aTeam = addMatch.awayTeam || awayPlayer?.teamCode || 'UNK';
 
+      const matchId = `match-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+
       // Upload local media to Supabase Storage before saving
       const uploadedMedia = addMatch.media.length > 0
-        ? await uploadMediaItems(addMatch.media)
+        ? await uploadMediaItems(addMatch.media, { tournamentId, matchId })
         : [];
 
       const match: Match = {
-        id: `match-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        id: matchId,
         aId: addMatch.homeId,
         bId: addMatch.awayId,
         aTeam: hTeam,
