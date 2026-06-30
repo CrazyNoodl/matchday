@@ -9,6 +9,14 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.1',
+    fixed: [
+      'Re-scan in the stats context menu now reliably opens the photo picker on iOS — the picker was silently blocked when the stats dropdown modal had not yet fully dismissed',
+      'Uploaded media is now stored in a structured folder path (userId/tournamentId/matchId) instead of a flat bucket root — makes media easier to manage and clean up',
+      'Deleting a match, round, or tournament now also removes its associated photos and videos from Supabase Storage — no more orphaned files left behind',
+    ],
+  },
+  {
     version: '1.9.0',
     fixed: [
       'Keyboard no longer covers text inputs in the commentary editor, add-match commentary step, edit round date, and rename tournament sheets — the sheet now lifts above the keyboard automatically (#36)',
