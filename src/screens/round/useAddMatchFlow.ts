@@ -157,7 +157,7 @@ export function useAddMatchFlow({
 
   const handlePickMedia = useCallback(async () => {
     if (addMatch.ocrStatus === 'scanning') return;
-    const slotsLeft = 7 - addMatch.media.length;
+    const slotsLeft = 5 - addMatch.media.length;
     if (slotsLeft <= 0) return;
 
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -169,7 +169,7 @@ export function useAddMatchFlow({
     });
     if (result.canceled) return;
 
-    // Respect the 7-item cap — only keep assets that actually fit into media
+    // Respect the 5-item cap — only keep assets that actually fit into media
     const fittingAssets = result.assets.slice(0, slotsLeft);
 
     const newItems: MediaItem[] = fittingAssets.map((a) => ({

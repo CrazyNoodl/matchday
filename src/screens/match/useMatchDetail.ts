@@ -92,6 +92,7 @@ export function useMatchDetail() {
     : null;
 
   const hasMediaFiles = !!(match?.media && match.media.length > 0);
+  const isMediaFull = (match?.media?.length ?? 0) >= 5;
 
   const openEditScore = useCallback(() => {
     if (!match) return;
@@ -130,38 +131,64 @@ export function useMatchDetail() {
 
   const handleAddMedia = useCallback(async () => {
     if (!match) return;
-    // Ref guard: synchronously blocks concurrent calls (state would be stale in closure)
     if (uploadingMediaRef.current || importingStatsRef.current) return;
+
+    const slotsLeft = 5 - (match.media?.length ?? 0);
+    if (slotsLeft <= 0) return;
+
     uploadingMediaRef.current = true;
+
+    const getMedia = (matchId: string) =>
+      useStore.getState().matches.find((m) => m.id === matchId)?.media
+      ?? useStore.getState().archivedRounds.flatMap((r) => r.matches).find((m) => m.id === matchId)?.media
+      ?? [];
+
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ['images', 'videos'] as unknown as ImagePicker.MediaTypeOptions,
-        allowsMultipleSelection: false,
+        allowsMultipleSelection: true,
+        selectionLimit: slotsLeft,
         quality: 0.8,
       });
-      if (!result.canceled && result.assets[0]) {
-        const asset = result.assets[0];
-        const matchId = match.id;
-        const type: 'image' | 'video' = asset.type === 'video' ? 'video' : 'image';
-        // Show spinner only during the actual upload, not while picker is open
-        setUploadingMedia(true);
-        try {
-          // Bug 10 fix: catch upload throw and treat it as null (same as upload-failed),
-          // so the photo is always saved locally with pendingUpload when upload fails.
+
+      if (result.canceled || !result.assets.length) return;
+
+      const matchId = match.id;
+
+      // Optimistic: items appear immediately in the UI with a spinner overlay
+      const optimisticItems: MediaItem[] = result.assets.map((asset) => ({
+        uri: asset.uri,
+        type: asset.type === 'video' ? 'video' : 'image',
+        uploading: true,
+      }));
+      store.updateMatchMedia(matchId, [...getMedia(matchId), ...optimisticItems]);
+
+      // Picker is closed and items are visible — release ref so other actions can proceed
+      uploadingMediaRef.current = false;
+
+      // Upload each item in background; navigation away does not interrupt this
+      await Promise.all(
+        result.assets.map(async (asset) => {
+          const type: 'image' | 'video' = asset.type === 'video' ? 'video' : 'image';
+          const localUri = asset.uri;
+
           let remoteUrl: string | null;
-          try { remoteUrl = await uploadMediaItem(asset.uri, type, { tournamentId: store.tournamentId, matchId }); } catch { remoteUrl = null; }
-          const newItem: MediaItem = remoteUrl !== null
-            ? { uri: remoteUrl, type }
-            : { uri: asset.uri, type, pendingUpload: true };
-          // Bug 2 fix: read fresh media from store at write time, not from stale closure
-          const freshMedia = useStore.getState().matches.find((m) => m.id === matchId)?.media
-            ?? useStore.getState().archivedRounds.flatMap((r) => r.matches).find((m) => m.id === matchId)?.media
-            ?? [];
-          store.updateMatchMedia(matchId, [...freshMedia, newItem]);
-        } finally {
-          setUploadingMedia(false);
-        }
-      }
+          try { remoteUrl = await uploadMediaItem(localUri, type, { tournamentId: store.tournamentId, matchId }); } catch { remoteUrl = null; }
+
+          // Replace the optimistic item matched by local URI + uploading flag
+          store.updateMatchMedia(
+            matchId,
+            getMedia(matchId).map((item) => {
+              if (item.uri === localUri && item.uploading) {
+                return remoteUrl !== null
+                  ? { uri: remoteUrl, type }
+                  : { uri: localUri, type, pendingUpload: true };
+              }
+              return item;
+            }),
+          );
+        }),
+      );
     } finally {
       uploadingMediaRef.current = false;
     }
@@ -345,6 +372,7 @@ export function useMatchDetail() {
     isDraw,
     winnerName,
     hasMediaFiles,
+    isMediaFull,
     hasStatsOverride,
     mergedStats,
     modal,

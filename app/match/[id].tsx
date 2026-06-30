@@ -30,6 +30,7 @@ export default function MatchDetailScreen() {
     isDraw,
     winnerName,
     hasMediaFiles,
+    isMediaFull,
     hasStatsOverride,
     mergedStats,
     isCurrentRoundMatch,
@@ -215,10 +216,10 @@ export default function MatchDetailScreen() {
                 </TouchableOpacity>
               )}
               <TouchableOpacity
-                style={[styles.addMediaBtn, importingStats && styles.btnCrossBlocked]}
+                style={[styles.addMediaBtn, (importingStats || isMediaFull) && styles.btnCrossBlocked]}
                 onPress={d.handleAddMedia}
                 activeOpacity={0.75}
-                disabled={uploadingMedia || importingStats}
+                disabled={uploadingMedia || importingStats || isMediaFull}
                 hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
               >
                 {uploadingMedia ? (
@@ -242,16 +243,23 @@ export default function MatchDetailScreen() {
               return (
                 <View key={idx} style={styles.mediaThumbnail}>
                   <TouchableOpacity
-                    onPress={item.pendingUpload
-                      ? () => d.handleRetryUpload(item.uri)
-                      : () => d.setViewingMediaIndex(idx)}
-                    activeOpacity={0.85}
-                    disabled={isRetrying}
+                    onPress={item.uploading
+                      ? undefined
+                      : item.pendingUpload
+                        ? () => d.handleRetryUpload(item.uri)
+                        : () => d.setViewingMediaIndex(idx)}
+                    activeOpacity={item.uploading ? 1 : 0.85}
+                    disabled={isRetrying || !!item.uploading}
                   >
                     <Image source={{ uri: item.uri }} style={styles.mediaImage} resizeMode="cover" />
-                    {item.type === 'video' && !item.pendingUpload && (
+                    {item.type === 'video' && !item.pendingUpload && !item.uploading && (
                       <View style={styles.videoOverlay}>
                         <Text style={styles.videoPlayIcon}>▶</Text>
+                      </View>
+                    )}
+                    {item.uploading && (
+                      <View style={styles.pendingUploadOverlay}>
+                        <ActivityIndicator size="small" color={colors.accent.green} />
                       </View>
                     )}
                     {item.pendingUpload && (
@@ -267,7 +275,7 @@ export default function MatchDetailScreen() {
                       </View>
                     )}
                   </TouchableOpacity>
-                  {isEditableMatch && (
+                  {isEditableMatch && !item.uploading && (
                     <TouchableOpacity
                       style={styles.mediaDeleteBtn}
                       onPress={() => d.handleDeleteMedia(idx)}
