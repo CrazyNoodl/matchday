@@ -53,6 +53,7 @@ closedTournaments — fully finished tournaments (hasTournament = false after cl
 | Demo mode | store flag |
 | i18n (uk / en / fr) | `src/i18n/locales/` |
 | Dark + light theme | `src/theme/` |
+| Playwright E2E tests (13 tests, 5 smoke) | `e2e/` — `npm run e2e`, `npm run e2e:smoke` |
 
 ## Media upload — implementation detail
 

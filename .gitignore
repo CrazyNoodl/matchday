@@ -43,3 +43,7 @@ debug-storybook.log
 .env
 .env.local
 cloudflare-worker/.wrangler/
+
+# Playwright
+test-results/
+playwright-report/

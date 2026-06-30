@@ -39,9 +39,10 @@ main  ← stable releases only
 **Before any `git push` to `main` or `dev`, run through this checklist:**
 1. `docs/CONTEXT.md` is up to date
 2. `npm test` is green
-3. Version was bumped
-4. Changelog was updated
-5. Resolved GitHub issues are closed
+3. `npm run e2e:smoke` is green
+4. Version was bumped
+5. Changelog was updated
+6. Resolved GitHub issues are closed
 
 **Never run `finish-feature.sh` (or otherwise merge a feature/fix/test branch into `dev`) without the user explicitly confirming first.** Finishing work in a worktree and merging it are separate steps — wait for direct approval before merging, even if the work appears complete.
 

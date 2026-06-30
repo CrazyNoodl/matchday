@@ -9,6 +9,12 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.3',
+    notes: [
+      'Added Playwright E2E test suite (13 tests, 5 smoke) covering home, teams, players, setup, and full tournament flow — runs automatically on every PR via GitHub Actions',
+    ],
+  },
+  {
     version: '1.9.2',
     added: [
       'Select up to 5 photos/videos at once when adding media to a match — multi-select is always available; the picker limit adjusts automatically based on how many items are already attached',
