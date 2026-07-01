@@ -81,6 +81,25 @@ npm run test:ci
 
 Jest is configured (`jest-expo` preset). Tests live alongside the code they cover, e.g. `src/store/__tests__/`.
 
+```bash
+# E2E tests (Playwright)
+npm run e2e              # all 13 tests headless
+npm run e2e:smoke        # 5 smoke tests headless
+npm run e2e:smoke:watch  # 5 smoke tests with live browser (SLOWMO=1500)
+npm run e2e:ui           # Playwright UI mode
+```
+
+```bash
+# Release build — installs standalone .app directly on device (no Metro needed)
+# Use this to test offline, on the street, or like a real App Store build.
+# DO NOT use bare xcodebuild — it produces an incomplete bundle.
+npx expo run:ios --configuration Release --device <udid>
+
+# Find device UDID
+xcrun xctrace list devices
+# Artem's iPhone 16e: 00008140-000E225C0EF2801C
+```
+
 ## Architecture
 
 ### Routing
