@@ -125,7 +125,7 @@ export default function MatchdayScreen() {
           <Text style={styles.backChevron}>‹</Text>
         </TouchableOpacity>
         <View style={styles.headerCenter}>
-          <Text style={styles.headerTitle}>{tournamentName}</Text>
+          <Text style={styles.headerTitle} numberOfLines={1} ellipsizeMode="tail">{tournamentName}</Text>
           <Text style={styles.headerSubtitle}>{t('matchday.round', { n: round })}</Text>
         </View>
         <View style={styles.headerRight}>
