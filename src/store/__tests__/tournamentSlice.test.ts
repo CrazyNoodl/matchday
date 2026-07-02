@@ -132,6 +132,43 @@ describe('finishRound', () => {
 
 // ---------------------------------------------------------------------------
 
+describe('startRound — ranked-only ordinal numbering', () => {
+  beforeEach(() => {
+    useStore.getState().addPlayer(P1);
+    useStore.getState().addPlayer(P2);
+    useStore.getState().startTournament('Cup', ['p1', 'p2'], true);
+  });
+
+  it('numbers the first ranked round as 1', () => {
+    useStore.getState().startRound(true, ['p1', 'p2']);
+    expect(useStore.getState().round).toBe(1);
+  });
+
+  it('does not consume an ordinal for a friendly round', () => {
+    useStore.getState().startRound(false, ['p1', 'p2']);
+    useStore.getState().addMatch(makeMatch('m1'));
+    useStore.getState().finishRound();
+
+    useStore.getState().startRound(true, ['p1', 'p2']);
+    expect(useStore.getState().round).toBe(1);
+  });
+
+  it('skips friendly rounds when numbering subsequent ranked rounds', () => {
+    useStore.getState().startRound(true, ['p1', 'p2']);
+    useStore.getState().addMatch(makeMatch('m1'));
+    useStore.getState().finishRound();
+
+    useStore.getState().startRound(false, ['p1', 'p2']);
+    useStore.getState().addMatch(makeMatch('m2'));
+    useStore.getState().finishRound();
+
+    useStore.getState().startRound(true, ['p1', 'p2']);
+    expect(useStore.getState().round).toBe(2);
+  });
+});
+
+// ---------------------------------------------------------------------------
+
 describe('closeTournament', () => {
   beforeEach(() => {
     useStore.getState().addPlayer(P1);

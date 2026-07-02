@@ -87,7 +87,7 @@ export const createTournamentSlice: StateCreator<RootState, [], [], TournamentSl
       roundOpen: true,
       tournamentRanked: ranked,
       matches: [],
-      round: s.archivedRounds.length + 1,
+      round: s.archivedRounds.filter((r) => r.ranked).length + 1,
       roundPlayers: playerIds,
       tournamentPlayers: [...new Set([...s.tournamentPlayers, ...playerIds])],
     })),

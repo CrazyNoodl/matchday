@@ -12,6 +12,7 @@ import { useStore } from '@/store';
 import { calculateStandings } from '@/utils/standings';
 import { formatShortDate, formatYearShort } from '@/utils/dateFormat';
 import { getPlayerDisplayName } from '@/utils/playerDisplay';
+import { getRankedRoundOrdinals } from '@/utils/roundOrdinals';
 import { useColors } from '@/theme';
 import { NavHeader, SectionLabel, Avatar, MatchCard, GlowBackground, PlayerRankCard } from '@/components';
 import type { ArchivedRound, Match } from '@/store/types';
@@ -110,6 +111,10 @@ export default function SeasonStatsScreen() {
   const filteredRounds = useMemo(
     () => filterRounds(viewingTournament.rounds, includeFilter),
     [viewingTournament.rounds, includeFilter],
+  );
+  const roundOrdinals = useMemo(
+    () => getRankedRoundOrdinals(viewingTournament.rounds),
+    [viewingTournament.rounds],
   );
 
   const allMatches = useMemo<Match[]>(
@@ -322,11 +327,11 @@ export default function SeasonStatsScreen() {
               {/* Round header */}
               <View style={styles.roundHeader}>
                 <View style={styles.roundNumBadge}>
-                  <Text style={styles.roundNumText}>{round.n}</Text>
+                  <Text style={styles.roundNumText}>{round.ranked ? (roundOrdinals[round.id] ?? 0) : '–'}</Text>
                 </View>
                 <View style={styles.roundHeaderInfo}>
                   <Text style={styles.roundHeaderTitle}>
-                    {t('matchday.round', { n: round.n })}
+                    {round.ranked ? t('matchday.round', { n: roundOrdinals[round.id] ?? 0 }) : t('common.friendly')}
                   </Text>
                   <Text style={styles.roundHeaderDate}>{formatShortDate(round.date)}</Text>
                 </View>
