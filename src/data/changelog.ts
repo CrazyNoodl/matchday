@@ -9,6 +9,12 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.4',
+    fixed: [
+      'You no longer have to log in again every time the app is closed and reopened — the session is now stored on-device and restored automatically on launch (#54)',
+    ],
+  },
+  {
     version: '1.9.3',
     notes: [
       'Added Playwright E2E test suite (13 tests, 5 smoke) covering home, teams, players, setup, and full tournament flow — runs automatically on every PR via GitHub Actions',
