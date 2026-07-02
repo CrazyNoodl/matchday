@@ -126,7 +126,9 @@ export default function MatchdayScreen() {
         </TouchableOpacity>
         <View style={styles.headerCenter}>
           <Text style={styles.headerTitle} numberOfLines={1} ellipsizeMode="tail">{tournamentName}</Text>
-          <Text style={styles.headerSubtitle}>{t('matchday.round', { n: round })}</Text>
+          <Text style={styles.headerSubtitle}>
+            {tournamentRanked ? t('matchday.round', { n: round }) : t('common.friendly')}
+          </Text>
         </View>
         <View style={styles.headerRight}>
           {roundOpen ? (

@@ -1,17 +1,18 @@
 import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { Avatar } from '@/components/Avatar';
 import { makeStyles } from './RoundCard.styles';
 import { useColors } from '@/theme';
 
 interface RoundCardProps {
+  /** Ordinal number among ranked rounds — meaningless (and not shown) for friendly rounds. */
   n: number;
+  ranked: boolean;
   dateText: string;
   matchCountText: string;
   winnerId?: string;
   winnerName: string;
-  /** Renders a tag (e.g. "Friendly") next to the chevron — only used by the 'card' variant. */
-  friendlyLabel?: string;
   onPress: () => void;
   /** 'card' = standalone bordered card (tournament.tsx). 'row' = row nested
    *  inside an already-bordered accordion card (archive.tsx). */
@@ -20,14 +21,15 @@ interface RoundCardProps {
 
 export function RoundCard({
   n,
+  ranked,
   dateText,
   matchCountText,
   winnerId,
   winnerName,
-  friendlyLabel,
   onPress,
   variant = 'card',
 }: RoundCardProps) {
+  const { t } = useTranslation();
   const colors = useColors();
   const styles = makeStyles(colors);
   const isRow = variant === 'row';
@@ -38,7 +40,7 @@ export function RoundCard({
       activeOpacity={isRow ? 0.75 : 0.8}
     >
       <View style={isRow ? styles.badgeRow : styles.badgeCard}>
-        <Text style={isRow ? styles.badgeTextRow : styles.badgeTextCard}>{n}</Text>
+        <Text style={isRow ? styles.badgeTextRow : styles.badgeTextCard}>{ranked ? n : '–'}</Text>
       </View>
 
       <View style={isRow ? styles.infoRow : styles.infoCard}>
@@ -59,9 +61,9 @@ export function RoundCard({
         )}
       </View>
 
-      {!isRow && friendlyLabel && (
+      {!ranked && (
         <View style={styles.friendlyBadge}>
-          <Text style={styles.friendlyBadgeText}>{friendlyLabel}</Text>
+          <Text style={styles.friendlyBadgeText}>{t('common.friendly')}</Text>
         </View>
       )}
 
