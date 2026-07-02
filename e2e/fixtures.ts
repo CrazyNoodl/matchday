@@ -79,6 +79,52 @@ export async function createPlayerViaUI(page: Page, name: string, teamShort?: st
   await expect(page.getByText(name, { exact: true }).last()).toBeVisible();
 }
 
+// expo-router's Stack keeps every pushed screen mounted underneath the active
+// one (for back-gesture support), and the Zustand store is global — so a
+// backgrounded screen keeps re-rendering with live data (e.g. Home's hidden
+// leader name) even while covered. That produces exact-text duplicates once
+// you've navigated a couple of screens deep. `.last()` reliably lands on the
+// topmost/active screen because expo-router appends newly pushed screens
+// after existing ones in the DOM — use it for any text lookup performed
+// after the first in-app navigation. (Verified empirically against this
+// app's build — see e2e/fixtures.ts git history if this ever regresses.)
+
+// Adds one match via the multi-step Add Match sheet on /round.
+// Assumes tournamentRanked (default from setup.tsx) — steps are:
+// 1 players -> 2 score -> 3 media (skip) -> 4 commentary (skip) -> save.
+export async function addMatchViaUI(
+  page: Page,
+  homeName: string,
+  awayName: string,
+  homeScore: number,
+  awayScore: number,
+) {
+  await page.getByText('+ ADD MATCH', { exact: true }).last().click();
+
+  // Step 1 — players
+  await page.getByText(homeName, { exact: true }).last().click();
+  await page.getByText(awayName, { exact: true }).last().click();
+  await page.getByText('NEXT', { exact: true }).last().click();
+
+  // Step 2 — score. Background screens (see note above) can contribute their
+  // own stray "+" icons (e.g. Home's big "+" tile, Setup's rounds stepper),
+  // but the live ScoreCounter pair is always the last two "+" buttons on the
+  // page, in home-then-away order — verified against this app's build.
+  const plus = page.getByText('+', { exact: true });
+  const total = await plus.count();
+  const homeIncrement = plus.nth(total - 2);
+  const awayIncrement = plus.nth(total - 1);
+  for (let i = 0; i < homeScore; i++) await homeIncrement.click();
+  for (let i = 0; i < awayScore; i++) await awayIncrement.click();
+  await page.getByText('NEXT', { exact: true }).last().click();
+
+  // Step 3 — media (skip)
+  await page.getByText('NEXT', { exact: true }).last().click();
+
+  // Step 4 — commentary (skip) -> save
+  await page.getByText('SAVE MATCH', { exact: true }).last().click();
+}
+
 // Extended test fixture: auto-injects auth + clears app state before each test
 export const test = base.extend<{ authedPage: Page }>({
   authedPage: async ({ page }, use) => {
