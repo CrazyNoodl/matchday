@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import * as ImagePicker from 'expo-image-picker';
 import { Player, Match, MediaItem } from '@/store/types';
 import { uploadMediaItems } from '@/supabase/storage';
-import { extractStatsFromPhoto } from '@/utils/extractStats';
+import { extractStatsFromPhoto, ExtractedStat } from '@/utils/extractStats';
 import {
   AddMatchState,
   initAddMatch,
@@ -106,8 +106,8 @@ export function useAddMatchFlow({
         ...(isRetry ? {} : { ocrAssets: assets }),
       }));
       try {
-        const rank = (c: string) => (c === 'high' ? 3 : c === 'medium' ? 2 : 1);
-        const map = new Map<string, { a: number; b: number; __conf: string }>();
+        const rank = (c: ExtractedStat['confidence']) => (c === 'high' ? 3 : c === 'medium' ? 2 : 1);
+        const map = new Map<string, { a: number; b: number; __conf: ExtractedStat['confidence'] }>();
 
         for (const asset of assets) {
           const stats = await extractStatsFromPhoto(asset.base64, asset.mimeType);

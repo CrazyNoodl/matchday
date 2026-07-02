@@ -10,11 +10,12 @@ import {
   ImageStyle,
 } from 'react-native';
 import { useColors } from '../../theme';
+import type { MediaType } from '../../store/types';
 import { makeStyles, THUMB_WIDTH } from './MediaThumbnail.styles';
 
 interface MediaThumbnailProps {
   uri?: string;
-  type?: 'image' | 'video';
+  type?: MediaType;
   onRemove?: () => void;
   onPress?: () => void;
   onRetryUpload?: () => void;
