@@ -22,6 +22,17 @@ Platforms: iOS, Android, Web. Expo SDK 56, React Native 0.85.3, React 19.2.3.
 
 ---
 
+## Round numbering — implementation detail
+
+**Fixed bug ([#52](https://github.com/CrazyNoodl/matchday/issues/52), 2026-07-02):** round ordinals used to count every archived round including friendly ones (`startRound()` computed `round: archivedRounds.length + 1`), so a friendly round consumed a number in the sequence and later ranked rounds looked off (e.g. 4, 5=friendly, 6, 7… instead of 4, friendly, 5, 6…).
+
+- `startRound()` now computes the ordinal from `archivedRounds.filter(r => r.ranked).length + 1` — friendly rounds no longer consume a slot going forward.
+- Already-archived rounds still carry a stale `ArchivedRound.n` from before this fix (no data migration was run). Display code does **not** read `.n` directly anymore — `src/utils/roundOrdinals.ts` (`getRankedRoundOrdinals`) recomputes the ranked-only ordinal live from the rounds array every render, so historical data self-corrects without a migration. `.n` is still written on `finishRound()` for now but is otherwise unused for display.
+- Friendly rounds show `–` in the numeric badge instead of a number: `RoundCard` (both `card` and `row` variants), the `/round` header (shows "FRIENDLY" instead of "Round N" when `!tournamentRanked`), and `app/season-stats.tsx`'s round header follow the same rule.
+- `ShareRoundModal` takes an explicit `roundNumber` prop (computed by the caller via `getRankedRoundOrdinals`) instead of reading `round.n` — used for the shared image's footer text, filename, and share-sheet title.
+
+---
+
 ## State model (non-obvious)
 
 ```
