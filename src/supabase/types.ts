@@ -1,6 +1,9 @@
 // Generated database types for Supabase schema.
 // Run `npx supabase gen types typescript` after schema changes.
 
+export type TournamentSyncStatus = 'active' | 'closed';
+export type RoundSyncStatus = 'open' | 'archived';
+
 export interface Database {
   public: {
     Tables: {
@@ -54,7 +57,7 @@ export interface Database {
           round: number;
           round_open: boolean;
           round_players: string[];
-          status: 'active' | 'closed';
+          status: TournamentSyncStatus;
           updated_at: string;
         };
         Insert: Omit<Database['public']['Tables']['tournaments']['Row'], 'updated_at'> & { updated_at?: string };
@@ -94,7 +97,7 @@ export interface Database {
           ranked: boolean;
           name: string;
           player_ids: string[];
-          status: 'open' | 'archived';
+          status: RoundSyncStatus;
           updated_at: string;
         };
         Insert: Omit<Database['public']['Tables']['rounds']['Row'], 'updated_at'> & { updated_at?: string };

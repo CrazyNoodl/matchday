@@ -1,6 +1,7 @@
 export * from './Avatar';
 export * from './Button';
 export * from './ConfettiPiece';
+export * from './DropdownMenu';
 export * from './EmptyState';
 export * from './FormChip';
 export * from './GlowBackground';

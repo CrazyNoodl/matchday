@@ -1,4 +1,4 @@
-import { Match } from '../store/types';
+import { Match, MatchResult } from '../store/types';
 
 export interface Standing {
   playerId: string;
@@ -195,7 +195,7 @@ export function getFormChips(
   matches: Match[],
   playerId: string,
   count = 3,
-): ('W' | 'D' | 'L')[] {
+): MatchResult[] {
   const relevant = matches
     .filter((m) => m.aId === playerId || m.bId === playerId)
     .slice(-count);

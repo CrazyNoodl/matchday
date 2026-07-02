@@ -16,9 +16,13 @@ export interface Team {
   logo?: string;
 }
 
+export type MediaType = 'image' | 'video';
+
+export type MatchResult = 'W' | 'D' | 'L';
+
 export interface MediaItem {
   uri: string;
-  type: 'image' | 'video';
+  type: MediaType;
   pendingUpload?: boolean;
   uploading?: boolean;
 }
@@ -101,5 +105,4 @@ export type Modal =
   | 'newRound'
   | 'delMatch'
   | 'editRoundDate'
-  | 'roundSettings'
   | 'delRound';

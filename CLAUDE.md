@@ -39,9 +39,10 @@ main  ← stable releases only
 **Before any `git push` to `main` or `dev`, run through this checklist:**
 1. `docs/CONTEXT.md` is up to date
 2. `npm test` is green
-3. Version was bumped
-4. Changelog was updated
-5. Resolved GitHub issues are closed
+3. `npm run e2e:smoke` is green
+4. Version was bumped
+5. Changelog was updated
+6. Resolved GitHub issues are closed
 
 **Never run `finish-feature.sh` (or otherwise merge a feature/fix/test branch into `dev`) without the user explicitly confirming first.** Finishing work in a worktree and merging it are separate steps — wait for direct approval before merging, even if the work appears complete.
 
@@ -79,6 +80,25 @@ npm run test:ci
 ```
 
 Jest is configured (`jest-expo` preset). Tests live alongside the code they cover, e.g. `src/store/__tests__/`.
+
+```bash
+# E2E tests (Playwright)
+npm run e2e              # all 17 tests headless
+npm run e2e:smoke        # 7 smoke tests headless
+npm run e2e:smoke:watch  # 7 smoke tests with live browser (SLOWMO=1500)
+npm run e2e:ui           # Playwright UI mode
+```
+
+```bash
+# Release build — installs standalone .app directly on device (no Metro needed)
+# Use this to test offline, on the street, or like a real App Store build.
+# DO NOT use bare xcodebuild — it produces an incomplete bundle.
+npx expo run:ios --configuration Release --device <udid>
+
+# Find device UDID
+xcrun xctrace list devices
+# Artem's iPhone 16e: 00008140-000E225C0EF2801C
+```
 
 ## Architecture
 

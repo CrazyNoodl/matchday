@@ -1,14 +1,13 @@
 import { StyleSheet } from 'react-native';
 import { FontFamily, FontSize } from '../../theme/typography';
-
-type Result = 'W' | 'D' | 'L';
+import type { MatchResult } from '../../store/types';
 
 interface ChipStyle {
   bg: string;
   text: string;
 }
 
-export const STYLES: Record<Result, ChipStyle> = {
+export const STYLES: Record<MatchResult, ChipStyle> = {
   W: { bg: '#1a3d28', text: '#3ddc84' },
   D: { bg: '#2a2a1c', text: '#f6c350' },
   L: { bg: '#2a1c1c', text: '#ff5d5a' },
