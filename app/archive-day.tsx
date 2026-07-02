@@ -11,6 +11,7 @@ import { formatShortDate, formatEditableDate, parseEditableDate } from '@/utils/
 import { useColors } from '@/theme';
 import { NavHeader, SectionLabel, MatchCard, ShareRoundModal, CardAvatar, StandingsTable, getStandingsTableColumns, GlowBackground, Sheet } from '@/components';
 import { groupMatchesByTour } from '@/utils/matchTours';
+import { getRankedRoundOrdinals } from '@/utils/roundOrdinals';
 import { Match } from '@/store/types';
 import { makeStyles, makeMenuStyles } from '@/screens/archive-day/archive-day.styles';
 import { makeInputStyles } from '@/screens/tournament/tournament.styles';
@@ -73,6 +74,15 @@ export default function ArchiveDayScreen() {
     hasTournament && !!viewingRound && s.archivedRounds.some((r) => r.id === viewingRound.id),
   );
   const deleteArchivedRound = useStore((s) => s.deleteArchivedRound);
+  const roundsForOrdinal = useStore((s) =>
+    viewingRound && s.archivedRounds.some((r) => r.id === viewingRound.id)
+      ? s.archivedRounds
+      : (s.viewingTournament?.rounds ?? []),
+  );
+  const roundNumber = useMemo(
+    () => getRankedRoundOrdinals(roundsForOrdinal)[liveRound?.id ?? ''] ?? 0,
+    [roundsForOrdinal, liveRound],
+  );
 
   const [shareVisible, setShareVisible] = useState(false);
   const [editDateVisible, setEditDateVisible] = useState(false);
@@ -269,6 +279,7 @@ export default function ArchiveDayScreen() {
           visible={shareVisible}
           onClose={() => setShareVisible(false)}
           round={liveRound}
+          roundNumber={roundNumber}
           tournamentName={tournamentName}
         />
       )}

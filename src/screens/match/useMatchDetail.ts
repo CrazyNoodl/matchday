@@ -4,7 +4,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useGoBack } from '@/utils/useGoBack';
 import { useStore } from '@/store';
-import type { MediaItem, Match } from '@/store/types';
+import type { MediaItem, MediaType, Match } from '@/store/types';
 import { extractStatsFromPhoto, type ExtractedStat } from '@/utils/extractStats';
 import { fetchMatchById } from '@/supabase/sync';
 import { uploadMediaItem, deleteMediaItem } from '@/supabase/storage';
@@ -169,7 +169,7 @@ export function useMatchDetail() {
       // Upload each item in background; navigation away does not interrupt this
       await Promise.all(
         result.assets.map(async (asset) => {
-          const type: 'image' | 'video' = asset.type === 'video' ? 'video' : 'image';
+          const type: MediaType = asset.type === 'video' ? 'video' : 'image';
           const localUri = asset.uri;
 
           let remoteUrl: string | null;

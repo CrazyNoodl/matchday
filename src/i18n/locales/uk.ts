@@ -61,7 +61,6 @@ const uk = {
   matchday: {
     round: 'Раунд {{n}}',
     finish: 'ФІНІШ',
-    roundSettings: 'ПАРАМЕТРИ РАУНДУ',
     table: 'Таблиця',
     cards: 'Картки',
     matchesSection: 'МАТЧІ · {{count}}',

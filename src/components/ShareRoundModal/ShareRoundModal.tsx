@@ -32,6 +32,8 @@ interface ShareRoundModalProps {
   visible: boolean;
   onClose: () => void;
   round: ArchivedRound;
+  /** Ordinal among ranked rounds only — computed by the caller via getRankedRoundOrdinals, since `round.n` may be a stale value from before that fix. */
+  roundNumber: number;
   tournamentName: string;
 }
 
@@ -74,6 +76,7 @@ export function CardAvatar({ teamCode, size }: { teamCode?: string; size: number
 
 interface WinnerCardProps {
   round: ArchivedRound;
+  roundNumber: number;
   tournamentName: string;
   includeMatches?: boolean;
   includeStandings?: boolean;
@@ -155,7 +158,7 @@ function MatchRow({ match, isLast }: { match: ArchivedRound['matches'][number]; 
   );
 }
 
-function WinnerCard({ round, tournamentName, includeMatches = false, includeStandings = false }: WinnerCardProps) {
+function WinnerCard({ round, roundNumber, tournamentName, includeMatches = false, includeStandings = false }: WinnerCardProps) {
   const players = useStore((s) => s.players);
   const colors = useColors();
   const winnerStyles = makeWinnerStyles(colors);
@@ -295,7 +298,7 @@ function WinnerCard({ round, tournamentName, includeMatches = false, includeStan
       <View style={winnerStyles.divider} />
       <View style={winnerStyles.footer}>
         <Text style={winnerStyles.footerTour} numberOfLines={1}>{tournamentName.toUpperCase()}</Text>
-        <Text style={winnerStyles.footerRound}>Round {round.n} · {round.matches.length} matches</Text>
+        <Text style={winnerStyles.footerRound}>Round {roundNumber} · {round.matches.length} matches</Text>
       </View>
     </View>
   );
@@ -305,7 +308,7 @@ function WinnerCard({ round, tournamentName, includeMatches = false, includeStan
 // Main Modal
 // ---------------------------------------------------------------------------
 
-export function ShareRoundModal({ visible, onClose, round, tournamentName }: ShareRoundModalProps) {
+export function ShareRoundModal({ visible, onClose, round, roundNumber, tournamentName }: ShareRoundModalProps) {
   const [loading, setLoading] = useState(false);
   const [includeMatches, setIncludeMatches] = useState(false);
   const [includeStandings, setIncludeStandings] = useState(false);
@@ -358,7 +361,7 @@ export function ShareRoundModal({ visible, onClose, round, tournamentName }: Sha
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `matchday-round-${round.n}.png`;
+        a.download = `matchday-round-${roundNumber}.png`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -388,11 +391,11 @@ export function ShareRoundModal({ visible, onClose, round, tournamentName }: Sha
       if (Platform.OS === 'web') {
         const blob = await captureWeb();
         if (!blob) return;
-        const file = new File([blob], `matchday-round-${round.n}.png`, { type: 'image/png' });
+        const file = new File([blob], `matchday-round-${roundNumber}.png`, { type: 'image/png' });
         if (navigator.canShare?.({ files: [file] })) {
-          await navigator.share({ files: [file], title: `Round ${round.n} · ${tournamentName}` });
+          await navigator.share({ files: [file], title: `Round ${roundNumber} · ${tournamentName}` });
         } else if (navigator.share) {
-          await navigator.share({ title: `Round ${round.n} · ${tournamentName}`, text: 'Matchday results' });
+          await navigator.share({ title: `Round ${roundNumber} · ${tournamentName}`, text: 'Matchday results' });
         }
       } else {
         const uri = await captureNative();
@@ -436,6 +439,7 @@ export function ShareRoundModal({ visible, onClose, round, tournamentName }: Sha
             <View ref={cardRef} collapsable={false}>
               <WinnerCard
                 round={round}
+                roundNumber={roundNumber}
                 tournamentName={tournamentName}
                 includeMatches={includeMatches}
                 includeStandings={includeStandings}

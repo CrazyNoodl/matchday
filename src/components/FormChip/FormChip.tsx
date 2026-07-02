@@ -1,11 +1,10 @@
 import React from 'react';
 import { View, Text } from 'react-native';
+import type { MatchResult } from '../../store/types';
 import { STYLES, styles } from './FormChip.styles';
 
-type Result = 'W' | 'D' | 'L';
-
 interface FormChipProps {
-  result: Result;
+  result: MatchResult;
 }
 
 export function FormChip({ result }: FormChipProps) {

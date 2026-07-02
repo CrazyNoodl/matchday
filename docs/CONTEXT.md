@@ -12,9 +12,48 @@ Platforms: iOS, Android, Web. Expo SDK 56, React Native 0.85.3, React 19.2.3.
 
 ## Delete round — implementation detail
 
-- **Open round** (`roundOpen = true`): `···` button in `/round` header opens a Sheet with Finish / Stats / Delete Round. `deleteRound()` clears `matches`, `roundPlayers`, sets `roundOpen = false`.
-- **Archived round** (inside still-open tournament): `···` button in `/archive-day` header opens a small positioned dropdown (same pattern as match stats menu). `deleteArchivedRound(id)` removes the round from `archivedRounds`.
+- **Open round** (`roundOpen = true`): `···` button in `/round` header opens a small anchored `DropdownMenu` (`src/components/DropdownMenu/`) with Finish / Stats / Delete Round. `deleteRound()` clears `matches`, `roundPlayers`, sets `roundOpen = false`.
+- **Archived round** (inside still-open tournament): `···` button in `/archive-day` header opens the same dropdown pattern (also used by the match stats menu — three near-identical inline copies existed before `DropdownMenu` was extracted). `deleteArchivedRound(id)` removes the round from `archivedRounds`.
 - Delete is only available while `hasTournament = true`. Closed tournaments are fully read-only.
+
+**Fixed bug ([#55](https://github.com/CrazyNoodl/matchday/issues/55), 2026-07-02):** the round options menu used to be a `Sheet` (bottom sheet). The sequence `···` → `FINISH` → (equal-games-rule blocks it) → "EVEN OUT THE GAMES" dialog → `Got it` left it stuck open, covering the `+ ADD MATCH` FAB. Root cause: a guard deep in `@gorhom/bottom-sheet` (`isLayoutCalculated`) silently no-ops `close()` when it's called in the same render as another overlay opening or the sheet's own content resetting — confirmed via direct library source inspection, not just app-code timing. No prop-memoization or delay/defer fix worked around it. **Fix:** replaced the Sheet with `DropdownMenu`, the same reliable `Modal`-based anchored-popup pattern already used elsewhere — sidesteps the library bug entirely rather than working around it. `AddMatchSheet` (`src/screens/round/AddMatchSheet.tsx`) still uses `Sheet` and can hit the same underlying bug (e.g. a small leftover sliver after `SAVE MATCH`) — not yet migrated.
+
+**Partially fixed ([#51](https://github.com/CrazyNoodl/matchday/issues/51), 2026-07-02):** the `···` kebab menu above already solved the original overflow (Stats/Finish/Delete moved off the header row). Remaining piece: `headerTitle` Text in `app/round.tsx` had no `numberOfLines`/`ellipsizeMode`, so a long tournament name wrapped to a second line instead of truncating — fixed by adding `numberOfLines={1} ellipsizeMode="tail"`. **Not addressed:** the issue's acceptance criteria also asked for FINISH to stay visible as a standalone primary CTA outside the menu — it currently lives inside the `···` dropdown only. Left as-is; flag if that's still wanted.
+
+---
+
+## Round numbering — implementation detail
+
+**Fixed bug ([#52](https://github.com/CrazyNoodl/matchday/issues/52), 2026-07-02):** round ordinals used to count every archived round including friendly ones (`startRound()` computed `round: archivedRounds.length + 1`), so a friendly round consumed a number in the sequence and later ranked rounds looked off (e.g. 4, 5=friendly, 6, 7… instead of 4, friendly, 5, 6…).
+
+- `startRound()` now computes the ordinal from `archivedRounds.filter(r => r.ranked).length + 1` — friendly rounds no longer consume a slot going forward.
+- Already-archived rounds still carry a stale `ArchivedRound.n` from before this fix (no data migration was run). Display code does **not** read `.n` directly anymore — `src/utils/roundOrdinals.ts` (`getRankedRoundOrdinals`) recomputes the ranked-only ordinal live from the rounds array every render, so historical data self-corrects without a migration. `.n` is still written on `finishRound()` for now but is otherwise unused for display.
+- Friendly rounds show `–` in the numeric badge instead of a number: `RoundCard` (both `card` and `row` variants), the `/round` header (shows "FRIENDLY" instead of "Round N" when `!tournamentRanked`), and `app/season-stats.tsx`'s round header follow the same rule.
+- `ShareRoundModal` takes an explicit `roundNumber` prop (computed by the caller via `getRankedRoundOrdinals`) instead of reading `round.n` — used for the shared image's footer text, filename, and share-sheet title.
+
+---
+
+## String-literal types — implementation detail
+
+**Partially addressed ([#56](https://github.com/CrazyNoodl/matchday/issues/56), 2026-07-02):** audited `src/` and `app/` for de-facto enums typed as raw `string`. Fixed the small/mechanical candidates:
+
+- `MediaType = 'image' | 'video'` now exported from `src/store/types.ts` and reused by `src/supabase/storage.ts`, `src/components/MediaThumbnail/`, `src/components/MediaSlider/`, `src/screens/match/useMatchDetail.ts` — previously redeclared inline in each.
+- `MatchResult = 'W' | 'D' | 'L'` now exported from `src/store/types.ts` and reused by `src/utils/standings.ts` (`getFormChips` return type) and `src/components/FormChip/` (component + styles) — previously three independent local declarations.
+- `TournamentSyncStatus`/`RoundSyncStatus` now exported from `src/supabase/types.ts` instead of inline unions on the `Database` table rows.
+- `settingsSlice.language` now typed as the existing (previously unused) `Language` union from `src/i18n/index.ts` instead of raw `string`.
+- `useAddMatchFlow.ts`'s OCR confidence ranking helper now uses `ExtractedStat['confidence']` instead of `string` — closes a real typo hole (a bad literal like `'hi'` used to typecheck silently).
+
+**Not addressed — left for a follow-up:** the biggest candidate, the 23 match-stat keys (`possession`, `shots`, etc., defined in `src/utils/statDefinitions.ts`), is still `string` across `matchStats.ts`, `mergedStats.ts`, `extractStats.ts`, `statsOverride`. Needs a design decision first: OCR (`extractStats.ts`) can legitimately produce keys outside the known set, so a fully closed union would need an escape hatch (e.g. `StatKey | (string & {})`) rather than a strict enum. `src/supabase/sync.ts`'s repeated `'active'/'closed'/'open'/'archived'` string literals were left as-is — already type-checked transitively via the typed `Database` schema in `.eq()` calls, so no safety gap there.
+
+---
+
+## Persistent auth session — implementation detail
+
+**Fixed bug ([#54](https://github.com/CrazyNoodl/matchday/issues/54), 2026-07-02):** every cold app restart dropped the user back to the login screen. Root cause: `src/supabase/client.ts` set `persistSession: true` on the Supabase client but never supplied a `storage` adapter — on native, Supabase defaults to `@react-native-async-storage/async-storage`, which isn't installed in this project, so the session only ever lived in memory.
+
+**Fix:** `src/supabase/client.ts` now builds an MMKV-backed storage adapter (`createMMKV({ id: 'supabase-auth' })`, a separate MMKV instance from the main store's `matchday-store`) and passes it as `auth.storage` — native only. On web, `storage` is left `undefined` so Supabase's default `localStorage` adapter (which already worked) keeps handling it. Mirrors the lazy-require + in-memory-fallback pattern already used for the main store's adapter in `src/store/index.ts` (falls back gracefully in Jest, where the native module isn't linked).
+
+Covered by `src/supabase/__tests__/client.test.ts` (adapter wiring, web vs native branching, in-memory fallback) — but the actual cold-restart behavior can only be verified on a real device/simulator, not in Jest.
 
 ---
 
@@ -50,10 +89,11 @@ closedTournaments — fully finished tournaments (hasTournament = false after cl
 | OCR stat import (AI, dev-only) | `app/settings/(developer)/ocr-lab.tsx` |
 | Player/team management | `app/settings/(data)/` |
 | Supabase sync (selective, debounced 300ms) | `src/store/` |
+| Persistent auth session (survives app restart) | `src/supabase/client.ts` |
 | Demo mode | store flag |
 | i18n (uk / en / fr) | `src/i18n/locales/` |
 | Dark + light theme | `src/theme/` |
-| Playwright E2E tests (13 tests, 5 smoke) | `e2e/` — `npm run e2e`, `npm run e2e:smoke` |
+| Playwright E2E tests (17 tests, 7 smoke) | `e2e/` — `npm run e2e`, `npm run e2e:smoke` |
 
 ## Media upload — implementation detail
 
@@ -139,21 +179,11 @@ Share round (all matches) and share standings exist. Share for one specific matc
 
 ---
 
-## Open GitHub issues (as of 2026-06-29)
+## Open GitHub issues
 
-| # | Priority | Title |
-|---|---|---|
-| #15 | **HIGH** | Sync: malformed JSON in media/statsOverride crashes app on pull |
-| #17 | medium | OCR: one failed photo discards all successfully extracted stats |
-| #40 | medium | Demo mode banner overlaps "Continue Match Day" button |
-| #51 | — | Matchday header: tournament title overflow + kebab menu |
-| #52 | — | Round screen: number only ranked matches in ordinal count |
-| ~~#36~~ | ~~medium~~ | ~~Keyboard covers input field~~ — **closed** |
-| ~~#28~~ | ~~—~~ | ~~Allow deleting/closing an accidentally started round~~ — **closed** |
-| #26 | — | Add forgot password flow |
-| #20 | idea | Full player profile with list of tournaments |
-| #19 | idea | Share tournament via link (read-only) |
-| #18 | idea | Keep round local-only until finished, sync on finish |
+Status drifts too fast to keep a manual table in sync (a closed issue was still listed as open here more than once) — run `gh issue list --repo CrazyNoodl/matchday --state open` for the current list instead.
+
+Notable non-obvious resolution: #52 (round screen ordinal numbering) was resolved incidentally by the #42 tour-grouping change, which removed sequential per-match numbering entirely — closed 2026-07-02.
 
 ---
 

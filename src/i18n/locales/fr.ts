@@ -61,7 +61,6 @@ const fr = {
   matchday: {
     round: 'Tour {{n}}',
     finish: 'TERMINER',
-    roundSettings: 'OPTIONS DU TOUR',
     table: 'Tableau',
     cards: 'Cartes',
     matchesSection: 'MATCHS · {{count}}',

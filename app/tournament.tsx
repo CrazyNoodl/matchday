@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStore } from '@/store';
 import { calculateStandings } from '@/utils/standings';
 import { formatShortDate } from '@/utils/dateFormat';
+import { getRankedRoundOrdinals } from '@/utils/roundOrdinals';
 import { useColors } from '@/theme';
 import { SectionLabel, GlowBackground, RoundCard, ShareStandingsModal, NewRoundModal, Sheet, StandingsTable, getStandingsTableColumns } from '@/components';
 import { useTranslation } from 'react-i18next';
@@ -70,6 +71,7 @@ export default function TournamentScreen() {
     ? players.find((p) => p.id === standings[0].playerId)
     : null;
 
+  const roundOrdinals = getRankedRoundOrdinals(archivedRounds);
   const rankedCompleted = archivedRounds.filter((r) => r.ranked).length;
   const rankedTotal = rankedCompleted + (roundOpen && tournamentRanked ? 1 : 0);
   const roundsTarget = tournamentRounds > 0 ? tournamentRounds : rankedTotal;
@@ -190,12 +192,12 @@ export default function TournamentScreen() {
             return (
               <RoundCard
                 key={r.id}
-                n={r.n}
+                n={roundOrdinals[r.id] ?? 0}
+                ranked={r.ranked}
                 dateText={formatShortDate(r.date)}
                 matchCountText={t('tournament.roundMatches', { count: r.games })}
                 winnerId={roundWinner?.id}
                 winnerName={roundWinner ? (roundWinner.nick ?? roundWinner.name) : '—'}
-                friendlyLabel={!r.ranked ? t('common.friendly') : undefined}
                 onPress={() => {
                   store.setViewingRound(r);
                   router.push('/archive-day');
