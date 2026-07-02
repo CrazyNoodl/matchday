@@ -101,5 +101,4 @@ export type Modal =
   | 'newRound'
   | 'delMatch'
   | 'editRoundDate'
-  | 'roundSettings'
   | 'delRound';
