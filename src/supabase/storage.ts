@@ -1,6 +1,6 @@
 import { supabase } from './client';
 import { getCurrentUserId } from './auth';
-import type { MediaItem } from '../store/types';
+import type { MediaItem, MediaType } from '../store/types';
 
 const BUCKET = 'match-media';
 
@@ -10,7 +10,7 @@ const BUCKET = 'match-media';
 
 export async function uploadMediaItem(
   localUri: string,
-  type: 'image' | 'video',
+  type: MediaType,
   context?: { tournamentId: string; matchId: string },
 ): Promise<string | null> {
   const userId = await getCurrentUserId();
