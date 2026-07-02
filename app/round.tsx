@@ -1,15 +1,16 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStore } from '@/store';
 import { calculateStandings, isTopTied } from '@/utils/standings';
 import { useColors } from '@/theme';
 import { Spacing } from '@/theme/spacing';
-import { MatchCard, StandingCard, StandingsTable, getStandingsTableColumns, SectionLabel, EmptyState, GlowBackground, SegmentedControl, Sheet } from '@/components';
+import { MatchCard, StandingCard, StandingsTable, getStandingsTableColumns, SectionLabel, EmptyState, GlowBackground, SegmentedControl, DropdownMenu } from '@/components';
+import { useDropdownMenu } from '@/hooks/useDropdownMenu';
 import { groupMatchesByTour } from '@/utils/matchTours';
 import { useTranslation } from 'react-i18next';
-import { makeStyles, makeSheetStyles } from '@/screens/round/round.styles';
+import { makeStyles } from '@/screens/round/round.styles';
 import { useAddMatchFlow } from '@/screens/round/useAddMatchFlow';
 import { AddMatchSheet } from '@/screens/round/AddMatchSheet';
 import {
@@ -42,7 +43,7 @@ export default function MatchdayScreen() {
 
   const colors = useColors();
   const styles = makeStyles(colors);
-  const sheetStyles = makeSheetStyles(colors);
+  const roundMenu = useDropdownMenu();
 
   const [standingsView, setStandingsView] = useState<StandingsView>('table');
   const [localWinnerId, setLocalWinnerId] = useState<string | null>(null);
@@ -130,8 +131,9 @@ export default function MatchdayScreen() {
         <View style={styles.headerRight}>
           {roundOpen ? (
             <TouchableOpacity
+              ref={roundMenu.anchorRef}
               style={styles.dotsBtn}
-              onPress={() => store.setModal('roundSettings')}
+              onPress={roundMenu.open}
               activeOpacity={0.75}
             >
               <Text style={styles.dotsIcon}>···</Text>
@@ -294,70 +296,39 @@ export default function MatchdayScreen() {
         onConfirm={handleConfirmDeleteRound}
       />
 
-      {/* ---- Round Settings Sheet ---- */}
-      <Sheet visible={modal === 'roundSettings'} onClose={closeModal}>
-        <View style={sheetStyles.sheet}>
-          <View style={sheetStyles.sheetHeaderRow}>
-            <Text style={sheetStyles.sheetTitle}>{t('matchday.roundSettings')}</Text>
-            <TouchableOpacity
-              style={sheetStyles.doneBtn}
-              onPress={closeModal}
-              activeOpacity={0.75}
-            >
-              <Text style={sheetStyles.doneBtnText}>{t('matchday.winner.done')}</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={sheetStyles.rows}>
-            {/* Finish Round */}
-            <TouchableOpacity
-              style={sheetStyles.row}
-              onPress={() => {
-                closeModal();
-                handleFinishPress();
-              }}
-              activeOpacity={0.8}
-            >
-              <View style={[sheetStyles.rowIcon, { backgroundColor: 'rgba(246,195,80,0.12)' }]}>
-                <Text style={sheetStyles.rowIconText}>🏁</Text>
-              </View>
-              <Text style={sheetStyles.rowLabel}>{t('matchday.finish')}</Text>
-              <Text style={sheetStyles.rowChevron}>›</Text>
-            </TouchableOpacity>
-
-            {/* Stats */}
-            <TouchableOpacity
-              style={sheetStyles.row}
-              onPress={() => {
-                closeModal();
-                router.push('/stats');
-              }}
-              activeOpacity={0.8}
-            >
-              <View style={[sheetStyles.rowIcon, { backgroundColor: colors.accent.blueSubtle }]}>
-                <Text style={sheetStyles.rowIconText}>📊</Text>
-              </View>
-              <Text style={sheetStyles.rowLabel}>{t('home.stats')}</Text>
-              <Text style={sheetStyles.rowChevron}>›</Text>
-            </TouchableOpacity>
-
-            {/* Delete Round */}
-            <TouchableOpacity
-              style={sheetStyles.row}
-              onPress={() => store.setModal('delRound')}
-              activeOpacity={0.8}
-            >
-              <View style={[sheetStyles.rowIcon, { backgroundColor: colors.accent.redSubtle }]}>
-                <Text style={[sheetStyles.rowIconText, { color: colors.accent.red }]}>🗑</Text>
-              </View>
-              <Text style={[sheetStyles.rowLabel, { color: colors.accent.red }]}>{t('matchday.dialogs.deleteRoundConfirm')}</Text>
-              <Text style={sheetStyles.rowChevron}>›</Text>
-            </TouchableOpacity>
-          </View>
-
-          {Platform.OS === 'ios' && <View style={{ height: 16 }} />}
-        </View>
-      </Sheet>
+      {/* ---- Round Options Dropdown ---- */}
+      <DropdownMenu
+        visible={roundMenu.visible}
+        onClose={roundMenu.close}
+        position={roundMenu.position}
+        items={[
+          {
+            key: 'finish',
+            label: t('matchday.finish'),
+            onPress: () => {
+              roundMenu.close();
+              handleFinishPress();
+            },
+          },
+          {
+            key: 'stats',
+            label: t('home.stats'),
+            onPress: () => {
+              roundMenu.close();
+              router.push('/stats');
+            },
+          },
+          {
+            key: 'delete',
+            label: t('matchday.dialogs.deleteRoundConfirm'),
+            destructive: true,
+            onPress: () => {
+              roundMenu.close();
+              store.setModal('delRound');
+            },
+          },
+        ]}
+      />
     </SafeAreaView>
   );
 }
