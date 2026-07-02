@@ -12,9 +12,11 @@ Platforms: iOS, Android, Web. Expo SDK 56, React Native 0.85.3, React 19.2.3.
 
 ## Delete round — implementation detail
 
-- **Open round** (`roundOpen = true`): `···` button in `/round` header opens a Sheet with Finish / Stats / Delete Round. `deleteRound()` clears `matches`, `roundPlayers`, sets `roundOpen = false`.
-- **Archived round** (inside still-open tournament): `···` button in `/archive-day` header opens a small positioned dropdown (same pattern as match stats menu). `deleteArchivedRound(id)` removes the round from `archivedRounds`.
+- **Open round** (`roundOpen = true`): `···` button in `/round` header opens a small anchored `DropdownMenu` (`src/components/DropdownMenu/`) with Finish / Stats / Delete Round. `deleteRound()` clears `matches`, `roundPlayers`, sets `roundOpen = false`.
+- **Archived round** (inside still-open tournament): `···` button in `/archive-day` header opens the same dropdown pattern (also used by the match stats menu — three near-identical inline copies existed before `DropdownMenu` was extracted). `deleteArchivedRound(id)` removes the round from `archivedRounds`.
 - Delete is only available while `hasTournament = true`. Closed tournaments are fully read-only.
+
+**Fixed bug ([#55](https://github.com/CrazyNoodl/matchday/issues/55), 2026-07-02):** the round options menu used to be a `Sheet` (bottom sheet). The sequence `···` → `FINISH` → (equal-games-rule blocks it) → "EVEN OUT THE GAMES" dialog → `Got it` left it stuck open, covering the `+ ADD MATCH` FAB. Root cause: a guard deep in `@gorhom/bottom-sheet` (`isLayoutCalculated`) silently no-ops `close()` when it's called in the same render as another overlay opening or the sheet's own content resetting — confirmed via direct library source inspection, not just app-code timing. No prop-memoization or delay/defer fix worked around it. **Fix:** replaced the Sheet with `DropdownMenu`, the same reliable `Modal`-based anchored-popup pattern already used elsewhere — sidesteps the library bug entirely rather than working around it. `AddMatchSheet` (`src/screens/round/AddMatchSheet.tsx`) still uses `Sheet` and can hit the same underlying bug (e.g. a small leftover sliver after `SAVE MATCH`) — not yet migrated.
 
 ---
 
@@ -53,7 +55,7 @@ closedTournaments — fully finished tournaments (hasTournament = false after cl
 | Demo mode | store flag |
 | i18n (uk / en / fr) | `src/i18n/locales/` |
 | Dark + light theme | `src/theme/` |
-| Playwright E2E tests (13 tests, 5 smoke) | `e2e/` — `npm run e2e`, `npm run e2e:smoke` |
+| Playwright E2E tests (17 tests, 7 smoke) | `e2e/` — `npm run e2e`, `npm run e2e:smoke` |
 
 ## Media upload — implementation detail
 
@@ -139,10 +141,11 @@ Share round (all matches) and share standings exist. Share for one specific matc
 
 ---
 
-## Open GitHub issues (as of 2026-06-29)
+## Open GitHub issues (as of 2026-07-02)
 
 | # | Priority | Title |
 |---|---|---|
+| ~~#55~~ | ~~medium~~ | ~~Round options sheet stuck open, blocks + ADD MATCH after Finish → equal-games dialog~~ — **closed** |
 | #15 | **HIGH** | Sync: malformed JSON in media/statsOverride crashes app on pull |
 | #17 | medium | OCR: one failed photo discards all successfully extracted stats |
 | #40 | medium | Demo mode banner overlaps "Continue Match Day" button |
