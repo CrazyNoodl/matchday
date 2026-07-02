@@ -33,6 +33,30 @@ Platforms: iOS, Android, Web. Expo SDK 56, React Native 0.85.3, React 19.2.3.
 
 ---
 
+## String-literal types — implementation detail
+
+**Partially addressed ([#56](https://github.com/CrazyNoodl/matchday/issues/56), 2026-07-02):** audited `src/` and `app/` for de-facto enums typed as raw `string`. Fixed the small/mechanical candidates:
+
+- `MediaType = 'image' | 'video'` now exported from `src/store/types.ts` and reused by `src/supabase/storage.ts`, `src/components/MediaThumbnail/`, `src/components/MediaSlider/`, `src/screens/match/useMatchDetail.ts` — previously redeclared inline in each.
+- `MatchResult = 'W' | 'D' | 'L'` now exported from `src/store/types.ts` and reused by `src/utils/standings.ts` (`getFormChips` return type) and `src/components/FormChip/` (component + styles) — previously three independent local declarations.
+- `TournamentSyncStatus`/`RoundSyncStatus` now exported from `src/supabase/types.ts` instead of inline unions on the `Database` table rows.
+- `settingsSlice.language` now typed as the existing (previously unused) `Language` union from `src/i18n/index.ts` instead of raw `string`.
+- `useAddMatchFlow.ts`'s OCR confidence ranking helper now uses `ExtractedStat['confidence']` instead of `string` — closes a real typo hole (a bad literal like `'hi'` used to typecheck silently).
+
+**Not addressed — left for a follow-up:** the biggest candidate, the 23 match-stat keys (`possession`, `shots`, etc., defined in `src/utils/statDefinitions.ts`), is still `string` across `matchStats.ts`, `mergedStats.ts`, `extractStats.ts`, `statsOverride`. Needs a design decision first: OCR (`extractStats.ts`) can legitimately produce keys outside the known set, so a fully closed union would need an escape hatch (e.g. `StatKey | (string & {})`) rather than a strict enum. `src/supabase/sync.ts`'s repeated `'active'/'closed'/'open'/'archived'` string literals were left as-is — already type-checked transitively via the typed `Database` schema in `.eq()` calls, so no safety gap there.
+
+---
+
+## Persistent auth session — implementation detail
+
+**Fixed bug ([#54](https://github.com/CrazyNoodl/matchday/issues/54), 2026-07-02):** every cold app restart dropped the user back to the login screen. Root cause: `src/supabase/client.ts` set `persistSession: true` on the Supabase client but never supplied a `storage` adapter — on native, Supabase defaults to `@react-native-async-storage/async-storage`, which isn't installed in this project, so the session only ever lived in memory.
+
+**Fix:** `src/supabase/client.ts` now builds an MMKV-backed storage adapter (`createMMKV({ id: 'supabase-auth' })`, a separate MMKV instance from the main store's `matchday-store`) and passes it as `auth.storage` — native only. On web, `storage` is left `undefined` so Supabase's default `localStorage` adapter (which already worked) keeps handling it. Mirrors the lazy-require + in-memory-fallback pattern already used for the main store's adapter in `src/store/index.ts` (falls back gracefully in Jest, where the native module isn't linked).
+
+Covered by `src/supabase/__tests__/client.test.ts` (adapter wiring, web vs native branching, in-memory fallback) — but the actual cold-restart behavior can only be verified on a real device/simulator, not in Jest.
+
+---
+
 ## State model (non-obvious)
 
 ```
@@ -65,6 +89,7 @@ closedTournaments — fully finished tournaments (hasTournament = false after cl
 | OCR stat import (AI, dev-only) | `app/settings/(developer)/ocr-lab.tsx` |
 | Player/team management | `app/settings/(data)/` |
 | Supabase sync (selective, debounced 300ms) | `src/store/` |
+| Persistent auth session (survives app restart) | `src/supabase/client.ts` |
 | Demo mode | store flag |
 | i18n (uk / en / fr) | `src/i18n/locales/` |
 | Dark + light theme | `src/theme/` |
