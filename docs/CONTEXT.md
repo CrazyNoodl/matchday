@@ -18,6 +18,8 @@ Platforms: iOS, Android, Web. Expo SDK 56, React Native 0.85.3, React 19.2.3.
 
 **Fixed bug ([#55](https://github.com/CrazyNoodl/matchday/issues/55), 2026-07-02):** the round options menu used to be a `Sheet` (bottom sheet). The sequence `···` → `FINISH` → (equal-games-rule blocks it) → "EVEN OUT THE GAMES" dialog → `Got it` left it stuck open, covering the `+ ADD MATCH` FAB. Root cause: a guard deep in `@gorhom/bottom-sheet` (`isLayoutCalculated`) silently no-ops `close()` when it's called in the same render as another overlay opening or the sheet's own content resetting — confirmed via direct library source inspection, not just app-code timing. No prop-memoization or delay/defer fix worked around it. **Fix:** replaced the Sheet with `DropdownMenu`, the same reliable `Modal`-based anchored-popup pattern already used elsewhere — sidesteps the library bug entirely rather than working around it. `AddMatchSheet` (`src/screens/round/AddMatchSheet.tsx`) still uses `Sheet` and can hit the same underlying bug (e.g. a small leftover sliver after `SAVE MATCH`) — not yet migrated.
 
+**Partially fixed ([#51](https://github.com/CrazyNoodl/matchday/issues/51), 2026-07-02):** the `···` kebab menu above already solved the original overflow (Stats/Finish/Delete moved off the header row). Remaining piece: `headerTitle` Text in `app/round.tsx` had no `numberOfLines`/`ellipsizeMode`, so a long tournament name wrapped to a second line instead of truncating — fixed by adding `numberOfLines={1} ellipsizeMode="tail"`. **Not addressed:** the issue's acceptance criteria also asked for FINISH to stay visible as a standalone primary CTA outside the menu — it currently lives inside the `···` dropdown only. Left as-is; flag if that's still wanted.
+
 ---
 
 ## State model (non-obvious)
@@ -141,22 +143,11 @@ Share round (all matches) and share standings exist. Share for one specific matc
 
 ---
 
-## Open GitHub issues (as of 2026-07-02)
+## Open GitHub issues
 
-| # | Priority | Title |
-|---|---|---|
-| ~~#55~~ | ~~medium~~ | ~~Round options sheet stuck open, blocks + ADD MATCH after Finish → equal-games dialog~~ — **closed** |
-| #15 | **HIGH** | Sync: malformed JSON in media/statsOverride crashes app on pull |
-| #17 | medium | OCR: one failed photo discards all successfully extracted stats |
-| #40 | medium | Demo mode banner overlaps "Continue Match Day" button |
-| #51 | — | Matchday header: tournament title overflow + kebab menu |
-| #52 | — | Round screen: number only ranked matches in ordinal count |
-| ~~#36~~ | ~~medium~~ | ~~Keyboard covers input field~~ — **closed** |
-| ~~#28~~ | ~~—~~ | ~~Allow deleting/closing an accidentally started round~~ — **closed** |
-| #26 | — | Add forgot password flow |
-| #20 | idea | Full player profile with list of tournaments |
-| #19 | idea | Share tournament via link (read-only) |
-| #18 | idea | Keep round local-only until finished, sync on finish |
+Status drifts too fast to keep a manual table in sync (a closed issue was still listed as open here more than once) — run `gh issue list --repo CrazyNoodl/matchday --state open` for the current list instead.
+
+Notable non-obvious resolution: #52 (round screen ordinal numbering) was resolved incidentally by the #42 tour-grouping change, which removed sequential per-match numbering entirely — closed 2026-07-02.
 
 ---
 
