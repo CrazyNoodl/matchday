@@ -95,6 +95,7 @@ closedTournaments — fully finished tournaments (hasTournament = false after cl
 | Dark + light theme | `src/theme/` |
 | Playwright E2E tests (17 tests, 7 smoke) | `e2e/` — `npm run e2e`, `npm run e2e:smoke` |
 | Storybook: real dark/light theming, full component coverage (27/27) | `.storybook/`, `src/components/*/*.stories.tsx` |
+| Loading feedback during stat re-scan / media upload (preparing → uploading → scanning) | `src/screens/match/useMatchDetail.ts`, `app/match/[id].tsx` |
 
 ## Media upload — implementation detail
 
@@ -112,6 +113,26 @@ Both `handleAddMedia` (match detail, `src/screens/match/useMatchDetail.ts`) and 
 `uploading: true` items are **stripped on store rehydration** (same as `pendingUpload`) so a crash during upload does not leave stuck spinners on next app launch. Implemented in `onRehydrateStorage` in `src/store/index.ts`.
 
 UI rules for `uploading: true` thumbnails: no delete button, tap is disabled (can't view or retry something still in flight).
+
+### Video temporarily disabled ([#59](https://github.com/CrazyNoodl/matchday/issues/59), 2026-07-03)
+
+Video upload and playback were both broken (root cause not yet investigated — deferred, priority downgraded to `low`). Interim mitigation instead of a fix:
+
+- Both pickers (`handleAddMedia` in `useMatchDetail.ts`, `handlePickMedia` in `useAddMatchFlow.ts`) now request `mediaTypes: ['images']` only — no new video can be picked.
+- Video items already attached to existing matches are hidden from display: `useMatchDetail.ts` derives `visibleMedia` (media filtered to non-video, paired with each item's original array index) and the match detail screen renders that instead of `match.media` directly. Original indices are preserved so delete/retry/view-in-slider still target the correct underlying item.
+- Hidden video items are **not deleted** — they still count toward the 5-item media cap, they're just not rendered until playback is fixed. `MediaThumbnail`/`MediaSlider` components themselves were not changed (they still have video-rendering branches, just never reached from match detail anymore).
+- Root cause investigation (upload path, playback path, possible Expo SDK 56 `expo-av`→`expo-video` migration) is still needed before re-enabling — see issue #59 for the original investigation checklist.
+
+### Loading feedback for re-scan / upload ([#65](https://github.com/CrazyNoodl/matchday/issues/65), 2026-07-03)
+
+**Fixed bug:** triggering "Re-scan" (stats menu "···" → Re-scan) gave zero visible feedback for the whole upload+OCR duration. Root cause: the only spinner lived inside the stats context menu item, but the menu closes immediately on tap (`d.setShowStatsMenu(false)`), unmounting the spinner before `handleImportStats` (the actual upload+OCR work, via the `rescanAfterClose` ref flow) even starts. Separately, `uploadingMedia` state (driving the "+ Add" button's spinner) was declared but `setUploadingMedia` was never called anywhere — that spinner was permanently dead code.
+
+**Fix:**
+- `useMatchDetail.ts` now exposes `importStatsStep: 'preparing' | 'uploading' | 'scanning' | null` alongside the existing `importingStats` boolean.
+- The match detail screen (`app/match/[id].tsx`) renders a persistent progress indicator (spinner + step text) directly in the "MATCH STATS" section header — in place of the "···" button — whenever `importingStats` is true. Since this lives in the main screen tree (not inside the menu `Modal`), it survives the menu closing and stays visible for the full duration.
+- `'preparing'` is set **synchronously before** `ImagePicker.launchImageLibraryAsync()` is even called — this covers the OS fetching a not-yet-downloaded iCloud photo, which happens inside that single `await` with no progress-event API of its own. Trade-off: the spinner can flash briefly even if the user opens and immediately cancels the picker (deliberate — accepted over the app appearing frozen during a real iCloud download).
+- `handleAddMedia` ("+ Add") got the same treatment: `setUploadingMedia(true)` now fires before the picker call and resets to `false` once optimistic thumbnails appear (each thumbnail then shows its own per-item spinner for the actual background upload).
+- This intentionally supersedes a prior test assumption in `useMatchDetail.test.ts` ("Bug 8": spinner must stay off while the picker is open) — that test was removed rather than inverted, since this native-picker-touching flow isn't covered by new mocked Jest tests per project policy (see below); verified manually on a Release build on device instead.
 
 ---
 
