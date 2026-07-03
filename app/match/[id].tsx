@@ -39,10 +39,17 @@ export default function MatchDetailScreen() {
     syncStatus,
     remoteLoading,
     importingStats,
+    importStatsStep,
     uploadingMedia,
     retryingMediaUri,
     statsMenuBtnRef,
   } = d;
+
+  const importStatsLabel =
+    importStatsStep === 'preparing' ? 'Preparing...'
+      : importStatsStep === 'uploading' ? 'Uploading...'
+      : importStatsStep === 'scanning' ? 'Scanning...'
+      : null;
 
   if (!match) {
     const isLoading = syncStatus === 'syncing' || remoteLoading;
@@ -167,13 +174,20 @@ export default function MatchDetailScreen() {
                   <Text style={styles.sourceBadgeBlueText}>AI-read</Text>
                 </View>
                 {isEditableMatch && (
-                  <TouchableOpacity
-                    ref={statsMenuBtnRef}
-                    onPress={d.openStatsMenu}
-                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                  >
-                    <Text style={styles.statsMenuDots}>···</Text>
-                  </TouchableOpacity>
+                  importingStats ? (
+                    <View style={styles.statsRescanProgress}>
+                      <ActivityIndicator size="small" color={colors.accent.blue} />
+                      <Text style={styles.statsRescanProgressText}>{importStatsLabel}</Text>
+                    </View>
+                  ) : (
+                    <TouchableOpacity
+                      ref={statsMenuBtnRef}
+                      onPress={d.openStatsMenu}
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    >
+                      <Text style={styles.statsMenuDots}>···</Text>
+                    </TouchableOpacity>
+                  )
                 )}
               </View>
             </View>
@@ -210,7 +224,10 @@ export default function MatchDetailScreen() {
                   hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
                 >
                   {importingStats ? (
-                    <ActivityIndicator size="small" color={colors.accent.blue} />
+                    <View style={styles.statsRescanProgress}>
+                      <ActivityIndicator size="small" color={colors.accent.blue} />
+                      <Text style={styles.importStatsBtnText}>{importStatsLabel}</Text>
+                    </View>
                   ) : (
                     <Text style={styles.importStatsBtnText}>📊 Import stats</Text>
                   )}
@@ -224,7 +241,10 @@ export default function MatchDetailScreen() {
                 hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
               >
                 {uploadingMedia ? (
-                  <ActivityIndicator size="small" color={colors.accent.green} />
+                  <View style={styles.statsRescanProgress}>
+                    <ActivityIndicator size="small" color={colors.accent.green} />
+                    <Text style={styles.addMediaBtnText}>Preparing...</Text>
+                  </View>
                 ) : (
                   <Text style={styles.addMediaBtnText}>+ Add</Text>
                 )}

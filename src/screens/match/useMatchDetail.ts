@@ -59,6 +59,7 @@ export function useMatchDetail() {
   const [editNoteValue, setEditNoteValue] = useState('');
   const [uploadingMedia, setUploadingMedia] = useState(false);
   const [importingStats, setImportingStats] = useState(false);
+  const [importStatsStep, setImportStatsStep] = useState<'preparing' | 'uploading' | 'scanning' | null>(null);
   // Refs for concurrency guards — updated synchronously, unlike state
   const uploadingMediaRef = useRef(false);
   const importingStatsRef = useRef(false);
@@ -146,6 +147,10 @@ export function useMatchDetail() {
     if (slotsLeft <= 0) return;
 
     uploadingMediaRef.current = true;
+    // Covers the entire native picker call, including the OS fetching a
+    // not-yet-downloaded iCloud original before it hands the asset back to us —
+    // that wait happens inside this single await with no progress events of its own.
+    setUploadingMedia(true);
 
     const getMedia = (matchId: string) =>
       useStore.getState().matches.find((m) => m.id === matchId)?.media
@@ -173,8 +178,9 @@ export function useMatchDetail() {
       }));
       store.updateMatchMedia(matchId, [...getMedia(matchId), ...optimisticItems]);
 
-      // Picker is closed and items are visible — release ref so other actions can proceed
+      // Picker is closed and items are visible — release ref/state so other actions can proceed
       uploadingMediaRef.current = false;
+      setUploadingMedia(false);
 
       // Upload each item in background; navigation away does not interrupt this
       await Promise.all(
@@ -201,6 +207,7 @@ export function useMatchDetail() {
       );
     } finally {
       uploadingMediaRef.current = false;
+      setUploadingMedia(false);
     }
   }, [match, store]);
 
@@ -210,6 +217,11 @@ export function useMatchDetail() {
     // even when state batching would give a stale importingStats value in the closure
     if (importingStatsRef.current || uploadingMediaRef.current) return;
     importingStatsRef.current = true;
+    // Covers the native picker call end-to-end, including the OS fetching a
+    // not-yet-downloaded iCloud original before it hands the asset back to us —
+    // that wait happens inside this single await with no progress events of its own.
+    setImportingStats(true);
+    setImportStatsStep('preparing');
 
     // Bug 11 fix: outer try/finally ensures the ref is ALWAYS released,
     // even if launchImageLibraryAsync itself throws (e.g. OS permission error).
@@ -221,10 +233,13 @@ export function useMatchDetail() {
         quality: 0.85,
         base64: true,
       });
-      if (result.canceled || !result.assets.length) return;
+      if (result.canceled || !result.assets.length) {
+        setImportingStats(false);
+        setImportStatsStep(null);
+        return;
+      }
 
-      // Bug 8 fix: spinner shown only after user confirms selection, not during picker display
-      setImportingStats(true);
+      setImportStatsStep('uploading');
       const matchId = match.id;
 
       // Bug 1 fix: inner try/finally resets the spinner after upload/OCR completes.
@@ -263,6 +278,7 @@ export function useMatchDetail() {
         // Run OCR regardless of upload status — base64 is already in memory from the picker.
         // If upload failed, photos are already saved locally; OCR should still extract stats.
         // Run OCR and auto-apply stats (no review modal)
+        setImportStatsStep('scanning');
         const map = new Map<string, ExtractedStat>();
         const rank = (c: ExtractedStat['confidence']) => (c === 'high' ? 3 : c === 'medium' ? 2 : 1);
         // Bug 7 fix: catch per-photo so a failure on photo N doesn't discard
@@ -298,9 +314,14 @@ export function useMatchDetail() {
         setShowOcrFailed(true);
       } finally {
         setImportingStats(false);
+        setImportStatsStep(null);
       }
     } finally {
       importingStatsRef.current = false;
+      // Safety net for paths that exit before the inner finally runs
+      // (e.g. launchImageLibraryAsync itself throwing) — never leave the spinner stuck.
+      setImportingStats(false);
+      setImportStatsStep(null);
     }
   }, [match, store]);
 
@@ -396,6 +417,7 @@ export function useMatchDetail() {
     editNoteValue,
     uploadingMedia,
     importingStats,
+    importStatsStep,
     showClearStats,
     showSwapSides,
     showStatsMenu,

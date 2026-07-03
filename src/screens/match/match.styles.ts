@@ -178,6 +178,16 @@ export const makeStyles = (colors: AppColors) => StyleSheet.create({
     letterSpacing: 1,
     lineHeight: 20,
   },
+  statsRescanProgress: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+  },
+  statsRescanProgressText: {
+    fontFamily: FontFamily.body,
+    fontSize: FontSize.xs,
+    color: colors.accent.blue,
+  },
   statsMenuDropdown: {
     position: 'absolute',
     backgroundColor: colors.bg.elevated,
