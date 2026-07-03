@@ -20,6 +20,7 @@ import { NavHeader, TeamBadge, Sheet, EmptyState, GlowBackground } from '@/compo
 import { Team } from '@/store/types';
 import { useTranslation } from 'react-i18next';
 import { uploadTeamLogo } from '@/supabase/storage';
+import { resizeImage, TEAM_LOGO_MAX_DIMENSION } from '@/utils/imageResize';
 import { generateTeamCode } from '@/utils/teamCode';
 import { makeStyles } from '@/screens/settings/teams/teams.styles';
 
@@ -82,9 +83,14 @@ export default function TeamsScreen() {
     if (result.canceled || !result.assets[0]) return;
 
     const session = editSessionRef.current;
-    const localUri = result.assets[0].uri;
+    const asset = result.assets[0];
+    let localUri = asset.uri;
     setFormLogo(localUri);
     setLogoUploading(true);
+    // Downscale before upload — see #62. Logos only ever render as a small badge.
+    try {
+      localUri = (await resizeImage(asset.uri, asset, TEAM_LOGO_MAX_DIMENSION)).uri;
+    } catch { /* fall back to the original file if resizing fails */ }
     const remoteUrl = await uploadTeamLogo(localUri);
     if (editSessionRef.current !== session) return; // user moved to a different team's form
     setLogoUploading(false);
