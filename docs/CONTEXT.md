@@ -112,7 +112,7 @@ closedTournaments — fully finished tournaments (hasTournament = false after cl
 | Persistent auth session (survives app restart) | `src/supabase/client.ts` |
 | Demo mode | store flag |
 | i18n (uk / en / fr) | `src/i18n/locales/` |
-| Dark + light theme | `src/theme/` |
+| Dark + light theme, with an Auto option that follows OS appearance live | `src/theme/` |
 | Playwright E2E tests (17 tests, 7 smoke) | `e2e/` — `npm run e2e`, `npm run e2e:smoke` |
 | Storybook: real dark/light theming, full component coverage (27/27) | `.storybook/`, `src/components/*/*.stories.tsx` |
 | Loading feedback during stat re-scan / media upload (preparing → uploading → scanning) | `src/screens/match/useMatchDetail.ts`, `app/match/[id].tsx` |
@@ -273,6 +273,19 @@ Pressable overlay (onPress=onClose)   ← closes on tap outside slide
 Any sheet with a `TextInput` must: pass `avoidKeyboard` to `<Sheet>` and use `BottomSheetTextInput` from `@gorhom/bottom-sheet` instead of the native `TextInput`.
 
 Currently applied to: match commentary, add-match commentary step, edit round date, rename tournament.
+
+---
+
+## Auto theme — implementation detail
+
+**Added ([#60](https://github.com/CrazyNoodl/matchday/issues/60), 2026-07-03):** the theme picker only offered Dark/Light; there was no option to follow the OS-level appearance setting.
+
+- `ColorScheme` (`src/theme/colors.ts`) stays a closed `'dark' | 'light'` union — it's still what `colorsByScheme` is keyed by and what gets rendered. A new `ThemePreference = ColorScheme | 'auto'` is the *stored* value; the store's `colorScheme` field (unchanged name, `settingsSlice.ts`) is now typed `ThemePreference` instead of `ColorScheme` — no persisted-data migration needed since existing `'dark'`/`'light'` values already satisfy the wider type.
+- `useEffectiveColorScheme()` (new export, `src/theme/ThemeContext.tsx`) is the single place that resolves preference → actual scheme: reads the stored preference plus React Native's `useColorScheme()` (OS-level, live-updating) and returns `'dark'`/`'light'`, defaulting to `'dark'` when the preference is `'auto'` and the OS reports anything other than `'light'`. `ThemeProvider` and `app/_layout.tsx`'s `StatusBar` both switched from reading raw `store.colorScheme` to this hook.
+- Theme picker UI (`app/settings/(display)/display.tsx` and the duplicate inline picker in `app/settings/index.tsx` — two independent copies, not deduped as part of this change) gained a third "Auto" 🌓 button, highlighted when the *preference* is `'auto'` (not the resolved scheme).
+- Also fixed in passing: `settings.display.themeDark`/`themeLight` i18n keys never actually existed in any of the three locale files — every locale silently fell back to hardcoded Ukrainian default text (`'Темна'`/`'Світла'`) baked into the `t()` calls, regardless of active language. Added proper `themeDark`/`themeLight`/`themeAuto`/`theme` keys to `en.ts`/`uk.ts`/`fr.ts` and removed the hardcoded fallbacks.
+- **Real native bug found during device testing, not just a web check:** `app.config.js` had `userInterfaceStyle: 'dark'` set globally, which Expo bakes into iOS's `Info.plist` as `UIUserInterfaceStyle: Dark` (and the Android equivalent). That forces the OS-level trait collection to always report dark, so `useColorScheme()` returns `'dark'` unconditionally on native regardless of the real system setting — Auto would have silently never worked on a real device or simulator, only appearing to work in the web Playwright check (browser has no such native override). Fixed by setting `userInterfaceStyle: 'automatic'` and regenerating the native project (`npx expo prebuild --platform ios --clean`, `ios/` is gitignored/regenerable). Confirmed live-toggling via `xcrun simctl ui <udid> appearance dark|light` on a booted iPhone 17 simulator (iOS 26.5) re-themes the running app instantly with no reload, in both directions.
+- Covered by `src/theme/__tests__/ThemeContext.test.tsx` (preference-to-resolved-scheme resolution, including the auto+unavailable-system-scheme default) — this only exercises the JS-side resolution logic, not the native `userInterfaceStyle` config, so a regression there wouldn't be caught by Jest; verify manually on-device/simulator if `app.config.js`'s `userInterfaceStyle` is ever touched again.
 
 ---
 
