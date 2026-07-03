@@ -417,12 +417,29 @@ export const makeStyles = (colors: AppColors) => StyleSheet.create({
     minWidth: 28,
     textAlign: 'center',
   },
+  editStatValNA: {
+    color: colors.text.ghost,
+    fontSize: FontSize.sm,
+  },
   editStatLabel: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.xs,
     color: colors.text.muted,
     textAlign: 'center',
     width: 70,
+  },
+  editStatLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    width: 70,
+  },
+  editConfidenceDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: colors.accent.yellow,
   },
 
   // Sheet buttons

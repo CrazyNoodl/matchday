@@ -372,6 +372,8 @@ const fr = {
       noStatsDesc: 'Impossible d\'extraire les stats de cette photo. Essayez une capture d\'écran plus nette.',
       failed: 'Impossible de lire les stats',
       failedDesc: 'Veuillez réessayer avec une image plus nette.',
+      invalidPhoto: 'Mauvaise photo ?',
+      invalidPhotoDesc: 'Cela ne ressemble pas à un écran de statistiques — importez une nouvelle photo ou reprenez-en une plus nette.',
     },
   },
 

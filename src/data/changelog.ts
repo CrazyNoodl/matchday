@@ -9,6 +9,18 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.5',
+    added: [
+      'Match stats edit screen now always shows all 23 tracked params in a fixed order — ones the AI didn\'t recognize show as a muted placeholder instead of being hidden, and a small dot marks values the AI wasn\'t fully confident about (#63)',
+      'Expected Goals (xG) now steps by 0.1 in the stats editor instead of whole numbers; percentage stats (possession, dribbles, accuracy) are capped at 100 on each side (#63)',
+      'Stat photos that don\'t look like a real stats screen are now rejected automatically during import/re-scan — they\'re no longer added to the match or applied as stats, and you\'re asked to upload a clearer photo instead (#63)',
+    ],
+    fixed: [
+      'Re-scanning stats or adding new photos now shows a visible loading indicator for the entire upload + AI-read duration, including the wait for photos not yet downloaded from iCloud — previously the app could look frozen with no feedback (#65)',
+      'Video upload and playback were both broken — video capture/selection is temporarily disabled and existing video attachments are hidden from the match screen until the underlying issue is investigated (#59)',
+    ],
+  },
+  {
     version: '1.9.4',
     fixed: [
       'You no longer have to log in again every time the app is closed and reopened — the session is now stored on-device and restored automatically on launch (#54)',
