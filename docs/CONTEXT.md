@@ -167,32 +167,35 @@ Video upload and playback were both broken (root cause not yet investigated — 
 
 ## Media cleanup on delete — implementation detail
 
-When any delete action removes matches, the associated Supabase Storage files are cleaned up automatically:
+**Redesigned ([#67](https://github.com/CrazyNoodl/matchday/issues/67), 2026-07-03):** cleanup is now prefix-based (delete a whole storage folder in one sweep) instead of per-item, matching the new folder layout described below.
 
-- `deleteMatch(id)` — deletes media of the removed match
-- `deleteRound()` — deletes media of all current-round matches
-- `deleteArchivedRound(id)` — deletes media of all matches in that round
-- `deleteClosedTournament(id)` — deletes media across all rounds of a closed tournament (new action, no UI yet)
+- `deleteMatch(id)` — deletes the match's whole storage folder in one `deleteStorageFolder()` call
+- `deleteRound()` — deletes the currently open round's whole folder in one sweep
+- `deleteArchivedRound(id)` — deletes that archived round's whole folder in one sweep
+- `deleteClosedTournament(id)` — deletes the **entire tournament folder** in one sweep; since old flat-layout files also lived directly under `{tournamentId}/`, this one call incidentally cleans those up too (see below)
 - `resetStore()` — already handled full cleanup (unchanged)
 
-Pattern: fire-and-forget. Local state updates synchronously; `deleteMediaItem()` runs in the background without blocking the UI. Items with `pendingUpload=true` are skipped (they were never uploaded). Implemented in `scheduleMediaCleanup()` helper at the top of `tournamentSlice.ts`.
+Pattern: fire-and-forget, same as before — local state updates synchronously; `deleteStorageFolder()` runs in the background without blocking the UI. Matches predating this feature (no `mediaFolder`, see below) don't live under the round-folder prefix, so `deleteMatch`/`deleteRound`/`deleteArchivedRound` additionally delete those legacy matches' folders individually as a fallback — only `deleteClosedTournament`'s tournament-wide sweep needs no such fallback.
+
+`deleteStorageFolder(prefix)` (`src/supabase/storage.ts`) does the recursive `list()` → `remove()` walk itself — Supabase Storage has no native recursive folder delete; `list()` returns one level at a time, with sub-folders coming back as entries with `id === null`.
 
 ---
 
 ## Storage folder structure — implementation detail
 
-New uploads go into a hierarchical path inside the `match-media` bucket:
+**Redesigned ([#67](https://github.com/CrazyNoodl/matchday/issues/67), 2026-07-03):** new uploads go into a per-round/per-match hierarchical path inside the `match-media` bucket:
 
 ```
-{userId}/{tournamentId}/{matchId}/{timestamp}-{randomId}.{ext}
+{userId}/{tournamentId}/matchday-{date}_{HHmm}/match_{aScore}-{bScore}_{date}_{HHmm}/{timestamp}-{randomId}.{ext}
 ```
 
-`uploadMediaItem(localUri, type, context?)` and `uploadMediaItems(items, context?)` accept an optional `context: { tournamentId, matchId }`. When omitted, falls back to flat `{userId}/{filename}` (used for team logos and any call site that doesn't have tournament context).
-
-- `useAddMatchFlow` generates `matchId` before calling upload so the folder exists at write time.
-- `useMatchDetail` reads `store.tournamentId` (always correct for editable matches — closed tournaments are read-only).
-- `deleteMediaItem` extracts the full path from the public URL, so deletion works for both old (flat) and new (structured) paths without changes.
-- Old files in the flat structure remain valid; their URLs in the store keep working.
+- **Round folder** (`matchday-2026-07-03_1430`): generated once by `startRound()` via `buildRoundFolder()`, stored on `TournamentState.roundFolder` while the round is open, copied onto `ArchivedRound.folder` by `finishRound()` and cleared from `roundFolder` afterward.
+- **Match folder** (`match_2-1_2026-07-03_1432`): generated once at match-creation time in `useAddMatchFlow.ts` via `buildMatchFolder(aScore, bScore, date)`, stored on `Match.mediaFolder`. **Fixed at creation, never renamed** — even if the score is edited later or stats are re-scanned, the folder name (and any score baked into it) stays the same. Both folder-naming helpers live in `src/supabase/storage.ts`.
+- `uploadMediaItem(localUri, type, context?)` / `uploadMediaItems(items, context?)` now take `context: { tournamentId, mediaFolder }` (renamed from the old `matchId` field) — `mediaFolder` is the full relative path segment under the tournament id, e.g. `${roundFolder}/${match.mediaFolder}`.
+- `useAddMatchFlow.ts` builds `mediaFolder` from the `roundFolder` prop (passed down from `app/round.tsx`, sourced from `store.roundFolder`) + the freshly generated match folder.
+- `useMatchDetail.ts`'s `getMediaFolder(match)` resolves the round folder contextually — `store.roundFolder` for a live match, the owning `ArchivedRound.folder` for an archived one — then joins it with `match.mediaFolder`.
+- **Legacy fallback, no data migration was run:** a match without `mediaFolder` (created before this feature) falls back to `match.id` as its folder, reproducing the exact old flat `{tournamentId}/{matchId}/...` layout so existing uploads and their cleanup keep working unchanged. `matchMediaFolder()` (`src/store/sliceHelpers.ts`) is the single helper implementing this fallback, shared by every delete action in `tournamentSlice.ts`.
+- Team logos still upload to the flat `{userId}/team-logos/...` path — unaffected by this change.
 
 ---
 
