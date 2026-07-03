@@ -1,5 +1,7 @@
+import type { StatKey } from '@/store/types';
+
 export interface MatchStat {
-  key: string;
+  key: StatKey;
   label: string;
   aVal: number;
   bVal: number;
