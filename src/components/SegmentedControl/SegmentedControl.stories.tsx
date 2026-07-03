@@ -21,9 +21,8 @@ function LiveSegmentedControl({ variant }: { variant?: 'boxed' | 'pill' }) {
 }
 
 const meta = {
-  title: 'Components/SegmentedControl',
+  title: 'Elements/SegmentedControl',
   component: SegmentedControl,
-  parameters: { backgrounds: { default: 'app-dark' } },
   argTypes: {
     variant: {
       control: { type: 'select' },

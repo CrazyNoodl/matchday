@@ -21,9 +21,8 @@ const withMockData: Decorator = (Story) => {
 };
 
 const meta = {
-  title: 'Components/RoundCard',
+  title: 'Cards/RoundCard',
   component: RoundCard,
-  parameters: { backgrounds: { default: 'app-dark' } },
   decorators: [withMockData],
   argTypes: {
     variant: {

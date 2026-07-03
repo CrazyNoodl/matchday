@@ -8,7 +8,6 @@ import {
   ActivityIndicator,
   Platform,
   ScrollView,
-  Switch,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 // Native-only modules loaded dynamically so web build doesn't crash
@@ -20,6 +19,7 @@ import { useStore } from '@/store';
 import { ArchivedRound } from '@/store/types';
 import { calculateStandings, Standing } from '@/utils/standings';
 import { useColors } from '@/theme';
+import { Toggle } from '@/components/Toggle';
 import { FontFamily } from '@/theme/typography';
 import { STANDINGS_NUM_COLS, formatShareCardDate } from '@/utils/shareCard';
 import { makeWinnerStyles, makeModalStyles } from './ShareRoundModal.styles';
@@ -449,23 +449,9 @@ export function ShareRoundModal({ visible, onClose, round, roundNumber, tourname
         </ScrollView>
 
         {/* Options */}
-        <View style={modalStyles.optionRow}>
-          <Text style={modalStyles.optionLabel}>Include standings</Text>
-          <Switch
-            value={includeStandings}
-            onValueChange={setIncludeStandings}
-            trackColor={{ false: colors.bg.elevated, true: colors.accent.green }}
-            thumbColor="#ffffff"
-          />
-        </View>
-        <View style={modalStyles.optionRow}>
-          <Text style={modalStyles.optionLabel}>Include all matches</Text>
-          <Switch
-            value={includeMatches}
-            onValueChange={setIncludeMatches}
-            trackColor={{ false: colors.bg.elevated, true: colors.accent.green }}
-            thumbColor="#ffffff"
-          />
+        <View style={modalStyles.optionsWrap}>
+          <Toggle label="Include standings" value={includeStandings} onValueChange={setIncludeStandings} />
+          <Toggle label="Include all matches" value={includeMatches} onValueChange={setIncludeMatches} />
         </View>
 
         {/* Action buttons */}

@@ -4,9 +4,8 @@ import { View } from 'react-native';
 import { MediaThumbnail } from './MediaThumbnail';
 
 const meta = {
-  title: 'Components/MediaThumbnail',
+  title: 'Elements/MediaThumbnail',
   component: MediaThumbnail,
-  parameters: { backgrounds: { default: 'app-dark' } },
   argTypes: {
     uri: { control: { type: 'text' }, description: 'Image URI — omitted shows a hatched placeholder' },
     onRemove: { action: 'onRemove' },

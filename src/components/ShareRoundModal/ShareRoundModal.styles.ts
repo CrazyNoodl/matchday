@@ -302,17 +302,10 @@ export const makeModalStyles = (colors: AppColors) => StyleSheet.create({
     shadowRadius: 24,
     elevation: 12,
   },
-  optionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+  optionsWrap: {
+    gap: Spacing.sm,
     paddingHorizontal: Spacing.xl,
     paddingTop: Spacing.lg,
-  },
-  optionLabel: {
-    fontFamily: FontFamily.body,
-    fontSize: FontSize.sm,
-    color: colors.text.secondary,
   },
   actions: {
     flexDirection: 'row',

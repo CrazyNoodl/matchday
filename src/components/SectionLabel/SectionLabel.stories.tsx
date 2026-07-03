@@ -6,9 +6,8 @@ import { Colors } from '../../theme/colors';
 import { Spacing } from '../../theme/spacing';
 
 const meta = {
-  title: 'Components/SectionLabel',
+  title: 'Elements/SectionLabel',
   component: SectionLabel,
-  parameters: { backgrounds: { default: 'app-dark' } },
   argTypes: {
     label: {
       control: { type: 'text' },

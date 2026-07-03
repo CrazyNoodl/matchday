@@ -11,6 +11,7 @@ import { useTranslation } from 'react-i18next';
 import { useStore } from '@/store';
 import { Avatar } from '@/components/Avatar';
 import { Sheet } from '@/components/Sheet/Sheet';
+import { Toggle } from '@/components/Toggle';
 import { makeStyles } from './NewRoundModal.styles';
 import { useColors } from '@/theme';
 
@@ -72,30 +73,17 @@ export function NewRoundModal() {
           </Text>
 
           {/* Ranked toggle */}
-          <TouchableOpacity
-            style={[styles.toggleRow, rankedLimitReached && styles.toggleRowDisabled]}
-            onPress={() => !rankedLimitReached && setNewRoundRanked((v) => !v)}
-            activeOpacity={rankedLimitReached ? 1 : 0.8}
-          >
-            <View style={styles.toggleLabelBlock}>
-              <Text style={[styles.toggleLabel, rankedLimitReached && styles.toggleLabelDisabled]}>
-                {t('tournament.newRound.rankedLabel')}
-              </Text>
-              <Text style={styles.toggleSub}>
-                {rankedLimitReached
-                  ? t('tournament.newRound.rankedLimitReached', { count: tournamentRounds })
-                  : t('tournament.newRound.rankedSub')}
-              </Text>
-            </View>
-            <View style={[styles.toggle, newRoundRanked && !rankedLimitReached && styles.toggleOn]}>
-              <View
-                style={[
-                  styles.toggleKnob,
-                  newRoundRanked && !rankedLimitReached && styles.toggleKnobOn,
-                ]}
-              />
-            </View>
-          </TouchableOpacity>
+          <Toggle
+            label={t('tournament.newRound.rankedLabel')}
+            subtitle={
+              rankedLimitReached
+                ? t('tournament.newRound.rankedLimitReached', { count: tournamentRounds })
+                : t('tournament.newRound.rankedSub')
+            }
+            value={newRoundRanked}
+            onValueChange={setNewRoundRanked}
+            disabled={rankedLimitReached}
+          />
 
           {/* Players section */}
           <Text style={styles.playersLabel}>

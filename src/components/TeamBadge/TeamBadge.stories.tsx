@@ -25,9 +25,8 @@ const withTeams: Decorator = (Story) => {
 };
 
 const meta = {
-  title: 'Components/TeamBadge',
+  title: 'Elements/TeamBadge',
   component: TeamBadge,
-  parameters: { backgrounds: { default: 'app-dark' } },
   decorators: [withTeams],
   argTypes: {
     teamCode: {

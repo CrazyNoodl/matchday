@@ -25,3 +25,4 @@ export * from './StatsRow';
 export * from './StatusBadge';
 export * from './TeamBadge';
 export * from './TeamPickerRow';
+export * from './Toggle';
