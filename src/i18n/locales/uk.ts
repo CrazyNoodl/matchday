@@ -290,6 +290,10 @@ const uk = {
     },
     display: {
       section: 'ВІДОБРАЖЕННЯ',
+      theme: 'Тема',
+      themeDark: 'Темна',
+      themeLight: 'Світла',
+      themeAuto: 'Авто',
       showNicknames: 'Показувати нікнейми',
       showNicknamesDesc: 'Відображати нікнейми замість повних імен',
       showTeamLogos: 'Показувати логотипи команд',

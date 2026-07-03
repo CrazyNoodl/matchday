@@ -90,7 +90,7 @@ export default function SettingsScreen() {
               >
                 <Text style={styles.themeBtnIcon}>🌙</Text>
                 <Text style={[styles.themeBtnLabel, colorScheme === 'dark' && styles.themeBtnLabelActive]}>
-                  {t('settings.display.themeDark', 'Темна')}
+                  {t('settings.display.themeDark')}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -100,7 +100,17 @@ export default function SettingsScreen() {
               >
                 <Text style={styles.themeBtnIcon}>☀️</Text>
                 <Text style={[styles.themeBtnLabel, colorScheme === 'light' && styles.themeBtnLabelActive]}>
-                  {t('settings.display.themeLight', 'Світла')}
+                  {t('settings.display.themeLight')}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.themeBtn, colorScheme === 'auto' && styles.themeBtnActive]}
+                onPress={() => store.setColorScheme('auto')}
+                activeOpacity={0.75}
+              >
+                <Text style={styles.themeBtnIcon}>🌓</Text>
+                <Text style={[styles.themeBtnLabel, colorScheme === 'auto' && styles.themeBtnLabelActive]}>
+                  {t('settings.display.themeAuto')}
                 </Text>
               </TouchableOpacity>
             </View>

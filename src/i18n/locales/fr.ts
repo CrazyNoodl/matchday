@@ -290,6 +290,10 @@ const fr = {
     },
     display: {
       section: 'AFFICHAGE',
+      theme: 'Thème',
+      themeDark: 'Sombre',
+      themeLight: 'Clair',
+      themeAuto: 'Auto',
       showNicknames: 'Afficher les pseudos',
       showNicknamesDesc: 'Afficher les pseudos à la place des noms complets',
       showTeamLogos: 'Afficher les logos',

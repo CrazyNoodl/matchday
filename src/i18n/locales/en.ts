@@ -290,6 +290,10 @@ const en = {
     },
     display: {
       section: 'DISPLAY',
+      theme: 'Theme',
+      themeDark: 'Dark',
+      themeLight: 'Light',
+      themeAuto: 'Auto',
       showNicknames: 'Show nicknames',
       showNicknamesDesc: 'Display player nicknames instead of full names',
       showTeamLogos: 'Show team logos',
