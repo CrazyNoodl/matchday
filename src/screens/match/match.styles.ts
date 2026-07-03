@@ -241,16 +241,6 @@ export const makeStyles = (colors: AppColors) => StyleSheet.create({
     width: 90,
     height: 118,
   },
-  videoOverlay: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  videoPlayIcon: {
-    fontSize: 24,
-    color: '#fff',
-  },
   mediaEmpty: {
     height: 80,
     borderRadius: Radius.sm,

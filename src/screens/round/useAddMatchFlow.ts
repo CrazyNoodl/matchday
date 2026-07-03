@@ -161,7 +161,8 @@ export function useAddMatchFlow({
     if (slotsLeft <= 0) return;
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images', 'videos'],
+      // Video temporarily disabled — upload/playback broken, see #59
+      mediaTypes: ['images'],
       allowsMultipleSelection: true,
       selectionLimit: slotsLeft,
       quality: 0.85,

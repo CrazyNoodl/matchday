@@ -222,6 +222,19 @@ describe('handleSaveMatch — upload error handling', () => {
 // Bug 3 — handlePickMedia must combine ocrAssets across multiple picks
 // ---------------------------------------------------------------------------
 
+describe('handlePickMedia — video upload disabled (#59)', () => {
+  it('requests images only from the picker', async () => {
+    mockPicker.mockResolvedValueOnce({ canceled: true });
+    const { result } = await makeHook();
+    await act(async () => {
+      await result.current.handlePickMedia();
+    });
+    expect(mockPicker).toHaveBeenCalledWith(
+      expect.objectContaining({ mediaTypes: ['images'] }),
+    );
+  });
+});
+
 describe('handlePickMedia — multi-batch OCR asset accumulation', () => {
   it('runs OCR on combined old + new assets when called a second time', async () => {
     mockExtractStats.mockResolvedValue([]);
