@@ -1,8 +1,8 @@
 import { Platform } from 'react-native';
-import type { StatConfidence } from '@/store/types';
+import type { KnownStatKey, StatConfidence, StatKey } from '@/store/types';
 
 export interface ExtractedStat {
-  key: string;
+  key: StatKey;
   label: string;
   home: number;
   away: number;
@@ -10,7 +10,7 @@ export interface ExtractedStat {
 }
 
 // Known stat keys that map to the store's statsOverride format
-const KEY_ALIASES: Record<string, string> = {
+const KEY_ALIASES: Record<string, KnownStatKey> = {
   possession:           'possession',
   timetoregin:          'timeToRegain',
   timetoregain:         'timeToRegain',
@@ -56,7 +56,7 @@ const KEY_ALIASES: Record<string, string> = {
   passingaccuracy:      'passAccuracy',
 };
 
-export function normalizeKey(raw: string): string {
+export function normalizeKey(raw: string): StatKey {
   const lower = raw.toLowerCase().replace(/[^a-z]/g, '');
   return KEY_ALIASES[lower] ?? raw;
 }

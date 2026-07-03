@@ -1,5 +1,7 @@
+import type { KnownStatKey } from '@/store/types';
+
 export interface StatDef {
-  key: string;
+  key: KnownStatKey;
   labelKey: string;
   isPercent: boolean;
   /** Edit-sheet stepper increment. Defaults to 1 when omitted. */

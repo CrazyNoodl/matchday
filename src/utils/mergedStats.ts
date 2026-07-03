@@ -1,9 +1,9 @@
-import type { Match, StatConfidence } from '@/store/types';
+import type { Match, StatConfidence, StatKey } from '@/store/types';
 import { generateMatchStats } from '@/utils/matchStats';
 import { STAT_DEF_MAP, STAT_DEFINITIONS } from '@/utils/statDefinitions';
 
 export type MergedStat = {
-  key: string;
+  key: StatKey;
   labelKey: string;
   label: string;
   aVal: number;
