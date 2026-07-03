@@ -114,7 +114,9 @@ closedTournaments — fully finished tournaments (hasTournament = false after cl
 | Season stats | `app/season-stats.tsx` |
 | Archive (closed tournaments accordion) | `app/archive.tsx`, `app/archive-day.tsx` |
 | Match media: multi-select (up to 5), optimistic upload, full-screen swipeable viewer | `src/screens/match/useMatchDetail.ts`, `src/components/MediaSlider/` |
+| Photos downscaled before upload (regular media, stat photos, team logos) | `src/utils/imageResize.ts` |
 | OCR stat import (AI, dev-only) | `app/settings/(developer)/ocr-lab.tsx` |
+| Resize Lab — before/after size inspector (AI, dev-only) | `app/settings/(developer)/resize-lab.tsx` |
 | Player/team management | `app/settings/(data)/` |
 | Supabase sync (selective, debounced 300ms) | `src/store/` |
 | Persistent auth session (survives app restart) | `src/supabase/client.ts` |
@@ -196,6 +198,24 @@ Pattern: fire-and-forget, same as before — local state updates synchronously; 
 - `useMatchDetail.ts`'s `getMediaFolder(match)` resolves the round folder contextually — `store.roundFolder` for a live match, the owning `ArchivedRound.folder` for an archived one — then delegates to the same `matchMediaFolder()` helper the Add Match flow's fallback logic mirrors, so both flows always agree on the upload path for a given match (bug found and fixed 2026-07-04: previously `useMatchDetail.ts` duplicated this logic with a stricter condition requiring *both* `roundFolder` and `match.mediaFolder`, so a match whose round predated #67 — no `roundFolder` yet — got a different folder for media added via the detail screen than media added at creation).
 - **Legacy fallback, no data migration was run:** `matchMediaFolder(roundFolder, match)` (`src/store/sliceHelpers.ts`) is the single shared helper, used by both upload flows and every delete action in `tournamentSlice.ts`: no `match.mediaFolder` → falls back to `match.id` (pre-#67 match, old flat layout); has `match.mediaFolder` but no `roundFolder` → uses the bare match folder (match created after #67 but its round predates it); both present → `${roundFolder}/${match.mediaFolder}`.
 - Team logos still upload to the flat `{userId}/team-logos/...` path — unaffected by this change.
+
+---
+
+### Image resize on upload — implementation detail ([#62](https://github.com/CrazyNoodl/matchday/issues/62), 2026-07-04)
+
+Photos were previously uploaded/sent at full camera resolution — only JPEG `quality` compression, no dimension downscaling. `src/utils/imageResize.ts` adds a shared `resizeImage(uri, {width, height}, maxDimension, opts)` helper (via `expo-image-manipulator`, context API) that caps the longest edge and no-ops if the source is already within the cap.
+
+Presets, each applied at a different call site:
+- `MEDIA_MAX_DIMENSION` (2000px) — regular match media, no OCR involved (`handleAddMedia` in `useMatchDetail.ts`)
+- `OCR_PAYLOAD_MAX_DIMENSION` (2000px) — base64 sent to the AI OCR provider; light downscale, stays legible
+- `STAT_PHOTO_STORAGE_MAX_DIMENSION` (1200px) — the persisted copy of a photo that went through OCR; more aggressive since nobody zooms into a stat screenshot in the gallery
+- `TEAM_LOGO_MAX_DIMENSION` (600px) — logos only ever render as a small badge
+
+**Hybrid split for dual-purpose photos:** `handleImportStats` (`useMatchDetail.ts`) and `handlePickMedia` (`useAddMatchFlow.ts`) both use the *same* picked photo for two purposes — OCR extraction and the stored match-media copy — so each runs `resizeImage` twice with different caps: once at `OCR_PAYLOAD_MAX_DIMENSION` for the base64 handed to the AI, once at `STAT_PHOTO_STORAGE_MAX_DIMENSION` for the file actually uploaded to Storage. `ocr-lab.tsx` only needs the OCR-payload downscale (no storage upload happens there).
+
+Every call site wraps `resizeImage` in its own `try/catch` and falls back to the original, un-resized uri/base64 on failure — a resize hiccup degrades to pre-#62 behavior (full-res upload) rather than blocking the picker/OCR flow outright. **Debugging note:** this silent fallback means a broken resize looks identical to "nothing changed" with no visible error — if photos stop shrinking, check for a stale Metro/web bundle first (Fast Refresh doesn't always propagate edits to plain utility modules like `imageResize.ts` the way it does for React components) before assuming the resize logic itself regressed.
+
+New dev tool: **Resize Lab** (`app/settings/(developer)/resize-lab.tsx`, Settings → Developer Menu) — pick any real photo and see before/after dimensions, file size, and reduction % for all four presets side by side, with errors surfaced instead of silently swallowed. Useful for confirming the resize actually ran on a given device/photo without needing to create a match or check the Supabase Storage dashboard.
 
 ---
 
