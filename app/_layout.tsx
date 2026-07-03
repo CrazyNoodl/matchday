@@ -18,7 +18,7 @@ import React from 'react';
 import { Platform, View, ActivityIndicator, Text, TextInput, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Constants from 'expo-constants';
-import { ThemeProvider, useColors } from '@/theme';
+import { ThemeProvider, useColors, useEffectiveColorScheme } from '@/theme';
 import { useStore } from '@/store';
 import { errorStyles, bannerStyles } from '@/screens/layout/layout.styles';
 import i18n from '@/i18n';
@@ -121,7 +121,7 @@ function DemoBanner() {
 
 function AppContent({ fontsLoaded, session }: { fontsLoaded: boolean; session: Session | null | undefined }) {
   const colors = useColors();
-  const colorScheme = useStore((s) => s.colorScheme);
+  const colorScheme = useEffectiveColorScheme();
 
   if (!fontsLoaded || session === undefined) {
     return (

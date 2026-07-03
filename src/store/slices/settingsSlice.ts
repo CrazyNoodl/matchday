@@ -1,14 +1,14 @@
 import { StateCreator } from 'zustand';
 import { RealDataBackup } from '../types';
 import { DEMO_STATE } from '@/demo/data';
-import type { ColorScheme } from '@/theme/colors';
+import type { ThemePreference } from '@/theme/colors';
 import type { Language } from '@/i18n';
 import type { RootState } from '../index';
 
 export interface SettingsState {
   showNick: boolean;
   showTeamLogo: boolean;
-  colorScheme: ColorScheme;
+  colorScheme: ThemePreference;
   language: Language;
   demoMode: boolean;
   realDataBackup: RealDataBackup | null;
@@ -17,7 +17,7 @@ export interface SettingsState {
 export interface SettingsActions {
   setShowNick: (v: boolean) => void;
   setShowTeamLogo: (v: boolean) => void;
-  setColorScheme: (scheme: ColorScheme) => void;
+  setColorScheme: (scheme: ThemePreference) => void;
   setLanguage: (lang: Language) => void;
   setDemoMode: (on: boolean) => void;
 }

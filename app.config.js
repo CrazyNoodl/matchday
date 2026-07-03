@@ -8,7 +8,7 @@ module.exports = {
     orientation: 'portrait',
     icon: './assets/icon.png',
     scheme: 'matchday',
-    userInterfaceStyle: 'dark',
+    userInterfaceStyle: 'automatic',
     ios: {
       supportsTablet: false,
       bundleIdentifier: 'com.matchday.app',
