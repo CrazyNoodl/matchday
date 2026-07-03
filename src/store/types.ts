@@ -20,6 +20,8 @@ export type MediaType = 'image' | 'video';
 
 export type MatchResult = 'W' | 'D' | 'L';
 
+export type StatConfidence = 'high' | 'medium' | 'low';
+
 export interface MediaItem {
   uri: string;
   type: MediaType;
@@ -37,7 +39,7 @@ export interface Match {
   bScore: number;
   media?: MediaItem[];
   note?: string;
-  statsOverride?: Record<string, { a: number; b: number }>;
+  statsOverride?: Record<string, { a: number; b: number; confidence?: StatConfidence }>;
 }
 
 export interface ArchivedRound {

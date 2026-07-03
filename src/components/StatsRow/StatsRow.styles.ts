@@ -16,6 +16,9 @@ export const makeStyles = (colors: AppColors) => StyleSheet.create({
     width: 28,
     textAlign: 'center',
   },
+  valueNA: {
+    color: colors.text.ghost,
+  },
   barContainer: {
     flex: 1,
     flexDirection: 'row',
@@ -45,5 +48,17 @@ export const makeStyles = (colors: AppColors) => StyleSheet.create({
     color: colors.text.muted,
     textAlign: 'center',
     minWidth: 60,
+  },
+  labelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+  },
+  confidenceDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: colors.accent.yellow,
   },
 });

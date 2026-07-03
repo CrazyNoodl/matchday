@@ -2,13 +2,15 @@ export interface StatDef {
   key: string;
   labelKey: string;
   isPercent: boolean;
+  /** Edit-sheet stepper increment. Defaults to 1 when omitted. */
+  step?: number;
 }
 
 export const STAT_DEFINITIONS: StatDef[] = [
   { key: 'possession',           labelKey: 'stats.possession',           isPercent: true  },
   { key: 'timeToRegain',         labelKey: 'stats.timeToRegain',         isPercent: false },
   { key: 'shots',                labelKey: 'stats.shots',                isPercent: false },
-  { key: 'expectedGoals',        labelKey: 'stats.expectedGoals',        isPercent: false },
+  { key: 'expectedGoals',        labelKey: 'stats.expectedGoals',        isPercent: false, step: 0.1 },
   { key: 'passes',               labelKey: 'stats.passes',               isPercent: false },
   { key: 'tackles',              labelKey: 'stats.tackles',              isPercent: false },
   { key: 'successfulTackles',    labelKey: 'stats.successfulTackles',    isPercent: false },

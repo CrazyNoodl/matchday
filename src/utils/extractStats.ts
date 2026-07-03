@@ -1,11 +1,12 @@
 import { Platform } from 'react-native';
+import type { StatConfidence } from '@/store/types';
 
 export interface ExtractedStat {
   key: string;
   label: string;
   home: number;
   away: number;
-  confidence: 'high' | 'medium' | 'low';
+  confidence: StatConfidence;
 }
 
 // Known stat keys that map to the store's statsOverride format

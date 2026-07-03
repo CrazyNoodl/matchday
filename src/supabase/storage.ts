@@ -11,14 +11,14 @@ const BUCKET = 'match-media';
 export async function uploadMediaItem(
   localUri: string,
   type: MediaType,
-  context?: { tournamentId: string; matchId: string },
+  context?: { tournamentId: string; matchId: string; filenamePrefix?: string },
 ): Promise<string | null> {
   const userId = await getCurrentUserId();
   if (!userId) return null;
 
   try {
     const ext = type === 'video' ? 'mp4' : 'jpg';
-    const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const filename = `${context?.filenamePrefix ?? ''}${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
     const path = context?.tournamentId && context?.matchId
       ? `${userId}/${context.tournamentId}/${context.matchId}/${filename}`
       : `${userId}/${filename}`;

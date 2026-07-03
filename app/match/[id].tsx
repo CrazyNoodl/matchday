@@ -203,6 +203,8 @@ export default function MatchDetailScreen() {
                     aValue={stat.aVal}
                     bValue={stat.bVal}
                     aWins={aLeads}
+                    isNA={stat.isNA}
+                    lowConfidence={stat.confidence === 'low' || stat.confidence === 'medium'}
                   />
                 );
               })}

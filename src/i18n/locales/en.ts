@@ -372,6 +372,8 @@ const en = {
       noStatsDesc: 'Could not extract stats from this photo. Try a clearer screenshot.',
       failed: 'Could Not Read Stats',
       failedDesc: 'Please try again with a clearer image.',
+      invalidPhoto: 'Wrong Photo?',
+      invalidPhotoDesc: 'This doesn’t look like a stats screen — please upload a new photo or retake a clearer one.',
     },
   },
 

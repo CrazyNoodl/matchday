@@ -1,5 +1,5 @@
 import { StateCreator } from 'zustand';
-import { Player, Match, ArchivedRound, ClosedTournament, MediaItem } from '../types';
+import { Player, Match, ArchivedRound, ClosedTournament, MediaItem, StatConfidence } from '../types';
 import { ParsedMatch } from '@/utils/importRound';
 import { calculateStandings, isTopTied } from '@/utils/standings';
 import { Colors } from '@/theme/colors';
@@ -39,7 +39,7 @@ export interface TournamentActions {
   updateMatchScore: (id: string, aScore: number, bScore: number) => void;
   updateMatchStats: (
     id: string,
-    stats: Record<string, { a: number; b: number }> | undefined,
+    stats: Record<string, { a: number; b: number; confidence?: StatConfidence }> | undefined,
   ) => void;
   swapMatchSides: (id: string) => void;
   finishRound: () => void;
