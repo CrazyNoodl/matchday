@@ -9,6 +9,13 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.8',
+    notes: [
+      'Photos are now downscaled before upload instead of only JPEG-compressed at the original camera resolution — regular match media and team logos cap to a smaller max dimension, and stat photos get a lighter downscale for the AI OCR pass plus a more aggressive one for the copy kept in Storage, cutting bandwidth/storage/OCR latency with no visible quality loss (#62)',
+      'Added a "Resize Lab" developer tool (Settings → Developer Menu) to inspect before/after size and dimensions for any photo run through each of the new resize presets',
+    ],
+  },
+  {
     version: '1.9.7',
     fixed: [
       'Media added from the match detail screen could land in a different Supabase Storage folder than media added when the match was first created, for matches whose round predated the per-round/per-match folder layout — both flows now always agree on the same folder (#67 follow-up)',

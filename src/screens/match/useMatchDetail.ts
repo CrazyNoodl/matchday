@@ -7,6 +7,7 @@ import { useStore } from '@/store';
 import { matchMediaFolder } from '@/store/sliceHelpers';
 import type { MediaItem, MediaType, Match, StatConfidence } from '@/store/types';
 import { extractStatsFromPhoto, type ExtractedStat } from '@/utils/extractStats';
+import { resizeImage, MEDIA_MAX_DIMENSION, OCR_PAYLOAD_MAX_DIMENSION, STAT_PHOTO_STORAGE_MAX_DIMENSION } from '@/utils/imageResize';
 import { fetchMatchById } from '@/supabase/sync';
 import { uploadMediaItem, deleteMediaItem } from '@/supabase/storage';
 import { buildMergedStats } from '@/utils/mergedStats';
@@ -228,16 +229,25 @@ export function useMatchDetail() {
       await Promise.all(
         result.assets.map(async (asset) => {
           const type: MediaType = asset.type === 'video' ? 'video' : 'image';
-          const localUri = asset.uri;
+          const originalUri = asset.uri;
+          // Downscale before upload — see #62. Optimistic item above already
+          // displays originalUri, so failures below fall back to the resized
+          // file (not the full-res original) to avoid re-resizing on retry.
+          let localUri = originalUri;
+          if (type === 'image') {
+            try {
+              localUri = (await resizeImage(originalUri, asset, MEDIA_MAX_DIMENSION)).uri;
+            } catch { /* fall back to the original file if resizing fails */ }
+          }
 
           let remoteUrl: string | null;
           try { remoteUrl = await uploadMediaItem(localUri, type, { tournamentId: store.tournamentId, mediaFolder }); } catch { remoteUrl = null; }
 
-          // Replace the optimistic item matched by local URI + uploading flag
+          // Replace the optimistic item matched by the original local URI + uploading flag
           store.updateMatchMedia(
             matchId,
             getMedia(matchId).map((item) => {
-              if (item.uri === localUri && item.uploading) {
+              if (item.uri === originalUri && item.uploading) {
                 return remoteUrl !== null
                   ? { uri: remoteUrl, type }
                   : { uri: localUri, type, pendingUpload: true };
@@ -296,8 +306,17 @@ export function useMatchDetail() {
         const ocrResults = await Promise.all(
           result.assets.map(async (asset) => {
             if (!asset.base64) return { asset, stats: [] as ExtractedStat[], ocrFailed: false };
+            // Light downscale before sending to the AI provider — see #62. Stays legible
+            // for OCR while cutting payload size/latency; falls back to the picker's own
+            // base64 (already within the cap, or resize failed) so a resize hiccup never
+            // blocks OCR outright.
+            let base64 = asset.base64;
             try {
-              const stats = await extractStatsFromPhoto(asset.base64, asset.mimeType ?? 'image/jpeg');
+              const payload = await resizeImage(asset.uri, asset, OCR_PAYLOAD_MAX_DIMENSION, { base64: true });
+              if (payload.base64) base64 = payload.base64;
+            } catch { /* keep original base64 */ }
+            try {
+              const stats = await extractStatsFromPhoto(base64, asset.mimeType ?? 'image/jpeg');
               return { asset, stats, ocrFailed: false };
             } catch {
               return { asset, stats: [] as ExtractedStat[], ocrFailed: true };
@@ -324,15 +343,22 @@ export function useMatchDetail() {
         setImportStatsStep('uploading');
         const uploadResults = await Promise.all(
           classified.map(async (r) => {
+            // Aggressive downscale for the persisted copy — see #62. Nobody zooms into
+            // a stat screenshot in the match gallery, so this can be much smaller than
+            // the payload used for OCR above.
+            let storageUri = r.asset.uri;
             try {
-              const remoteUrl = await uploadMediaItem(r.asset.uri, 'image', {
+              storageUri = (await resizeImage(r.asset.uri, r.asset, STAT_PHOTO_STORAGE_MAX_DIMENSION)).uri;
+            } catch { /* fall back to the original file if resizing fails */ }
+            try {
+              const remoteUrl = await uploadMediaItem(storageUri, 'image', {
                 tournamentId: store.tournamentId,
                 mediaFolder,
                 ...(r.isValidPhoto || r.ocrFailed ? {} : { filenamePrefix: 'rejected-' }),
               });
-              return { ...r, remoteUrl };
+              return { ...r, remoteUrl, localUri: storageUri };
             } catch {
-              return { ...r, remoteUrl: null };
+              return { ...r, remoteUrl: null, localUri: storageUri };
             }
           }),
         );
@@ -347,8 +373,8 @@ export function useMatchDetail() {
         // validation or hit a genuine service error (not proven bad) do.
         const mediaCandidates = uploadResults.filter((r) => r.isValidPhoto || r.ocrFailed);
         if (!getMedia()?.length && mediaCandidates.length > 0) {
-          const mediaItems: MediaItem[] = mediaCandidates.map(({ asset, remoteUrl }) => ({
-            uri: remoteUrl ?? asset.uri,
+          const mediaItems: MediaItem[] = mediaCandidates.map(({ localUri, remoteUrl }) => ({
+            uri: remoteUrl ?? localUri,
             type: 'image' as const,
             ...(remoteUrl === null ? { pendingUpload: true } : {}),
           }));

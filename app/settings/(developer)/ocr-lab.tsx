@@ -6,6 +6,7 @@ import { useGoBack } from '@/utils/useGoBack';
 import { NavHeader, SectionLabel, StatsRow, GlowBackground } from '@/components';
 import { useColors } from '@/theme';
 import { extractStatsFromPhoto, type ExtractedStat } from '@/utils/extractStats';
+import { resizeImage, OCR_PAYLOAD_MAX_DIMENSION } from '@/utils/imageResize';
 import { makeStyles } from '@/screens/settings/ocr-lab/ocr-lab.styles';
 import { makeDialogStyles } from '@/screens/round/RoundDialogs.styles';
 
@@ -70,13 +71,20 @@ export default function OcrLabScreen() {
       base64: true,
     });
     if (!result.canceled) {
-      const newItems: PhotoItem[] = result.assets
-        .filter((a) => a.base64)
-        .map((a) => ({
-          uri: a.uri,
-          base64: a.base64!,
-          mimeType: a.mimeType ?? 'image/jpeg',
-        }));
+      // Mirrors the production OCR payload downscale (see #62) so this lab reflects
+      // what the AI provider actually receives at runtime.
+      const newItems: PhotoItem[] = await Promise.all(
+        result.assets
+          .filter((a) => a.base64)
+          .map(async (a) => {
+            let base64 = a.base64!;
+            try {
+              const resized = await resizeImage(a.uri, a, OCR_PAYLOAD_MAX_DIMENSION, { base64: true });
+              if (resized.base64) base64 = resized.base64;
+            } catch { /* keep original base64 */ }
+            return { uri: a.uri, base64, mimeType: a.mimeType ?? 'image/jpeg' };
+          }),
+      );
       setPhotos((prev) => [...prev, ...newItems].slice(0, 4));
       setStats(null);
       setError(null);

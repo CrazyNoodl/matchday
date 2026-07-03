@@ -69,6 +69,18 @@ export default function DeveloperScreen() {
             />
           </View>
         </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionHeader}>IMAGE PIPELINE</Text>
+          <View style={styles.card}>
+            <DevRow
+              icon="🖼️"
+              label="Resize Lab"
+              sub="See before/after size for each upload resize preset (#62)"
+              onPress={() => router.push('/settings/resize-lab')}
+            />
+          </View>
+        </View>
       </View>
     </SafeAreaView>
   );

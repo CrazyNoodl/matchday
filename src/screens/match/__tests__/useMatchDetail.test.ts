@@ -34,6 +34,15 @@ jest.mock('@/utils/extractStats', () => ({
   extractStatsFromPhoto: jest.fn(),
 }));
 
+// Resize is a pass-through here — its own behavior is covered by imageResize.test.ts
+jest.mock('@/utils/imageResize', () => ({
+  resizeImage: jest.fn((uri: string) => Promise.resolve({ uri })),
+  MEDIA_MAX_DIMENSION: 2000,
+  OCR_PAYLOAD_MAX_DIMENSION: 2000,
+  STAT_PHOTO_STORAGE_MAX_DIMENSION: 1200,
+  TEAM_LOGO_MAX_DIMENSION: 600,
+}));
+
 jest.mock('expo-image-picker', () => ({
   launchImageLibraryAsync: jest.fn().mockResolvedValue({ canceled: true }),
   MediaTypeOptions: { All: 'All' },
@@ -90,6 +99,7 @@ beforeEach(() => {
   // deleteMatch chains .catch() directly onto this without awaiting first —
   // needs a real resolved promise, not resetAllMocks' bare undefined return.
   jest.mocked(require('@/supabase/storage').deleteStorageFolder).mockResolvedValue(undefined);
+  jest.mocked(require('@/utils/imageResize').resizeImage).mockImplementation((uri: string) => Promise.resolve({ uri }));
   useStore.getState().resetStore();
 });
 

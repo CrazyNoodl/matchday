@@ -15,6 +15,15 @@ jest.mock('@/utils/extractStats', () => ({
   extractStatsFromPhoto: jest.fn(),
 }));
 
+// Resize is a pass-through here — its own behavior is covered by imageResize.test.ts
+jest.mock('@/utils/imageResize', () => ({
+  resizeImage: jest.fn((uri: string) => Promise.resolve({ uri })),
+  MEDIA_MAX_DIMENSION: 2000,
+  OCR_PAYLOAD_MAX_DIMENSION: 2000,
+  STAT_PHOTO_STORAGE_MAX_DIMENSION: 1200,
+  TEAM_LOGO_MAX_DIMENSION: 600,
+}));
+
 import { renderHook, act, waitFor } from '@testing-library/react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { uploadMediaItems } from '@/supabase/storage';
@@ -26,6 +35,7 @@ import type { Match, Player } from '@/store/types';
 const mockUpload = uploadMediaItems as jest.Mock;
 const mockPicker = ImagePicker.launchImageLibraryAsync as jest.Mock;
 const mockExtractStats = extractStatsFromPhoto as jest.Mock;
+const mockResizeImage = require('@/utils/imageResize').resizeImage as jest.Mock;
 
 const PLAYERS: Player[] = [
   { id: 'p1', name: 'Alice', color: '#f00', teamCode: 'JUV' },
@@ -54,6 +64,7 @@ beforeEach(() => {
   jest.resetAllMocks();
   mockUpload.mockResolvedValue([]);
   mockExtractStats.mockResolvedValue([]);
+  mockResizeImage.mockImplementation((uri: string) => Promise.resolve({ uri }));
 });
 
 // ---------------------------------------------------------------------------

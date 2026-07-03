@@ -1,6 +1,6 @@
 {
   "name": "matchday",
-  "version": "1.9.7",
+  "version": "1.9.8",
   "main": "expo-router/entry",
   "dependencies": {
     "@expo-google-fonts/saira-condensed": "^0.4.1",
@@ -10,6 +10,7 @@
     "babel-preset-expo": "^56.0.15",
     "expo": "~56.0.12",
     "expo-constants": "~56.0.18",
+    "expo-image-manipulator": "~56.0.20",
     "expo-image-picker": "^56.0.18",
     "expo-linking": "~56.0.14",
     "expo-media-library": "^56.0.7",
