@@ -83,9 +83,9 @@ Jest is configured (`jest-expo` preset). Tests live alongside the code they cove
 
 ```bash
 # E2E tests (Playwright)
-npm run e2e              # all 13 tests headless
-npm run e2e:smoke        # 5 smoke tests headless
-npm run e2e:smoke:watch  # 5 smoke tests with live browser (SLOWMO=1500)
+npm run e2e              # all 17 tests headless
+npm run e2e:smoke        # 7 smoke tests headless
+npm run e2e:smoke:watch  # 7 smoke tests with live browser (SLOWMO=1500)
 npm run e2e:ui           # Playwright UI mode
 ```
 

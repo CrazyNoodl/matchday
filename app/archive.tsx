@@ -9,6 +9,7 @@ import { useColors } from '@/theme';
 import { NavHeader, GlowBackground, RoundCard } from '@/components';
 import { ArchivedRound, ClosedTournament } from '@/store/types';
 import { formatShortDate, formatYearShort } from '@/utils/dateFormat';
+import { getRankedRoundOrdinals } from '@/utils/roundOrdinals';
 import { makeStyles } from '@/screens/archive/archive.styles';
 
 // ---------------------------------------------------------------------------
@@ -22,16 +23,18 @@ import { makeStyles } from '@/screens/archive/archive.styles';
 
 interface RoundRowProps {
   round: ArchivedRound;
+  ordinal: number;
   onPress: () => void;
 }
 
-function RoundRow({ round, onPress }: RoundRowProps) {
+function RoundRow({ round, ordinal, onPress }: RoundRowProps) {
   const { t } = useTranslation();
   const winner = useStore((s) => s.players.find((p) => p.id === round.winner));
   return (
     <RoundCard
       variant="row"
-      n={round.n}
+      n={ordinal}
+      ranked={round.ranked}
       dateText={formatShortDate(round.date)}
       matchCountText={t('archive.roundMatches', { count: round.matches.length })}
       winnerId={round.winner}
@@ -64,6 +67,7 @@ function ClosedTournamentCard({
   const champDaysWon = tournament.rounds.filter(
     (r) => r.winner === tournament.champId,
   ).length;
+  const roundOrdinals = getRankedRoundOrdinals(tournament.rounds);
 
   const d = new Date(tournament.date);
   const fullYear = d.getFullYear();
@@ -142,7 +146,7 @@ function ClosedTournamentCard({
             </View>
           ) : (
             [...tournament.rounds].reverse().map((r) => (
-              <RoundRow key={r.id} round={r} onPress={() => onRoundPress(r)} />
+              <RoundRow key={r.id} round={r} ordinal={roundOrdinals[r.id] ?? 0} onPress={() => onRoundPress(r)} />
             ))
           )}
         </View>

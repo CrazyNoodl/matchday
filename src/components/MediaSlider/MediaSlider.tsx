@@ -10,11 +10,12 @@ import {
   type NativeScrollEvent,
 } from 'react-native';
 import { useColors } from '../../theme';
+import type { MediaType } from '../../store/types';
 import { makeStyles } from './MediaSlider.styles';
 
 export interface MediaSliderItem {
   uri: string;
-  type: 'image' | 'video';
+  type: MediaType;
 }
 
 interface MediaSliderProps {

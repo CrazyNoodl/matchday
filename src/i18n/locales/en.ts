@@ -61,7 +61,6 @@ const en = {
   matchday: {
     round: 'Round {{n}}',
     finish: 'FINISH',
-    roundSettings: 'ROUND OPTIONS',
     table: 'Table',
     cards: 'Cards',
     matchesSection: 'MATCHES · {{count}}',
