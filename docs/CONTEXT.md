@@ -43,7 +43,15 @@ Platforms: iOS, Android, Web. Expo SDK 56, React Native 0.85.3, React 19.2.3.
 - `settingsSlice.language` now typed as the existing (previously unused) `Language` union from `src/i18n/index.ts` instead of raw `string`.
 - `useAddMatchFlow.ts`'s OCR confidence ranking helper now uses `ExtractedStat['confidence']` instead of `string` — closes a real typo hole (a bad literal like `'hi'` used to typecheck silently).
 
-**Not addressed — left for a follow-up:** the biggest candidate, the 23 match-stat keys (`possession`, `shots`, etc., defined in `src/utils/statDefinitions.ts`), is still `string` across `matchStats.ts`, `mergedStats.ts`, `extractStats.ts`, `statsOverride`. Needs a design decision first: OCR (`extractStats.ts`) can legitimately produce keys outside the known set, so a fully closed union would need an escape hatch (e.g. `StatKey | (string & {})`) rather than a strict enum. `src/supabase/sync.ts`'s repeated `'active'/'closed'/'open'/'archived'` string literals were left as-is — already type-checked transitively via the typed `Database` schema in `.eq()` calls, so no safety gap there. Still open as of the #63 stat-edit redesign below — that work added `StatConfidence` as a named type but did not tackle the `StatKey` union.
+`src/supabase/sync.ts`'s repeated `'active'/'closed'/'open'/'archived'` string literals were left as-is — already type-checked transitively via the typed `Database` schema in `.eq()` calls, so no safety gap there.
+
+**`StatKey` follow-up ([#57](https://github.com/CrazyNoodl/matchday/issues/57), 2026-07-03):** the 23 match-stat keys now have a named type in `src/store/types.ts`:
+
+- `KnownStatKey` — closed union of the 23 literal keys (`'possession' | 'shots' | ... `), kept in sync with `STAT_DEFINITIONS`.
+- `StatKey = KnownStatKey | (string & {})` — the escape-hatch union proposed in the issue. Gives autocomplete/typo-protection for the known 23 while still accepting arbitrary OCR keys and the legacy simulated-only `shotsOnTarget` key as plain strings.
+- Applied to single-value `key` fields: `StatDef.key` (`statDefinitions.ts`, strict `KnownStatKey` since that array only ever holds the canonical 23), `MatchStat.key` (`matchStats.ts`), `MergedStat.key` (`mergedStats.ts`), `ExtractedStat.key` (`extractStats.ts`), and `extractStats.ts`'s `normalizeKey()` return type / `KEY_ALIASES` value type.
+- **Deliberately NOT applied** to `Record`s keyed *by* a stat key (`Match.statsOverride`, `updateMatchStats`'s `stats` param, `AddMatchState.pendingStats`) — those stay `Record<string, ...>`. Mapping a `Record`'s keys over a union that mixes literal members with a generic branch makes each literal a *required* property in TS (confirmed via `tsc`, not just theory), which breaks a sparse/partial map where only some of the 23 keys may be set. `StatKey` only helps at single-field-value positions, not as a `Record` key type — documented inline in `types.ts` so it isn't reintroduced by accident.
+- OCR unknown-key fallback (`mergedStats.ts` appending keys outside `STAT_DEF_MAP` under their raw label) verified still working end-to-end, both via the existing `weirdCustomStat` Jest case and manually.
 
 ---
 
