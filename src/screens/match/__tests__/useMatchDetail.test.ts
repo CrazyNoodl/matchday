@@ -23,6 +23,11 @@ jest.mock('@/supabase/sync', () => ({
 jest.mock('@/supabase/storage', () => ({
   uploadMediaItem: jest.fn().mockResolvedValue(null),
   deleteMediaItem: jest.fn().mockResolvedValue(undefined),
+  // Also used by tournamentSlice.ts (imported transitively via the store) for
+  // folder-prefix deletes (#67) — not under test here, just needs to exist.
+  deleteStorageFolder: jest.fn().mockResolvedValue(undefined),
+  buildRoundFolder: jest.fn(() => 'matchday-mock'),
+  buildMatchFolder: jest.fn(() => 'match-mock'),
 }));
 
 jest.mock('@/utils/extractStats', () => ({
@@ -82,6 +87,9 @@ beforeEach(() => {
   mockUpload.mockResolvedValue(null);
   mockExtractStats.mockResolvedValue([]);
   jest.mocked(require('@/supabase/sync').fetchMatchById).mockResolvedValue(null);
+  // deleteMatch chains .catch() directly onto this without awaiting first —
+  // needs a real resolved promise, not resetAllMocks' bare undefined return.
+  jest.mocked(require('@/supabase/storage').deleteStorageFolder).mockResolvedValue(undefined);
   useStore.getState().resetStore();
 });
 
@@ -456,6 +464,46 @@ describe('handleAddMedia', () => {
     expect(media).toHaveLength(1);
     expect(media![0].uri).toBe('file://photo.jpg');
     expect(media![0].pendingUpload).toBe(true);
+  });
+
+  it('#67 — uploads to the nested round/match folder for a live match', async () => {
+    useStore.setState({
+      matches: [{ ...MATCH, mediaFolder: 'match_3-1_2026-07-03_1432' }],
+      roundFolder: 'matchday-2026-07-03_1430',
+      tournamentId: 'tour-1',
+    });
+    mockPicker.mockResolvedValueOnce({
+      canceled: false,
+      assets: [{ uri: 'file://photo.jpg', type: 'image' }],
+    });
+    mockUpload.mockResolvedValueOnce('https://cdn.example.com/photo.jpg');
+    const { result } = await renderHook(() => useMatchDetail());
+    await act(async () => { await result.current.handleAddMedia(); });
+
+    expect(mockUpload).toHaveBeenCalledWith('file://photo.jpg', 'image', {
+      tournamentId: 'tour-1',
+      mediaFolder: 'matchday-2026-07-03_1430/match_3-1_2026-07-03_1432',
+    });
+  });
+
+  it('#67 — falls back to matchId as the folder for matches predating the layout', async () => {
+    useStore.setState({
+      matches: [MATCH], // no mediaFolder
+      roundFolder: 'matchday-2026-07-03_1430',
+      tournamentId: 'tour-1',
+    });
+    mockPicker.mockResolvedValueOnce({
+      canceled: false,
+      assets: [{ uri: 'file://photo.jpg', type: 'image' }],
+    });
+    mockUpload.mockResolvedValueOnce('https://cdn.example.com/photo.jpg');
+    const { result } = await renderHook(() => useMatchDetail());
+    await act(async () => { await result.current.handleAddMedia(); });
+
+    expect(mockUpload).toHaveBeenCalledWith('file://photo.jpg', 'image', {
+      tournamentId: 'tour-1',
+      mediaFolder: MATCH.id,
+    });
   });
 });
 

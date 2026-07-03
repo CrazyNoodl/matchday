@@ -11,7 +11,7 @@ const BUCKET = 'match-media';
 export async function uploadMediaItem(
   localUri: string,
   type: MediaType,
-  context?: { tournamentId: string; matchId: string; filenamePrefix?: string },
+  context?: { tournamentId: string; mediaFolder: string; filenamePrefix?: string },
 ): Promise<string | null> {
   const userId = await getCurrentUserId();
   if (!userId) return null;
@@ -19,8 +19,8 @@ export async function uploadMediaItem(
   try {
     const ext = type === 'video' ? 'mp4' : 'jpg';
     const filename = `${context?.filenamePrefix ?? ''}${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-    const path = context?.tournamentId && context?.matchId
-      ? `${userId}/${context.tournamentId}/${context.matchId}/${filename}`
+    const path = context?.tournamentId && context?.mediaFolder
+      ? `${userId}/${context.tournamentId}/${context.mediaFolder}/${filename}`
       : `${userId}/${filename}`;
     const mimeType = type === 'video' ? 'video/mp4' : 'image/jpeg';
 
@@ -64,7 +64,7 @@ export async function uploadTeamLogo(localUri: string): Promise<string | null> {
 
 export async function uploadMediaItems(
   items: MediaItem[],
-  context?: { tournamentId: string; matchId: string },
+  context?: { tournamentId: string; mediaFolder: string },
 ): Promise<MediaItem[]> {
   return Promise.all(
     items.map(async (item) => {
@@ -90,6 +90,70 @@ export async function deleteMediaItem(publicUrl: string): Promise<void> {
   } catch (e) {
     console.warn('[storage] delete error:', e);
   }
+}
+
+// ---------------------------------------------------------------------------
+// Delete every file under a storage prefix (e.g. a round or match folder).
+// Supabase Storage has no recursive folder delete — list() only returns one
+// level at a time, with sub-folders coming back as entries with id === null —
+// so we walk the tree ourselves before batching remove() calls.
+// ---------------------------------------------------------------------------
+
+export async function deleteStorageFolder(prefix: string): Promise<void> {
+  const userId = await getCurrentUserId();
+  if (!userId) return;
+
+  try {
+    const paths = await collectFilePaths(`${userId}/${prefix}`);
+    if (paths.length === 0) return;
+
+    const BATCH_SIZE = 100;
+    for (let i = 0; i < paths.length; i += BATCH_SIZE) {
+      await supabase.storage.from(BUCKET).remove(paths.slice(i, i + BATCH_SIZE));
+    }
+  } catch (e) {
+    console.warn('[storage] delete folder error:', e);
+  }
+}
+
+async function collectFilePaths(prefix: string): Promise<string[]> {
+  const { data, error } = await supabase.storage.from(BUCKET).list(prefix, { limit: 1000 });
+  if (error || !data) return [];
+
+  const paths: string[] = [];
+  for (const entry of data) {
+    const entryPath = `${prefix}/${entry.name}`;
+    if (entry.id === null) {
+      paths.push(...(await collectFilePaths(entryPath)));
+    } else {
+      paths.push(entryPath);
+    }
+  }
+  return paths;
+}
+
+// ---------------------------------------------------------------------------
+// Folder-naming — round and match folders are generated once and reused for
+// the lifetime of the round/match (see #67). Uses local time so folder names
+// match what the user saw on-device when the round/match was created.
+// ---------------------------------------------------------------------------
+
+export function buildRoundFolder(date: Date): string {
+  return `matchday-${formatFolderStamp(date)}`;
+}
+
+export function buildMatchFolder(aScore: number, bScore: number, date: Date): string {
+  return `match_${aScore}-${bScore}_${formatFolderStamp(date)}`;
+}
+
+function formatFolderStamp(date: Date): string {
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  const y = date.getFullYear();
+  const m = pad(date.getMonth() + 1);
+  const d = pad(date.getDate());
+  const hh = pad(date.getHours());
+  const mm = pad(date.getMinutes());
+  return `${y}-${m}-${d}_${hh}${mm}`;
 }
 
 // ---------------------------------------------------------------------------

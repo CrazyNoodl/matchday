@@ -2,7 +2,7 @@ import { useCallback, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import * as ImagePicker from 'expo-image-picker';
 import { Player, Match, MediaItem } from '@/store/types';
-import { uploadMediaItems } from '@/supabase/storage';
+import { uploadMediaItems, buildMatchFolder } from '@/supabase/storage';
 import { extractStatsFromPhoto, ExtractedStat } from '@/utils/extractStats';
 import {
   AddMatchState,
@@ -13,6 +13,7 @@ import {
 interface UseAddMatchFlowParams {
   tournamentRanked: boolean;
   tournamentId: string;
+  roundFolder: string;
   players: Player[];
   addMatchToStore: (match: Match) => void;
   closeModal: () => void;
@@ -21,6 +22,7 @@ interface UseAddMatchFlowParams {
 export function useAddMatchFlow({
   tournamentRanked,
   tournamentId,
+  roundFolder,
   players,
   addMatchToStore,
   closeModal,
@@ -68,10 +70,13 @@ export function useAddMatchFlow({
       const aTeam = addMatch.awayTeam || awayPlayer?.teamCode || 'UNK';
 
       const matchId = `match-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+      // Fixed once at creation and never renamed, even if the score is edited later (#67)
+      const matchFolder = buildMatchFolder(addMatch.homeScore, addMatch.awayScore, new Date());
+      const mediaFolder = roundFolder ? `${roundFolder}/${matchFolder}` : matchFolder;
 
       // Upload local media to Supabase Storage before saving
       const uploadedMedia = addMatch.media.length > 0
-        ? await uploadMediaItems(addMatch.media, { tournamentId, matchId })
+        ? await uploadMediaItems(addMatch.media, { tournamentId, mediaFolder })
         : [];
 
       const match: Match = {
@@ -85,6 +90,7 @@ export function useAddMatchFlow({
         media: uploadedMedia.length > 0 ? uploadedMedia : undefined,
         note: addMatch.note.trim() || undefined,
         statsOverride: addMatch.pendingStats ?? undefined,
+        mediaFolder: matchFolder,
       };
       addMatchToStore(match);
       closeModal();
@@ -94,7 +100,7 @@ export function useAddMatchFlow({
     } finally {
       setIsSavingMatch(false);
     }
-  }, [addMatch, isSavingMatch, players, addMatchToStore, closeModal, reset, t]);
+  }, [addMatch, isSavingMatch, players, addMatchToStore, closeModal, reset, t, tournamentId, roundFolder]);
 
   const runOcr = useCallback(
     async (assets: Array<{ base64: string; mimeType: string }>, isRetry = false) => {

@@ -8,6 +8,7 @@ jest.mock('expo-image-picker', () => ({
 
 jest.mock('@/supabase/storage', () => ({
   uploadMediaItems: jest.fn(),
+  buildMatchFolder: jest.fn((a: number, b: number) => `match_${a}-${b}_test-stamp`),
 }));
 
 jest.mock('@/utils/extractStats', () => ({
@@ -38,6 +39,7 @@ async function makeHook(overrides: Partial<Parameters<typeof useAddMatchFlow>[0]
     useAddMatchFlow({
       tournamentRanked: true,
       tournamentId: 'test-tournament',
+      roundFolder: 'matchday-2026-01-01_1200',
       players: PLAYERS,
       addMatchToStore,
       closeModal,

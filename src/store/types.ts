@@ -77,6 +77,10 @@ export interface Match {
   // literal members makes each literal a required property, which is wrong for
   // a partial override where only some of the 23 keys may be present.
   statsOverride?: Record<string, { a: number; b: number; confidence?: StatConfidence }>;
+  // Storage sub-folder name for this match's media, fixed at creation time
+  // (e.g. "match_2-2_2026-07-03_1432"). Never regenerated on score edits.
+  // Absent on matches created before the per-round/per-match storage layout.
+  mediaFolder?: string;
 }
 
 export interface ArchivedRound {
@@ -89,6 +93,9 @@ export interface ArchivedRound {
   matches: Match[];
   name: string;
   players?: string[];
+  // Storage folder name for this round's media (e.g. "matchday-2026-07-03_1430").
+  // Absent on rounds started before the per-round/per-match storage layout.
+  folder?: string;
 }
 
 export interface ClosedTournament {

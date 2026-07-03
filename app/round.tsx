@@ -52,6 +52,7 @@ export default function MatchdayScreen() {
   const addMatchFlow = useAddMatchFlow({
     tournamentRanked,
     tournamentId: store.tournamentId,
+    roundFolder: store.roundFolder,
     players,
     addMatchToStore: store.addMatch,
     closeModal,

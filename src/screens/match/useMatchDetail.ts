@@ -28,6 +28,17 @@ export function useMatchDetail() {
     isCurrentRoundMatch ||
     (store.hasTournament && archivedRounds.flatMap((r) => r.matches).some((m) => m.id === id));
 
+  // Storage folder for a match's media — live matches use the currently open
+  // round's folder, archived-round matches use their round's stored folder.
+  // Matches without a mediaFolder (predate #67) fall back to the old
+  // `{tournamentId}/{matchId}` flat layout so existing uploads keep resolving.
+  const getMediaFolder = useCallback((m: Match): string => {
+    const roundFolder = matches.some((mm) => mm.id === m.id)
+      ? store.roundFolder
+      : archivedRounds.find((r) => r.matches.some((mm) => mm.id === m.id))?.folder;
+    return roundFolder && m.mediaFolder ? `${roundFolder}/${m.mediaFolder}` : m.id;
+  }, [matches, archivedRounds, store.roundFolder]);
+
   const localMatch = useMemo<Match | undefined>(
     () =>
       matches.find((m) => m.id === id) ??
@@ -198,6 +209,7 @@ export function useMatchDetail() {
       if (result.canceled || !result.assets.length) return;
 
       const matchId = match.id;
+      const mediaFolder = getMediaFolder(match);
 
       // Optimistic: items appear immediately in the UI with a spinner overlay
       const optimisticItems: MediaItem[] = result.assets.map((asset) => ({
@@ -218,7 +230,7 @@ export function useMatchDetail() {
           const localUri = asset.uri;
 
           let remoteUrl: string | null;
-          try { remoteUrl = await uploadMediaItem(localUri, type, { tournamentId: store.tournamentId, matchId }); } catch { remoteUrl = null; }
+          try { remoteUrl = await uploadMediaItem(localUri, type, { tournamentId: store.tournamentId, mediaFolder }); } catch { remoteUrl = null; }
 
           // Replace the optimistic item matched by local URI + uploading flag
           store.updateMatchMedia(
@@ -238,7 +250,7 @@ export function useMatchDetail() {
       uploadingMediaRef.current = false;
       setUploadingMedia(false);
     }
-  }, [match, store]);
+  }, [match, store, getMediaFolder]);
 
   const handleImportStats = useCallback(async () => {
     if (!match) return;
@@ -269,6 +281,7 @@ export function useMatchDetail() {
       }
 
       const matchId = match.id;
+      const mediaFolder = getMediaFolder(match);
 
       // Bug 1 fix: inner try/finally resets the spinner after upload/OCR completes.
       try {
@@ -313,7 +326,7 @@ export function useMatchDetail() {
             try {
               const remoteUrl = await uploadMediaItem(r.asset.uri, 'image', {
                 tournamentId: store.tournamentId,
-                matchId,
+                mediaFolder,
                 ...(r.isValidPhoto || r.ocrFailed ? {} : { filenamePrefix: 'rejected-' }),
               });
               return { ...r, remoteUrl };
@@ -384,7 +397,7 @@ export function useMatchDetail() {
       setImportingStats(false);
       setImportStatsStep(null);
     }
-  }, [match, store]);
+  }, [match, store, getMediaFolder]);
 
   const handleRetryUpload = useCallback(async (itemUri: string) => {
     if (!match || retryingMediaUri !== null) return;
@@ -393,6 +406,7 @@ export function useMatchDetail() {
 
     setRetryingMediaUri(itemUri);
     const matchId = match.id;
+    const mediaFolder = getMediaFolder(match);
 
     const getFreshMedia = () =>
       useStore.getState().matches.find((m) => m.id === matchId)?.media
@@ -401,7 +415,7 @@ export function useMatchDetail() {
 
     try {
       let remoteUrl: string | null;
-      try { remoteUrl = await uploadMediaItem(itemUri, item.type, { tournamentId: store.tournamentId, matchId }); } catch { remoteUrl = null; }
+      try { remoteUrl = await uploadMediaItem(itemUri, item.type, { tournamentId: store.tournamentId, mediaFolder }); } catch { remoteUrl = null; }
 
       const freshMedia = getFreshMedia();
       if (remoteUrl !== null) {
@@ -413,7 +427,7 @@ export function useMatchDetail() {
     } finally {
       setRetryingMediaUri(null);
     }
-  }, [match, store, retryingMediaUri]);
+  }, [match, store, retryingMediaUri, getMediaFolder]);
 
   const handleClearStats = useCallback(() => setShowClearStats(true), []);
   const handleSwapSides = useCallback(() => setShowSwapSides(true), []);
