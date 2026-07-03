@@ -751,8 +751,11 @@ describe('Bug 6 — handleImportStats: no concurrency guard, double-trigger runs
 
     const { result } = await renderHook(() => useMatchDetail());
 
-    // Start first call (upload hangs)
+    // Start first call (upload hangs) and flush its synchronous state update
+    // (#65: importingStats/importStatsStep are now set before the picker await)
+    // via a follow-up act(), matching the existing pattern for uninitiated async calls.
     const firstCall = result.current.handleImportStats();
+    await act(async () => { await Promise.resolve(); });
 
     // While first is in progress, importingStats should now be true — second call should be blocked
     // But there's no guard! Both calls proceed:
@@ -770,27 +773,12 @@ describe('Bug 6 — handleImportStats: no concurrency guard, double-trigger runs
   });
 });
 
-describe('Bug 8 — handleImportStats: importingStats=true shown while picker is open', () => {
-  it('importingStats stays false while picker is resolving (before user selects)', async () => {
-    useStore.setState({ matches: [MATCH] });
-    let resolvePicker!: (v: object) => void;
-    mockPicker.mockReturnValueOnce(new Promise((res) => { resolvePicker = res; }));
-    const { result } = await renderHook(() => useMatchDetail());
-
-    // Start handleImportStats without awaiting — picker is "open" (Promise pending)
-    result.current.handleImportStats();
-
-    // Flush React's pending state updates while the picker Promise is still hanging.
-    // If setImportingStats(true) was called BEFORE launchImageLibraryAsync resolves,
-    // this flush will deliver it and importingStats will be true — wrong.
-    // If it's called only AFTER picker confirms a selection, it stays false — correct.
-    await act(async () => { await Promise.resolve(); });
-    expect(result.current.importingStats).toBe(false);
-
-    // Cleanup
-    await act(async () => { resolvePicker({ canceled: true, assets: [] }); });
-  });
-});
+// Bug 8's old assertion ("importingStats stays false while the picker is open") is no
+// longer true by design: #65 now shows a "preparing" state from the moment the picker is
+// invoked, to cover the OS's iCloud-download wait that happens inside that single await
+// with no progress signal of its own. Per project policy this native/picker-touching flow
+// isn't covered by new mocked Jest tests (see feedback_no_tests memory) — verified manually
+// on a Release build on device instead, not re-covered here.
 
 describe('visibleMedia — video items hidden until playback is fixed (#59)', () => {
   it('filters out video items but keeps their original index for delete/view', async () => {
