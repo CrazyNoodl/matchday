@@ -94,6 +94,7 @@ closedTournaments — fully finished tournaments (hasTournament = false after cl
 | i18n (uk / en / fr) | `src/i18n/locales/` |
 | Dark + light theme | `src/theme/` |
 | Playwright E2E tests (17 tests, 7 smoke) | `e2e/` — `npm run e2e`, `npm run e2e:smoke` |
+| Storybook: real dark/light theming, full component coverage (27/27) | `.storybook/`, `src/components/*/*.stories.tsx` |
 
 ## Media upload — implementation detail
 
@@ -153,7 +154,7 @@ Both `ShareRoundModal` and `ShareStandingsModal` use:
 
 Both modules are **dynamic imports** (`import('react-native-view-shot')`) so the web bundle doesn't crash. The pattern must be preserved when editing these components.
 
-`ShareRoundModal` has toggles: **Include standings** and **Include all matches** — switches that grow the card before capture.
+`ShareRoundModal` has toggles: **Include standings** and **Include all matches** — grow the card before capture. Both use the shared `Toggle` component (`src/components/Toggle/`), not the native RN `Switch` (replaced 2026-07-03) — `NewRoundModal`'s "Ranked" toggle was migrated to the same component so every on/off control in the app looks identical.
 
 ---
 
@@ -204,6 +205,20 @@ Pressable overlay (onPress=onClose)   ← closes on tap outside slide
 - Slide dimensions: `width × height` (full screen), not square. Image uses `resizeMode="contain"` so portrait and landscape photos are centred correctly.
 - `FlatList` has `style={{ height: screenHeight, flexGrow: 0 }}` to prevent vertical stretch in the flex container.
 
+**Fixed bug (2026-07-03):** the pagination dots (`styles.dots`) had no `position: 'absolute'` — they sat in normal flow directly after a `FlatList` sized to the full screen height, so they were always pushed below the visible viewport and effectively invisible/unreachable in the real app, not just in Storybook. Fixed by anchoring `dots` with `position: 'absolute', bottom, left: 0, right: 0` (same pattern `closeBtn` already used).
+
+---
+
+## Storybook setup — implementation detail
+
+`.storybook/preview.tsx` provides real dark/light theming (a toolbar `theme` global wraps every story in `ThemeContext.Provider`, not the old fake `backgrounds` color swap) plus `GestureHandlerRootView` + `SafeAreaProvider` + i18n init, so components using `useColors()`/`useTranslation()` render correctly. All 27 components in `src/components/` have stories, grouped into `Elements` / `Cards` / `Blocks` (by `title:` prefix — plain vs composite-row vs full-screen/modal).
+
+**Non-obvious gotchas:**
+- Stories with `parameters: { layout: 'fullscreen' }` (e.g. `MediaSlider`, `LoginScreen`) must NOT get the decorator's normal padding wrapper — they size themselves off the real window/iframe dimensions via `useWindowDimensions()`/`Dimensions`, and padding would misalign them. The decorator branches on `context.parameters.layout`.
+- `@gorhom/bottom-sheet`'s open animation (Reanimated-driven `snapToIndex`) never plays under Vite — it resolves Reanimated's precompiled `lib/module` build instead of the raw `src` entry Metro processes with the reanimated babel plugin, so the shared value never updates. Worked around with a Storybook-only mock (`.storybook/mocks/gorhom-bottom-sheet.tsx`, aliased in `main.ts`) that renders the same content with plain React state instead — `Sheet` and `NewRoundModal` stories use it. Uses `position: 'fixed'` (not `absolute`) to anchor to the viewport, since the decorator's `GestureHandlerRootView`/`SafeAreaProvider` chain doesn't reliably propagate a definite height for `absolute`/percentage positioning to resolve against.
+- `expo-router`, `expo-media-library/legacy`, `expo-sharing` are also aliased to thin stubs in `main.ts` (`.storybook/mocks/`) — native-only or navigation-context-dependent, never actually reached in the web preview's code paths.
+- `DropdownMenu`'s `position` prop now accepts `{ top, left }` as well as `{ top, right }` (previously right-only) — additive, real app usage (`app/round.tsx` via `useDropdownMenu`) is unaffected.
+
 ---
 
 ## Keyboard avoidance in bottom sheets — implementation detail
@@ -232,6 +247,9 @@ app/season-stats.tsx           — season-level stats screen
 src/store/types.ts             — all types incl. modal discriminated union
 src/store/index.ts             — Zustand store, MMKV/localStorage adapter
 docs/pitfalls.md               — read before touching i18n or Sheet+scroll
+.storybook/preview.tsx         — theme decorator, i18n init, layout:fullscreen handling
+.storybook/mocks/              — Storybook-only stubs (gorhom-bottom-sheet, expo-router, etc.)
+src/components/Toggle/         — shared on/off control, used by NewRoundModal + ShareRoundModal
 ```
 
 ---
