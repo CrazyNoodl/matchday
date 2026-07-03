@@ -31,6 +31,7 @@ export default function MatchDetailScreen() {
     winnerName,
     hasMediaFiles,
     isMediaFull,
+    visibleMedia,
     hasStatsOverride,
     mergedStats,
     isCurrentRoundMatch,
@@ -238,25 +239,20 @@ export default function MatchDetailScreen() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.mediaScroll}
           >
-            {match.media!.map((item, idx) => {
+            {visibleMedia.map(({ item, originalIndex }) => {
               const isRetrying = retryingMediaUri === item.uri;
               return (
-                <View key={idx} style={styles.mediaThumbnail}>
+                <View key={originalIndex} style={styles.mediaThumbnail}>
                   <TouchableOpacity
                     onPress={item.uploading
                       ? undefined
                       : item.pendingUpload
                         ? () => d.handleRetryUpload(item.uri)
-                        : () => d.setViewingMediaIndex(idx)}
+                        : () => d.setViewingMediaIndex(originalIndex)}
                     activeOpacity={item.uploading ? 1 : 0.85}
                     disabled={isRetrying || !!item.uploading}
                   >
                     <Image source={{ uri: item.uri }} style={styles.mediaImage} resizeMode="cover" />
-                    {item.type === 'video' && !item.pendingUpload && !item.uploading && (
-                      <View style={styles.videoOverlay}>
-                        <Text style={styles.videoPlayIcon}>▶</Text>
-                      </View>
-                    )}
                     {item.uploading && (
                       <View style={styles.pendingUploadOverlay}>
                         <ActivityIndicator size="small" color={colors.accent.green} />
@@ -278,7 +274,7 @@ export default function MatchDetailScreen() {
                   {isEditableMatch && !item.uploading && (
                     <TouchableOpacity
                       style={styles.mediaDeleteBtn}
-                      onPress={() => d.handleDeleteMedia(idx)}
+                      onPress={() => d.handleDeleteMedia(originalIndex)}
                       hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
                       activeOpacity={0.8}
                     >

@@ -91,7 +91,16 @@ export function useMatchDetail() {
     ? (playerB?.nick ?? playerB?.name ?? 'Player B')
     : null;
 
-  const hasMediaFiles = !!(match?.media && match.media.length > 0);
+  // Video playback is broken (#59) — hide video items from display until fixed.
+  // Still counted toward the 5-slot cap since they remain in the underlying data.
+  const visibleMedia = useMemo(
+    () =>
+      (match?.media ?? [])
+        .map((item, originalIndex) => ({ item, originalIndex }))
+        .filter(({ item }) => item.type !== 'video'),
+    [match?.media],
+  );
+  const hasMediaFiles = visibleMedia.length > 0;
   const isMediaFull = (match?.media?.length ?? 0) >= 5;
 
   const openEditScore = useCallback(() => {
@@ -145,7 +154,8 @@ export function useMatchDetail() {
 
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ['images', 'videos'] as unknown as ImagePicker.MediaTypeOptions,
+        // Video temporarily disabled — upload/playback broken, see #59
+        mediaTypes: ['images'] as unknown as ImagePicker.MediaTypeOptions,
         allowsMultipleSelection: true,
         selectionLimit: slotsLeft,
         quality: 0.8,
@@ -373,6 +383,7 @@ export function useMatchDetail() {
     winnerName,
     hasMediaFiles,
     isMediaFull,
+    visibleMedia,
     hasStatsOverride,
     mergedStats,
     modal,

@@ -325,6 +325,15 @@ describe('handleAddMedia', () => {
     expect(useStore.getState().matches[0].media).toBeUndefined();
   });
 
+  it('requests images only from the picker — video upload disabled (#59)', async () => {
+    useStore.setState({ matches: [MATCH] });
+    const { result } = await renderHook(() => useMatchDetail());
+    await act(async () => { await result.current.handleAddMedia(); });
+    expect(mockPicker).toHaveBeenCalledWith(
+      expect.objectContaining({ mediaTypes: ['images'] }),
+    );
+  });
+
   it('saves with remote URL when upload succeeds', async () => {
     useStore.setState({ matches: [MATCH] });
     mockPicker.mockResolvedValueOnce({
@@ -780,6 +789,38 @@ describe('Bug 8 — handleImportStats: importingStats=true shown while picker is
 
     // Cleanup
     await act(async () => { resolvePicker({ canceled: true, assets: [] }); });
+  });
+});
+
+describe('visibleMedia — video items hidden until playback is fixed (#59)', () => {
+  it('filters out video items but keeps their original index for delete/view', async () => {
+    useStore.setState({
+      matches: [{
+        ...MATCH,
+        media: [
+          { uri: 'https://cdn.example.com/photo1.jpg', type: 'image' },
+          { uri: 'https://cdn.example.com/clip.mp4', type: 'video' },
+          { uri: 'https://cdn.example.com/photo2.jpg', type: 'image' },
+        ],
+      }],
+    });
+    const { result } = await renderHook(() => useMatchDetail());
+    expect(result.current.visibleMedia).toEqual([
+      { item: { uri: 'https://cdn.example.com/photo1.jpg', type: 'image' }, originalIndex: 0 },
+      { item: { uri: 'https://cdn.example.com/photo2.jpg', type: 'image' }, originalIndex: 2 },
+    ]);
+  });
+
+  it('hasMediaFiles is false when only video items are attached', async () => {
+    useStore.setState({
+      matches: [{
+        ...MATCH,
+        media: [{ uri: 'https://cdn.example.com/clip.mp4', type: 'video' }],
+      }],
+    });
+    const { result } = await renderHook(() => useMatchDetail());
+    expect(result.current.visibleMedia).toEqual([]);
+    expect(result.current.hasMediaFiles).toBe(false);
   });
 });
 
