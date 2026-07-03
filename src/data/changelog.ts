@@ -9,6 +9,17 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.6',
+    added: [
+      'Pinch-to-zoom for photos in the full-screen media viewer — pinch and pan to zoom in, double-tap or release to reset; swiping to the next/previous photo is disabled while zoomed in (#64)',
+      'Theme picker now offers an "Auto" option that follows your phone\'s system dark/light appearance live, in addition to Dark and Light (#60)',
+    ],
+    notes: [
+      'Match media storage reorganized into per-round/per-match folders (e.g. matchday-2026-07-03_1430/match_2-1_2026-07-03_1432) — deleting a match, round, or tournament now removes its media in a single batch instead of one file at a time (#67)',
+      'Match-stat keys now use a typed escape-hatch union internally for better autocomplete and typo protection — no user-visible change (#57)',
+    ],
+  },
+  {
     version: '1.9.5',
     added: [
       'Match stats edit screen now always shows all 23 tracked params in a fixed order — ones the AI didn\'t recognize show as a muted placeholder instead of being hidden, and a small dot marks values the AI wasn\'t fully confident about (#63)',
