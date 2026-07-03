@@ -25,9 +25,8 @@ const withMockData: Decorator = (Story) => {
 };
 
 const meta = {
-  title: 'Components/Avatar',
+  title: 'Elements/Avatar',
   component: Avatar,
-  parameters: { backgrounds: { default: 'app-dark' } },
   decorators: [withMockData],
   argTypes: {
     playerId: {

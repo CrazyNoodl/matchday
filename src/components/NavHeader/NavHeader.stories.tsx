@@ -6,9 +6,8 @@ import { Colors } from '../../theme/colors';
 import { FontFamily, FontSize } from '../../theme/typography';
 
 const meta = {
-  title: 'Components/NavHeader',
+  title: 'Elements/NavHeader',
   component: NavHeader,
-  parameters: { backgrounds: { default: 'app-dark' } },
   argTypes: {
     title: { control: { type: 'text' } },
     subtitle: { control: { type: 'text' } },

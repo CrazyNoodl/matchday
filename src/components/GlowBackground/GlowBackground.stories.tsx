@@ -18,9 +18,8 @@ const Frame = ({ children }: { children: React.ReactNode }) => (
 );
 
 const meta = {
-  title: 'Components/GlowBackground',
+  title: 'Elements/GlowBackground',
   component: GlowBackground,
-  parameters: { backgrounds: { default: 'app-dark' } },
   argTypes: {
     variant: {
       control: { type: 'select' },

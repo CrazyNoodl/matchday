@@ -2,7 +2,7 @@ export { Colors, DarkColors, LightColors, colorsByScheme } from './colors';
 export type { ColorScheme, AppColors } from './colors';
 export { FontFamily, FontSize } from './typography';
 export { Radius, Spacing } from './spacing';
-export { ThemeProvider, useColors } from './ThemeContext';
+export { ThemeContext, ThemeProvider, useColors } from './ThemeContext';
 
 import { AppColors } from './colors';
 

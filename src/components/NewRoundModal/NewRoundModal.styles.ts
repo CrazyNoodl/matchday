@@ -23,62 +23,6 @@ export const makeStyles = (colors: AppColors) => StyleSheet.create({
     color: colors.text.muted,
     marginBottom: Spacing.xl,
   },
-  toggleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.bg.elevated,
-    borderRadius: Radius.md,
-    borderWidth: 1,
-    borderColor: colors.border.default,
-    padding: Spacing.lg,
-    gap: Spacing.lg,
-    marginBottom: Spacing.md,
-  },
-  toggleRowDisabled: {
-    opacity: 0.55,
-  },
-  toggleLabelBlock: {
-    flex: 1,
-    gap: 3,
-  },
-  toggleLabel: {
-    fontFamily: FontFamily.bodySemiBold,
-    fontSize: FontSize.base,
-    color: colors.text.primary,
-  },
-  toggleLabelDisabled: {
-    color: colors.text.muted,
-  },
-  toggleSub: {
-    fontFamily: FontFamily.body,
-    fontSize: FontSize.xs,
-    color: colors.text.muted,
-  },
-  toggle: {
-    width: 46,
-    height: 26,
-    borderRadius: 13,
-    backgroundColor: colors.bg.surface,
-    borderWidth: 1,
-    borderColor: colors.border.medium,
-    justifyContent: 'center',
-    paddingHorizontal: 3,
-  },
-  toggleOn: {
-    backgroundColor: colors.accent.green,
-    borderColor: colors.accent.green,
-  },
-  toggleKnob: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: colors.text.muted,
-    alignSelf: 'flex-start',
-  },
-  toggleKnobOn: {
-    backgroundColor: colors.accent.greenDark,
-    alignSelf: 'flex-end',
-  },
   playersLabel: {
     fontFamily: FontFamily.bodyBold,
     fontSize: FontSize.xs,

@@ -4,9 +4,8 @@ import { View } from 'react-native';
 import { StatusBadge } from './StatusBadge';
 
 const meta = {
-  title: 'Components/StatusBadge',
+  title: 'Elements/StatusBadge',
   component: StatusBadge,
-  parameters: { backgrounds: { default: 'app-dark' } },
   argTypes: {
     type: {
       control: { type: 'select' },

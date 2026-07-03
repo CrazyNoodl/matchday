@@ -26,9 +26,8 @@ function LiveTeamPickerRow() {
 }
 
 const meta = {
-  title: 'Components/TeamPickerRow',
+  title: 'Cards/TeamPickerRow',
   component: TeamPickerRow,
-  parameters: { backgrounds: { default: 'app-dark' } },
   decorators: [withMockTeams],
   argTypes: {
     onSelect: { action: 'onSelect' },

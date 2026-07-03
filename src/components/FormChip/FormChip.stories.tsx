@@ -4,9 +4,8 @@ import { View } from 'react-native';
 import { FormChip } from './FormChip';
 
 const meta = {
-  title: 'Components/FormChip',
+  title: 'Elements/FormChip',
   component: FormChip,
-  parameters: { backgrounds: { default: 'app-dark' } },
   argTypes: {
     result: {
       control: { type: 'select' },

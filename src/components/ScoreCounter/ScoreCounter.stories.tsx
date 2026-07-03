@@ -34,9 +34,8 @@ function LiveScoreCounter({ initial = 0 }: { initial?: number }) {
 }
 
 const meta = {
-  title: 'Components/ScoreCounter',
+  title: 'Elements/ScoreCounter',
   component: ScoreCounter,
-  parameters: { backgrounds: { default: 'app-dark' } },
   decorators: [withMockData],
   argTypes: {
     score: { control: { type: 'number' } },

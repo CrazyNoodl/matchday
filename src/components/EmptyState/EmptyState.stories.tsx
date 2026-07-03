@@ -4,9 +4,8 @@ import { EmptyState } from './EmptyState';
 import { Colors } from '../../theme/colors';
 
 const meta = {
-  title: 'Components/EmptyState',
+  title: 'Elements/EmptyState',
   component: EmptyState,
-  parameters: { backgrounds: { default: 'app-dark' } },
   argTypes: {
     message: {
       control: { type: 'text' },
