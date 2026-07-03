@@ -4,6 +4,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useGoBack } from '@/utils/useGoBack';
 import { useStore } from '@/store';
+import { matchMediaFolder } from '@/store/sliceHelpers';
 import type { MediaItem, MediaType, Match, StatConfidence } from '@/store/types';
 import { extractStatsFromPhoto, type ExtractedStat } from '@/utils/extractStats';
 import { fetchMatchById } from '@/supabase/sync';
@@ -30,13 +31,13 @@ export function useMatchDetail() {
 
   // Storage folder for a match's media — live matches use the currently open
   // round's folder, archived-round matches use their round's stored folder.
-  // Matches without a mediaFolder (predate #67) fall back to the old
-  // `{tournamentId}/{matchId}` flat layout so existing uploads keep resolving.
+  // Delegates to matchMediaFolder so this stays identical to the path the
+  // Add Match flow computes for the same match (see #67).
   const getMediaFolder = useCallback((m: Match): string => {
     const roundFolder = matches.some((mm) => mm.id === m.id)
       ? store.roundFolder
       : archivedRounds.find((r) => r.matches.some((mm) => mm.id === m.id))?.folder;
-    return roundFolder && m.mediaFolder ? `${roundFolder}/${m.mediaFolder}` : m.id;
+    return matchMediaFolder(roundFolder, m);
   }, [matches, archivedRounds, store.roundFolder]);
 
   const localMatch = useMemo<Match | undefined>(

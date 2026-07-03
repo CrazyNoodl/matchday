@@ -9,6 +9,12 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.7',
+    fixed: [
+      'Media added from the match detail screen could land in a different Supabase Storage folder than media added when the match was first created, for matches whose round predated the per-round/per-match folder layout — both flows now always agree on the same folder (#67 follow-up)',
+    ],
+  },
+  {
     version: '1.9.6',
     added: [
       'Pinch-to-zoom for photos in the full-screen media viewer — pinch and pan to zoom in, double-tap or release to reset; swiping to the next/previous photo is disabled while zoomed in (#64)',

@@ -24,11 +24,15 @@ export function patchMatchEverywhere(
 }
 
 // The relative storage path segment holding a match's media, nested under the
-// tournament id. New-layout matches (created after #67) get a round/match
-// folder pair; matches from before that carry no mediaFolder fall back to the
-// old flat `{matchId}` layout so their existing media stays deletable.
+// tournament id. New-layout matches (created after #67) carry their own
+// `mediaFolder` (the match folder name) — prefixed with the round folder when
+// one is known, or used bare when it isn't (e.g. a round still open from
+// before #67 shipped, so its round has no stored folder yet). Matches from
+// before #67 carry no mediaFolder at all and fall back to the old flat
+// `{matchId}` layout so their existing media stays deletable.
 export function matchMediaFolder(roundFolder: string | undefined, match: Match): string {
-  return roundFolder && match.mediaFolder ? `${roundFolder}/${match.mediaFolder}` : match.id;
+  if (!match.mediaFolder) return match.id;
+  return roundFolder ? `${roundFolder}/${match.mediaFolder}` : match.mediaFolder;
 }
 
 // Collect every match across current round, archived rounds, and closed tournaments
