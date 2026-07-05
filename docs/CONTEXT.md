@@ -97,6 +97,8 @@ closedTournaments — fully finished tournaments (hasTournament = false after cl
 - Stats screen (`app/stats.tsx`) aggregates ALL three layers: `closedTournaments` + `archivedRounds` + `matches`.
 - Modal system is a discriminated union in `src/store/types.ts`; all modals rendered inline in their screen, driven by `store.setModal('name')`.
 
+**Fixed bug (2026-07-05):** `tournamentPlayers`/`roundPlayers` (the open tournament/round rosters, seeded once by `startRound()`) were never pruned when a player left the roster — neither `deleteMatch` nor `deletePlayer` touched them. Sequence that triggered it: add a player to an open round → delete their match (allowed, round not closed) → delete the player entity (allowed, `deletePlayer`'s guard only checks `matches`/`closedTournaments`, not the live roster) → the stale id stayed in `tournamentPlayers`, so `app/tournament.tsx`'s standings table (which trusts `tournamentPlayers` as source of truth, no filtering against `players`) rendered a ghost zero-stat row for a player that no longer exists. **Fix:** `deletePlayer` (`src/store/slices/playersSlice.ts`) now also filters the deleted id out of `tournamentPlayers` and `roundPlayers` whenever its existing guards allow the deletion to proceed. Covered by a new test in `src/store/__tests__/playersSlice.test.ts`.
+
 ---
 
 ## What is fully implemented
