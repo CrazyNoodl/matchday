@@ -1,28 +1,20 @@
 import React, { useState, useCallback, useRef } from 'react';
-import {
-  View,
-  Text,
-  Image,
-  ScrollView,
-  TouchableOpacity,
-  TextInput,
-  Modal,
-  Platform,
-} from 'react-native';
-import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
+import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import { useGoBack } from '@/utils/useGoBack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStore } from '@/store';
 import { Colors, useColors } from '@/theme';
-import { NavHeader, TeamBadge, Sheet, EmptyState, GlowBackground } from '@/components';
+import { NavHeader, TeamBadge, EmptyState, GlowBackground } from '@/components';
 import { Team } from '@/store/types';
 import { useTranslation } from 'react-i18next';
 import { uploadTeamLogo } from '@/supabase/storage';
 import { resizeImage, TEAM_LOGO_MAX_DIMENSION } from '@/utils/imageResize';
 import { generateTeamCode } from '@/utils/teamCode';
 import { makeStyles } from '@/screens/settings/teams/teams.styles';
+import { TeamEditSheet } from '@/screens/settings/teams/TeamEditSheet';
+import { TeamDialogs } from '@/screens/settings/teams/TeamDialogs';
 
 const TEAM_COLORS = Colors.team;
 
@@ -206,175 +198,31 @@ export default function TeamsScreen() {
         <View style={{ height: 40 }} />
       </ScrollView>
 
-      {/* Edit / Create Sheet */}
-      <Sheet visible={showEdit} onClose={() => setShowEdit(false)}>
-        <View style={styles.sheet}>
-          <Text style={styles.sheetTitle}>
-            {editingTeam ? t('teams.editTitle') : 'NEW TEAM'}
-          </Text>
+      <TeamEditSheet
+        visible={showEdit}
+        onClose={() => setShowEdit(false)}
+        editingTeam={editingTeam}
+        teamColors={TEAM_COLORS}
+        formName={formName}
+        onChangeName={setFormName}
+        formShort={formShort}
+        onChangeShort={setFormShort}
+        formColor={formColor}
+        onChangeColor={setFormColor}
+        formLogo={formLogo}
+        onPickLogo={pickLogo}
+        onRemoveLogo={() => setFormLogo(undefined)}
+        logoUploading={logoUploading}
+        onSave={handleSave}
+      />
 
-          <BottomSheetScrollView style={{ maxHeight: 360 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-            <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>TEAM NAME</Text>
-              <TextInput
-                style={styles.input}
-                value={formName}
-                onChangeText={setFormName}
-                placeholder="e.g. Manchester City"
-                placeholderTextColor={colors.text.placeholder}
-                autoCorrect={false}
-              />
-            </View>
-
-            <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>SHORT CODE (3 letters)</Text>
-              <TextInput
-                style={styles.input}
-                value={formShort}
-                onChangeText={(v) => setFormShort(v.slice(0, 3).toUpperCase())}
-                placeholder="e.g. MCI"
-                placeholderTextColor={colors.text.placeholder}
-                autoCorrect={false}
-                autoCapitalize="characters"
-                maxLength={3}
-              />
-            </View>
-
-            <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>LOGO (OPTIONAL)</Text>
-              <View style={styles.logoRow}>
-                <TouchableOpacity
-                  style={styles.logoPickerBtn}
-                  onPress={pickLogo}
-                  activeOpacity={0.8}
-                >
-                  {formLogo ? (
-                    <Image source={{ uri: formLogo }} style={styles.logoPreview} resizeMode="cover" />
-                  ) : (
-                    <Text style={styles.logoPickerIcon}>📷</Text>
-                  )}
-                </TouchableOpacity>
-                {formLogo && (
-                  <TouchableOpacity
-                    style={styles.logoRemoveBtn}
-                    onPress={() => setFormLogo(undefined)}
-                    activeOpacity={0.8}
-                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                  >
-                    <Text style={styles.logoRemoveText}>×</Text>
-                  </TouchableOpacity>
-                )}
-              </View>
-            </View>
-
-            <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>{t('setup.form.color')}</Text>
-              <View style={styles.colorPicker}>
-                {TEAM_COLORS.map((c) => (
-                  <TouchableOpacity
-                    key={c}
-                    style={[
-                      styles.colorDot,
-                      { backgroundColor: c },
-                      formColor === c && styles.colorDotSelected,
-                    ]}
-                    onPress={() => setFormColor(c)}
-                    activeOpacity={0.8}
-                  />
-                ))}
-              </View>
-            </View>
-          </BottomSheetScrollView>
-
-          <View style={styles.sheetActions}>
-            <TouchableOpacity
-              style={styles.cancelBtn}
-              onPress={() => setShowEdit(false)}
-              activeOpacity={0.75}
-            >
-              <Text style={styles.cancelBtnText}>{t('common.cancel')}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.saveBtn,
-                (!formName.trim() || !formShort.trim() || logoUploading) && styles.saveBtnDisabled,
-              ]}
-              onPress={handleSave}
-              disabled={!formName.trim() || !formShort.trim() || logoUploading}
-              activeOpacity={0.85}
-            >
-              <Text
-                style={[
-                  styles.saveBtnText,
-                  (!formName.trim() || !formShort.trim() || logoUploading) && styles.saveBtnTextDisabled,
-                ]}
-              >
-                {logoUploading
-                  ? 'UPLOADING...'
-                  : editingTeam ? t('common.save').toUpperCase() : 'ADD TEAM'}
-              </Text>
-            </TouchableOpacity>
-          </View>
-          {Platform.OS === 'ios' && <View style={{ height: 16 }} />}
-        </View>
-      </Sheet>
-
-      {/* Cannot delete dialog */}
-      <Modal
-        visible={showCannotDelete}
-        transparent
-        animationType="fade"
-        statusBarTranslucent
-        onRequestClose={() => setShowCannotDelete(false)}
-      >
-        <View style={styles.dialogOverlay}>
-          <View style={styles.dialog}>
-            <Text style={styles.dialogTitle}>CANNOT DELETE</Text>
-            <Text style={styles.dialogDesc}>
-              {t('teams.cannotDelete')}
-            </Text>
-            <TouchableOpacity
-              style={[styles.dialogConfirm, { width: '100%' }]}
-              onPress={() => setShowCannotDelete(false)}
-              activeOpacity={0.85}
-            >
-              <Text style={styles.dialogConfirmText}>OK</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Delete confirm */}
-      <Modal
-        visible={showDeleteConfirm}
-        transparent
-        animationType="fade"
-        statusBarTranslucent
-        onRequestClose={() => setShowDeleteConfirm(false)}
-      >
-        <View style={styles.dialogOverlay}>
-          <View style={styles.dialog}>
-            <Text style={styles.dialogTitle}>{t('teams.deleteConfirm').toUpperCase()}</Text>
-            <Text style={styles.dialogDesc}>{t('teams.deleteDesc')}</Text>
-            <View style={styles.dialogActions}>
-              <TouchableOpacity
-                style={styles.dialogCancel}
-                onPress={() => setShowDeleteConfirm(false)}
-                activeOpacity={0.75}
-              >
-                <Text style={styles.dialogCancelText}>{t('matchday.dialogs.cancel')}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.dialogConfirm}
-                onPress={confirmDelete}
-                activeOpacity={0.85}
-              >
-                <Text style={styles.dialogConfirmText}>{t('common.delete')}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+      <TeamDialogs
+        showCannotDelete={showCannotDelete}
+        onCloseCannotDelete={() => setShowCannotDelete(false)}
+        showDeleteConfirm={showDeleteConfirm}
+        onCloseDeleteConfirm={() => setShowDeleteConfirm(false)}
+        onConfirmDelete={confirmDelete}
+      />
     </SafeAreaView>
   );
 }
