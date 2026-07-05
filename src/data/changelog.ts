@@ -9,6 +9,15 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.11',
+    added: [
+      'Offline handling, phase 1: a banner appears when you lose connection, and any action that needs the network (adding photos, importing stats, team logos) is disabled until you\'re back online instead of failing silently (#73)',
+    ],
+    fixed: [
+      'Local changes made right before the app is killed or crashes could be lost instead of syncing on next launch — pending changes are now saved and retried automatically on reconnect',
+    ],
+  },
+  {
     version: '1.9.10',
     fixed: [
       'Several screens (Teams edit sheet, Players/Teams "cannot delete" dialogs, and others) always showed English text regardless of the selected language — hardcoded strings replaced with proper uk/en/fr translations',
