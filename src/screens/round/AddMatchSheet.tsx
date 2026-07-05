@@ -3,6 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, TextInput, ActivityIndicator,
 import { BottomSheetScrollView, BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { useTranslation } from 'react-i18next';
 import { useColors } from '@/theme';
+import { useIsOffline } from '@/hooks/useIsOffline';
 import { Spacing } from '@/theme/spacing';
 import { Avatar, ScoreCounter, MediaThumbnail, Sheet, TeamPickerRow } from '@/components';
 import { Player, Team } from '@/store/types';
@@ -33,6 +34,7 @@ export function AddMatchSheet({
   const { t } = useTranslation();
   const colors = useColors();
   const sheetStyles = makeSheetStyles(colors);
+  const isOffline = useIsOffline();
 
   const {
     addMatch,
@@ -188,10 +190,10 @@ export function AddMatchSheet({
             <TouchableOpacity
               style={[
                 sheetStyles.addMediaBtn,
-                addMatch.ocrStatus === 'scanning' && sheetStyles.nextBtnDisabled,
+                (addMatch.ocrStatus === 'scanning' || isOffline) && sheetStyles.nextBtnDisabled,
               ]}
               onPress={handlePickMedia}
-              disabled={addMatch.ocrStatus === 'scanning'}
+              disabled={addMatch.ocrStatus === 'scanning' || isOffline}
               activeOpacity={0.75}
             >
               <Text style={sheetStyles.addMediaIcon}>+</Text>
