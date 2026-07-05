@@ -5,6 +5,7 @@ import { getCurrentUserId } from './auth';
 import { pushState, pullState, subscribeToChanges } from './sync';
 import type { DirtyTable } from './sync';
 import { supabaseConfigured } from './client';
+import { useIsOnline } from '@/hooks/useIsOnline';
 
 function stripPendingMedia(matches: Match[]): Match[] {
   return matches.map((m) =>
@@ -21,6 +22,7 @@ const ALL_DIRTY = new Set<DirtyTable>(['players', 'teams', 'activeTournament', '
 export function useSyncManager() {
   const setSyncStatus = useStore((s) => s.setSyncStatus);
   const applyCloudState = useStore((s) => s.applyCloudState);
+  const isOnline = useIsOnline();
 
   const applyingRef = useRef(false);
   const pushTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -28,11 +30,40 @@ export function useSyncManager() {
   const pushingRef = useRef(false);
   const dirtyRef = useRef<Set<DirtyTable>>(new Set());
   const prevDemoModeRef = useRef<boolean>(useStore.getState().demoMode);
+  // Bridges the reconnect effect (below) into the main effect's closure —
+  // reassigned once init() has real `pull`/`runPush`/`userId` in scope.
+  const reconnectRef = useRef<() => void>(() => {});
+  const wasOnlineRef = useRef(isOnline);
+
+  // Debounced pushes fail silently while offline and only retry on the next
+  // local store mutation — nothing was queued to retry them once connectivity
+  // returns. Explicitly reconcile (pull, then flush any pending dirty tables)
+  // on the offline -> online transition so edits made while offline actually
+  // upload, matching the offline banner's "will sync once you're back online" promise.
+  useEffect(() => {
+    const wasOnline = wasOnlineRef.current;
+    wasOnlineRef.current = isOnline;
+    if (!wasOnline && isOnline) reconnectRef.current();
+  }, [isOnline]);
 
   useEffect(() => {
     let userId: string | null = null;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let subscription: any = null;
+    // Guards the store.subscribe listener below against reacting to
+    // persistDirty()'s own setState call — without it, persisting the
+    // mirror would re-trigger the listener, which would persist again, forever.
+    let persistingDirty = false;
+
+    // Mirrors dirtyRef into persisted store state so a still-pending push
+    // survives an app crash/force-quit/OS eviction — dirtyRef itself is a
+    // plain in-memory ref and is empty again on the next launch. Read back
+    // in init() below.
+    function persistDirty() {
+      persistingDirty = true;
+      useStore.setState({ pendingSyncTables: [...dirtyRef.current] });
+      persistingDirty = false;
+    }
 
     // 'failed': the query errored — caller must NOT treat this as an empty
     //   cloud, since that would trigger a bootstrap push that deletes real
@@ -61,13 +92,19 @@ export function useSyncManager() {
 
     async function runPush(forceDirty?: Set<DirtyTable>) {
       const dirty = forceDirty ?? new Set(dirtyRef.current);
-      if (!forceDirty) dirtyRef.current = new Set();
+      if (!forceDirty) {
+        dirtyRef.current = new Set();
+        persistDirty();
+      }
       pushingRef.current = true;
       try {
         await pushState(buildPushPayload(), dirty);
       } catch {
         setSyncStatus('error');
-        if (!forceDirty) dirty.forEach((t) => dirtyRef.current.add(t));
+        if (!forceDirty) {
+          dirty.forEach((t) => dirtyRef.current.add(t));
+          persistDirty();
+        }
       } finally {
         pushingRef.current = false;
       }
@@ -113,10 +150,33 @@ export function useSyncManager() {
         useStore.setState({ tournamentId: `tour-${Date.now()}` });
       }
 
+      // Seed in-memory dirty tracking from a previous session that ended
+      // (crash, force-quit, OS eviction) before its edits could push —
+      // dirtyRef is in-memory only, but pendingSyncTables (persistDirty())
+      // survives the restart.
+      (currentState.pendingSyncTables as DirtyTable[]).forEach((t) => dirtyRef.current.add(t));
+
       setSyncStatus('syncing');
       try {
         userId = await getCurrentUserId();
         if (!userId) { setSyncStatus('idle'); return; }
+
+        if (dirtyRef.current.size > 0) {
+          // Local edits from a previous session never reached the cloud.
+          // This app is local-first, so push them now, before any pull —
+          // pull()'s applyCloudState() is a blind overwrite, not a merge,
+          // and would wipe these edits out of local state with the stale
+          // pre-edit cloud snapshot before they ever synced.
+          await runPush();
+        }
+
+        if (dirtyRef.current.size > 0) {
+          // The leftover push above failed too (still offline, etc.) —
+          // don't pull this launch, that would clobber the still-unsynced
+          // local edits. The reconnect effect (or the next launch) retries.
+          // setSyncStatus('error') was already set inside runPush's catch.
+          return;
+        }
 
         const pullResult = await pull();
 
@@ -166,10 +226,38 @@ export function useSyncManager() {
 
     init();
 
+    reconnectRef.current = () => {
+      if (!userId || useStore.getState().demoMode) return;
+      // A push is already mid-flight (its dirty tables were claimed
+      // synchronously when it started, so dirtyRef may look empty right
+      // now even though that push hasn't landed or failed yet). Pulling
+      // here would applyCloudState() a stale snapshot over the store while
+      // that push is still in the air. Let it finish — its own success/
+      // catch path (or the next mutation/reconnect) will settle things.
+      if (pushingRef.current) return;
+      if (dirtyRef.current.size > 0) {
+        // Local edits were made while offline (e.g. matches added) — this
+        // app is local-first, so those are the source of truth. Push them
+        // before pulling: pulling first would applyCloudState() the stale
+        // pre-offline cloud snapshot over the store, wiping the edits out
+        // of local state before they ever reached the cloud.
+        runPush();
+      } else {
+        // Nothing local at risk — safe to catch up on any changes made by
+        // another device while this one was offline.
+        pull();
+      }
+    };
+
     const unsubscribe = useStore.subscribe((state, prevState) => {
+      // persistDirty()'s own setState call — nothing to detect, would just
+      // re-enter this listener forever if not short-circuited here.
+      if (persistingDirty) return;
+
       // Detect which table groups changed (reference equality — Zustand+Immer
       // creates new references only for mutated state, unchanged fields keep the same ref)
       if (!applyingRef.current) {
+        const sizeBefore = dirtyRef.current.size;
         if (state.players !== prevState.players) dirtyRef.current.add('players');
         if (state.teams !== prevState.teams) dirtyRef.current.add('teams');
         if (state.matches !== prevState.matches) dirtyRef.current.add('openMatches');
@@ -186,6 +274,7 @@ export function useSyncManager() {
           state.roundPlayers !== prevState.roundPlayers
         ) dirtyRef.current.add('activeTournament');
         if (state.closedTournaments !== prevState.closedTournaments) dirtyRef.current.add('closedTournaments');
+        if (dirtyRef.current.size !== sizeBefore) persistDirty();
       }
 
       if (applyingRef.current) return;
@@ -224,6 +313,7 @@ export function useSyncManager() {
       subscription?.unsubscribe?.();
       if (pushTimerRef.current) clearTimeout(pushTimerRef.current);
       if (pullTimerRef.current) clearTimeout(pullTimerRef.current);
+      reconnectRef.current = () => {};
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

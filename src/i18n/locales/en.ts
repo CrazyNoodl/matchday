@@ -503,6 +503,13 @@ const en = {
     retry: 'Retry',
   },
 
+  offline: {
+    title: 'No Internet Connection',
+    desc: 'Please check your connection and try again.',
+    bannerTitle: 'No Internet Connection',
+    bannerSub: 'Changes are saved on this device and will sync once you’re back online.',
+  },
+
   auth: {
     missingFields: 'Enter email and password',
     signUpSuccess: 'Account created! Check your email to confirm, then sign in.',
