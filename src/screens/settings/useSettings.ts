@@ -79,6 +79,9 @@ export function useSettings() {
     } catch (e) {
       console.warn('[signOut]', e);
     }
+    // Clear locally cached data so it can't leak into the next account
+    // that signs in on this device (sync would otherwise re-upload it).
+    await store.resetStore();
   };
 
   const handleDemoToggle = (on: boolean) => {
