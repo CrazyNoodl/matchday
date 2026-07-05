@@ -37,18 +37,18 @@ export function initAddMatch(): AddMatchState {
 export function getAddMatchStepLabel(step: number, tournamentRanked: boolean, t: (key: string) => string): string {
   if (tournamentRanked) {
     return ([
-      t('matchday.steps.whoIsPlaying'),
-      t('matchday.steps.finalScore'),
-      t('matchday.steps.addPhotos'),
-      t('matchday.steps.commentary'),
+      t('matchday.steps.whoIsPlaying').toUpperCase(),
+      t('matchday.steps.finalScore').toUpperCase(),
+      t('matchday.steps.addPhotos').toUpperCase(),
+      t('matchday.steps.commentary').toUpperCase(),
     ] as string[])[step - 1] ?? '';
   }
   return ([
-    t('matchday.steps.whoIsPlaying'),
-    t('matchday.steps.pickTeams'),
-    t('matchday.steps.finalScore'),
-    t('matchday.steps.addPhotos'),
-    t('matchday.steps.commentary'),
+    t('matchday.steps.whoIsPlaying').toUpperCase(),
+    t('matchday.steps.pickTeams').toUpperCase(),
+    t('matchday.steps.finalScore').toUpperCase(),
+    t('matchday.steps.addPhotos').toUpperCase(),
+    t('matchday.steps.commentary').toUpperCase(),
   ] as string[])[step - 1] ?? '';
 }
 

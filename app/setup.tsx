@@ -149,7 +149,7 @@ export default function SetupScreen() {
           <Text style={styles.backChevron}>‹</Text>
         </TouchableOpacity>
         <View style={styles.headerCenter}>
-          <Text style={styles.headerTitle}>{t('setup.title')}</Text>
+          <Text style={styles.headerTitle}>{t('setup.title').toUpperCase()}</Text>
           <Text style={styles.headerSubtitle}>{t('setup.subtitle')}</Text>
         </View>
         <View style={styles.headerRight} />
@@ -167,7 +167,7 @@ export default function SetupScreen() {
           showsVerticalScrollIndicator={false}
         >
           {/* Tournament name */}
-          <SectionLabel label={t('setup.tournamentNameLabel')} style={styles.sectionGap} />
+          <SectionLabel label={t('setup.tournamentNameLabel').toUpperCase()} style={styles.sectionGap} />
           <TextInput
             style={styles.input}
             value={tournamentName}
@@ -179,7 +179,7 @@ export default function SetupScreen() {
           />
 
           {/* Target rounds */}
-          <SectionLabel label={t('setup.roundsLabel')} style={styles.sectionGap} />
+          <SectionLabel label={t('setup.roundsLabel').toUpperCase()} style={styles.sectionGap} />
           <View style={styles.stepperRow}>
             <View style={styles.stepperInfo}>
               <Text style={styles.stepperDesc}>{t('setup.roundsDesc')}</Text>
@@ -211,7 +211,7 @@ export default function SetupScreen() {
 
           {/* Players */}
           <SectionLabel
-            label={t('setup.playersLabel', { count: selectedPlayers.size })}
+            label={t('setup.playersLabel', { count: selectedPlayers.size }).toUpperCase()}
             style={styles.sectionGap}
           />
           <View style={styles.playersList}>
@@ -299,7 +299,7 @@ export default function SetupScreen() {
           <Text
             style={[styles.startBtnText, !canStart && styles.startBtnTextDisabled]}
           >
-            {t('setup.startTournament')}
+            {t('setup.startTournament').toUpperCase()}
           </Text>
         </TouchableOpacity>
       </View>
@@ -315,10 +315,10 @@ export default function SetupScreen() {
         <Pressable style={styles.overlay} onPress={() => setShowAddPlayer(false)} />
         <View style={[styles.sheet, styles.sheetTall]}>
           <View style={styles.sheetHandle} />
-          <Text style={styles.sheetTitle}>{t('setup.newPlayer')}</Text>
+          <Text style={styles.sheetTitle}>{t('setup.newPlayer').toUpperCase()}</Text>
           <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
             <View style={styles.addPlayerFormGroup}>
-              <Text style={styles.addPlayerFormLabel}>{t('setup.form.name')}</Text>
+              <Text style={styles.addPlayerFormLabel}>{t('setup.form.name').toUpperCase()}</Text>
               <TextInput
                 style={styles.addPlayerInput}
                 value={newPlayerName}
@@ -330,7 +330,7 @@ export default function SetupScreen() {
               />
             </View>
             <View style={styles.addPlayerFormGroup}>
-              <Text style={styles.addPlayerFormLabel}>{t('setup.form.nickname')}</Text>
+              <Text style={styles.addPlayerFormLabel}>{t('setup.form.nickname').toUpperCase()}</Text>
               <TextInput
                 style={styles.addPlayerInput}
                 value={newPlayerNick}
@@ -341,7 +341,7 @@ export default function SetupScreen() {
               />
             </View>
             <View style={styles.addPlayerFormGroup}>
-              <Text style={styles.addPlayerFormLabel}>{t('setup.form.defaultTeam')}</Text>
+              <Text style={styles.addPlayerFormLabel}>{t('setup.form.defaultTeam').toUpperCase()}</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.addPlayerTeamPicker}>
                 {teams.map((t) => (
                   <TouchableOpacity
@@ -363,7 +363,7 @@ export default function SetupScreen() {
               </ScrollView>
             </View>
             <View style={styles.addPlayerFormGroup}>
-              <Text style={styles.addPlayerFormLabel}>{t('setup.form.color')}</Text>
+              <Text style={styles.addPlayerFormLabel}>{t('setup.form.color').toUpperCase()}</Text>
               <View style={styles.addPlayerColorPicker}>
                 {PLAYER_COLORS.map((c) => (
                   <TouchableOpacity
@@ -387,7 +387,7 @@ export default function SetupScreen() {
               onPress={() => setShowAddPlayer(false)}
               activeOpacity={0.75}
             >
-              <Text style={styles.addPlayerCancelText}>{t('common.cancel')}</Text>
+              <Text style={styles.addPlayerCancelText}>{t('common.cancel').toUpperCase()}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.doneBtn, { flex: 2, marginTop: 0 }, !newPlayerName.trim() && styles.doneBtnDisabled]}
@@ -396,7 +396,7 @@ export default function SetupScreen() {
               activeOpacity={0.85}
             >
               <Text style={[styles.doneBtnText, !newPlayerName.trim() && styles.doneBtnTextDisabled]}>
-                {t('setup.addPlayerBtn')}
+                {t('setup.addPlayerBtn').toUpperCase()}
               </Text>
             </TouchableOpacity>
           </View>
@@ -464,7 +464,7 @@ export default function SetupScreen() {
             onPress={() => setAssignSheetPlayerId(null)}
             activeOpacity={0.85}
           >
-            <Text style={styles.doneBtnText}>{t('common.done')}</Text>
+            <Text style={styles.doneBtnText}>{t('common.done').toUpperCase()}</Text>
           </TouchableOpacity>
           {Platform.OS === 'ios' && <View style={{ height: 16 }} />}
         </View>
@@ -484,7 +484,7 @@ export default function SetupScreen() {
         />
         <View style={[styles.sheet, styles.sheetTall]}>
           <View style={styles.sheetHandle} />
-          <Text style={styles.sheetTitle}>{t('setup.manageTeamsTitle')}</Text>
+          <Text style={styles.sheetTitle}>{t('setup.manageTeamsTitle').toUpperCase()}</Text>
           <ScrollView
             style={styles.flex}
             showsVerticalScrollIndicator={false}
@@ -537,7 +537,7 @@ export default function SetupScreen() {
                     !newTeamName.trim() && styles.addTeamBtnTextDisabled,
                   ]}
                 >
-                  {t('common.add')}
+                  {t('common.add').toUpperCase()}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -548,7 +548,7 @@ export default function SetupScreen() {
             onPress={() => setShowTeamsModal(false)}
             activeOpacity={0.85}
           >
-            <Text style={styles.doneBtnText}>{t('common.done')}</Text>
+            <Text style={styles.doneBtnText}>{t('common.done').toUpperCase()}</Text>
           </TouchableOpacity>
           {Platform.OS === 'ios' && <View style={{ height: 16 }} />}
         </View>

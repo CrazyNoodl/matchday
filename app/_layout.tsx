@@ -59,14 +59,14 @@ class AppErrorBoundary extends React.Component<
       return (
         <View style={errorStyles.root}>
           <Text style={errorStyles.emoji}>⚽</Text>
-          <Text style={errorStyles.title}>Щось пішло не так</Text>
-          <Text style={errorStyles.sub}>Спробуй перезавантажити сторінку</Text>
+          <Text style={errorStyles.title}>{i18n.t('errorBoundary.title')}</Text>
+          <Text style={errorStyles.sub}>{i18n.t('errorBoundary.desc')}</Text>
           <TouchableOpacity
             style={errorStyles.btn}
             activeOpacity={0.8}
             onPress={() => this.setState({ hasError: false })}
           >
-            <Text style={errorStyles.btnText}>ПОВТОРИТИ</Text>
+            <Text style={errorStyles.btnText}>{i18n.t('errorBoundary.retry').toUpperCase()}</Text>
           </TouchableOpacity>
         </View>
       );
@@ -108,7 +108,7 @@ function DemoBanner() {
     <View style={[bannerStyles.root, { paddingBottom: insets.bottom > 0 ? insets.bottom : 8 }]}>
       <View style={bannerStyles.inner}>
         <View>
-          <Text style={bannerStyles.title}>{t('demo.banner')}</Text>
+          <Text style={bannerStyles.title}>{t('demo.banner').toUpperCase()}</Text>
           <Text style={bannerStyles.sub}>{t('demo.bannerSub')}</Text>
         </View>
         <TouchableOpacity style={bannerStyles.exitBtn} onPress={handleExit} activeOpacity={0.8}>

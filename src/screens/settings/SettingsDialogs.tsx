@@ -27,22 +27,22 @@ export function SettingsDialogs({ d }: SettingsDialogsProps) {
         <View style={styles.dialogOverlay}>
           <Pressable style={styles.dialogBackdrop} onPress={() => d.setShowSignOutConfirm(false)} />
           <View style={styles.dialog}>
-            <Text style={styles.dialogTitle}>Sign Out</Text>
-            <Text style={styles.dialogDesc}>You will be signed out on this device.</Text>
+            <Text style={styles.dialogTitle}>{t('settings.account.signOut')}</Text>
+            <Text style={styles.dialogDesc}>{t('settings.account.signOutDesc')}</Text>
             <View style={styles.dialogButtons}>
               <TouchableOpacity
                 style={styles.dialogCancelBtn}
                 onPress={() => d.setShowSignOutConfirm(false)}
                 activeOpacity={0.8}
               >
-                <Text style={styles.dialogCancelText}>Cancel</Text>
+                <Text style={styles.dialogCancelText}>{t('common.cancel')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.dialogConfirmBtn}
                 onPress={d.confirmSignOut}
                 activeOpacity={0.8}
               >
-                <Text style={styles.dialogConfirmText}>Sign Out</Text>
+                <Text style={styles.dialogConfirmText}>{t('settings.account.signOut')}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -68,7 +68,7 @@ export function SettingsDialogs({ d }: SettingsDialogsProps) {
                 onPress={() => d.setShowDemoConfirm(false)}
                 activeOpacity={0.8}
               >
-                <Text style={styles.dialogCancelText}>{t('common.cancel')}</Text>
+                <Text style={styles.dialogCancelText}>{t('common.cancel').toUpperCase()}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.dialogConfirmBtn, { backgroundColor: colors.accent.yellow }]}

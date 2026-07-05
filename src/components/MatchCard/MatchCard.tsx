@@ -6,6 +6,7 @@ import {
   StyleProp,
   ViewStyle,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useStore } from '../../store';
 import { Match } from '../../store/types';
 import { useColors } from '../../theme';
@@ -20,6 +21,7 @@ interface MatchCardProps {
 }
 
 export function MatchCard({ match, onPress, readonly = false, style }: MatchCardProps) {
+  const { t } = useTranslation();
   const colors = useColors();
   const styles = makeStyles(colors);
   const players = useStore((s) => s.players);
@@ -48,7 +50,7 @@ export function MatchCard({ match, onPress, readonly = false, style }: MatchCard
       <View style={styles.side}>
         <Avatar playerId={match.aId} size="md" />
         <Text style={[styles.playerName, { color: aNameColor }]} numberOfLines={1}>
-          {playerA?.name ?? 'Unknown'}
+          {playerA?.name ?? t('common.unknown')}
         </Text>
       </View>
 
@@ -69,7 +71,7 @@ export function MatchCard({ match, onPress, readonly = false, style }: MatchCard
           style={[styles.playerName, { color: bNameColor, textAlign: 'right' }]}
           numberOfLines={1}
         >
-          {playerB?.name ?? 'Unknown'}
+          {playerB?.name ?? t('common.unknown')}
         </Text>
         <Avatar playerId={match.bId} size="md" />
       </View>

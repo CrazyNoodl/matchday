@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, ScrollView, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useGoBack } from '@/utils/useGoBack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NavHeader } from '@/components';
@@ -19,6 +20,7 @@ export default function ImportRoundScreen() {
   const { players, teams, hasTournament, roundOpen, bulkImportMatches, tournamentName, round } = useStore();
   const colors = useColors();
   const styles = makeStyles(colors);
+  const { t } = useTranslation();
 
   const [text, setText] = useState('');
 
@@ -60,11 +62,11 @@ export default function ImportRoundScreen() {
     goBack();
   };
 
-  const roundLabel = hasTournament ? `${tournamentName} · Round ${round}` : null;
+  const roundLabel = hasTournament ? `${tournamentName} · ${t('matchday.round', { n: round })}` : null;
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
-      <NavHeader title="Import Round" onBack={() => goBack()} />
+      <NavHeader title={t('importRound.title')} onBack={() => goBack()} />
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -80,11 +82,11 @@ export default function ImportRoundScreen() {
           <View style={styles.warnCard}>
             <Text style={styles.warnIcon}>⚠️</Text>
             <View style={styles.warnText}>
-              <Text style={styles.warnTitle}>No open round</Text>
+              <Text style={styles.warnTitle}>{t('importRound.noOpenRound.title')}</Text>
               <Text style={styles.warnDesc}>
                 {!hasTournament
-                  ? 'Start a tournament first, then open a round before importing.'
-                  : 'Open a new round in the match day screen before importing.'}
+                  ? t('importRound.noOpenRound.noTournament')
+                  : t('importRound.noOpenRound.hasTournament')}
               </Text>
             </View>
           </View>
@@ -92,7 +94,7 @@ export default function ImportRoundScreen() {
           <View style={styles.statusCard}>
             <Text style={styles.statusIcon}>🟢</Text>
             <View>
-              <Text style={styles.statusTitle}>Round is open</Text>
+              <Text style={styles.statusTitle}>{t('importRound.roundIsOpen')}</Text>
               {roundLabel ? (
                 <Text style={styles.statusDesc}>{roundLabel}</Text>
               ) : null}
@@ -102,29 +104,29 @@ export default function ImportRoundScreen() {
 
         {/* Format hint */}
         <View style={styles.section}>
-          <Text style={styles.sectionHeader}>SUPPORTED FORMATS</Text>
+          <Text style={styles.sectionHeader}>{t('importRound.supportedFormats').toUpperCase()}</Text>
           <View style={styles.hintCard}>
             <Text style={styles.hintLine}>
-              <Text style={styles.hintBold}>Google Sheets paste (7 cols):</Text>
+              <Text style={styles.hintBold}>{t('importRound.sheetsFormat')}</Text>
             </Text>
             <Text style={styles.hintCode}>
               {'1  [logo]  PlayerA  scoreA  scoreB  PlayerB  [logo]'}
             </Text>
             <View style={styles.hintDivider} />
             <Text style={styles.hintLine}>
-              <Text style={styles.hintBold}>Full CSV (6 cols):</Text>
+              <Text style={styles.hintBold}>{t('importRound.csvFormat')}</Text>
             </Text>
             <Text style={styles.hintCode}>
               {'PlayerA,TeamA,scoreA,scoreB,PlayerB,TeamB'}
             </Text>
             <View style={styles.hintDivider} />
             <Text style={styles.hintLine}>
-              <Text style={styles.hintBold}>Simple CSV (4 cols):</Text>
+              <Text style={styles.hintBold}>{t('importRound.simpleCsvFormat')}</Text>
             </Text>
             <Text style={styles.hintCode}>{'PlayerA,scoreA,scoreB,PlayerB'}</Text>
             <View style={styles.hintDivider} />
             <Text style={styles.hintNote}>
-              Team logos are empty when pasted from Sheets — player default teams are used.
+              {t('importRound.logoNote')}
             </Text>
           </View>
         </View>
@@ -132,10 +134,10 @@ export default function ImportRoundScreen() {
         {/* Input */}
         <View style={styles.section}>
           <View style={styles.inputHeader}>
-            <Text style={styles.sectionHeader}>PASTE DATA</Text>
+            <Text style={styles.sectionHeader}>{t('importRound.pasteData').toUpperCase()}</Text>
             {text.length > 0 ? (
               <TouchableOpacity onPress={() => setText('')}>
-                <Text style={styles.clearBtn}>CLEAR</Text>
+                <Text style={styles.clearBtn}>{t('importRound.clear').toUpperCase()}</Text>
               </TouchableOpacity>
             ) : null}
           </View>
@@ -155,13 +157,15 @@ export default function ImportRoundScreen() {
         {/* Preview */}
         {parseResult && (
           <View style={styles.section}>
-            <Text style={styles.sectionHeader}>PREVIEW</Text>
+            <Text style={styles.sectionHeader}>{t('importRound.preview').toUpperCase()}</Text>
 
             {/* Errors */}
             {parseResult.errors.length > 0 && (
               <View style={styles.errorsCard}>
                 <Text style={styles.errorsTitle}>
-                  ⚠️  {parseResult.errors.length} parsing {parseResult.errors.length === 1 ? 'issue' : 'issues'}
+                  {parseResult.errors.length === 1
+                    ? t('importRound.parsingIssue', { count: parseResult.errors.length })
+                    : t('importRound.parsingIssuePlural', { count: parseResult.errors.length })}
                 </Text>
                 {parseResult.errors.map((e, i) => (
                   <Text key={i} style={styles.errorLine}>
@@ -175,7 +179,9 @@ export default function ImportRoundScreen() {
             {preview && preview.newNames.length > 0 && (
               <View style={styles.newPlayersCard}>
                 <Text style={styles.newPlayersTitle}>
-                  👤  {preview.newNames.length} new {preview.newNames.length === 1 ? 'player' : 'players'} will be created
+                  {preview.newNames.length === 1
+                    ? t('importRound.newPlayers', { count: preview.newNames.length })
+                    : t('importRound.newPlayersPlural', { count: preview.newNames.length })}
                 </Text>
                 {preview.newNames.map((name) => (
                   <Text key={name} style={styles.newPlayerName}>
@@ -189,7 +195,7 @@ export default function ImportRoundScreen() {
             {preview && preview.unknownTeams.length > 0 && (
               <View style={styles.warnTeamCard}>
                 <Text style={styles.warnTeamTitle}>
-                  🛡  Unknown team codes — player defaults used
+                  {t('importRound.unknownTeams')}
                 </Text>
                 {preview.unknownTeams.map((code) => (
                   <Text key={code} style={styles.warnTeamCode}>
@@ -203,7 +209,9 @@ export default function ImportRoundScreen() {
             {parseResult.matches.length > 0 ? (
               <View style={styles.matchesCard}>
                 <Text style={styles.matchesTitle}>
-                  ✅  {parseResult.matches.length} {parseResult.matches.length === 1 ? 'match' : 'matches'} ready to import
+                  {parseResult.matches.length === 1
+                    ? t('importRound.matchesReady', { count: parseResult.matches.length })
+                    : t('importRound.matchesReadyPlural', { count: parseResult.matches.length })}
                 </Text>
                 {parseResult.matches.map((m, i) => (
                   <View key={i} style={styles.matchRow}>
@@ -242,8 +250,8 @@ export default function ImportRoundScreen() {
         >
           <Text style={[styles.importBtnText, !canImport && styles.importBtnTextDisabled]}>
             {parseResult && parseResult.matches.length > 0
-              ? `IMPORT ${parseResult.matches.length} MATCHES`
-              : 'IMPORT'}
+              ? t('importRound.importBtn', { count: parseResult.matches.length }).toUpperCase()
+              : t('importRound.importBtnEmpty').toUpperCase()}
           </Text>
         </TouchableOpacity>
       </View>

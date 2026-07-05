@@ -110,7 +110,7 @@ export default function PlayersScreen() {
     <SafeAreaView style={styles.root} edges={['top']}>
       <GlowBackground />
       <NavHeader
-        title={t('players.title')}
+        title={t('players.title').toUpperCase()}
         subtitle={t('settings.data.playersCount', { count: players.length })}
         onBack={() => goBack()}
         rightElement={
@@ -119,7 +119,7 @@ export default function PlayersScreen() {
             onPress={openCreate}
             activeOpacity={0.8}
           >
-            <Text style={styles.addBtnText}>{'+ ' + t('common.add')}</Text>
+            <Text style={styles.addBtnText}>{'+ ' + t('common.add').toUpperCase()}</Text>
           </TouchableOpacity>
         }
       />
@@ -173,12 +173,12 @@ export default function PlayersScreen() {
       <Sheet visible={showEdit} onClose={() => setShowEdit(false)}>
         <View style={styles.sheet}>
           <Text style={styles.sheetTitle}>
-            {editingPlayer ? t('players.editTitle') : t('setup.newPlayer')}
+            {editingPlayer ? t('players.editTitle').toUpperCase() : t('setup.newPlayer').toUpperCase()}
           </Text>
 
           <BottomSheetScrollView style={{ maxHeight: 360 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
             <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>{t('setup.form.name')}</Text>
+              <Text style={styles.formLabel}>{t('setup.form.name').toUpperCase()}</Text>
               <TextInput
                 style={styles.input}
                 value={formName}
@@ -190,7 +190,7 @@ export default function PlayersScreen() {
             </View>
 
             <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>{t('setup.form.nickname')}</Text>
+              <Text style={styles.formLabel}>{t('setup.form.nickname').toUpperCase()}</Text>
               <TextInput
                 style={styles.input}
                 value={formNick}
@@ -202,7 +202,7 @@ export default function PlayersScreen() {
             </View>
 
             <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>{t('setup.form.defaultTeam')}</Text>
+              <Text style={styles.formLabel}>{t('setup.form.defaultTeam').toUpperCase()}</Text>
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
@@ -231,7 +231,7 @@ export default function PlayersScreen() {
             </View>
 
             <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>{t('setup.form.color')}</Text>
+              <Text style={styles.formLabel}>{t('setup.form.color').toUpperCase()}</Text>
               <View style={styles.colorPicker}>
                 {PLAYER_COLORS.map((c) => (
                   <TouchableOpacity
@@ -255,7 +255,7 @@ export default function PlayersScreen() {
               onPress={() => setShowEdit(false)}
               activeOpacity={0.75}
             >
-              <Text style={styles.cancelBtnText}>{t('common.cancel')}</Text>
+              <Text style={styles.cancelBtnText}>{t('common.cancel').toUpperCase()}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.saveBtn, !formName.trim() && styles.saveBtnDisabled]}
@@ -266,7 +266,7 @@ export default function PlayersScreen() {
               <Text
                 style={[styles.saveBtnText, !formName.trim() && styles.saveBtnTextDisabled]}
               >
-                {editingPlayer ? t('common.save').toUpperCase() : t('setup.addPlayerBtn')}
+                {editingPlayer ? t('common.save').toUpperCase() : t('setup.addPlayerBtn').toUpperCase()}
               </Text>
             </TouchableOpacity>
           </View>
@@ -284,7 +284,7 @@ export default function PlayersScreen() {
       >
         <View style={styles.dialogOverlay}>
           <View style={styles.dialog}>
-            <Text style={styles.dialogTitle}>CANNOT DELETE</Text>
+            <Text style={styles.dialogTitle}>{t('common.cannotDeleteTitle').toUpperCase()}</Text>
             <Text style={styles.dialogDesc}>
               {t('players.cannotDelete')}
             </Text>
@@ -293,7 +293,7 @@ export default function PlayersScreen() {
               onPress={() => setShowCannotDelete(false)}
               activeOpacity={0.85}
             >
-              <Text style={styles.dialogConfirmText}>OK</Text>
+              <Text style={styles.dialogConfirmText}>{t('common.ok')}</Text>
             </TouchableOpacity>
           </View>
         </View>

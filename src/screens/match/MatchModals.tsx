@@ -32,14 +32,14 @@ export function MatchModals({ d }: MatchModalsProps) {
       <Sheet visible={modal === 'editScore'} onClose={() => d.store.setModal(null)}>
         <View style={styles.sheet}>
           <View style={styles.sheetHeader}>
-            <Text style={styles.sheetTitle}>EDIT SCORE</Text>
-            <Text style={styles.sheetSubtitle}>Correct the result</Text>
+            <Text style={styles.sheetTitle}>{t('matchDetail.editScore.title').toUpperCase()}</Text>
+            <Text style={styles.sheetSubtitle}>{t('matchDetail.editScore.subtitle')}</Text>
           </View>
 
           <View style={styles.scoreEditRow}>
             <View style={styles.scoreEditSide}>
               <Text style={styles.scoreEditName} numberOfLines={1}>
-                {playerA?.nick ?? playerA?.name ?? 'Home'}
+                {playerA?.nick ?? playerA?.name ?? t('matchday.home')}
               </Text>
               <View style={styles.scoreEditControls}>
                 <TouchableOpacity
@@ -64,7 +64,7 @@ export function MatchModals({ d }: MatchModalsProps) {
 
             <View style={styles.scoreEditSide}>
               <Text style={styles.scoreEditName} numberOfLines={1}>
-                {playerB?.nick ?? playerB?.name ?? 'Away'}
+                {playerB?.nick ?? playerB?.name ?? t('matchday.away')}
               </Text>
               <View style={styles.scoreEditControls}>
                 <TouchableOpacity
@@ -126,8 +126,8 @@ export function MatchModals({ d }: MatchModalsProps) {
       <Sheet visible={modal === 'editStats'} onClose={() => d.store.setModal(null)} snapToMax>
         <View style={styles.sheetFlex}>
           <View style={styles.sheetHeader}>
-            <Text style={styles.sheetTitle}>EDIT STATS</Text>
-            <Text style={styles.sheetSubtitle}>Correct AI-read values</Text>
+            <Text style={styles.sheetTitle}>{t('matchDetail.editStats.title').toUpperCase()}</Text>
+            <Text style={styles.sheetSubtitle}>{t('matchDetail.editStats.subtitle')}</Text>
           </View>
 
           <BottomSheetScrollView
@@ -219,15 +219,15 @@ export function MatchModals({ d }: MatchModalsProps) {
       <Sheet visible={d.editingNote} onClose={() => d.setEditingNote(false)} avoidKeyboard>
         <View style={styles.sheet}>
           <View style={styles.sheetHeader}>
-            <Text style={styles.sheetTitle}>COMMENTARY</Text>
-            <Text style={styles.sheetSubtitle}>Add match notes</Text>
+            <Text style={styles.sheetTitle}>{t('matchDetail.commentary').toUpperCase()}</Text>
+            <Text style={styles.sheetSubtitle}>{t('matchDetail.editNote.subtitle')}</Text>
           </View>
           <View style={styles.noteEditBody}>
             <BottomSheetTextInput
               style={styles.noteInput}
               value={d.editNoteValue}
               onChangeText={d.setEditNoteValue}
-              placeholder="Write something about this match..."
+              placeholder={t('matchDetail.editNote.placeholder')}
               placeholderTextColor={colors.text.placeholder}
               multiline
               autoFocus
@@ -282,7 +282,7 @@ export function MatchModals({ d }: MatchModalsProps) {
           >
             {d.importingStats
               ? <ActivityIndicator size="small" color={colors.text.muted} />
-              : <Text style={styles.statsMenuItemText}>Re-scan</Text>
+              : <Text style={styles.statsMenuItemText}>{t('matchDetail.statsMenu.rescan')}</Text>
             }
           </TouchableOpacity>
           <View style={styles.statsMenuSep} />
@@ -290,14 +290,14 @@ export function MatchModals({ d }: MatchModalsProps) {
             style={styles.statsMenuItem}
             onPress={() => { d.setShowStatsMenu(false); d.openEditStats(); }}
           >
-            <Text style={styles.statsMenuItemText}>Edit</Text>
+            <Text style={styles.statsMenuItemText}>{t('common.edit')}</Text>
           </TouchableOpacity>
           <View style={styles.statsMenuSep} />
           <TouchableOpacity
             style={styles.statsMenuItem}
             onPress={() => { d.setShowStatsMenu(false); d.handleClearStats(); }}
           >
-            <Text style={[styles.statsMenuItemText, { color: colors.accent.red }]}>Clear</Text>
+            <Text style={[styles.statsMenuItemText, { color: colors.accent.red }]}>{t('matchDetail.statsMenu.clear')}</Text>
           </TouchableOpacity>
         </View>
       </Modal>
@@ -312,15 +312,15 @@ export function MatchModals({ d }: MatchModalsProps) {
       >
         <View style={styles.dialogOverlay}>
           <View style={styles.dialog}>
-            <Text style={styles.dialogTitle}>CLEAR STATS</Text>
-            <Text style={styles.dialogDesc}>Remove all match statistics?</Text>
+            <Text style={styles.dialogTitle}>{t('matchDetail.clearStats.title').toUpperCase()}</Text>
+            <Text style={styles.dialogDesc}>{t('matchDetail.clearStats.desc')}</Text>
             <View style={styles.dialogActions}>
               <TouchableOpacity
                 style={styles.dialogCancel}
                 onPress={() => d.setShowClearStats(false)}
                 activeOpacity={0.75}
               >
-                <Text style={styles.dialogCancelText}>Cancel</Text>
+                <Text style={styles.dialogCancelText}>{t('matchday.dialogs.cancel')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.dialogConfirm}
@@ -330,7 +330,7 @@ export function MatchModals({ d }: MatchModalsProps) {
                 }}
                 activeOpacity={0.85}
               >
-                <Text style={styles.dialogConfirmText}>Clear</Text>
+                <Text style={styles.dialogConfirmText}>{t('matchDetail.clearStats.confirm')}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -347,9 +347,9 @@ export function MatchModals({ d }: MatchModalsProps) {
       >
         <View style={styles.dialogOverlay}>
           <View style={styles.dialog}>
-            <Text style={styles.dialogTitle}>SWAP SIDES</Text>
+            <Text style={styles.dialogTitle}>{t('matchDetail.swapSidesDialog.title').toUpperCase()}</Text>
             <Text style={styles.dialogDesc}>
-              Switch who played home and away? Stats will be mirrored.
+              {t('matchDetail.swapSidesDialog.desc')}
             </Text>
             <View style={styles.dialogActions}>
               <TouchableOpacity
@@ -357,7 +357,7 @@ export function MatchModals({ d }: MatchModalsProps) {
                 onPress={() => d.setShowSwapSides(false)}
                 activeOpacity={0.75}
               >
-                <Text style={styles.dialogCancelText}>Cancel</Text>
+                <Text style={styles.dialogCancelText}>{t('matchday.dialogs.cancel')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.dialogConfirm}
@@ -367,7 +367,7 @@ export function MatchModals({ d }: MatchModalsProps) {
                 }}
                 activeOpacity={0.85}
               >
-                <Text style={styles.dialogConfirmText}>Swap</Text>
+                <Text style={styles.dialogConfirmText}>{t('matchDetail.swapSidesDialog.confirm')}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -393,7 +393,7 @@ export function MatchModals({ d }: MatchModalsProps) {
                 onPress={() => d.setShowOcrFailed(false)}
                 activeOpacity={0.75}
               >
-                <Text style={styles.dialogCancelText}>OK</Text>
+                <Text style={styles.dialogCancelText}>{t('common.ok')}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -418,7 +418,7 @@ export function MatchModals({ d }: MatchModalsProps) {
                 onPress={() => d.setShowInvalidStatsPhoto(false)}
                 activeOpacity={0.75}
               >
-                <Text style={styles.dialogCancelText}>OK</Text>
+                <Text style={styles.dialogCancelText}>{t('common.ok')}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -440,7 +440,7 @@ export function MatchModals({ d }: MatchModalsProps) {
             <View style={styles.delIconCircle}>
               <Text style={styles.delIconEmoji}>🗑</Text>
             </View>
-            <Text style={styles.delTitle}>{t('matchday.dialogs.deleteTitle')}</Text>
+            <Text style={styles.delTitle}>{t('matchday.dialogs.deleteTitle').toUpperCase()}</Text>
             <Text style={styles.delDesc}>{t('matchday.dialogs.deleteDesc')}</Text>
             <View style={styles.delButtons}>
               <TouchableOpacity

@@ -85,12 +85,12 @@ export function AddMatchSheet({
               </Text>
               {isHome && (
                 <View style={sheetStyles.homeLabel}>
-                  <Text style={sheetStyles.homeLabelText}>{t('matchday.home')}</Text>
+                  <Text style={sheetStyles.homeLabelText}>{t('matchday.home').toUpperCase()}</Text>
                 </View>
               )}
               {isAway && (
                 <View style={sheetStyles.awayLabel}>
-                  <Text style={sheetStyles.awayLabelText}>{t('matchday.away')}</Text>
+                  <Text style={sheetStyles.awayLabelText}>{t('matchday.away').toUpperCase()}</Text>
                 </View>
               )}
             </TouchableOpacity>
@@ -136,9 +136,9 @@ export function AddMatchSheet({
     const hScore = addMatch.homeScore;
     const aScore = addMatch.awayScore;
     const resultLabel =
-      hScore > aScore ? t('matchday.homeWin')
-      : aScore > hScore ? t('matchday.awayWin')
-      : t('matchday.draw');
+      hScore > aScore ? t('matchday.homeWin').toUpperCase()
+      : aScore > hScore ? t('matchday.awayWin').toUpperCase()
+      : t('matchday.draw').toUpperCase();
     const resultColor =
       hScore === aScore ? colors.text.muted : colors.accent.green;
 
@@ -195,7 +195,7 @@ export function AddMatchSheet({
               activeOpacity={0.75}
             >
               <Text style={sheetStyles.addMediaIcon}>+</Text>
-              <Text style={sheetStyles.addMediaText}>{t('matchday.addMediaBtn')}</Text>
+              <Text style={sheetStyles.addMediaText}>{t('matchday.addMediaBtn').toUpperCase()}</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -306,7 +306,7 @@ export function AddMatchSheet({
             {getAddMatchStepLabel(addMatch.step, tournamentRanked, t)}
           </Text>
           <Text style={sheetStyles.stepIndicator}>
-            {t('matchday.step', { current: addMatch.step, total: totalSteps })}
+            {t('matchday.step', { current: addMatch.step, total: totalSteps }).toUpperCase()}
           </Text>
         </View>
 
@@ -336,7 +336,7 @@ export function AddMatchSheet({
                 (addMatch.ocrStatus === 'scanning' || isSavingMatch) && sheetStyles.nextBtnTextDisabled,
               ]}
             >
-              {addMatch.step === 1 ? t('common.cancel') : t('common.back')}
+              {addMatch.step === 1 ? t('common.cancel').toUpperCase() : t('common.back').toUpperCase()}
             </Text>
           </TouchableOpacity>
           {addMatch.step < totalSteps ? (
@@ -355,7 +355,7 @@ export function AddMatchSheet({
                   !canAddMatchGoNext(addMatch, tournamentRanked) && sheetStyles.nextBtnTextDisabled,
                 ]}
               >
-                {t('common.next')}
+                {t('common.next').toUpperCase()}
               </Text>
             </TouchableOpacity>
           ) : (
@@ -368,7 +368,7 @@ export function AddMatchSheet({
               {isSavingMatch ? (
                 <ActivityIndicator size="small" color={colors.accent.greenDark} />
               ) : (
-                <Text style={sheetStyles.nextBtnText}>{t('matchday.saveMatch')}</Text>
+                <Text style={sheetStyles.nextBtnText}>{t('matchday.saveMatch').toUpperCase()}</Text>
               )}
             </TouchableOpacity>
           )}

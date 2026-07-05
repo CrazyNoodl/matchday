@@ -146,7 +146,7 @@ export default function TeamsScreen() {
     <SafeAreaView style={styles.root} edges={['top']}>
       <GlowBackground />
       <NavHeader
-        title={t('teams.title')}
+        title={t('teams.title').toUpperCase()}
         subtitle={t('settings.data.teamsCount', { count: teams.length })}
         onBack={() => goBack()}
         rightElement={
@@ -155,7 +155,7 @@ export default function TeamsScreen() {
             onPress={openCreate}
             activeOpacity={0.8}
           >
-            <Text style={styles.addBtnText}>{'+ ' + t('common.add')}</Text>
+            <Text style={styles.addBtnText}>{'+ ' + t('common.add').toUpperCase()}</Text>
           </TouchableOpacity>
         }
       />
@@ -210,29 +210,29 @@ export default function TeamsScreen() {
       <Sheet visible={showEdit} onClose={() => setShowEdit(false)}>
         <View style={styles.sheet}>
           <Text style={styles.sheetTitle}>
-            {editingTeam ? t('teams.editTitle') : 'NEW TEAM'}
+            {editingTeam ? t('teams.editTitle').toUpperCase() : t('teams.newTitle').toUpperCase()}
           </Text>
 
           <BottomSheetScrollView style={{ maxHeight: 360 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
             <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>TEAM NAME</Text>
+              <Text style={styles.formLabel}>{t('teams.form.name').toUpperCase()}</Text>
               <TextInput
                 style={styles.input}
                 value={formName}
                 onChangeText={setFormName}
-                placeholder="e.g. Manchester City"
+                placeholder={t('teams.form.namePlaceholder')}
                 placeholderTextColor={colors.text.placeholder}
                 autoCorrect={false}
               />
             </View>
 
             <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>SHORT CODE (3 letters)</Text>
+              <Text style={styles.formLabel}>{t('teams.form.shortCode').toUpperCase()}</Text>
               <TextInput
                 style={styles.input}
                 value={formShort}
                 onChangeText={(v) => setFormShort(v.slice(0, 3).toUpperCase())}
-                placeholder="e.g. MCI"
+                placeholder={t('teams.form.shortCodePlaceholder')}
                 placeholderTextColor={colors.text.placeholder}
                 autoCorrect={false}
                 autoCapitalize="characters"
@@ -241,7 +241,7 @@ export default function TeamsScreen() {
             </View>
 
             <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>LOGO (OPTIONAL)</Text>
+              <Text style={styles.formLabel}>{t('teams.form.logo').toUpperCase()}</Text>
               <View style={styles.logoRow}>
                 <TouchableOpacity
                   style={styles.logoPickerBtn}
@@ -268,7 +268,7 @@ export default function TeamsScreen() {
             </View>
 
             <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>{t('setup.form.color')}</Text>
+              <Text style={styles.formLabel}>{t('setup.form.color').toUpperCase()}</Text>
               <View style={styles.colorPicker}>
                 {TEAM_COLORS.map((c) => (
                   <TouchableOpacity
@@ -292,7 +292,7 @@ export default function TeamsScreen() {
               onPress={() => setShowEdit(false)}
               activeOpacity={0.75}
             >
-              <Text style={styles.cancelBtnText}>{t('common.cancel')}</Text>
+              <Text style={styles.cancelBtnText}>{t('common.cancel').toUpperCase()}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[
@@ -310,8 +310,8 @@ export default function TeamsScreen() {
                 ]}
               >
                 {logoUploading
-                  ? 'UPLOADING...'
-                  : editingTeam ? t('common.save').toUpperCase() : 'ADD TEAM'}
+                  ? t('teams.uploading').toUpperCase()
+                  : editingTeam ? t('common.save').toUpperCase() : t('teams.addBtn').toUpperCase()}
               </Text>
             </TouchableOpacity>
           </View>
@@ -329,7 +329,7 @@ export default function TeamsScreen() {
       >
         <View style={styles.dialogOverlay}>
           <View style={styles.dialog}>
-            <Text style={styles.dialogTitle}>CANNOT DELETE</Text>
+            <Text style={styles.dialogTitle}>{t('common.cannotDeleteTitle').toUpperCase()}</Text>
             <Text style={styles.dialogDesc}>
               {t('teams.cannotDelete')}
             </Text>
@@ -338,7 +338,7 @@ export default function TeamsScreen() {
               onPress={() => setShowCannotDelete(false)}
               activeOpacity={0.85}
             >
-              <Text style={styles.dialogConfirmText}>OK</Text>
+              <Text style={styles.dialogConfirmText}>{t('common.ok')}</Text>
             </TouchableOpacity>
           </View>
         </View>

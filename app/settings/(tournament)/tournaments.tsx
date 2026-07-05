@@ -68,7 +68,7 @@ export default function TournamentsScreen() {
             <View style={styles.activeTourHeader}>
               <View style={styles.liveBadge}>
                 <View style={styles.liveDot} />
-                <Text style={styles.liveText}>{t('archive.live')}</Text>
+                <Text style={styles.liveText}>{t('archive.live').toUpperCase()}</Text>
               </View>
               <Text style={styles.roundBadge}>{t('matchday.round', { n: round })}</Text>
             </View>
@@ -113,14 +113,14 @@ export default function TournamentsScreen() {
             activeOpacity={0.8}
           >
             <Text style={styles.startNewIcon}>+</Text>
-            <Text style={styles.startNewText}>{t('setup.startTournament')}</Text>
+            <Text style={styles.startNewText}>{t('setup.startTournament').toUpperCase()}</Text>
           </TouchableOpacity>
         )}
 
         {/* Past tournaments */}
         {closedTournaments.length > 0 && (
           <>
-            <Text style={styles.pastHeader}>{t('archive.title')}</Text>
+            <Text style={styles.pastHeader}>{t('archive.title').toUpperCase()}</Text>
             {[...closedTournaments].reverse().map((tour) => (
               <TouchableOpacity
                 key={tour.id}
@@ -153,7 +153,7 @@ export default function TournamentsScreen() {
       {/* Rename Sheet */}
       <Sheet visible={modal === 'editTourName'} onClose={() => store.setModal(null)}>
         <View style={styles.sheetContent}>
-          <Text style={styles.sheetTitle}>{t('tournament.rename.title')}</Text>
+          <Text style={styles.sheetTitle}>{t('tournament.rename.title').toUpperCase()}</Text>
           <TextInput
             style={styles.renameInput}
             value={renameText}
@@ -170,7 +170,7 @@ export default function TournamentsScreen() {
               onPress={() => store.setModal(null)}
               activeOpacity={0.75}
             >
-              <Text style={styles.cancelBtnText}>{t('common.cancel')}</Text>
+              <Text style={styles.cancelBtnText}>{t('common.cancel').toUpperCase()}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.saveBtn, !renameText.trim() && styles.saveBtnDisabled]}
@@ -198,7 +198,7 @@ export default function TournamentsScreen() {
         <View style={styles.dialogOverlay}>
           <View style={styles.dialog}>
             <Text style={styles.dialogIcon}>🏁</Text>
-            <Text style={styles.dialogTitle}>{t('tournament.close.title')}</Text>
+            <Text style={styles.dialogTitle}>{t('tournament.close.title').toUpperCase()}</Text>
             <Text style={styles.dialogDesc}>{t('tournament.close.desc')}</Text>
             <View style={styles.dialogActions}>
               <TouchableOpacity

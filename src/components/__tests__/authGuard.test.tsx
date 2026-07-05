@@ -17,6 +17,7 @@
 // @testing-library/react-native v14: render and fireEvent.press are async —
 // every call must be awaited.
 
+import '@/i18n';
 import React, { useState } from 'react';
 import { Text, ActivityIndicator } from 'react-native';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';

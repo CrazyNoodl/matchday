@@ -22,7 +22,7 @@ export default function DisplaySettingsScreen() {
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
       <GlowBackground />
-      <NavHeader title={t('settings.display.section')} onBack={() => goBack()} />
+      <NavHeader title={t('settings.display.section').toUpperCase()} onBack={() => goBack()} />
 
       <ScrollView
         style={styles.scroll}

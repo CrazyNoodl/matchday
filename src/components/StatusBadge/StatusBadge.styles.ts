@@ -5,7 +5,6 @@ import { Radius } from '../../theme/spacing';
 import type { BadgeType } from './StatusBadge';
 
 interface BadgeConfig {
-  label: string;
   bg: string;
   textColor: string;
   borderColor?: string;
@@ -13,49 +12,41 @@ interface BadgeConfig {
 
 export const makeConfig = (colors: AppColors): Record<BadgeType, BadgeConfig> => ({
   live: {
-    label: 'LIVE',
     bg: colors.accent.greenSubtle,
     textColor: colors.accent.green,
     borderColor: colors.accent.greenBorder,
   },
   soon: {
-    label: 'SOON',
     bg: colors.accent.blueSubtle,
     textColor: colors.accent.blue,
     borderColor: 'rgba(106,166,255,0.28)',
   },
   leader: {
-    label: 'LEADER',
     bg: colors.accent.greenSubtle,
     textColor: colors.accent.green,
     borderColor: colors.accent.greenBorder,
   },
   editing: {
-    label: 'EDITING',
     bg: colors.accent.blueSubtle,
     textColor: colors.accent.blue,
     borderColor: 'rgba(106,166,255,0.28)',
   },
   archived: {
-    label: 'ARCHIVED',
     bg: colors.bg.elevated,
     textColor: colors.text.muted,
     borderColor: colors.border.default,
   },
   friendly: {
-    label: 'FRIENDLY',
     bg: colors.accent.blueSubtle,
     textColor: colors.accent.blue,
     borderColor: 'rgba(106,166,255,0.28)',
   },
   auto: {
-    label: 'AUTO',
     bg: colors.bg.elevated,
     textColor: colors.text.muted,
     borderColor: colors.border.default,
   },
   ranked: {
-    label: 'RANKED',
     bg: colors.accent.greenSubtle,
     textColor: colors.accent.green,
     borderColor: colors.accent.greenBorder,

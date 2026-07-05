@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useGoBack } from '@/utils/useGoBack';
 import { NavHeader, GlowBackground } from '@/components';
@@ -28,16 +29,16 @@ function formatBytes(bytes: number): string {
 }
 
 interface Preset {
-  label: string;
+  labelKey: 'resizeLab.presets.regularMedia' | 'resizeLab.presets.ocrPayload' | 'resizeLab.presets.statPhotoStorage' | 'resizeLab.presets.teamLogo';
   target: string;
   maxDimension: number;
 }
 
 const PRESETS: Preset[] = [
-  { label: 'Regular media', target: `${MEDIA_MAX_DIMENSION}px cap`, maxDimension: MEDIA_MAX_DIMENSION },
-  { label: 'OCR payload', target: `${OCR_PAYLOAD_MAX_DIMENSION}px cap`, maxDimension: OCR_PAYLOAD_MAX_DIMENSION },
-  { label: 'Stat photo storage', target: `${STAT_PHOTO_STORAGE_MAX_DIMENSION}px cap`, maxDimension: STAT_PHOTO_STORAGE_MAX_DIMENSION },
-  { label: 'Team logo', target: `${TEAM_LOGO_MAX_DIMENSION}px cap`, maxDimension: TEAM_LOGO_MAX_DIMENSION },
+  { labelKey: 'resizeLab.presets.regularMedia', target: `${MEDIA_MAX_DIMENSION}px cap`, maxDimension: MEDIA_MAX_DIMENSION },
+  { labelKey: 'resizeLab.presets.ocrPayload', target: `${OCR_PAYLOAD_MAX_DIMENSION}px cap`, maxDimension: OCR_PAYLOAD_MAX_DIMENSION },
+  { labelKey: 'resizeLab.presets.statPhotoStorage', target: `${STAT_PHOTO_STORAGE_MAX_DIMENSION}px cap`, maxDimension: STAT_PHOTO_STORAGE_MAX_DIMENSION },
+  { labelKey: 'resizeLab.presets.teamLogo', target: `${TEAM_LOGO_MAX_DIMENSION}px cap`, maxDimension: TEAM_LOGO_MAX_DIMENSION },
 ];
 
 interface PresetResult {
@@ -61,6 +62,7 @@ export default function ResizeLabScreen() {
   const goBack = useGoBack();
   const colors = useColors();
   const styles = makeStyles(colors);
+  const { t } = useTranslation();
 
   const [original, setOriginal] = useState<OriginalPhoto | null>(null);
   const [results, setResults] = useState<PresetResult[]>([]);
@@ -112,7 +114,7 @@ export default function ResizeLabScreen() {
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
       <GlowBackground variant="blue" />
-      <NavHeader title="Resize Lab" onBack={() => goBack()} />
+      <NavHeader title={t('resizeLab.title')} onBack={() => goBack()} />
 
       <ScrollView
         style={styles.scroll}
@@ -124,16 +126,14 @@ export default function ResizeLabScreen() {
             <ActivityIndicator color={colors.bg.base} size="small" />
           ) : (
             <Text style={styles.pickBtnText}>
-              {original ? 'Pick another photo' : 'Pick a photo'}
+              {original ? t('resizeLab.pickAnotherPhoto') : t('resizeLab.pickPhoto')}
             </Text>
           )}
         </TouchableOpacity>
 
         {!original && (
           <Text style={styles.emptyHint}>
-            Pick a real photo from your library to see exactly what each resize
-            preset produces on this device — dimensions, file size, and any
-            error the resize step hits.
+            {t('resizeLab.emptyHint')}
           </Text>
         )}
 
@@ -143,7 +143,7 @@ export default function ResizeLabScreen() {
               <Image source={{ uri: original.uri }} style={styles.thumbImage} resizeMode="cover" />
             </View>
             <View style={styles.originalInfo}>
-              <Text style={styles.originalLabel}>Original</Text>
+              <Text style={styles.originalLabel}>{t('resizeLab.original')}</Text>
               <Text style={styles.originalName} numberOfLines={1}>{original.fileName}</Text>
               <Text style={styles.originalMeta}>
                 {original.width}×{original.height} · {formatBytes(original.size)}
@@ -158,7 +158,7 @@ export default function ResizeLabScreen() {
             ? Math.round((1 - r.size! / original.size) * 100)
             : null;
           return (
-            <View key={preset.label} style={styles.presetCard}>
+            <View key={preset.labelKey} style={styles.presetCard}>
               <View style={styles.thumb}>
                 {r?.status === 'done' && r.uri ? (
                   <Image source={{ uri: r.uri }} style={styles.thumbImage} resizeMode="cover" />
@@ -167,16 +167,16 @@ export default function ResizeLabScreen() {
                 )}
               </View>
               <View style={styles.presetInfo}>
-                <Text style={styles.presetName}>{preset.label}</Text>
+                <Text style={styles.presetName}>{t(preset.labelKey)}</Text>
                 <Text style={styles.presetTarget}>{preset.target}</Text>
                 {r?.status === 'loading' && (
                   <View style={styles.presetMetaRow}>
                     <ActivityIndicator size="small" color={colors.text.muted} />
-                    <Text style={styles.presetMeta}>Resizing...</Text>
+                    <Text style={styles.presetMeta}>{t('resizeLab.resizing')}</Text>
                   </View>
                 )}
                 {r?.status === 'error' && (
-                  <Text style={styles.errorText} numberOfLines={2}>Failed: {r.error}</Text>
+                  <Text style={styles.errorText} numberOfLines={2}>{t('resizeLab.failed', { error: r.error })}</Text>
                 )}
                 {r?.status === 'done' && (
                   <View style={styles.presetMetaRow}>
