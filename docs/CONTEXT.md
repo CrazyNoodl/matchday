@@ -334,6 +334,15 @@ Currently applied to: match commentary, add-match commentary step, edit round da
 
 ---
 
+## i18n hardcoded-strings sweep — implementation detail
+
+Swept remaining hardcoded English UI strings (dialog titles/buttons, form labels/placeholders, screen titles) across most screens and shared components into `en`/`uk`/`fr` locale keys — previously only some screens were fully localized while others (Teams edit sheet, Players/Teams "cannot delete" dialogs, several settings screens) had literal English baked in regardless of active language.
+
+- New shared keys added under `common.*` (e.g. `common.ok`, `common.cannotDeleteTitle`) are reused by both `PlayerDialogs.tsx`/`TeamDialogs.tsx` — avoid re-introducing a screen-local duplicate when adding new "cannot delete"-style dialogs elsewhere.
+- This landed the same day the Players/Teams settings screens were split into `PlayerEditSheet`/`PlayerDialogs`/`TeamEditSheet`/`TeamDialogs` components (see `src/screens/settings/players/`, `src/screens/settings/teams/`), so the two branches conflicted on `app/settings/(data)/players.tsx` and `teams.tsx`. Resolved by keeping the extracted-component structure and porting the i18n key changes into the new component files.
+
+---
+
 ## Key file locations
 
 ```

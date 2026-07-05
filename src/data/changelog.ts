@@ -9,6 +9,12 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.10',
+    fixed: [
+      'Several screens (Teams edit sheet, Players/Teams "cannot delete" dialogs, and others) always showed English text regardless of the selected language — hardcoded strings replaced with proper uk/en/fr translations',
+    ],
+  },
+  {
     version: '1.9.9',
     notes: [
       'Settings → Players and Settings → Teams screens split into smaller files — the edit sheet and confirmation dialogs now live in their own components, mirroring the existing pattern used by the main Settings screen — no user-visible change',
