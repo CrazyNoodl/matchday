@@ -137,10 +137,11 @@ closedTournaments — fully finished tournaments (hasTournament = false after cl
 | Demo mode | store flag |
 | i18n (uk / en / fr) | `src/i18n/locales/` |
 | Dark + light theme, with an Auto option that follows OS appearance live | `src/theme/` |
-| Playwright E2E tests (17 tests, 7 smoke) | `e2e/` — `npm run e2e`, `npm run e2e:smoke` |
+| Playwright E2E tests (18 tests, 8 smoke) | `e2e/` — `npm run e2e`, `npm run e2e:smoke` |
 | Storybook: real dark/light theming, full component coverage (27/27) | `.storybook/`, `src/components/*/*.stories.tsx` |
 | Loading feedback during stat re-scan / media upload (preparing → uploading → scanning) | `src/screens/match/useMatchDetail.ts`, `app/match/[id].tsx` |
 | Stat edit: fixed order, all 23 params always shown, AI-confidence dot, per-photo OCR validation gate | `src/utils/mergedStats.ts`, `src/screens/match/useMatchDetail.ts`, `src/screens/match/MatchModals.tsx` |
+| Offline handling, phase 1: boot-time stub for logged-out users, non-blocking banner for logged-in users | `src/hooks/useIsOnline.ts`, `app/_layout.tsx` |
 
 ## Media upload — implementation detail
 
@@ -340,6 +341,20 @@ Swept remaining hardcoded English UI strings (dialog titles/buttons, form labels
 
 - New shared keys added under `common.*` (e.g. `common.ok`, `common.cannotDeleteTitle`) are reused by both `PlayerDialogs.tsx`/`TeamDialogs.tsx` — avoid re-introducing a screen-local duplicate when adding new "cannot delete"-style dialogs elsewhere.
 - This landed the same day the Players/Teams settings screens were split into `PlayerEditSheet`/`PlayerDialogs`/`TeamEditSheet`/`TeamDialogs` components (see `src/screens/settings/players/`, `src/screens/settings/teams/`), so the two branches conflicted on `app/settings/(data)/players.tsx` and `teams.tsx`. Resolved by keeping the extracted-component structure and porting the i18n key changes into the new component files.
+
+---
+
+## Offline handling — implementation detail (2026-07-05, phase 1)
+
+**Scope note:** this is phase 1 of a staged plan (issue #73) — a quick, safe boot-time treatment. Phase 2 (per-feature gating of OCR/upload/sync, a visible sync-status indicator, queued-changes retry on reconnect) is **not** implemented yet.
+
+- New `useIsOnline()` hook (`src/hooks/useIsOnline.ts`): native uses `@react-native-community/netinfo` (`NetInfo.addEventListener`, treating `isConnected`/`isInternetReachable` `null` as online — avoids false "offline" on ambiguous states). **Web deliberately bypasses NetInfo** and listens to `window`'s `online`/`offline` events directly: confirmed via Chromium that NetInfo's web implementation prefers the Network Information API (`navigator.connection.addEventListener('change', ...)`) when the browser exposes it, and that event does not reliably fire on a real connectivity drop (`navigator.onLine` and window `online`/`offline` do fire correctly). Using NetInfo as-is on web silently never detected offline.
+- `app/_layout.tsx`: two behaviors gated on `isOnline`, both intentionally shallow (see scope note):
+  - **Not logged in + offline** → full-screen stub (`OfflineStub`, reuses `errorStyles`) replaces `LoginScreen`. This is the one place offline fully blocks the app — signing in requires reaching Supabase, there's no local-first path for an unauthenticated user.
+  - **Logged in + offline** → a small bottom banner (`OfflineBanner`) appears alongside the existing `DemoBanner` pattern; the app is otherwise fully usable with local data (this already worked before this feature — `getSession()` reads the persisted MMKV session locally, no network call blocks boot). **Deliberately does NOT clear the store or force sign-out on offline boot** — an earlier version of the plan proposed that, but it was rejected during design: it would destroy any local changes not yet synced to Supabase, directly contradicting local-first architecture (phone is the source of truth, not the cloud).
+- **Regression found and fixed before landing:** the first version of `OfflineBanner` had an inverted condition (`if (!isOnline || demoMode) return null`, should be `if (isOnline || demoMode) return null`), so the banner rendered whenever the app was *online* — i.e. on every normal screen. Combined with `position: 'absolute', bottom: 0` and no `pointerEvents`, it silently intercepted taps on bottom-anchored buttons (`e2e/06.game-loop.spec.ts`'s "START TOURNAMENT" click hung for the full 90s timeout, `locator.click` log showed the banner's `<div>` "intercepts pointer events"). Fixed both the inverted condition and added `pointerEvents="none"` on the banner's root `View` as defense-in-depth — a purely informational banner must never be able to block interaction with whatever's underneath it, regardless of position, since connectivity APIs (both NetInfo and the browser's) are known to have false positives.
+- New regression test: `e2e/09.offline.spec.ts` — toggles `page.context().setOffline()`, asserts the banner appears/disappears and that a bottom CTA (`START NEW TOURNAMENT`) stays clickable while offline. Added to `@smoke`.
+- `useIsOnline` has two Jest test files: `src/hooks/__tests__/useIsOnline.test.ts` (native/NetInfo branch) and `useIsOnline.web.test.ts` (web branch — mocks `Platform.OS: 'web'` and hand-rolls a minimal `EventTarget`-based `window`/`navigator` since the project's Jest `testEnvironment` is `node`, no jsdom). Note for future tests in this style: a local `afterEach` that restores `global.window`/`global.navigator` will run *before* `@testing-library/react-native`'s own auto-unmount `afterEach` (Jest runs inner-scope `afterEach` before outer/module-scope ones), causing the hook's cleanup to fire against the wrong `window` — the fix here was to not restore the fake globals between tests at all (harmless since each test reassigns a fresh one in `beforeEach`).
 
 ---
 

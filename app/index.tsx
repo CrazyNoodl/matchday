@@ -29,7 +29,6 @@ export default function HomeScreen() {
     matches,
     players,
     tournamentPlayers,
-    tournamentRanked,
     tournamentRounds,
     archivedRounds,
     closedTournaments,
