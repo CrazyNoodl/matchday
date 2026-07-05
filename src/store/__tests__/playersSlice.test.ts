@@ -149,4 +149,17 @@ describe('deletePlayer', () => {
     expect(useStore.getState().players).toContainEqual(P2);
     expect(useStore.getState().players).not.toContainEqual(P1);
   });
+
+  it('prunes the player from tournamentPlayers and roundPlayers once their matches are gone', () => {
+    useStore.getState().addPlayer(P1);
+    useStore.getState().addPlayer(P2);
+    useStore.setState({
+      tournamentPlayers: ['p1', 'p2'],
+      roundPlayers: ['p1', 'p2'],
+      matches: [],
+    });
+    useStore.getState().deletePlayer('p1');
+    expect(useStore.getState().tournamentPlayers).toEqual(['p2']);
+    expect(useStore.getState().roundPlayers).toEqual(['p2']);
+  });
 });

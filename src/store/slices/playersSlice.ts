@@ -31,6 +31,10 @@ export const createPlayersSlice: StateCreator<RootState, [], [], PlayersSlice> =
     const allMatches = collectAllMatches(s);
     if (allMatches.some((m) => m.aId === id || m.bId === id)) return;
     if (s.closedTournaments.some((t) => t.players.includes(id))) return;
-    set({ players: s.players.filter((p) => p.id !== id) });
+    set({
+      players: s.players.filter((p) => p.id !== id),
+      tournamentPlayers: s.tournamentPlayers.filter((pid) => pid !== id),
+      roundPlayers: s.roundPlayers.filter((pid) => pid !== id),
+    });
   },
 });
