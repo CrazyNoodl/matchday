@@ -35,7 +35,7 @@ export function TeamDialogs({
       >
         <View style={styles.dialogOverlay}>
           <View style={styles.dialog}>
-            <Text style={styles.dialogTitle}>CANNOT DELETE</Text>
+            <Text style={styles.dialogTitle}>{t('common.cannotDeleteTitle').toUpperCase()}</Text>
             <Text style={styles.dialogDesc}>
               {t('teams.cannotDelete')}
             </Text>
@@ -44,7 +44,7 @@ export function TeamDialogs({
               onPress={onCloseCannotDelete}
               activeOpacity={0.85}
             >
-              <Text style={styles.dialogConfirmText}>OK</Text>
+              <Text style={styles.dialogConfirmText}>{t('common.ok')}</Text>
             </TouchableOpacity>
           </View>
         </View>

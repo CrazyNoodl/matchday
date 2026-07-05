@@ -9,6 +9,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 // Native-only modules loaded dynamically so web build doesn't crash
 type CaptureRef = typeof import('react-native-view-shot')['captureRef'];
 type MediaLibraryModule = typeof import('expo-media-library/legacy');
@@ -41,6 +42,7 @@ function StandingsRow({ standing, isLeader, isLast }: { standing: Standing; isLe
   const player = useStore((s) => s.players.find((p) => p.id === standing.playerId));
   const colors = useColors();
   const cardStyles = makeCardStyles(colors);
+  const { t } = useTranslation();
 
   const gdColor =
     standing.gd > 0 ? colors.accent.green : standing.gd < 0 ? colors.accent.red : colors.text.muted;
@@ -51,7 +53,7 @@ function StandingsRow({ standing, isLeader, isLast }: { standing: Standing; isLe
         <CardAvatar teamCode={player?.teamCode} size={26} />
         <View style={cardStyles.playerNames}>
           <Text style={cardStyles.playerName} numberOfLines={1}>
-            {player?.name ?? 'Unknown'}
+            {player?.name ?? t('common.unknown')}
           </Text>
           {player?.nick ? (
             <Text style={cardStyles.playerNick} numberOfLines={1}>
@@ -83,6 +85,7 @@ function StandingsCard({ tournamentName, subtitle, standings }: StandingsCardPro
   const colors = useColors();
   const cardStyles = makeCardStyles(colors);
   const dateStr = formatShareCardDate();
+  const { t } = useTranslation();
 
   return (
     <View style={cardStyles.card} collapsable={false}>
@@ -112,14 +115,14 @@ function StandingsCard({ tournamentName, subtitle, standings }: StandingsCardPro
       {/* Standings table */}
       <View style={cardStyles.section}>
         <View style={cardStyles.headerRow}>
-          <Text style={[cardStyles.headerCell, cardStyles.playerCol]}>PLAYER</Text>
+          <Text style={[cardStyles.headerCell, cardStyles.playerCol]}>{t('table.player').toUpperCase()}</Text>
           {STANDINGS_NUM_COLS.map((col) => (
             <Text key={col.key} style={[cardStyles.headerCell, cardStyles.numCol]}>
               {col.label}
             </Text>
           ))}
-          <Text style={[cardStyles.headerCell, cardStyles.numCol]}>GD</Text>
-          <Text style={[cardStyles.headerCell, cardStyles.numCol]}>PTS</Text>
+          <Text style={[cardStyles.headerCell, cardStyles.numCol]}>{t('table.gd')}</Text>
+          <Text style={[cardStyles.headerCell, cardStyles.numCol]}>{t('common.pts')}</Text>
         </View>
         {standings.map((s, idx) => (
           <StandingsRow key={s.playerId} standing={s} isLeader={idx === 0} isLast={idx === standings.length - 1} />
@@ -139,6 +142,7 @@ export function ShareStandingsModal({ visible, onClose, tournamentName, subtitle
   const cardRef = useRef<View>(null);
   const colors = useColors();
   const modalStyles = makeModalStyles(colors);
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (!visible) { setLoading(false); setSaveMessage(null); }
@@ -149,7 +153,7 @@ export function ShareStandingsModal({ visible, onClose, tournamentName, subtitle
       const { captureRef } = await import('react-native-view-shot') as { captureRef: CaptureRef };
       return await captureRef(cardRef, { format: 'png', quality: 1.0, result: 'tmpfile' });
     } catch {
-      setSaveMessage({ ok: false, text: 'Could not capture image. Please try again.' });
+      setSaveMessage({ ok: false, text: t('share.captureError') });
       return null;
     }
   };
@@ -169,7 +173,7 @@ export function ShareStandingsModal({ visible, onClose, tournamentName, subtitle
         canvas.toBlob((blob) => resolve(blob), 'image/png', 1.0);
       });
     } catch {
-      setSaveMessage({ ok: false, text: 'Could not capture image. Please try again.' });
+      setSaveMessage({ ok: false, text: t('share.captureError') });
       return null;
     }
   };
@@ -192,16 +196,16 @@ export function ShareStandingsModal({ visible, onClose, tournamentName, subtitle
         const MediaLibrary = await import('expo-media-library/legacy') as MediaLibraryModule;
         const { status } = await MediaLibrary.requestPermissionsAsync(true);
         if (status !== 'granted') {
-          setSaveMessage({ ok: false, text: 'Photos permission required. Allow access in Settings.' });
+          setSaveMessage({ ok: false, text: t('share.photosPermission') });
           return;
         }
         const uri = await captureNative();
         if (!uri) return;
         await MediaLibrary.saveToLibraryAsync(uri);
-        setSaveMessage({ ok: true, text: 'Saved to Photos!' });
+        setSaveMessage({ ok: true, text: t('share.saved') });
       }
     } catch {
-      setSaveMessage({ ok: false, text: 'Could not save. Please try again.' });
+      setSaveMessage({ ok: false, text: t('share.saveError') });
     } finally {
       setLoading(false);
     }
@@ -217,7 +221,7 @@ export function ShareStandingsModal({ visible, onClose, tournamentName, subtitle
         if (navigator.canShare?.({ files: [file] })) {
           await navigator.share({ files: [file], title: tournamentName });
         } else if (navigator.share) {
-          await navigator.share({ title: tournamentName, text: 'Matchday standings' });
+          await navigator.share({ title: tournamentName, text: t('tournament.shareStandings.nativeShareText') });
         }
       } else {
         const uri = await captureNative();
@@ -225,10 +229,10 @@ export function ShareStandingsModal({ visible, onClose, tournamentName, subtitle
         const Sharing = await import('expo-sharing') as SharingModule;
         const canShare = await Sharing.isAvailableAsync();
         if (!canShare) {
-          setSaveMessage({ ok: false, text: 'Sharing is not available on this device.' });
+          setSaveMessage({ ok: false, text: t('share.notAvailable') });
           return;
         }
-        await Sharing.shareAsync(uri, { mimeType: 'image/png', dialogTitle: 'Share Standings' });
+        await Sharing.shareAsync(uri, { mimeType: 'image/png', dialogTitle: t('tournament.shareStandings.dialogTitle') });
       }
     } catch {
       // user cancelled share dialog
@@ -242,7 +246,7 @@ export function ShareStandingsModal({ visible, onClose, tournamentName, subtitle
       <SafeAreaView style={modalStyles.root} edges={['top', 'bottom']}>
         {/* Header */}
         <View style={modalStyles.header}>
-          <Text style={modalStyles.title}>SHARE STANDINGS</Text>
+          <Text style={modalStyles.title}>{t('tournament.shareStandings.title').toUpperCase()}</Text>
           <TouchableOpacity onPress={onClose} style={modalStyles.closeBtn} activeOpacity={0.7}>
             <Text style={modalStyles.closeText}>✕</Text>
           </TouchableOpacity>
@@ -274,7 +278,7 @@ export function ShareStandingsModal({ visible, onClose, tournamentName, subtitle
               <ActivityIndicator color={colors.text.primary} size="small" />
             ) : (
               <Text style={modalStyles.actionText}>
-                {Platform.OS === 'web' ? '⬇  Download' : '💾  Save to Photos'}
+                {Platform.OS === 'web' ? t('share.download') : t('share.saveToPhotos')}
               </Text>
             )}
           </TouchableOpacity>
@@ -287,7 +291,7 @@ export function ShareStandingsModal({ visible, onClose, tournamentName, subtitle
             {loading ? (
               <ActivityIndicator color={colors.bg.base} size="small" />
             ) : (
-              <Text style={[modalStyles.actionText, { color: colors.bg.base }]}>↗  Share</Text>
+              <Text style={[modalStyles.actionText, { color: colors.bg.base }]}>{t('share.share')}</Text>
             )}
           </TouchableOpacity>
         </View>

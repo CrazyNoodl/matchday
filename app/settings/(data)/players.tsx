@@ -103,7 +103,7 @@ export default function PlayersScreen() {
     <SafeAreaView style={styles.root} edges={['top']}>
       <GlowBackground />
       <NavHeader
-        title={t('players.title')}
+        title={t('players.title').toUpperCase()}
         subtitle={t('settings.data.playersCount', { count: players.length })}
         onBack={() => goBack()}
         rightElement={
@@ -112,7 +112,7 @@ export default function PlayersScreen() {
             onPress={openCreate}
             activeOpacity={0.8}
           >
-            <Text style={styles.addBtnText}>{'+ ' + t('common.add')}</Text>
+            <Text style={styles.addBtnText}>{'+ ' + t('common.add').toUpperCase()}</Text>
           </TouchableOpacity>
         }
       />

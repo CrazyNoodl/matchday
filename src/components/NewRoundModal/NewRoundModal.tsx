@@ -67,7 +67,7 @@ export function NewRoundModal() {
   return (
     <Sheet visible={visible} onClose={close}>
         <View style={styles.sheet}>
-          <Text style={styles.title}>{t('tournament.newRound.title')}</Text>
+          <Text style={styles.title}>{t('tournament.newRound.title').toUpperCase()}</Text>
           <Text style={styles.subtitle} numberOfLines={1}>
             {t('tournament.newRound.subtitle', { name: tournamentName, round: rankedCompleted + 1 })}
           </Text>
@@ -87,7 +87,7 @@ export function NewRoundModal() {
 
           {/* Players section */}
           <Text style={styles.playersLabel}>
-            {t('tournament.newRound.playersLabel', { count: newRoundPlayerIds.size })}
+            {t('tournament.newRound.playersLabel', { count: newRoundPlayerIds.size }).toUpperCase()}
           </Text>
 
           <BottomSheetScrollView style={styles.playersList} showsVerticalScrollIndicator={false}>
@@ -140,7 +140,7 @@ export function NewRoundModal() {
               disabled={newRoundPlayerIds.size < 2}
             >
               <Text style={[styles.startText, newRoundPlayerIds.size < 2 && styles.startTextDisabled]}>
-                {t('tournament.newRound.start')}
+                {t('tournament.newRound.start').toUpperCase()}
               </Text>
             </TouchableOpacity>
           </View>

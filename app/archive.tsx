@@ -114,7 +114,7 @@ function ClosedTournamentCard({
                 {tournament.champName}
               </Text>
               <Text style={styles.champMeta}>
-                champion · {champDaysWon}d won
+                {t('archive.championDaysWon', { count: champDaysWon })}
               </Text>
             </View>
           ) : null}
@@ -129,7 +129,7 @@ function ClosedTournamentCard({
             }}
             activeOpacity={0.7}
           >
-            <Text style={styles.statsBtnText}>{t('stats.title').replace('\n', ' ')}</Text>
+            <Text style={styles.statsBtnText}>{t('stats.title').replace('\n', ' ').toUpperCase()}</Text>
           </TouchableOpacity>
           <Text style={[styles.chevron, expanded && styles.chevronExpanded]}>
             ›
@@ -213,7 +213,7 @@ export default function ArchiveScreen() {
       <GlowBackground />
 
       <NavHeader
-        title={t('archive.title')}
+        title={t('archive.title').toUpperCase()}
         onBack={() => goBack()}
       />
 

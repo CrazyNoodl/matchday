@@ -128,7 +128,7 @@ export default function MatchdayScreen() {
         <View style={styles.headerCenter}>
           <Text style={styles.headerTitle} numberOfLines={1} ellipsizeMode="tail">{tournamentName}</Text>
           <Text style={styles.headerSubtitle}>
-            {tournamentRanked ? t('matchday.round', { n: round }) : t('common.friendly')}
+            {tournamentRanked ? t('matchday.round', { n: round }) : t('common.friendly').toUpperCase()}
           </Text>
         </View>
         <View style={styles.headerRight}>
@@ -176,7 +176,7 @@ export default function MatchdayScreen() {
             style={{ marginBottom: Spacing.lg }}
             standings={standings}
             players={players}
-            playerLabel={t('table.player')}
+            playerLabel={t('table.player').toUpperCase()}
             compact
             columns={getStandingsTableColumns(t)}
           />
@@ -195,7 +195,7 @@ export default function MatchdayScreen() {
 
         {/* Matches */}
         <View style={styles.matchesSection}>
-          <SectionLabel label={t('matchday.matchesSection', { count: matches.length })} />
+          <SectionLabel label={t('matchday.matchesSection', { count: matches.length }).toUpperCase()} />
           <View style={styles.matchesList}>
             {matches.length === 0 ? (
               <EmptyState
@@ -211,7 +211,7 @@ export default function MatchdayScreen() {
                 return (
                   <View key={tour.tourNumber} style={styles.tourGroup}>
                     {showTourLabel && (
-                      <Text style={styles.tourLabel}>{t('matchday.tour', { n: tour.tourNumber })}</Text>
+                      <Text style={styles.tourLabel}>{t('matchday.tour', { n: tour.tourNumber }).toUpperCase()}</Text>
                     )}
                     <View style={styles.matchBlock}>
                       {reversed.map((m, idx) => (
@@ -244,7 +244,7 @@ export default function MatchdayScreen() {
             onPress={() => store.setModal('add')}
             activeOpacity={0.85}
           >
-            <Text style={styles.fabText}>{t('matchday.addMatch')}</Text>
+            <Text style={styles.fabText}>{t('matchday.addMatch').toUpperCase()}</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -307,7 +307,7 @@ export default function MatchdayScreen() {
         items={[
           {
             key: 'finish',
-            label: t('matchday.finish'),
+            label: t('matchday.finish').toUpperCase(),
             onPress: () => {
               roundMenu.close();
               handleFinishPress();
@@ -315,7 +315,7 @@ export default function MatchdayScreen() {
           },
           {
             key: 'stats',
-            label: t('home.stats'),
+            label: t('home.stats').toUpperCase(),
             onPress: () => {
               roundMenu.close();
               router.push('/stats');

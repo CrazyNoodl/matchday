@@ -37,9 +37,9 @@ export default function HomeScreen() {
 
   const SPORT_CHIPS = [
     { label: 'FC / FIFA', active: true, soon: false },
-    { label: 'Football', active: false, soon: true },
-    { label: 'Tennis', active: false, soon: true },
-    { label: 'Basketball', active: false, soon: true },
+    { label: t('home.sports.football'), active: false, soon: true },
+    { label: t('home.sports.tennis'), active: false, soon: true },
+    { label: t('home.sports.basketball'), active: false, soon: true },
   ];
 
   const standings = hasTournament
@@ -121,7 +121,7 @@ export default function HomeScreen() {
               </Text>
               {chip.soon && (
                 <View style={styles.soonBadge}>
-                  <Text style={styles.soonText}>{t('common.soon')}</Text>
+                  <Text style={styles.soonText}>{t('common.soon').toUpperCase()}</Text>
                 </View>
               )}
             </View>
@@ -140,7 +140,7 @@ export default function HomeScreen() {
               <View style={styles.tournamentCardHeaderLeft}>
                 <View style={styles.livePill}>
                   <View style={styles.livePillDot} />
-                  <Text style={styles.livePillText}>{t('home.liveTournament')}</Text>
+                  <Text style={styles.livePillText}>{t('home.liveTournament').toUpperCase()}</Text>
                 </View>
                 <Text style={styles.tournamentRoundText}>
                   {t('home.roundInfo', { round, total: displayTotalRounds })}
@@ -176,7 +176,7 @@ export default function HomeScreen() {
               <View style={styles.leaderInset}>
                 {leader ? (
                   <>
-                    <Text style={styles.leaderLabel}>{t('home.currentLeader')}</Text>
+                    <Text style={styles.leaderLabel}>{t('home.currentLeader').toUpperCase()}</Text>
                     <View style={styles.leaderContent}>
                       <Avatar playerId={leader.id} size="sm" />
                       <Text style={styles.leaderName}>
@@ -190,7 +190,7 @@ export default function HomeScreen() {
                     </View>
                   </>
                 ) : (
-                  <Text style={styles.leaderLabel}>{t('home.noLeaderTie')}</Text>
+                  <Text style={styles.leaderLabel}>{t('home.noLeaderTie').toUpperCase()}</Text>
                 )}
               </View>
             )}
@@ -200,7 +200,7 @@ export default function HomeScreen() {
             <View style={styles.noTournamentPlus}>
               <Text style={styles.noTournamentPlusText}>+</Text>
             </View>
-            <Text style={styles.noTournamentTitle}>{t('home.noActiveTournament')}</Text>
+            <Text style={styles.noTournamentTitle}>{t('home.noActiveTournament').toUpperCase()}</Text>
             <Text style={styles.noTournamentDesc}>
               {t('home.noActiveTournamentDesc')}
             </Text>
@@ -210,7 +210,7 @@ export default function HomeScreen() {
               activeOpacity={0.8}
             >
               <Text style={styles.startTournamentBtnText}>
-                {t('home.startNewTournament')}
+                {t('home.startNewTournament').toUpperCase()}
               </Text>
             </TouchableOpacity>
           </View>
@@ -242,7 +242,7 @@ export default function HomeScreen() {
                 matchDayDisabled && styles.newMatchDayBtnTextDisabled,
               ]}
             >
-              {roundOpen ? t('home.continueMatchDay') : t('home.newMatchDay')}
+              {roundOpen ? t('home.continueMatchDay').toUpperCase() : t('home.newMatchDay').toUpperCase()}
             </Text>
             {hasTournament && (
               <Text style={styles.newMatchDaySubtitle}>
@@ -261,7 +261,7 @@ export default function HomeScreen() {
           >
             <Text style={styles.quickIcon}>📊</Text>
             <View>
-              <Text style={styles.quickCardTitle}>{t('home.stats')}</Text>
+              <Text style={styles.quickCardTitle}>{t('home.stats').toUpperCase()}</Text>
               <Text style={styles.quickCardSub}>{t('home.gamesCount', { count: totalGames })}</Text>
             </View>
           </TouchableOpacity>
@@ -272,7 +272,7 @@ export default function HomeScreen() {
           >
             <Text style={styles.quickIcon}>🗂</Text>
             <View>
-              <Text style={styles.quickCardTitle}>{t('home.archive')}</Text>
+              <Text style={styles.quickCardTitle}>{t('home.archive').toUpperCase()}</Text>
               <Text style={styles.quickCardSub}>
                 {t('home.archiveCount', { tournaments: closedTournaments.length, games: closedGames })}
               </Text>

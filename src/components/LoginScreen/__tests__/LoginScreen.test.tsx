@@ -2,6 +2,7 @@
 // @testing-library/react-native v14: render, fireEvent.press and
 // fireEvent.changeText are all async — every call must be awaited.
 
+import '@/i18n';
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { LoginScreen } from '../LoginScreen';

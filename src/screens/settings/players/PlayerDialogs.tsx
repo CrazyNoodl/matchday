@@ -35,7 +35,7 @@ export function PlayerDialogs({
       >
         <View style={styles.dialogOverlay}>
           <View style={styles.dialog}>
-            <Text style={styles.dialogTitle}>CANNOT DELETE</Text>
+            <Text style={styles.dialogTitle}>{t('common.cannotDeleteTitle').toUpperCase()}</Text>
             <Text style={styles.dialogDesc}>
               {t('players.cannotDelete')}
             </Text>
@@ -44,7 +44,7 @@ export function PlayerDialogs({
               onPress={onCloseCannotDelete}
               activeOpacity={0.85}
             >
-              <Text style={styles.dialogConfirmText}>OK</Text>
+              <Text style={styles.dialogConfirmText}>{t('common.ok')}</Text>
             </TouchableOpacity>
           </View>
         </View>

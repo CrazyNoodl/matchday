@@ -51,29 +51,29 @@ export function TeamEditSheet({
     <Sheet visible={visible} onClose={onClose}>
       <View style={styles.sheet}>
         <Text style={styles.sheetTitle}>
-          {editingTeam ? t('teams.editTitle') : 'NEW TEAM'}
+          {editingTeam ? t('teams.editTitle').toUpperCase() : t('teams.newTitle').toUpperCase()}
         </Text>
 
         <BottomSheetScrollView style={{ maxHeight: 360 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
           <View style={styles.formGroup}>
-            <Text style={styles.formLabel}>TEAM NAME</Text>
+            <Text style={styles.formLabel}>{t('teams.form.name').toUpperCase()}</Text>
             <TextInput
               style={styles.input}
               value={formName}
               onChangeText={onChangeName}
-              placeholder="e.g. Manchester City"
+              placeholder={t('teams.form.namePlaceholder')}
               placeholderTextColor={colors.text.placeholder}
               autoCorrect={false}
             />
           </View>
 
           <View style={styles.formGroup}>
-            <Text style={styles.formLabel}>SHORT CODE (3 letters)</Text>
+            <Text style={styles.formLabel}>{t('teams.form.shortCode').toUpperCase()}</Text>
             <TextInput
               style={styles.input}
               value={formShort}
               onChangeText={(v) => onChangeShort(v.slice(0, 3).toUpperCase())}
-              placeholder="e.g. MCI"
+              placeholder={t('teams.form.shortCodePlaceholder')}
               placeholderTextColor={colors.text.placeholder}
               autoCorrect={false}
               autoCapitalize="characters"
@@ -82,7 +82,7 @@ export function TeamEditSheet({
           </View>
 
           <View style={styles.formGroup}>
-            <Text style={styles.formLabel}>LOGO (OPTIONAL)</Text>
+            <Text style={styles.formLabel}>{t('teams.form.logo').toUpperCase()}</Text>
             <View style={styles.logoRow}>
               <TouchableOpacity
                 style={styles.logoPickerBtn}
@@ -109,7 +109,7 @@ export function TeamEditSheet({
           </View>
 
           <View style={styles.formGroup}>
-            <Text style={styles.formLabel}>{t('setup.form.color')}</Text>
+            <Text style={styles.formLabel}>{t('setup.form.color').toUpperCase()}</Text>
             <View style={styles.colorPicker}>
               {teamColors.map((c) => (
                 <TouchableOpacity
@@ -133,7 +133,7 @@ export function TeamEditSheet({
             onPress={onClose}
             activeOpacity={0.75}
           >
-            <Text style={styles.cancelBtnText}>{t('common.cancel')}</Text>
+            <Text style={styles.cancelBtnText}>{t('common.cancel').toUpperCase()}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.saveBtn, !canSave && styles.saveBtnDisabled]}
@@ -143,8 +143,8 @@ export function TeamEditSheet({
           >
             <Text style={[styles.saveBtnText, !canSave && styles.saveBtnTextDisabled]}>
               {logoUploading
-                ? 'UPLOADING...'
-                : editingTeam ? t('common.save').toUpperCase() : 'ADD TEAM'}
+                ? t('teams.uploading').toUpperCase()
+                : editingTeam ? t('common.save').toUpperCase() : t('teams.addBtn').toUpperCase()}
             </Text>
           </TouchableOpacity>
         </View>

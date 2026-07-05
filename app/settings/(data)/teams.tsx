@@ -138,7 +138,7 @@ export default function TeamsScreen() {
     <SafeAreaView style={styles.root} edges={['top']}>
       <GlowBackground />
       <NavHeader
-        title={t('teams.title')}
+        title={t('teams.title').toUpperCase()}
         subtitle={t('settings.data.teamsCount', { count: teams.length })}
         onBack={() => goBack()}
         rightElement={
@@ -147,7 +147,7 @@ export default function TeamsScreen() {
             onPress={openCreate}
             activeOpacity={0.8}
           >
-            <Text style={styles.addBtnText}>{'+ ' + t('common.add')}</Text>
+            <Text style={styles.addBtnText}>{'+ ' + t('common.add').toUpperCase()}</Text>
           </TouchableOpacity>
         }
       />

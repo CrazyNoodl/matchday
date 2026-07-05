@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useStore } from '../../store';
 import { Standing } from '../../utils/standings';
 import { useColors } from '../../theme';
@@ -22,6 +23,7 @@ export function StandingCard({
   playerId,
   showFormChips = true,
 }: StandingCardProps) {
+  const { t } = useTranslation();
   const colors = useColors();
   const styles = makeStyles(colors);
   const player = useStore((s) => s.players.find((p) => p.id === playerId));
@@ -64,7 +66,7 @@ export function StandingCard({
           </Text>
           {isLeader && (
             <View style={styles.leaderBadge}>
-              <Text style={styles.leaderText}>LEADER</Text>
+              <Text style={styles.leaderText}>{t('common.leader').toUpperCase()}</Text>
             </View>
           )}
         </View>
@@ -106,7 +108,7 @@ export function StandingCard({
         <Text style={styles.pts}>
           {standing.pts}
         </Text>
-        <Text style={styles.ptsLabel}>PTS</Text>
+        <Text style={styles.ptsLabel}>{t('common.pts')}</Text>
       </View>
     </View>
   );

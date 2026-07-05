@@ -101,7 +101,7 @@ export default function TournamentScreen() {
 
         <View style={styles.headerCenter}>
           <Text style={styles.headerTitle} numberOfLines={1}>
-            {tournamentName || 'TOURNAMENT'}
+            {tournamentName || t('tournament.sheet.title').toUpperCase()}
           </Text>
           <Text style={styles.headerSubtitle} numberOfLines={1}>
             {headerSubtitle}
@@ -123,12 +123,12 @@ export default function TournamentScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* ---- TOURNAMENT STANDINGS ---- */}
-        <SectionLabel label={t('tournament.standings')} style={styles.sectionLabel} />
+        <SectionLabel label={t('tournament.standings').toUpperCase()} style={styles.sectionLabel} />
 
         <StandingsTable
           standings={standings}
           players={players}
-          playerLabel={t('table.player')}
+          playerLabel={t('table.player').toUpperCase()}
           emptyLabel={t('tournament.noMatches')}
           columns={getStandingsTableColumns(t)}
         />
@@ -136,7 +136,7 @@ export default function TournamentScreen() {
         {/* ---- CURRENT MATCH DAY (only if roundOpen) ---- */}
         {roundOpen && (
           <>
-            <SectionLabel label={t('tournament.currentMatchDay')} style={styles.sectionLabel} />
+            <SectionLabel label={t('tournament.currentMatchDay').toUpperCase()} style={styles.sectionLabel} />
 
             <View style={styles.matchDayCard}>
               <View style={styles.matchDayLeft}>
@@ -148,7 +148,7 @@ export default function TournamentScreen() {
                 {/* In progress label */}
                 <View style={styles.inProgressRow}>
                   <View style={styles.inProgressDot} />
-                  <Text style={styles.inProgressText}>{t('tournament.inProgress')}</Text>
+                  <Text style={styles.inProgressText}>{t('tournament.inProgress').toUpperCase()}</Text>
                 </View>
 
                 {/* Match count */}
@@ -178,7 +178,7 @@ export default function TournamentScreen() {
 
         {/* ---- PLAYED ROUNDS ---- */}
         <SectionLabel
-          label={t('tournament.playedRounds', { count: archivedRounds.length })}
+          label={t('tournament.playedRounds', { count: archivedRounds.length }).toUpperCase()}
           style={styles.sectionLabel}
         />
 
@@ -241,7 +241,7 @@ export default function TournamentScreen() {
             {/* Header row */}
             <View style={sheetStyles.sheetHeaderRow}>
               <View style={sheetStyles.sheetTitleBlock}>
-                <Text style={sheetStyles.sheetTitle}>{t('tournament.sheet.title')}</Text>
+                <Text style={sheetStyles.sheetTitle}>{t('tournament.sheet.title').toUpperCase()}</Text>
                 <Text style={sheetStyles.sheetSubtitle} numberOfLines={1}>
                   {tournamentName}
                 </Text>
@@ -315,7 +315,7 @@ export default function TournamentScreen() {
       {/* ---- Edit Tournament Name Sheet ---- */}
       <Sheet visible={modal === 'editTourName'} onClose={() => store.setModal('tourSettings')} avoidKeyboard>
           <View style={sheetStyles.sheet}>
-            <Text style={sheetStyles.sheetTitle}>{t('tournament.rename.title')}</Text>
+            <Text style={sheetStyles.sheetTitle}>{t('tournament.rename.title').toUpperCase()}</Text>
             <BottomSheetTextInput
               style={inputStyles.input}
               value={renameValue}
@@ -380,7 +380,7 @@ export default function TournamentScreen() {
         <View style={dialogStyles.overlay}>
           <View style={dialogStyles.dialog}>
             <Text style={dialogStyles.dialogIcon}>🏆</Text>
-            <Text style={dialogStyles.dialogTitle}>{t('tournament.close.title')}</Text>
+            <Text style={dialogStyles.dialogTitle}>{t('tournament.close.title').toUpperCase()}</Text>
             <Text style={dialogStyles.dialogDesc}>
               {t('tournament.close.desc')}
             </Text>
@@ -414,7 +414,7 @@ export default function TournamentScreen() {
       <ShareStandingsModal
         visible={shareStandingsVisible}
         onClose={() => setShareStandingsVisible(false)}
-        tournamentName={tournamentName || 'TOURNAMENT'}
+        tournamentName={tournamentName || t('tournament.sheet.title').toUpperCase()}
         subtitle={shareRoundLabel}
         standings={standings}
       />

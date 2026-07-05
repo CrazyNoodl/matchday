@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Image, ActivityIndicator, Modal } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useGoBack } from '@/utils/useGoBack';
 import { NavHeader, SectionLabel, StatsRow, GlowBackground } from '@/components';
@@ -45,6 +46,7 @@ export default function OcrLabScreen() {
   const colors = useColors();
   const styles = makeStyles(colors);
   const dialogStyles = makeDialogStyles(colors);
+  const { t } = useTranslation();
 
   const getStripeColor = (c: ExtractedStat['confidence']): string | null => {
     if (c === 'low') return '#ffa032';
@@ -112,7 +114,7 @@ export default function OcrLabScreen() {
       setStats(mergeStatArrays(allResults));
     } catch (e: any) {
       setScanProgress(null);
-      setError(e.message ?? 'Scan failed');
+      setError(e.message ?? t('ocrLab.scanFailedFallback'));
     } finally {
       setScanning(false);
     }
@@ -123,7 +125,7 @@ export default function OcrLabScreen() {
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
       <GlowBackground variant="blue" />
-      <NavHeader title="OCR Lab" onBack={() => goBack()} />
+      <NavHeader title={t('ocrLab.title')} onBack={() => goBack()} />
 
       <ScrollView
         style={styles.scroll}
@@ -149,7 +151,7 @@ export default function OcrLabScreen() {
             <TouchableOpacity style={styles.thumbAdd} onPress={addPhotos} activeOpacity={0.8}>
               <Text style={styles.thumbAddIcon}>+</Text>
               <Text style={styles.thumbAddLabel}>
-                {photos.length === 0 ? 'Add photos' : 'Add more'}
+                {photos.length === 0 ? t('ocrLab.addPhotos') : t('ocrLab.addMore')}
               </Text>
             </TouchableOpacity>
           )}
@@ -157,7 +159,9 @@ export default function OcrLabScreen() {
 
         {photos.length > 0 && (
           <Text style={styles.photoCount}>
-            {photos.length} photo{photos.length > 1 ? 's' : ''} selected · tap × to remove
+            {photos.length === 1
+              ? t('ocrLab.photosSelected', { count: photos.length })
+              : t('ocrLab.photosSelectedPlural', { count: photos.length })}
           </Text>
         )}
 
@@ -171,11 +175,11 @@ export default function OcrLabScreen() {
           {scanning ? (
             <View style={styles.scanBtnRow}>
               <ActivityIndicator color={colors.bg.base} size="small" />
-              <Text style={styles.scanBtnText}>{scanProgress ?? 'Scanning...'}</Text>
+              <Text style={styles.scanBtnText}>{scanProgress ?? t('ocrLab.scanning')}</Text>
             </View>
           ) : (
             <Text style={styles.scanBtnText}>
-              {photos.length > 1 ? `Scan ${photos.length} photos with AI` : 'Scan with AI'}
+              {photos.length > 1 ? t('ocrLab.scanWithCount', { count: photos.length }) : t('ocrLab.scanGeneric')}
             </Text>
           )}
         </TouchableOpacity>
@@ -183,7 +187,7 @@ export default function OcrLabScreen() {
         {/* Error */}
         {error && (
           <View style={styles.errorCard}>
-            <Text style={styles.errorTitle}>Scan failed</Text>
+            <Text style={styles.errorTitle}>{t('ocrLab.scanFailedTitle')}</Text>
             <Text style={styles.errorText}>{error}</Text>
           </View>
         )}
@@ -192,12 +196,12 @@ export default function OcrLabScreen() {
         {stats && stats.length > 0 && (
           <>
             <View style={styles.resultHeader}>
-              <SectionLabel label="EXTRACTED STATS" />
+              <SectionLabel label={t('ocrLab.extractedStats').toUpperCase()} />
               <View style={styles.resultMeta}>
-                <Text style={styles.resultMetaText}>{stats.length} found</Text>
+                <Text style={styles.resultMetaText}>{t('ocrLab.found', { count: stats.length })}</Text>
                 {lowCount > 0 && (
                   <View style={styles.metaBadgeLow}>
-                    <Text style={styles.metaBadgeLowText}>{lowCount} uncertain</Text>
+                    <Text style={styles.metaBadgeLowText}>{t('ocrLab.uncertain', { count: lowCount })}</Text>
                   </View>
                 )}
               </View>
@@ -237,11 +241,11 @@ export default function OcrLabScreen() {
               <View style={styles.legend}>
                 <View style={styles.legendRow}>
                   <View style={[styles.legendStripe, { backgroundColor: '#ffa032' }]} />
-                  <Text style={styles.legendText}>Orange — uncertain, verify manually</Text>
+                  <Text style={styles.legendText}>{t('ocrLab.legendOrange')}</Text>
                 </View>
                 <View style={styles.legendRow}>
                   <View style={[styles.legendStripe, { backgroundColor: colors.accent.yellow }]} />
-                  <Text style={styles.legendText}>Yellow — slightly unclear in image</Text>
+                  <Text style={styles.legendText}>{t('ocrLab.legendYellow')}</Text>
                 </View>
               </View>
             )}
@@ -254,14 +258,14 @@ export default function OcrLabScreen() {
       <Modal visible={showMaxPhotosDialog} transparent animationType="fade" statusBarTranslucent onRequestClose={() => setShowMaxPhotosDialog(false)}>
         <View style={dialogStyles.overlay}>
           <View style={dialogStyles.dialog}>
-            <Text style={dialogStyles.dialogTitle}>Max 4 photos</Text>
-            <Text style={dialogStyles.dialogDesc}>Remove one first.</Text>
+            <Text style={dialogStyles.dialogTitle}>{t('ocrLab.maxPhotos')}</Text>
+            <Text style={dialogStyles.dialogDesc}>{t('ocrLab.removeOneFirst')}</Text>
             <TouchableOpacity
               style={dialogStyles.confirmBtn}
               onPress={() => setShowMaxPhotosDialog(false)}
               activeOpacity={0.85}
             >
-              <Text style={dialogStyles.confirmText}>OK</Text>
+              <Text style={dialogStyles.confirmText}>{t('common.ok')}</Text>
             </TouchableOpacity>
           </View>
         </View>

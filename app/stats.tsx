@@ -149,7 +149,7 @@ export default function StatsScreen() {
           <Text style={styles.chevron}>‹</Text>
         </TouchableOpacity>
         <View style={styles.headerTitleWrap}>
-          {t('stats.title').split('\n').map((line, i) => (
+          {t('stats.title').toUpperCase().split('\n').map((line, i) => (
             <Text key={i} style={styles.headerTitle}>{line}</Text>
           ))}
         </View>
@@ -230,7 +230,7 @@ function RankingTab({
     },
   ];
 
-  const sectionLabel = t('stats.allTime');
+  const sectionLabel = t('stats.allTime').toUpperCase();
 
   return (
     <View style={styles.tabContent}>
@@ -264,11 +264,11 @@ function RankingTab({
       {/* Stat tiles */}
       <View style={styles.tilesRow}>
         <View style={styles.statTile}>
-          <Text style={styles.statTileLabel}>{t('stats.matchDaysPlayed')}</Text>
+          <Text style={styles.statTileLabel}>{t('stats.matchDaysPlayed').toUpperCase()}</Text>
           <Text style={styles.statTileValue}>{matchDaysPlayed}</Text>
         </View>
         <View style={styles.statTile}>
-          <Text style={styles.statTileLabel}>{t('stats.goalsScored')}</Text>
+          <Text style={styles.statTileLabel}>{t('stats.goalsScored').toUpperCase()}</Text>
           <Text style={[styles.statTileValue, styles.statTileValueGreen]}>
             {totalGoals}
           </Text>
@@ -291,7 +291,7 @@ function H2HTab({ pairs }: H2HTabProps) {
   const styles = makeStyles(colors);
   return (
     <View style={styles.tabContent}>
-      <SectionLabel label={t('stats.rivalries')} style={styles.sectionLabel} />
+      <SectionLabel label={t('stats.rivalries').toUpperCase()} style={styles.sectionLabel} />
 
       {pairs.map((pair) => {
         const { playerA, playerB, aWins, bWins, draws, aGoals, bGoals, games } = pair;

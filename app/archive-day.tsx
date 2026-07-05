@@ -35,8 +35,8 @@ function DayWinnerBanner({ winnerId, matchCount }: DayWinnerBannerProps) {
 
   return (
     <View style={styles.winnerCard}>
-      <Text style={styles.winnerLabel}>♦ {t('archive.dayWinner')} ♦</Text>
-      <Text style={styles.winnerMatchCount}>{t('archive.matchCount', { count: matchCount })}</Text>
+      <Text style={styles.winnerLabel}>♦ {t('archive.dayWinner').toUpperCase()} ♦</Text>
+      <Text style={styles.winnerMatchCount}>{t('archive.matchCount', { count: matchCount }).toUpperCase()}</Text>
       <View style={styles.winnerLogoWrap}>
         <CardAvatar teamCode={player?.teamCode} size={56} />
       </View>
@@ -218,13 +218,13 @@ export default function ArchiveDayScreen() {
         {standings.length > 0 && (
           <>
             <View style={styles.sectionLabelRow}>
-              <SectionLabel label={t('tournament.standings')} />
+              <SectionLabel label={t('tournament.standings').toUpperCase()} />
             </View>
 
             <StandingsTable
               standings={standings}
               players={players}
-              playerLabel={t('table.player')}
+              playerLabel={t('table.player').toUpperCase()}
               columns={getStandingsTableColumns(t)}
             />
           </>
@@ -232,7 +232,7 @@ export default function ArchiveDayScreen() {
 
         {/* Section label */}
         <View style={[styles.sectionLabelRow, standings.length > 0 && styles.sectionLabelRowTop]}>
-          <SectionLabel label={t('archive.allMatches')} />
+          <SectionLabel label={t('archive.allMatches').toUpperCase()} />
         </View>
 
         {/* Match list */}
@@ -249,7 +249,7 @@ export default function ArchiveDayScreen() {
             return (
               <View key={tour.tourNumber} style={styles.tourGroup}>
                 {showTourLabel && (
-                  <Text style={styles.tourLabel}>{t('matchday.tour', { n: tour.tourNumber })}</Text>
+                  <Text style={styles.tourLabel}>{t('matchday.tour', { n: tour.tourNumber }).toUpperCase()}</Text>
                 )}
                 <View style={styles.matchBlock}>
                   {reversed.map((m: Match, idx) => (
@@ -321,7 +321,7 @@ export default function ArchiveDayScreen() {
         <View style={dialogStyles.overlay}>
           <View style={dialogStyles.dialog}>
             <Text style={[dialogStyles.dialogIcon, { color: colors.accent.red }]}>🗑</Text>
-            <Text style={dialogStyles.dialogTitle}>{t('archive.deleteRoundTitle')}</Text>
+            <Text style={dialogStyles.dialogTitle}>{t('archive.deleteRoundTitle').toUpperCase()}</Text>
             <Text style={dialogStyles.dialogDesc}>{t('archive.deleteRoundDesc')}</Text>
             <View style={dialogStyles.actions}>
               <TouchableOpacity style={dialogStyles.cancelBtn} onPress={() => setDeleteVisible(false)} activeOpacity={0.75}>
@@ -342,7 +342,7 @@ export default function ArchiveDayScreen() {
       {/* Edit round date sheet */}
       <Sheet visible={editDateVisible} onClose={() => setEditDateVisible(false)} avoidKeyboard>
         <View style={styles.dateSheet}>
-          <Text style={styles.dateSheetTitle}>{t('archive.editDate.title')}</Text>
+          <Text style={styles.dateSheetTitle}>{t('archive.editDate.title').toUpperCase()}</Text>
           <BottomSheetTextInput
             style={[inputStyles.input, dateError && styles.dateInputError]}
             value={dateValue}

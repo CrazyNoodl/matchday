@@ -63,7 +63,7 @@ export function SaveMatchErrorDialog({ visible, onClose }: SaveMatchErrorDialogP
             onPress={onClose}
             activeOpacity={0.85}
           >
-            <Text style={[dialogStyles.confirmText, { color: '#fff' }]}>{t('common.done')}</Text>
+            <Text style={[dialogStyles.confirmText, { color: '#fff' }]}>{t('common.done').toUpperCase()}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -89,7 +89,7 @@ export function EndRoundDialog({ visible, onClose, onConfirm, leader, leaderName
       <View style={dialogStyles.overlay}>
         <View style={dialogStyles.dialog}>
           <Text style={dialogStyles.dialogIcon}>🏁</Text>
-          <Text style={dialogStyles.dialogTitle}>{t('matchday.dialogs.finishTitle')}</Text>
+          <Text style={dialogStyles.dialogTitle}>{t('matchday.dialogs.finishTitle').toUpperCase()}</Text>
           <Text style={dialogStyles.dialogDesc}>
             {t('matchday.dialogs.finishDesc')}{'\n'}
             {leader ? t('matchday.dialogs.leading', { name: leaderName, pts: leader.pts }) : ''}
@@ -125,7 +125,7 @@ export function NeedEqualDialog({ visible, onClose, standings, players }: NeedEq
       <View style={dialogStyles.overlay}>
         <View style={dialogStyles.dialog}>
           <Text style={dialogStyles.dialogIcon}>⚖️</Text>
-          <Text style={dialogStyles.dialogTitle}>{t('matchday.dialogs.evenGamesTitle')}</Text>
+          <Text style={dialogStyles.dialogTitle}>{t('matchday.dialogs.evenGamesTitle').toUpperCase()}</Text>
           <Text style={dialogStyles.dialogDesc}>{t('matchday.dialogs.evenGamesDesc')}</Text>
           {standings.map((s) => {
             const player = players.find((p) => p.id === s.playerId);
@@ -162,7 +162,7 @@ export function DeleteMatchDialog({ visible, onClose, onConfirm }: DeleteMatchDi
       <View style={dialogStyles.overlay}>
         <View style={dialogStyles.dialog}>
           <Text style={[dialogStyles.dialogIcon, { color: colors.accent.red }]}>🗑</Text>
-          <Text style={dialogStyles.dialogTitle}>{t('matchday.dialogs.deleteTitle')}</Text>
+          <Text style={dialogStyles.dialogTitle}>{t('matchday.dialogs.deleteTitle').toUpperCase()}</Text>
           <Text style={dialogStyles.dialogDesc}>{t('matchday.dialogs.deleteDesc')}</Text>
           <View style={dialogStyles.actions}>
             <TouchableOpacity style={dialogStyles.cancelBtn} onPress={onClose} activeOpacity={0.75}>
@@ -198,7 +198,7 @@ export function DeleteRoundDialog({ visible, onClose, onConfirm }: DeleteRoundDi
       <View style={dialogStyles.overlay}>
         <View style={dialogStyles.dialog}>
           <Text style={[dialogStyles.dialogIcon, { color: colors.accent.red }]}>🗑</Text>
-          <Text style={dialogStyles.dialogTitle}>{t('matchday.dialogs.deleteRoundTitle')}</Text>
+          <Text style={dialogStyles.dialogTitle}>{t('matchday.dialogs.deleteRoundTitle').toUpperCase()}</Text>
           <Text style={dialogStyles.dialogDesc}>{t('matchday.dialogs.deleteRoundDesc')}</Text>
           <View style={dialogStyles.actions}>
             <TouchableOpacity style={dialogStyles.cancelBtn} onPress={onClose} activeOpacity={0.75}>
@@ -241,20 +241,20 @@ export function WinnerCelebrationModal({ visible, onDone, winnerId, winner }: Wi
         <View style={winnerStyles.content}>
           {winnerId ? (
             <>
-              <Text style={winnerStyles.matchDayLabel}>{t('matchday.winner.winnerLabel')}</Text>
+              <Text style={winnerStyles.matchDayLabel}>{t('matchday.winner.winnerLabel').toUpperCase()}</Text>
               <Text style={winnerStyles.trophyEmoji}>🏆</Text>
               <Avatar playerId={winnerId} size="xl" />
-              <Text style={winnerStyles.winnerName}>{winner?.nick ?? winner?.name ?? 'Winner'}</Text>
+              <Text style={winnerStyles.winnerName}>{winner?.nick ?? winner?.name ?? t('common.unknown')}</Text>
             </>
           ) : (
             <>
-              <Text style={winnerStyles.matchDayLabel}>{t('matchday.winner.drawLabel')}</Text>
+              <Text style={winnerStyles.matchDayLabel}>{t('matchday.winner.drawLabel').toUpperCase()}</Text>
               <Text style={winnerStyles.trophyEmoji}>🤝</Text>
-              <Text style={winnerStyles.winnerName}>{t('matchday.winner.draw')}</Text>
+              <Text style={winnerStyles.winnerName}>{t('matchday.winner.draw').toUpperCase()}</Text>
             </>
           )}
           <TouchableOpacity style={winnerStyles.doneBtn} onPress={onDone} activeOpacity={0.85}>
-            <Text style={winnerStyles.doneBtnText}>{t('matchday.winner.done')}</Text>
+            <Text style={winnerStyles.doneBtnText}>{t('matchday.winner.done').toUpperCase()}</Text>
           </TouchableOpacity>
         </View>
       </View>
