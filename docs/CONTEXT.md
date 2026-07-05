@@ -141,7 +141,7 @@ closedTournaments — fully finished tournaments (hasTournament = false after cl
 | Storybook: real dark/light theming, full component coverage (27/27) | `.storybook/`, `src/components/*/*.stories.tsx` |
 | Loading feedback during stat re-scan / media upload (preparing → uploading → scanning) | `src/screens/match/useMatchDetail.ts`, `app/match/[id].tsx` |
 | Stat edit: fixed order, all 23 params always shown, AI-confidence dot, per-photo OCR validation gate | `src/utils/mergedStats.ts`, `src/screens/match/useMatchDetail.ts`, `src/screens/match/MatchModals.tsx` |
-| Offline handling, phase 1: boot-time stub for logged-out users, non-blocking banner for logged-in users | `src/hooks/useIsOnline.ts`, `app/_layout.tsx` |
+| Offline handling, phase 1: boot-time stub/banner, persisted pending-sync + push-before-pull on reconnect, per-feature upload/delete gating | `src/hooks/useIsOnline.ts`, `src/hooks/useIsOffline.ts`, `app/_layout.tsx`, `src/supabase/useSyncManager.ts` |
 
 ## Media upload — implementation detail
 
@@ -344,9 +344,11 @@ Swept remaining hardcoded English UI strings (dialog titles/buttons, form labels
 
 ---
 
-## Offline handling — implementation detail (2026-07-05, phase 1)
+## Offline handling — implementation detail (2026-07-05/06, phase 1)
 
-**Scope note:** this is phase 1 of a staged plan (issue #73) — a quick, safe boot-time treatment. Phase 2 (per-feature gating of OCR/upload/sync, a visible sync-status indicator, queued-changes retry on reconnect) is **not** implemented yet.
+**Scope note:** phase 1 of a staged plan (issue #73). Boot-time stub/banner, queued-changes retry on reconnect, and per-feature upload/delete gating are all implemented (below). **Still not implemented:** a persistent visible sync-status indicator (e.g. "2 changes pending") — `syncStatus` exists in the store but nothing renders it as user-facing UI beyond the transient offline banner.
+
+- **Persisted pending-sync + reconnect retry** (`src/supabase/useSyncManager.ts`, `src/store/index.ts`): dirty-table tracking used to live only in an in-memory `useRef` (`dirtyRef`), so an app crash/force-quit/OS eviction before the debounced push fired silently lost the edit — it was never retried because nothing marked the tables dirty again on next launch. Fixed by mirroring `dirtyRef` into a new persisted store field, `pendingSyncTables` (included in `partialize()`), via a `persistDirty()` helper guarded against re-entering the store-subscribe listener it triggers. On launch, `init()` seeds `dirtyRef` from `pendingSyncTables` and — if non-empty — pushes before ever pulling (pull's `applyCloudState()` is a blind overwrite, not a merge, and would wipe the unsynced local edits with a stale cloud snapshot). The offline→online transition is handled the same way via a `reconnectRef` callback wired from a dedicated `useEffect` watching `useIsOnline()`: push first if there's anything dirty, otherwise just pull to catch up on other devices' changes. Covered by `src/supabase/__tests__/useSyncManager.coldStartClobber.test.ts` and `useSyncManager.reconnect.test.ts`.
 
 - New `useIsOnline()` hook (`src/hooks/useIsOnline.ts`): native uses `@react-native-community/netinfo` (`NetInfo.addEventListener`, treating `isConnected`/`isInternetReachable` `null` as online — avoids false "offline" on ambiguous states). **Web deliberately bypasses NetInfo** and listens to `window`'s `online`/`offline` events directly: confirmed via Chromium that NetInfo's web implementation prefers the Network Information API (`navigator.connection.addEventListener('change', ...)`) when the browser exposes it, and that event does not reliably fire on a real connectivity drop (`navigator.onLine` and window `online`/`offline` do fire correctly). Using NetInfo as-is on web silently never detected offline.
 - `app/_layout.tsx`: two behaviors gated on `isOnline`, both intentionally shallow (see scope note):
@@ -355,6 +357,18 @@ Swept remaining hardcoded English UI strings (dialog titles/buttons, form labels
 - **Regression found and fixed before landing:** the first version of `OfflineBanner` had an inverted condition (`if (!isOnline || demoMode) return null`, should be `if (isOnline || demoMode) return null`), so the banner rendered whenever the app was *online* — i.e. on every normal screen. Combined with `position: 'absolute', bottom: 0` and no `pointerEvents`, it silently intercepted taps on bottom-anchored buttons (`e2e/06.game-loop.spec.ts`'s "START TOURNAMENT" click hung for the full 90s timeout, `locator.click` log showed the banner's `<div>` "intercepts pointer events"). Fixed both the inverted condition and added `pointerEvents="none"` on the banner's root `View` as defense-in-depth — a purely informational banner must never be able to block interaction with whatever's underneath it, regardless of position, since connectivity APIs (both NetInfo and the browser's) are known to have false positives.
 - New regression test: `e2e/09.offline.spec.ts` — toggles `page.context().setOffline()`, asserts the banner appears/disappears and that a bottom CTA (`START NEW TOURNAMENT`) stays clickable while offline. Added to `@smoke`.
 - `useIsOnline` has two Jest test files: `src/hooks/__tests__/useIsOnline.test.ts` (native/NetInfo branch) and `useIsOnline.web.test.ts` (web branch — mocks `Platform.OS: 'web'` and hand-rolls a minimal `EventTarget`-based `window`/`navigator` since the project's Jest `testEnvironment` is `node`, no jsdom). Note for future tests in this style: a local `afterEach` that restores `global.window`/`global.navigator` will run *before* `@testing-library/react-native`'s own auto-unmount `afterEach` (Jest runs inner-scope `afterEach` before outer/module-scope ones), causing the hook's cleanup to fire against the wrong `window` — the fix here was to not restore the fake globals between tests at all (harmless since each test reassigns a fresh one in `beforeEach`).
+
+### Per-feature offline gating (2026-07-06)
+
+Disables every UI action that performs a network upload/delete while offline, instead of letting the user tap it and hit a confusing failure later:
+
+- New `useIsOffline()` hook (`src/hooks/useIsOffline.ts`), built on `expo-network`'s `useNetworkState()` — **not** the same hook as `useIsOnline()` above (built independently on `@react-native-community/netinfo`, opposite polarity). Both work correctly and now coexist; worth consolidating into a single hook next time either is touched, but out of scope for this change.
+- Buttons gated on `isOffline` (`disabled` + a dimmed style, matching each screen's existing disabled-state pattern):
+  - Add Match step 3 media picker (`src/screens/round/AddMatchSheet.tsx`)
+  - Match detail: "+ Add" media (header + empty-state), "Import stats" (OCR), pending-upload retry thumbnail, media delete (×) — all in `app/match/[id].tsx` / `src/screens/match/useMatchDetail.ts`
+  - Team logo picker and remove-logo (×) in `src/screens/settings/teams/TeamEditSheet.tsx`
+- Deliberately **not** gated: login/sign-out (a different category — blocking them offline would remove the only path to recover, and they already surface a failure via the normal auth error path), and dev-only screens (`ocr-lab.tsx`, `resize-lab.tsx`, `import-round.tsx` — the last one is pure local parsing anyway, no network call to gate).
+- Verified via live Playwright smoke runs using `page.context().setOffline(true/false)` against the real dev server (not committed as permanent e2e specs — ad hoc verification only), confirming each button gets `aria-disabled="true"` + `pointer-events: none` offline and reverts online.
 
 ---
 
