@@ -75,6 +75,12 @@ interface RootActions {
     roundPlayers: string[];
   }) => void;
   resetStore: () => Promise<void>;
+  // Sync tables not yet pushed to Supabase. Persisted (unlike useSyncManager's
+  // in-memory dirty tracking) so an app crash/force-quit/OS eviction before a
+  // push completes doesn't silently lose the edit on next launch — see
+  // useSyncManager's init(), which pushes these before ever pulling.
+  pendingSyncTables: string[];
+  setPendingSyncTables: (tables: string[]) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -122,6 +128,9 @@ export const useStore = create<RootState>()(
         });
       },
 
+      pendingSyncTables: [],
+      setPendingSyncTables: (tables) => set({ pendingSyncTables: tables }),
+
       resetStore: async () => {
         const s = get();
         const matchUris = [
@@ -158,6 +167,7 @@ export const useStore = create<RootState>()(
           closedTournaments: [],
           players: [],
           teams: [],
+          pendingSyncTables: [],
           showNick: true,
           showTeamLogo: true,
           colorScheme: 'dark',
@@ -205,6 +215,7 @@ export const useStore = create<RootState>()(
         closedTournaments: state.closedTournaments,
         players: state.players,
         teams: state.teams,
+        pendingSyncTables: state.pendingSyncTables,
         showNick: state.showNick,
         showTeamLogo: state.showTeamLogo,
         colorScheme: state.colorScheme,

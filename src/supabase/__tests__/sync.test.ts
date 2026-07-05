@@ -162,6 +162,31 @@ describe('pushState', () => {
     const tournamentDelete = calls.find((c) => c.table === 'tournaments' && c.method === 'delete');
     expect(tournamentDelete).toBeDefined();
   });
+
+  it('throws instead of silently succeeding when a table write errors', async () => {
+    // Regression test: every upsert/delete used to be a bare `await`, ignoring
+    // Supabase's `{ data: null, error }` result (query errors — auth, RLS, FK
+    // violations — resolve rather than reject). useSyncManager's runPush()
+    // only detects failure via a thrown exception, so a swallowed error
+    // looked identical to success: the dirty flag got cleared, and the next
+    // pull then overwrote local state with cloud data that never actually
+    // received the write. In practice: add a match while offline, reconnect
+    // — its push "succeeds" without writing anything, and the match vanishes
+    // on the very next pull.
+    mockGetCurrentUserId.mockResolvedValue('user-1');
+    const { db } = buildMockDb({
+      matches: { data: null, error: { message: 'insert or update on table "matches" violates foreign key constraint' } },
+    });
+    setMockDb(db);
+
+    await expect(
+      pushState({
+        ...basePayload,
+        tournamentId: 'tour-1',
+        matches: [{ id: 'm1', aId: 'p1', bId: 'p2', aTeam: 'JUV', bTeam: 'ARS', aScore: 1, bScore: 0 }],
+      }, new Set(['openMatches'])),
+    ).rejects.toThrow(/foreign key constraint/);
+  });
 });
 
 // ─── pullState ───────────────────────────────────────────────────────────────

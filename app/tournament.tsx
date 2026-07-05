@@ -47,7 +47,6 @@ export default function TournamentScreen() {
     archivedRounds,
     players,
     modal,
-    demoMode,
   } = store;
 
   const colors = useColors();
@@ -211,7 +210,7 @@ export default function TournamentScreen() {
       </ScrollView>
 
       {/* Bottom CTA */}
-      <View style={[styles.bottomBar, demoMode && { bottom: 72 }]}>
+      <View style={styles.bottomBar}>
         {roundOpen ? (
           <TouchableOpacity
             style={styles.ctaBtn}
