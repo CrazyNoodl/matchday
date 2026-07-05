@@ -10,6 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useColors } from '@/theme';
+import { useIsOffline } from '@/hooks/useIsOffline';
 import { NavHeader, Avatar, SectionLabel, StatsRow, GlowBackground } from '@/components';
 import { makeStyles } from '@/screens/match/match.styles';
 import { useMatchDetail } from '@/screens/match/useMatchDetail';
@@ -20,6 +21,7 @@ export default function MatchDetailScreen() {
   const colors = useColors();
   const styles = makeStyles(colors);
   const d = useMatchDetail();
+  const isOffline = useIsOffline();
 
   const {
     match,
@@ -219,10 +221,10 @@ export default function MatchDetailScreen() {
             <View style={styles.mediaActions}>
               {!hasStatsOverride && (
                 <TouchableOpacity
-                  style={[styles.importStatsBtn, uploadingMedia && styles.btnCrossBlocked]}
+                  style={[styles.importStatsBtn, (uploadingMedia || isOffline) && styles.btnCrossBlocked]}
                   onPress={d.handleImportStats}
                   activeOpacity={0.75}
-                  disabled={importingStats || uploadingMedia}
+                  disabled={importingStats || uploadingMedia || isOffline}
                   hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
                 >
                   {importingStats ? (
@@ -236,10 +238,10 @@ export default function MatchDetailScreen() {
                 </TouchableOpacity>
               )}
               <TouchableOpacity
-                style={[styles.addMediaBtn, (importingStats || isMediaFull) && styles.btnCrossBlocked]}
+                style={[styles.addMediaBtn, (importingStats || isMediaFull || isOffline) && styles.btnCrossBlocked]}
                 onPress={d.handleAddMedia}
                 activeOpacity={0.75}
-                disabled={uploadingMedia || importingStats || isMediaFull}
+                disabled={uploadingMedia || importingStats || isMediaFull || isOffline}
                 hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
               >
                 {uploadingMedia ? (
@@ -269,10 +271,10 @@ export default function MatchDetailScreen() {
                     onPress={item.uploading
                       ? undefined
                       : item.pendingUpload
-                        ? () => d.handleRetryUpload(item.uri)
+                        ? (isOffline ? undefined : () => d.handleRetryUpload(item.uri))
                         : () => d.setViewingMediaIndex(originalIndex)}
                     activeOpacity={item.uploading ? 1 : 0.85}
-                    disabled={isRetrying || !!item.uploading}
+                    disabled={isRetrying || !!item.uploading || (item.pendingUpload && isOffline)}
                   >
                     <Image source={{ uri: item.uri }} style={styles.mediaImage} resizeMode="cover" />
                     {item.uploading && (
@@ -295,8 +297,9 @@ export default function MatchDetailScreen() {
                   </TouchableOpacity>
                   {isEditableMatch && !item.uploading && (
                     <TouchableOpacity
-                      style={styles.mediaDeleteBtn}
+                      style={[styles.mediaDeleteBtn, isOffline && styles.btnCrossBlocked]}
                       onPress={() => d.handleDeleteMedia(originalIndex)}
+                      disabled={isOffline}
                       hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
                       activeOpacity={0.8}
                     >
@@ -310,11 +313,11 @@ export default function MatchDetailScreen() {
         ) : (
           <TouchableOpacity
             style={styles.mediaEmpty}
-            onPress={isEditableMatch ? d.handleAddMedia : undefined}
-            activeOpacity={isEditableMatch ? 0.7 : 1}
+            onPress={isEditableMatch && !isOffline ? d.handleAddMedia : undefined}
+            activeOpacity={isEditableMatch && !isOffline ? 0.7 : 1}
           >
             <Text style={styles.mediaEmptyText}>
-              {isEditableMatch ? t('matchDetail.media.tapToAdd') : t('matchDetail.media.empty')}
+              {isEditableMatch && !isOffline ? t('matchDetail.media.tapToAdd') : t('matchDetail.media.empty')}
             </Text>
           </TouchableOpacity>
         )}

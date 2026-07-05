@@ -22,6 +22,7 @@ interface TeamEditSheetProps {
   onPickLogo: () => void;
   onRemoveLogo: () => void;
   logoUploading: boolean;
+  isOffline: boolean;
   onSave: () => void;
 }
 
@@ -40,6 +41,7 @@ export function TeamEditSheet({
   onPickLogo,
   onRemoveLogo,
   logoUploading,
+  isOffline,
   onSave,
 }: TeamEditSheetProps) {
   const { t } = useTranslation();
@@ -85,8 +87,9 @@ export function TeamEditSheet({
             <Text style={styles.formLabel}>{t('teams.form.logo').toUpperCase()}</Text>
             <View style={styles.logoRow}>
               <TouchableOpacity
-                style={styles.logoPickerBtn}
+                style={[styles.logoPickerBtn, isOffline && styles.logoPickerBtnDisabled]}
                 onPress={onPickLogo}
+                disabled={isOffline}
                 activeOpacity={0.8}
               >
                 {formLogo ? (
@@ -97,8 +100,9 @@ export function TeamEditSheet({
               </TouchableOpacity>
               {formLogo && (
                 <TouchableOpacity
-                  style={styles.logoRemoveBtn}
+                  style={[styles.logoRemoveBtn, isOffline && styles.logoPickerBtnDisabled]}
                   onPress={onRemoveLogo}
+                  disabled={isOffline}
                   activeOpacity={0.8}
                   hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 >

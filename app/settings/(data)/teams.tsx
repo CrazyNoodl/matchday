@@ -6,6 +6,7 @@ import { useGoBack } from '@/utils/useGoBack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStore } from '@/store';
 import { Colors, useColors } from '@/theme';
+import { useIsOffline } from '@/hooks/useIsOffline';
 import { NavHeader, TeamBadge, EmptyState, GlowBackground } from '@/components';
 import { Team } from '@/store/types';
 import { useTranslation } from 'react-i18next';
@@ -26,6 +27,7 @@ export default function TeamsScreen() {
   const styles = makeStyles(colors);
   const store = useStore();
   const { teams, matches, archivedRounds, closedTournaments, addTeam, updateTeam, deleteTeam } = store;
+  const isOffline = useIsOffline();
 
   const [editingTeam, setEditingTeam] = useState<Team | null>(null);
   const [showEdit, setShowEdit] = useState(false);
@@ -213,6 +215,7 @@ export default function TeamsScreen() {
         onPickLogo={pickLogo}
         onRemoveLogo={() => setFormLogo(undefined)}
         logoUploading={logoUploading}
+        isOffline={isOffline}
         onSave={handleSave}
       />
 
