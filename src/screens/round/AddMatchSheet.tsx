@@ -3,7 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, TextInput, ActivityIndicator,
 import { BottomSheetScrollView, BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { useTranslation } from 'react-i18next';
 import { useColors } from '@/theme';
-import { useIsOffline } from '@/hooks/useIsOffline';
+import { useIsOnline } from '@/hooks/useIsOnline';
 import { Spacing } from '@/theme/spacing';
 import { Avatar, ScoreCounter, MediaThumbnail, Sheet, TeamPickerRow } from '@/components';
 import { Player, Team } from '@/store/types';
@@ -34,7 +34,7 @@ export function AddMatchSheet({
   const { t } = useTranslation();
   const colors = useColors();
   const sheetStyles = makeSheetStyles(colors);
-  const isOffline = useIsOffline();
+  const isOffline = !useIsOnline();
 
   const {
     addMatch,

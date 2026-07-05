@@ -141,7 +141,7 @@ closedTournaments — fully finished tournaments (hasTournament = false after cl
 | Storybook: real dark/light theming, full component coverage (27/27) | `.storybook/`, `src/components/*/*.stories.tsx` |
 | Loading feedback during stat re-scan / media upload (preparing → uploading → scanning) | `src/screens/match/useMatchDetail.ts`, `app/match/[id].tsx` |
 | Stat edit: fixed order, all 23 params always shown, AI-confidence dot, per-photo OCR validation gate | `src/utils/mergedStats.ts`, `src/screens/match/useMatchDetail.ts`, `src/screens/match/MatchModals.tsx` |
-| Offline handling, phase 1: boot-time stub/banner, persisted pending-sync + push-before-pull on reconnect, per-feature upload/delete gating | `src/hooks/useIsOnline.ts`, `src/hooks/useIsOffline.ts`, `app/_layout.tsx`, `src/supabase/useSyncManager.ts` |
+| Offline handling, phase 1: boot-time stub/banner, persisted pending-sync + push-before-pull on reconnect, per-feature upload/delete gating | `src/hooks/useIsOnline.ts`, `app/_layout.tsx`, `src/supabase/useSyncManager.ts` |
 
 ## Media upload — implementation detail
 
@@ -362,7 +362,7 @@ Swept remaining hardcoded English UI strings (dialog titles/buttons, form labels
 
 Disables every UI action that performs a network upload/delete while offline, instead of letting the user tap it and hit a confusing failure later:
 
-- New `useIsOffline()` hook (`src/hooks/useIsOffline.ts`), built on `expo-network`'s `useNetworkState()` — **not** the same hook as `useIsOnline()` above (built independently on `@react-native-community/netinfo`, opposite polarity). Both work correctly and now coexist; worth consolidating into a single hook next time either is touched, but out of scope for this change.
+- Gating derives `isOffline` from the existing `useIsOnline()` hook (`!useIsOnline()`) — an earlier version of this feature added a second, independent hook (`useIsOffline`, built on `expo-network`) before the two branches were merged; consolidated into the single NetInfo-based `useIsOnline()` immediately after merging so there's one hook and one connectivity dependency (`@react-native-community/netinfo`), not two.
 - Buttons gated on `isOffline` (`disabled` + a dimmed style, matching each screen's existing disabled-state pattern):
   - Add Match step 3 media picker (`src/screens/round/AddMatchSheet.tsx`)
   - Match detail: "+ Add" media (header + empty-state), "Import stats" (OCR), pending-upload retry thumbnail, media delete (×) — all in `app/match/[id].tsx` / `src/screens/match/useMatchDetail.ts`

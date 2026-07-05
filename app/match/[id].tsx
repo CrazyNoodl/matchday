@@ -10,7 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useColors } from '@/theme';
-import { useIsOffline } from '@/hooks/useIsOffline';
+import { useIsOnline } from '@/hooks/useIsOnline';
 import { NavHeader, Avatar, SectionLabel, StatsRow, GlowBackground } from '@/components';
 import { makeStyles } from '@/screens/match/match.styles';
 import { useMatchDetail } from '@/screens/match/useMatchDetail';
@@ -21,7 +21,7 @@ export default function MatchDetailScreen() {
   const colors = useColors();
   const styles = makeStyles(colors);
   const d = useMatchDetail();
-  const isOffline = useIsOffline();
+  const isOffline = !useIsOnline();
 
   const {
     match,
