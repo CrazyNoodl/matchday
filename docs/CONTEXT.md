@@ -85,6 +85,18 @@ Covered by `src/supabase/__tests__/client.test.ts` (adapter wiring, web vs nativ
 
 ---
 
+## Per-account data isolation on sign-out — implementation detail
+
+**Fixed bug (2026-07-05):** `confirmSignOut` (`src/screens/settings/useSettings.ts`) called `signOut()` but never cleared the local Zustand/MMKV store. On a shared device, switching accounts left the previous account's `players`/`teams`/tournament data cached locally; `useSyncManager`'s bootstrap-push (`src/supabase/useSyncManager.ts`) would then see "cloud empty for the new user_id + local data present" and push the *previous* account's data into the newly signed-in account.
+
+**Fix:** `confirmSignOut` now calls `store.resetStore()` after `signOut()` (even if `signOut()` throws), clearing all persisted state before another account can sign in on the same device. Safe against a push race because `SyncManager` unmounts (session → `LoginScreen` swap in `app/_layout.tsx`) before the debounced push timer would fire.
+
+Also fixed while investigating: `public.players` had a single-column primary key (`id`), but `src/supabase/sync.ts` always upserted with `onConflict: 'id,user_id'` — a target matching no real constraint, so every players upsert to Supabase silently failed (push errors aren't surfaced). Migration `supabase/migrations/003_players_composite_key.sql` changes the PK to `(id, user_id)`, matching `teams`' `(code, user_id)`. **Must be applied manually against the live Supabase project** (SQL Editor or `supabase db push`) — it isn't run automatically.
+
+Covered by new tests in `src/screens/settings/__tests__/useSettings.test.ts` (`confirmSignOut` clears players/teams, including when `signOut()` throws).
+
+---
+
 ## State model (non-obvious)
 
 ```
