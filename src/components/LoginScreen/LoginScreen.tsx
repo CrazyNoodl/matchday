@@ -9,6 +9,7 @@ import {
   Platform,
   ScrollView,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useColors } from '@/theme';
 import { signInWithEmail, signUpWithEmail } from '@/supabase/auth';
 import { makeStyles } from './LoginScreen.styles';
@@ -18,6 +19,7 @@ interface Props {
 }
 
 export function LoginScreen({ onSuccess }: Props) {
+  const { t } = useTranslation();
   const colors = useColors();
   const styles = makeStyles(colors);
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
@@ -31,7 +33,7 @@ export function LoginScreen({ onSuccess }: Props) {
     setError(null);
     setSuccessMsg(null);
     if (!email.trim() || !password.trim()) {
-      setError('Enter email and password');
+      setError(t('auth.missingFields'));
       return;
     }
     setLoading(true);
@@ -43,7 +45,7 @@ export function LoginScreen({ onSuccess }: Props) {
       } else {
         const { error: err } = await signUpWithEmail(email.trim(), password);
         if (err) { setError(err); return; }
-        setSuccessMsg('Account created! Check your email to confirm, then sign in.');
+        setSuccessMsg(t('auth.signUpSuccess'));
         setMode('signin');
       }
     } finally {
@@ -63,7 +65,7 @@ export function LoginScreen({ onSuccess }: Props) {
         <View style={styles.header}>
           <Text style={styles.logo}>⚽</Text>
           <Text style={styles.title}>MATCHDAY</Text>
-          <Text style={styles.sub}>Sign in to sync across devices</Text>
+          <Text style={styles.sub}>{t('auth.subtitle')}</Text>
         </View>
 
         <View style={styles.form}>
@@ -79,19 +81,19 @@ export function LoginScreen({ onSuccess }: Props) {
             </View>
           ) : null}
 
-          <Text style={styles.label}>EMAIL</Text>
+          <Text style={styles.label}>{t('auth.emailLabel').toUpperCase()}</Text>
           <TextInput
             style={styles.input}
             value={email}
             onChangeText={setEmail}
-            placeholder="your@email.com"
+            placeholder={t('auth.emailPlaceholder')}
             placeholderTextColor={colors.text.muted}
             keyboardType="email-address"
             autoCapitalize="none"
             autoCorrect={false}
           />
 
-          <Text style={styles.label}>PASSWORD</Text>
+          <Text style={styles.label}>{t('auth.passwordLabel').toUpperCase()}</Text>
           <TextInput
             style={styles.input}
             value={password}
@@ -111,7 +113,7 @@ export function LoginScreen({ onSuccess }: Props) {
               <ActivityIndicator color={colors.bg.base} size="small" />
             ) : (
               <Text style={styles.btnText}>
-                {mode === 'signin' ? 'SIGN IN' : 'CREATE ACCOUNT'}
+                {mode === 'signin' ? t('auth.signIn').toUpperCase() : t('auth.createAccount').toUpperCase()}
               </Text>
             )}
           </TouchableOpacity>
@@ -123,8 +125,8 @@ export function LoginScreen({ onSuccess }: Props) {
           >
             <Text style={styles.toggleText}>
               {mode === 'signin'
-                ? "Don't have an account? Sign up"
-                : 'Already have an account? Sign in'}
+                ? t('auth.noAccountPrompt')
+                : t('auth.hasAccountPrompt')}
             </Text>
           </TouchableOpacity>
         </View>

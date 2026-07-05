@@ -1,18 +1,11 @@
 import { StateCreator } from 'zustand';
-import { Player, Match, ArchivedRound, ClosedTournament, MediaItem } from '../types';
+import { Player, Match, ArchivedRound, ClosedTournament, MediaItem, StatConfidence } from '../types';
 import { ParsedMatch } from '@/utils/importRound';
 import { calculateStandings, isTopTied } from '@/utils/standings';
 import { Colors } from '@/theme/colors';
-import { initials, patchMatchEverywhere } from '../sliceHelpers';
-import { deleteMediaItem } from '@/supabase/storage';
+import { initials, patchMatchEverywhere, matchMediaFolder } from '../sliceHelpers';
+import { buildRoundFolder, deleteStorageFolder } from '@/supabase/storage';
 import type { RootState } from '../index';
-
-function scheduleMediaCleanup(matches: Match[]): void {
-  matches
-    .flatMap((m) => m.media ?? [])
-    .filter((item) => !item.pendingUpload)
-    .forEach((item) => { deleteMediaItem(item.uri).catch(() => {}); });
-}
 
 export interface TournamentState {
   tournamentId: string;
@@ -27,6 +20,8 @@ export interface TournamentState {
   matches: Match[];
   archivedRounds: ArchivedRound[];
   closedTournaments: ClosedTournament[];
+  // Storage folder name for the currently open round's media (see #67)
+  roundFolder: string;
 }
 
 export interface TournamentActions {
@@ -39,7 +34,7 @@ export interface TournamentActions {
   updateMatchScore: (id: string, aScore: number, bScore: number) => void;
   updateMatchStats: (
     id: string,
-    stats: Record<string, { a: number; b: number }> | undefined,
+    stats: Record<string, { a: number; b: number; confidence?: StatConfidence }> | undefined,
   ) => void;
   swapMatchSides: (id: string) => void;
   finishRound: () => void;
@@ -67,6 +62,7 @@ export const createTournamentSlice: StateCreator<RootState, [], [], TournamentSl
   matches: [],
   archivedRounds: [],
   closedTournaments: [],
+  roundFolder: '',
 
   startTournament: (name, playerIds, ranked, tournamentRounds = 0) =>
     set({
@@ -80,6 +76,7 @@ export const createTournamentSlice: StateCreator<RootState, [], [], TournamentSl
       tournamentPlayers: playerIds,
       matches: [],
       archivedRounds: [],
+      roundFolder: '',
     }),
 
   startRound: (ranked, playerIds) =>
@@ -90,15 +87,19 @@ export const createTournamentSlice: StateCreator<RootState, [], [], TournamentSl
       round: s.archivedRounds.filter((r) => r.ranked).length + 1,
       roundPlayers: playerIds,
       tournamentPlayers: [...new Set([...s.tournamentPlayers, ...playerIds])],
+      roundFolder: buildRoundFolder(new Date()),
     })),
 
   addMatch: (match) =>
     set((s) => ({ matches: [...s.matches, match] })),
 
   deleteMatch: (id) => {
-    const match = get().matches.find((m) => m.id === id);
-    if (match) scheduleMediaCleanup([match]);
-    set((s) => ({ matches: s.matches.filter((m) => m.id !== id) }));
+    const s = get();
+    const match = s.matches.find((m) => m.id === id);
+    if (match) {
+      deleteStorageFolder(`${s.tournamentId}/${matchMediaFolder(s.roundFolder, match)}`).catch(() => {});
+    }
+    set((st) => ({ matches: st.matches.filter((m) => m.id !== id) }));
   },
 
   updateMatchScore: (id, aScore, bScore) =>
@@ -145,6 +146,7 @@ export const createTournamentSlice: StateCreator<RootState, [], [], TournamentSl
       matches: [...s.matches],
       name: `Round ${s.round}`,
       players: [...s.roundPlayers],
+      folder: s.roundFolder || undefined,
     };
 
     set({
@@ -152,23 +154,47 @@ export const createTournamentSlice: StateCreator<RootState, [], [], TournamentSl
       matches: [],
       roundOpen: false,
       roundPlayers: [],
+      roundFolder: '',
     });
   },
 
   deleteRound: () => {
-    scheduleMediaCleanup(get().matches);
-    set({ matches: [], roundOpen: false, roundPlayers: [] });
+    const s = get();
+    if (s.roundFolder) {
+      deleteStorageFolder(`${s.tournamentId}/${s.roundFolder}`).catch(() => {});
+    }
+    // Matches without a mediaFolder predate the per-round layout and live
+    // outside the round folder above — clean those up individually.
+    s.matches
+      .filter((m) => !m.mediaFolder)
+      .forEach((m) => {
+        deleteStorageFolder(`${s.tournamentId}/${matchMediaFolder(s.roundFolder, m)}`).catch(() => {});
+      });
+    set({ matches: [], roundOpen: false, roundPlayers: [], roundFolder: '' });
   },
 
   deleteArchivedRound: (id) => {
-    const round = get().archivedRounds.find((r) => r.id === id);
-    if (round) scheduleMediaCleanup(round.matches);
-    set((s) => ({ archivedRounds: s.archivedRounds.filter((r) => r.id !== id) }));
+    const s = get();
+    const round = s.archivedRounds.find((r) => r.id === id);
+    if (round) {
+      if (round.folder) {
+        deleteStorageFolder(`${s.tournamentId}/${round.folder}`).catch(() => {});
+      }
+      round.matches
+        .filter((m) => !m.mediaFolder)
+        .forEach((m) => {
+          deleteStorageFolder(`${s.tournamentId}/${matchMediaFolder(round.folder, m)}`).catch(() => {});
+        });
+    }
+    set((st) => ({ archivedRounds: st.archivedRounds.filter((r) => r.id !== id) }));
   },
 
   deleteClosedTournament: (id) => {
     const tour = get().closedTournaments.find((t) => t.id === id);
-    if (tour) scheduleMediaCleanup(tour.rounds.flatMap((r) => r.matches));
+    // The whole tournament folder covers every round/match nested under it —
+    // including matches from before the per-round layout, which also lived
+    // directly under the tournament id — so a single sweep is enough here.
+    if (tour) deleteStorageFolder(tour.id).catch(() => {});
     set((s) => ({ closedTournaments: s.closedTournaments.filter((t) => t.id !== id) }));
   },
 
@@ -201,6 +227,7 @@ export const createTournamentSlice: StateCreator<RootState, [], [], TournamentSl
       tournamentId: '',
       hasTournament: false,
       tournamentName: '',
+      roundFolder: '',
       round: 0,
       roundOpen: false,
       tournamentRounds: 0,

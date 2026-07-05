@@ -1,12 +1,22 @@
 import React, { createContext, useContext } from 'react';
-import { AppColors, colorsByScheme, DarkColors } from './colors';
+import { useColorScheme as useSystemColorScheme } from 'react-native';
+import { AppColors, ColorScheme, colorsByScheme, DarkColors } from './colors';
 import { useStore } from '@/store';
 
-const ThemeContext = createContext<AppColors>(DarkColors);
+export const ThemeContext = createContext<AppColors>(DarkColors);
+
+export function useEffectiveColorScheme(): ColorScheme {
+  const preference = useStore((s) => s.colorScheme);
+  const systemScheme = useSystemColorScheme();
+  if (preference === 'auto') {
+    return systemScheme === 'light' ? 'light' : 'dark';
+  }
+  return preference ?? 'dark';
+}
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const colorScheme = useStore((s) => s.colorScheme);
-  const colors = colorsByScheme[colorScheme ?? 'dark'];
+  const scheme = useEffectiveColorScheme();
+  const colors = colorsByScheme[scheme];
   return <ThemeContext.Provider value={colors}>{children}</ThemeContext.Provider>;
 }
 

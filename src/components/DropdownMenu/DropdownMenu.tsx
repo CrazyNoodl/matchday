@@ -15,7 +15,7 @@ export interface DropdownMenuItem {
 interface DropdownMenuProps {
   visible: boolean;
   onClose: () => void;
-  position: { top: number; right: number };
+  position: { top: number; left?: number; right?: number };
   items: DropdownMenuItem[];
 }
 
@@ -31,7 +31,12 @@ export function DropdownMenu({ visible, onClose, position, items }: DropdownMenu
   return (
     <Modal visible={visible} transparent animationType="none" onRequestClose={onClose} statusBarTranslucent>
       <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
-      <View style={[styles.dropdown, { top: position.top, right: position.right }]}>
+      <View
+        style={[
+          styles.dropdown,
+          position.left !== undefined ? { top: position.top, left: position.left } : { top: position.top, right: position.right },
+        ]}
+      >
         {items.map((item, idx) => (
           <Fragment key={item.key}>
             {idx > 0 && <View style={styles.sep} />}

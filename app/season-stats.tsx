@@ -100,7 +100,7 @@ export default function SeasonStatsScreen() {
   if (!viewingTournament) {
     return (
       <SafeAreaView style={styles.root} edges={['top']}>
-        <NavHeader title={t('seasonStats.title')} onBack={() => goBack()} />
+        <NavHeader title={t('seasonStats.title').toUpperCase()} onBack={() => goBack()} />
         <View style={styles.emptyWrap}>
           <Text style={styles.emptyText}>{t('seasonStats.noTournament')}</Text>
         </View>
@@ -177,7 +177,7 @@ export default function SeasonStatsScreen() {
 
         {/* INCLUDE filter chips */}
         <View style={styles.filterRow}>
-          <Text style={styles.filterLabel}>{t('seasonStats.include')}</Text>
+          <Text style={styles.filterLabel}>{t('seasonStats.include').toUpperCase()}</Text>
           <View style={styles.filterChips}>
             {includeFilters.map((f) => {
               const active = includeFilter === f.key;
@@ -216,7 +216,7 @@ export default function SeasonStatsScreen() {
           {/* Middle info */}
           <View style={styles.champInfo}>
             <Text style={styles.champBadgeLabel}>
-              {t('seasonStats.champion', { year: fcYear })}
+              {t('seasonStats.champion', { year: fcYear }).toUpperCase()}
             </Text>
             <Text style={styles.champName} numberOfLines={1}>
               {viewingTournament.champName}
@@ -234,22 +234,22 @@ export default function SeasonStatsScreen() {
         <View style={styles.totalsRow}>
           <View style={styles.totalCard}>
             <Text style={styles.totalValue}>{filteredRounds.length}</Text>
-            <Text style={styles.totalLabel}>{t('seasonStats.days')}</Text>
+            <Text style={styles.totalLabel}>{t('seasonStats.days').toUpperCase()}</Text>
           </View>
           <View style={styles.totalCard}>
             <Text style={styles.totalValue}>{allMatches.length}</Text>
-            <Text style={styles.totalLabel}>{t('seasonStats.matches')}</Text>
+            <Text style={styles.totalLabel}>{t('seasonStats.matches').toUpperCase()}</Text>
           </View>
           <View style={styles.totalCard}>
             <Text style={[styles.totalValue, styles.totalValueGreen]}>
               {totalGoals}
             </Text>
-            <Text style={styles.totalLabel}>{t('seasonStats.goals')}</Text>
+            <Text style={styles.totalLabel}>{t('seasonStats.goals').toUpperCase()}</Text>
           </View>
         </View>
 
         {/* SEASON RANKING section */}
-        <SectionLabel label={t('seasonStats.seasonRanking')} style={styles.sectionLabel} />
+        <SectionLabel label={t('seasonStats.seasonRanking').toUpperCase()} style={styles.sectionLabel} />
 
         {/* Param chips */}
         <View style={styles.paramChipsRow}>
@@ -315,7 +315,7 @@ export default function SeasonStatsScreen() {
         )}
 
         {/* ── GAMES section ── */}
-        <SectionLabel label={t('seasonStats.gamesSection')} style={styles.sectionLabel} />
+        <SectionLabel label={t('seasonStats.gamesSection').toUpperCase()} style={styles.sectionLabel} />
 
         {filteredRounds.length === 0 ? (
           <View style={styles.emptyWrap}>
@@ -331,7 +331,7 @@ export default function SeasonStatsScreen() {
                 </View>
                 <View style={styles.roundHeaderInfo}>
                   <Text style={styles.roundHeaderTitle}>
-                    {round.ranked ? t('matchday.round', { n: roundOrdinals[round.id] ?? 0 }) : t('common.friendly')}
+                    {round.ranked ? t('matchday.round', { n: roundOrdinals[round.id] ?? 0 }) : t('common.friendly').toUpperCase()}
                   </Text>
                   <Text style={styles.roundHeaderDate}>{formatShortDate(round.date)}</Text>
                 </View>

@@ -142,6 +142,9 @@ export const makeStyles = (colors: AppColors) => StyleSheet.create({
     width: '100%',
     height: '100%',
   },
+  logoPickerBtnDisabled: {
+    opacity: 0.4,
+  },
   logoPickerIcon: {
     fontSize: 24,
   },

@@ -10,6 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useColors } from '@/theme';
+import { useIsOnline } from '@/hooks/useIsOnline';
 import { NavHeader, Avatar, SectionLabel, StatsRow, GlowBackground } from '@/components';
 import { makeStyles } from '@/screens/match/match.styles';
 import { useMatchDetail } from '@/screens/match/useMatchDetail';
@@ -20,6 +21,7 @@ export default function MatchDetailScreen() {
   const colors = useColors();
   const styles = makeStyles(colors);
   const d = useMatchDetail();
+  const isOffline = !useIsOnline();
 
   const {
     match,
@@ -31,6 +33,7 @@ export default function MatchDetailScreen() {
     winnerName,
     hasMediaFiles,
     isMediaFull,
+    visibleMedia,
     hasStatsOverride,
     mergedStats,
     isCurrentRoundMatch,
@@ -38,17 +41,24 @@ export default function MatchDetailScreen() {
     syncStatus,
     remoteLoading,
     importingStats,
+    importStatsStep,
     uploadingMedia,
     retryingMediaUri,
     statsMenuBtnRef,
   } = d;
+
+  const importStatsLabel =
+    importStatsStep === 'preparing' ? t('matchDetail.importStats.preparing')
+      : importStatsStep === 'uploading' ? t('matchDetail.importStats.uploading')
+      : importStatsStep === 'scanning' ? t('matchDetail.importStats.scanning')
+      : null;
 
   if (!match) {
     const isLoading = syncStatus === 'syncing' || remoteLoading;
     return (
       <SafeAreaView style={styles.root} edges={['top']}>
         <GlowBackground />
-        <NavHeader title={t('matchDetail.title')} onBack={() => d.goBack()} />
+        <NavHeader title={t('matchDetail.title').toUpperCase()} onBack={() => d.goBack()} />
         <View style={styles.center}>
           {isLoading ? (
             <ActivityIndicator color={colors.accent.green} size="large" />
@@ -68,7 +78,7 @@ export default function MatchDetailScreen() {
         activeOpacity={0.75}
         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
       >
-        <Text style={styles.editBtnText}>Edit</Text>
+        <Text style={styles.editBtnText}>{t('common.edit')}</Text>
       </TouchableOpacity>
       {isCurrentRoundMatch && (
         <TouchableOpacity
@@ -88,7 +98,7 @@ export default function MatchDetailScreen() {
       <GlowBackground />
 
       <NavHeader
-        title={t('matchDetail.title')}
+        title={t('matchDetail.title').toUpperCase()}
         onBack={() => d.goBack()}
         rightElement={headerRight}
       />
@@ -106,7 +116,7 @@ export default function MatchDetailScreen() {
               style={[styles.heroName, !aWins && !isDraw && styles.heroNameLoser]}
               numberOfLines={1}
             >
-              {playerA?.nick ?? playerA?.name ?? 'Unknown'}
+              {playerA?.nick ?? playerA?.name ?? t('common.unknown')}
             </Text>
           </View>
 
@@ -133,14 +143,14 @@ export default function MatchDetailScreen() {
               </Text>
             </View>
             <Text style={styles.heroResult}>
-              {isDraw ? t('matchday.draw') : `${winnerName} won`}
+              {isDraw ? t('matchday.draw') : t('matchDetail.wonBy', { name: winnerName })}
             </Text>
             {isEditableMatch && (
               <TouchableOpacity
                 onPress={d.handleSwapSides}
                 hitSlop={{ top: 6, bottom: 6, left: 12, right: 12 }}
               >
-                <Text style={styles.swapBtnText}>⇄ swap sides</Text>
+                <Text style={styles.swapBtnText}>{t('matchDetail.swapSides')}</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -151,7 +161,7 @@ export default function MatchDetailScreen() {
               style={[styles.heroName, !bWins && !isDraw && styles.heroNameLoser]}
               numberOfLines={1}
             >
-              {playerB?.nick ?? playerB?.name ?? 'Unknown'}
+              {playerB?.nick ?? playerB?.name ?? t('common.unknown')}
             </Text>
           </View>
         </View>
@@ -160,19 +170,26 @@ export default function MatchDetailScreen() {
         {hasStatsOverride && (
           <>
             <View style={styles.sectionHeader}>
-              <SectionLabel label="MATCH STATS" />
+              <SectionLabel label={t('matchDetail.statsSection').toUpperCase()} />
               <View style={styles.sectionHeaderRight}>
                 <View style={styles.sourceBadgeBlue}>
-                  <Text style={styles.sourceBadgeBlueText}>AI-read</Text>
+                  <Text style={styles.sourceBadgeBlueText}>{t('matchDetail.aiRead')}</Text>
                 </View>
                 {isEditableMatch && (
-                  <TouchableOpacity
-                    ref={statsMenuBtnRef}
-                    onPress={d.openStatsMenu}
-                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                  >
-                    <Text style={styles.statsMenuDots}>···</Text>
-                  </TouchableOpacity>
+                  importingStats ? (
+                    <View style={styles.statsRescanProgress}>
+                      <ActivityIndicator size="small" color={colors.accent.blue} />
+                      <Text style={styles.statsRescanProgressText}>{importStatsLabel}</Text>
+                    </View>
+                  ) : (
+                    <TouchableOpacity
+                      ref={statsMenuBtnRef}
+                      onPress={d.openStatsMenu}
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    >
+                      <Text style={styles.statsMenuDots}>···</Text>
+                    </TouchableOpacity>
+                  )
                 )}
               </View>
             </View>
@@ -188,6 +205,8 @@ export default function MatchDetailScreen() {
                     aValue={stat.aVal}
                     bValue={stat.bVal}
                     aWins={aLeads}
+                    isNA={stat.isNA}
+                    lowConfidence={stat.confidence === 'low' || stat.confidence === 'medium'}
                   />
                 );
               })}
@@ -197,35 +216,41 @@ export default function MatchDetailScreen() {
 
         {/* ── MEDIA ── */}
         <View style={styles.sectionHeader}>
-          <SectionLabel label="MEDIA" />
+          <SectionLabel label={t('matchDetail.media.sectionTitle').toUpperCase()} />
           {isEditableMatch && (
             <View style={styles.mediaActions}>
               {!hasStatsOverride && (
                 <TouchableOpacity
-                  style={[styles.importStatsBtn, uploadingMedia && styles.btnCrossBlocked]}
+                  style={[styles.importStatsBtn, (uploadingMedia || isOffline) && styles.btnCrossBlocked]}
                   onPress={d.handleImportStats}
                   activeOpacity={0.75}
-                  disabled={importingStats || uploadingMedia}
+                  disabled={importingStats || uploadingMedia || isOffline}
                   hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
                 >
                   {importingStats ? (
-                    <ActivityIndicator size="small" color={colors.accent.blue} />
+                    <View style={styles.statsRescanProgress}>
+                      <ActivityIndicator size="small" color={colors.accent.blue} />
+                      <Text style={styles.importStatsBtnText}>{importStatsLabel}</Text>
+                    </View>
                   ) : (
-                    <Text style={styles.importStatsBtnText}>📊 Import stats</Text>
+                    <Text style={styles.importStatsBtnText}>{t('matchDetail.importStats.cta')}</Text>
                   )}
                 </TouchableOpacity>
               )}
               <TouchableOpacity
-                style={[styles.addMediaBtn, (importingStats || isMediaFull) && styles.btnCrossBlocked]}
+                style={[styles.addMediaBtn, (importingStats || isMediaFull || isOffline) && styles.btnCrossBlocked]}
                 onPress={d.handleAddMedia}
                 activeOpacity={0.75}
-                disabled={uploadingMedia || importingStats || isMediaFull}
+                disabled={uploadingMedia || importingStats || isMediaFull || isOffline}
                 hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
               >
                 {uploadingMedia ? (
-                  <ActivityIndicator size="small" color={colors.accent.green} />
+                  <View style={styles.statsRescanProgress}>
+                    <ActivityIndicator size="small" color={colors.accent.green} />
+                    <Text style={styles.addMediaBtnText}>{t('matchDetail.importStats.preparing')}</Text>
+                  </View>
                 ) : (
-                  <Text style={styles.addMediaBtnText}>+ Add</Text>
+                  <Text style={styles.addMediaBtnText}>{'+ ' + t('common.add')}</Text>
                 )}
               </TouchableOpacity>
             </View>
@@ -238,25 +263,20 @@ export default function MatchDetailScreen() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.mediaScroll}
           >
-            {match.media!.map((item, idx) => {
+            {visibleMedia.map(({ item, originalIndex }) => {
               const isRetrying = retryingMediaUri === item.uri;
               return (
-                <View key={idx} style={styles.mediaThumbnail}>
+                <View key={originalIndex} style={styles.mediaThumbnail}>
                   <TouchableOpacity
                     onPress={item.uploading
                       ? undefined
                       : item.pendingUpload
-                        ? () => d.handleRetryUpload(item.uri)
-                        : () => d.setViewingMediaIndex(idx)}
+                        ? (isOffline ? undefined : () => d.handleRetryUpload(item.uri))
+                        : () => d.setViewingMediaIndex(originalIndex)}
                     activeOpacity={item.uploading ? 1 : 0.85}
-                    disabled={isRetrying || !!item.uploading}
+                    disabled={isRetrying || !!item.uploading || (item.pendingUpload && isOffline)}
                   >
                     <Image source={{ uri: item.uri }} style={styles.mediaImage} resizeMode="cover" />
-                    {item.type === 'video' && !item.pendingUpload && !item.uploading && (
-                      <View style={styles.videoOverlay}>
-                        <Text style={styles.videoPlayIcon}>▶</Text>
-                      </View>
-                    )}
                     {item.uploading && (
                       <View style={styles.pendingUploadOverlay}>
                         <ActivityIndicator size="small" color={colors.accent.green} />
@@ -277,8 +297,9 @@ export default function MatchDetailScreen() {
                   </TouchableOpacity>
                   {isEditableMatch && !item.uploading && (
                     <TouchableOpacity
-                      style={styles.mediaDeleteBtn}
-                      onPress={() => d.handleDeleteMedia(idx)}
+                      style={[styles.mediaDeleteBtn, isOffline && styles.btnCrossBlocked]}
+                      onPress={() => d.handleDeleteMedia(originalIndex)}
+                      disabled={isOffline}
                       hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
                       activeOpacity={0.8}
                     >
@@ -292,24 +313,24 @@ export default function MatchDetailScreen() {
         ) : (
           <TouchableOpacity
             style={styles.mediaEmpty}
-            onPress={isEditableMatch ? d.handleAddMedia : undefined}
-            activeOpacity={isEditableMatch ? 0.7 : 1}
+            onPress={isEditableMatch && !isOffline ? d.handleAddMedia : undefined}
+            activeOpacity={isEditableMatch && !isOffline ? 0.7 : 1}
           >
             <Text style={styles.mediaEmptyText}>
-              {isEditableMatch ? 'Tap to add media' : 'No media attached'}
+              {isEditableMatch && !isOffline ? t('matchDetail.media.tapToAdd') : t('matchDetail.media.empty')}
             </Text>
           </TouchableOpacity>
         )}
 
         {/* ── COMMENTARY ── */}
         <View style={styles.sectionHeader}>
-          <SectionLabel label={t('matchDetail.commentary')} />
+          <SectionLabel label={t('matchDetail.commentary').toUpperCase()} />
           {isEditableMatch && (
             <TouchableOpacity
               onPress={d.openEditNote}
               hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
             >
-              <Text style={styles.editLink}>Edit</Text>
+              <Text style={styles.editLink}>{t('common.edit')}</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -325,7 +346,7 @@ export default function MatchDetailScreen() {
             activeOpacity={isEditableMatch ? 0.7 : 1}
           >
             <Text style={styles.noNoteText}>
-              {isEditableMatch ? 'Add commentary...' : 'No commentary'}
+              {isEditableMatch ? t('matchDetail.commentaryPrompt') : t('matchDetail.noCommentary')}
             </Text>
           </TouchableOpacity>
         )}

@@ -1,24 +1,19 @@
 import React, { useRef } from 'react';
 import { Animated, Dimensions } from 'react-native';
-import { Colors } from '@/theme/colors';
+import { useColors } from '@/theme';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const CONFETTI_COLORS = [
-  Colors.accent.green,
-  Colors.accent.yellow,
-  Colors.accent.blue,
-  '#c98bff',
-  '#ff8f6b',
-];
 
 interface Props {
   delay: number;
 }
 
 export const ConfettiPiece = React.memo(function ConfettiPiece({ delay }: Props) {
+  const colors = useColors();
+  const confettiColors = [colors.accent.green, colors.accent.yellow, colors.accent.blue, '#c98bff', '#ff8f6b'];
   const anim = useRef(new Animated.Value(0)).current;
   const x = useRef(Math.random() * SCREEN_WIDTH).current;
-  const color = CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)];
+  const color = confettiColors[Math.floor(Math.random() * confettiColors.length)];
   const size = 8 + Math.random() * 10;
   const rotation = `${Math.random() > 0.5 ? '' : '-'}${360 + Math.random() * 360}deg`;
 

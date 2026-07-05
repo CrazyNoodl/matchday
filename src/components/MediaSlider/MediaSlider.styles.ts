@@ -33,10 +33,13 @@ export const makeStyles = (colors: AppColors, screenWidth: number, screenHeight:
     color: '#fff',
   },
   dots: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: Spacing.xl,
     flexDirection: 'row',
     justifyContent: 'center',
     gap: Spacing.xs,
-    marginTop: Spacing.md,
   },
   dot: {
     width: 6,

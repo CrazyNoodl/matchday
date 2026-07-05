@@ -22,7 +22,7 @@ export default function DisplaySettingsScreen() {
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
       <GlowBackground />
-      <NavHeader title={t('settings.display.section')} onBack={() => goBack()} />
+      <NavHeader title={t('settings.display.section').toUpperCase()} onBack={() => goBack()} />
 
       <ScrollView
         style={styles.scroll}
@@ -31,7 +31,7 @@ export default function DisplaySettingsScreen() {
       >
         {/* Theme */}
         <View style={styles.card}>
-          <Text style={styles.sectionTitle}>{t('settings.display.theme', 'Тема')}</Text>
+          <Text style={styles.sectionTitle}>{t('settings.display.theme')}</Text>
           <View style={styles.themeRow}>
             <TouchableOpacity
               style={[styles.themeBtn, colorScheme === 'dark' && styles.themeBtnActive]}
@@ -40,7 +40,7 @@ export default function DisplaySettingsScreen() {
             >
               <Text style={styles.themeBtnIcon}>🌙</Text>
               <Text style={[styles.themeBtnLabel, colorScheme === 'dark' && styles.themeBtnLabelActive]}>
-                {t('settings.display.themeDark', 'Темна')}
+                {t('settings.display.themeDark')}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -50,7 +50,17 @@ export default function DisplaySettingsScreen() {
             >
               <Text style={styles.themeBtnIcon}>☀️</Text>
               <Text style={[styles.themeBtnLabel, colorScheme === 'light' && styles.themeBtnLabelActive]}>
-                {t('settings.display.themeLight', 'Світла')}
+                {t('settings.display.themeLight')}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.themeBtn, colorScheme === 'auto' && styles.themeBtnActive]}
+              onPress={() => store.setColorScheme('auto')}
+              activeOpacity={0.75}
+            >
+              <Text style={styles.themeBtnIcon}>🌓</Text>
+              <Text style={[styles.themeBtnLabel, colorScheme === 'auto' && styles.themeBtnLabelActive]}>
+                {t('settings.display.themeAuto')}
               </Text>
             </TouchableOpacity>
           </View>

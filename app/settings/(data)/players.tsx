@@ -1,23 +1,16 @@
 import React, { useState, useCallback } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  TextInput,
-  Modal,
-  Platform,
-} from 'react-native';
-import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
+import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useGoBack } from '@/utils/useGoBack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStore } from '@/store';
 import { Colors, useColors } from '@/theme';
-import { NavHeader, Avatar, TeamBadge, EmptyState, Sheet, GlowBackground } from '@/components';
+import { NavHeader, Avatar, EmptyState, GlowBackground } from '@/components';
 import { Player } from '@/store/types';
 import { useTranslation } from 'react-i18next';
 import { makeStyles } from '@/screens/settings/players/players.styles';
+import { PlayerEditSheet } from '@/screens/settings/players/PlayerEditSheet';
+import { PlayerDialogs } from '@/screens/settings/players/PlayerDialogs';
 
 const PLAYER_COLORS = Colors.player;
 
@@ -110,7 +103,7 @@ export default function PlayersScreen() {
     <SafeAreaView style={styles.root} edges={['top']}>
       <GlowBackground />
       <NavHeader
-        title={t('players.title')}
+        title={t('players.title').toUpperCase()}
         subtitle={t('settings.data.playersCount', { count: players.length })}
         onBack={() => goBack()}
         rightElement={
@@ -119,7 +112,7 @@ export default function PlayersScreen() {
             onPress={openCreate}
             activeOpacity={0.8}
           >
-            <Text style={styles.addBtnText}>{'+ ' + t('common.add')}</Text>
+            <Text style={styles.addBtnText}>{'+ ' + t('common.add').toUpperCase()}</Text>
           </TouchableOpacity>
         }
       />
@@ -169,167 +162,30 @@ export default function PlayersScreen() {
         <View style={{ height: 40 }} />
       </ScrollView>
 
-      {/* Edit / Create Sheet */}
-      <Sheet visible={showEdit} onClose={() => setShowEdit(false)}>
-        <View style={styles.sheet}>
-          <Text style={styles.sheetTitle}>
-            {editingPlayer ? t('players.editTitle') : t('setup.newPlayer')}
-          </Text>
+      <PlayerEditSheet
+        visible={showEdit}
+        onClose={() => setShowEdit(false)}
+        editingPlayer={editingPlayer}
+        teams={teams}
+        playerColors={PLAYER_COLORS}
+        formName={formName}
+        onChangeName={setFormName}
+        formNick={formNick}
+        onChangeNick={setFormNick}
+        formTeam={formTeam}
+        onChangeTeam={setFormTeam}
+        formColor={formColor}
+        onChangeColor={setFormColor}
+        onSave={handleSave}
+      />
 
-          <BottomSheetScrollView style={{ maxHeight: 360 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-            <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>{t('setup.form.name')}</Text>
-              <TextInput
-                style={styles.input}
-                value={formName}
-                onChangeText={setFormName}
-                placeholder={t('setup.form.playerNamePlaceholder')}
-                placeholderTextColor={colors.text.placeholder}
-                autoCorrect={false}
-              />
-            </View>
-
-            <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>{t('setup.form.nickname')}</Text>
-              <TextInput
-                style={styles.input}
-                value={formNick}
-                onChangeText={setFormNick}
-                placeholder={t('setup.form.nicknamePlaceholder')}
-                placeholderTextColor={colors.text.placeholder}
-                autoCorrect={false}
-              />
-            </View>
-
-            <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>{t('setup.form.defaultTeam')}</Text>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                style={styles.teamPicker}
-              >
-                {teams.map((t) => (
-                  <TouchableOpacity
-                    key={t.code}
-                    style={[
-                      styles.teamPickItem,
-                      formTeam === t.code && {
-                        borderColor: t.color + '88',
-                        backgroundColor: t.color + '22',
-                      },
-                    ]}
-                    onPress={() => setFormTeam(t.code)}
-                    activeOpacity={0.8}
-                  >
-                    <TeamBadge teamCode={t.code} size="md" />
-                    <Text style={styles.teamPickName} numberOfLines={1}>
-                      {t.short}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </View>
-
-            <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>{t('setup.form.color')}</Text>
-              <View style={styles.colorPicker}>
-                {PLAYER_COLORS.map((c) => (
-                  <TouchableOpacity
-                    key={c}
-                    style={[
-                      styles.colorDot,
-                      { backgroundColor: c },
-                      formColor === c && styles.colorDotSelected,
-                    ]}
-                    onPress={() => setFormColor(c)}
-                    activeOpacity={0.8}
-                  />
-                ))}
-              </View>
-            </View>
-          </BottomSheetScrollView>
-
-          <View style={styles.sheetActions}>
-            <TouchableOpacity
-              style={styles.cancelBtn}
-              onPress={() => setShowEdit(false)}
-              activeOpacity={0.75}
-            >
-              <Text style={styles.cancelBtnText}>{t('common.cancel')}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.saveBtn, !formName.trim() && styles.saveBtnDisabled]}
-              onPress={handleSave}
-              disabled={!formName.trim()}
-              activeOpacity={0.85}
-            >
-              <Text
-                style={[styles.saveBtnText, !formName.trim() && styles.saveBtnTextDisabled]}
-              >
-                {editingPlayer ? t('common.save').toUpperCase() : t('setup.addPlayerBtn')}
-              </Text>
-            </TouchableOpacity>
-          </View>
-          {Platform.OS === 'ios' && <View style={{ height: 16 }} />}
-        </View>
-      </Sheet>
-
-      {/* Cannot delete dialog */}
-      <Modal
-        visible={showCannotDelete}
-        transparent
-        animationType="fade"
-        statusBarTranslucent
-        onRequestClose={() => setShowCannotDelete(false)}
-      >
-        <View style={styles.dialogOverlay}>
-          <View style={styles.dialog}>
-            <Text style={styles.dialogTitle}>CANNOT DELETE</Text>
-            <Text style={styles.dialogDesc}>
-              {t('players.cannotDelete')}
-            </Text>
-            <TouchableOpacity
-              style={[styles.dialogConfirm, { width: '100%' }]}
-              onPress={() => setShowCannotDelete(false)}
-              activeOpacity={0.85}
-            >
-              <Text style={styles.dialogConfirmText}>OK</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Delete confirm dialog */}
-      <Modal
-        visible={showDeleteConfirm}
-        transparent
-        animationType="fade"
-        statusBarTranslucent
-        onRequestClose={() => setShowDeleteConfirm(false)}
-      >
-        <View style={styles.dialogOverlay}>
-          <View style={styles.dialog}>
-            <Text style={styles.dialogTitle}>{t('players.deleteConfirm').toUpperCase()}</Text>
-            <Text style={styles.dialogDesc}>{t('players.deleteDesc')}</Text>
-            <View style={styles.dialogActions}>
-              <TouchableOpacity
-                style={styles.dialogCancel}
-                onPress={() => setShowDeleteConfirm(false)}
-                activeOpacity={0.75}
-              >
-                <Text style={styles.dialogCancelText}>{t('matchday.dialogs.cancel')}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.dialogConfirm}
-                onPress={confirmDelete}
-                activeOpacity={0.85}
-              >
-                <Text style={styles.dialogConfirmText}>{t('common.delete')}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+      <PlayerDialogs
+        showCannotDelete={showCannotDelete}
+        onCloseCannotDelete={() => setShowCannotDelete(false)}
+        showDeleteConfirm={showDeleteConfirm}
+        onCloseDeleteConfirm={() => setShowDeleteConfirm(false)}
+        onConfirmDelete={confirmDelete}
+      />
     </SafeAreaView>
   );
 }

@@ -34,9 +34,8 @@ const baseMatch: Match = {
 };
 
 const meta = {
-  title: 'Components/MatchCard',
+  title: 'Cards/MatchCard',
   component: MatchCard,
-  parameters: { backgrounds: { default: 'app-dark' } },
   decorators: [withMockData],
   argTypes: {
     readonly: { control: { type: 'boolean' } },

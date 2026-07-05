@@ -20,6 +20,41 @@ export type MediaType = 'image' | 'video';
 
 export type MatchResult = 'W' | 'D' | 'L';
 
+export type StatConfidence = 'high' | 'medium' | 'low';
+
+/** The 23 canonical match-stat keys, kept in sync with `STAT_DEFINITIONS` in `src/utils/statDefinitions.ts`. */
+export type KnownStatKey =
+  | 'possession'
+  | 'timeToRegain'
+  | 'shots'
+  | 'expectedGoals'
+  | 'passes'
+  | 'tackles'
+  | 'successfulTackles'
+  | 'interceptions'
+  | 'saves'
+  | 'fouls'
+  | 'offsides'
+  | 'corners'
+  | 'freekicks'
+  | 'penaltyShots'
+  | 'yellowCards'
+  | 'redCards'
+  | 'breaksThroughCenter'
+  | 'breaksThroughWing'
+  | 'breaksThroughHigh'
+  | 'defBreakAttempts'
+  | 'successfulDribbles'
+  | 'shotAccuracy'
+  | 'passAccuracy';
+
+/**
+ * Escape-hatch union: keeps autocomplete + typo protection for the 23 known keys
+ * while still accepting arbitrary OCR-extracted keys (and legacy simulated-only
+ * keys like `shotsOnTarget`) as plain strings.
+ */
+export type StatKey = KnownStatKey | (string & {});
+
 export interface MediaItem {
   uri: string;
   type: MediaType;
@@ -37,7 +72,15 @@ export interface Match {
   bScore: number;
   media?: MediaItem[];
   note?: string;
-  statsOverride?: Record<string, { a: number; b: number }>;
+  // Sparse map keyed by stat key — deliberately `Record<string, ...>` rather than
+  // `Record<StatKey, ...>`: mapping a Record's *keys* over a union containing
+  // literal members makes each literal a required property, which is wrong for
+  // a partial override where only some of the 23 keys may be present.
+  statsOverride?: Record<string, { a: number; b: number; confidence?: StatConfidence }>;
+  // Storage sub-folder name for this match's media, fixed at creation time
+  // (e.g. "match_2-2_2026-07-03_1432"). Never regenerated on score edits.
+  // Absent on matches created before the per-round/per-match storage layout.
+  mediaFolder?: string;
 }
 
 export interface ArchivedRound {
@@ -50,6 +93,9 @@ export interface ArchivedRound {
   matches: Match[];
   name: string;
   players?: string[];
+  // Storage folder name for this round's media (e.g. "matchday-2026-07-03_1430").
+  // Absent on rounds started before the per-round/per-match storage layout.
+  folder?: string;
 }
 
 export interface ClosedTournament {

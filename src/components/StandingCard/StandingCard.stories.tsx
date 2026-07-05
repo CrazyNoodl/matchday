@@ -42,9 +42,8 @@ const baseStanding: Standing = {
 };
 
 const meta = {
-  title: 'Components/StandingCard',
+  title: 'Cards/StandingCard',
   component: StandingCard,
-  parameters: { backgrounds: { default: 'app-dark' } },
   decorators: [withMockData],
   argTypes: {
     position: { control: { type: 'number' } },

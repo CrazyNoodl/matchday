@@ -26,7 +26,7 @@ export default function LanguageScreen() {
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
       <GlowBackground />
-      <NavHeader title={t('language.title')} onBack={() => goBack()} />
+      <NavHeader title={t('language.title').toUpperCase()} onBack={() => goBack()} />
 
       <ScrollView
         style={styles.scroll}

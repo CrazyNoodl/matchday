@@ -9,6 +9,63 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.11',
+    added: [
+      'Offline handling, phase 1: a banner appears when you lose connection, and any action that needs the network (adding photos, importing stats, team logos) is disabled until you\'re back online instead of failing silently (#73)',
+    ],
+    fixed: [
+      'Local changes made right before the app is killed or crashes could be lost instead of syncing on next launch — pending changes are now saved and retried automatically on reconnect',
+    ],
+  },
+  {
+    version: '1.9.10',
+    fixed: [
+      'Several screens (Teams edit sheet, Players/Teams "cannot delete" dialogs, and others) always showed English text regardless of the selected language — hardcoded strings replaced with proper uk/en/fr translations',
+    ],
+  },
+  {
+    version: '1.9.9',
+    notes: [
+      'Settings → Players and Settings → Teams screens split into smaller files — the edit sheet and confirmation dialogs now live in their own components, mirroring the existing pattern used by the main Settings screen — no user-visible change',
+    ],
+  },
+  {
+    version: '1.9.8',
+    notes: [
+      'Photos are now downscaled before upload instead of only JPEG-compressed at the original camera resolution — regular match media and team logos cap to a smaller max dimension, and stat photos get a lighter downscale for the AI OCR pass plus a more aggressive one for the copy kept in Storage, cutting bandwidth/storage/OCR latency with no visible quality loss (#62)',
+      'Added a "Resize Lab" developer tool (Settings → Developer Menu) to inspect before/after size and dimensions for any photo run through each of the new resize presets',
+    ],
+  },
+  {
+    version: '1.9.7',
+    fixed: [
+      'Media added from the match detail screen could land in a different Supabase Storage folder than media added when the match was first created, for matches whose round predated the per-round/per-match folder layout — both flows now always agree on the same folder (#67 follow-up)',
+    ],
+  },
+  {
+    version: '1.9.6',
+    added: [
+      'Pinch-to-zoom for photos in the full-screen media viewer — pinch and pan to zoom in, double-tap or release to reset; swiping to the next/previous photo is disabled while zoomed in (#64)',
+      'Theme picker now offers an "Auto" option that follows your phone\'s system dark/light appearance live, in addition to Dark and Light (#60)',
+    ],
+    notes: [
+      'Match media storage reorganized into per-round/per-match folders (e.g. matchday-2026-07-03_1430/match_2-1_2026-07-03_1432) — deleting a match, round, or tournament now removes its media in a single batch instead of one file at a time (#67)',
+      'Match-stat keys now use a typed escape-hatch union internally for better autocomplete and typo protection — no user-visible change (#57)',
+    ],
+  },
+  {
+    version: '1.9.5',
+    added: [
+      'Match stats edit screen now always shows all 23 tracked params in a fixed order — ones the AI didn\'t recognize show as a muted placeholder instead of being hidden, and a small dot marks values the AI wasn\'t fully confident about (#63)',
+      'Expected Goals (xG) now steps by 0.1 in the stats editor instead of whole numbers; percentage stats (possession, dribbles, accuracy) are capped at 100 on each side (#63)',
+      'Stat photos that don\'t look like a real stats screen are now rejected automatically during import/re-scan — they\'re no longer added to the match or applied as stats, and you\'re asked to upload a clearer photo instead (#63)',
+    ],
+    fixed: [
+      'Re-scanning stats or adding new photos now shows a visible loading indicator for the entire upload + AI-read duration, including the wait for photos not yet downloaded from iCloud — previously the app could look frozen with no feedback (#65)',
+      'Video upload and playback were both broken — video capture/selection is temporarily disabled and existing video attachments are hidden from the match screen until the underlying issue is investigated (#59)',
+    ],
+  },
+  {
     version: '1.9.4',
     fixed: [
       'You no longer have to log in again every time the app is closed and reopened — the session is now stored on-device and restored automatically on launch (#54)',

@@ -4,9 +4,8 @@ import { View } from 'react-native';
 import { StatsRow } from './StatsRow';
 
 const meta = {
-  title: 'Components/StatsRow',
+  title: 'Elements/StatsRow',
   component: StatsRow,
-  parameters: { backgrounds: { default: 'app-dark' } },
   argTypes: {
     label: { control: { type: 'text' } },
     aValue: { control: { type: 'number' } },

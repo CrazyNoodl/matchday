@@ -23,10 +23,24 @@ jest.mock('@/supabase/sync', () => ({
 jest.mock('@/supabase/storage', () => ({
   uploadMediaItem: jest.fn().mockResolvedValue(null),
   deleteMediaItem: jest.fn().mockResolvedValue(undefined),
+  // Also used by tournamentSlice.ts (imported transitively via the store) for
+  // folder-prefix deletes (#67) — not under test here, just needs to exist.
+  deleteStorageFolder: jest.fn().mockResolvedValue(undefined),
+  buildRoundFolder: jest.fn(() => 'matchday-mock'),
+  buildMatchFolder: jest.fn(() => 'match-mock'),
 }));
 
 jest.mock('@/utils/extractStats', () => ({
   extractStatsFromPhoto: jest.fn(),
+}));
+
+// Resize is a pass-through here — its own behavior is covered by imageResize.test.ts
+jest.mock('@/utils/imageResize', () => ({
+  resizeImage: jest.fn((uri: string) => Promise.resolve({ uri })),
+  MEDIA_MAX_DIMENSION: 2000,
+  OCR_PAYLOAD_MAX_DIMENSION: 2000,
+  STAT_PHOTO_STORAGE_MAX_DIMENSION: 1200,
+  TEAM_LOGO_MAX_DIMENSION: 600,
 }));
 
 jest.mock('expo-image-picker', () => ({
@@ -82,8 +96,29 @@ beforeEach(() => {
   mockUpload.mockResolvedValue(null);
   mockExtractStats.mockResolvedValue([]);
   jest.mocked(require('@/supabase/sync').fetchMatchById).mockResolvedValue(null);
+  // deleteMatch chains .catch() directly onto this without awaiting first —
+  // needs a real resolved promise, not resetAllMocks' bare undefined return.
+  jest.mocked(require('@/supabase/storage').deleteStorageFolder).mockResolvedValue(undefined);
+  jest.mocked(require('@/utils/imageResize').resizeImage).mockImplementation((uri: string) => Promise.resolve({ uri }));
   useStore.getState().resetStore();
 });
+
+// #63: handleImportStats now rejects any photo that recognizes fewer than
+// MIN_CANONICAL_STATS (8) of the 23 canonical params. Tests that want a photo
+// to be treated as a genuine, valid stats screenshot must mock at least 8
+// canonical keys — this helper builds that baseline with overridable values.
+const CANONICAL_TEST_KEYS = ['possession', 'shots', 'passes', 'tackles', 'saves', 'fouls', 'corners', 'freekicks'];
+function makeValidStats(
+  overrides: Record<string, { home: number; away: number; confidence?: 'high' | 'medium' | 'low' }> = {},
+) {
+  return CANONICAL_TEST_KEYS.map((key) => ({
+    key,
+    label: key,
+    home: overrides[key]?.home ?? 5,
+    away: overrides[key]?.away ?? 5,
+    confidence: overrides[key]?.confidence ?? ('high' as const),
+  }));
+}
 
 // ── Match lookup ──────────────────────────────────────────────────────────────
 
@@ -231,7 +266,7 @@ describe('adjustStat', () => {
   it('increments stat value', async () => {
     useStore.setState({ matches: [MATCH] });
     const { result } = await renderHook(() => useMatchDetail());
-    await act(async () => { result.current.adjustStat('shots', 'a', 3); });
+    await act(async () => { result.current.adjustStat('shots', 'a', 3, false); });
     expect(result.current.editValues['shots']?.a).toBe(3);
   });
 
@@ -239,8 +274,8 @@ describe('adjustStat', () => {
     useStore.setState({ matches: [MATCH] });
     const { result } = await renderHook(() => useMatchDetail());
     await act(async () => {
-      result.current.adjustStat('shots', 'a', 5);
-      result.current.adjustStat('shots', 'a', -2);
+      result.current.adjustStat('shots', 'a', 5, false);
+      result.current.adjustStat('shots', 'a', -2, false);
     });
     expect(result.current.editValues['shots']?.a).toBe(3);
   });
@@ -248,7 +283,7 @@ describe('adjustStat', () => {
   it('clamps at zero — never goes negative', async () => {
     useStore.setState({ matches: [MATCH] });
     const { result } = await renderHook(() => useMatchDetail());
-    await act(async () => { result.current.adjustStat('fouls', 'b', -10); });
+    await act(async () => { result.current.adjustStat('fouls', 'b', -10, false); });
     expect(result.current.editValues['fouls']?.b).toBe(0);
   });
 
@@ -256,11 +291,88 @@ describe('adjustStat', () => {
     useStore.setState({ matches: [MATCH] });
     const { result } = await renderHook(() => useMatchDetail());
     await act(async () => {
-      result.current.adjustStat('passes', 'a', 10);
-      result.current.adjustStat('passes', 'b', 7);
+      result.current.adjustStat('passes', 'a', 10, false);
+      result.current.adjustStat('passes', 'b', 7, false);
     });
     expect(result.current.editValues['passes']?.a).toBe(10);
     expect(result.current.editValues['passes']?.b).toBe(7);
+  });
+
+  // #63: percent fields (possession, shotAccuracy, etc.) can't exceed 100 on either side
+  it('clamps at 100 for percent fields', async () => {
+    useStore.setState({ matches: [MATCH] });
+    const { result } = await renderHook(() => useMatchDetail());
+    await act(async () => { result.current.adjustStat('possession', 'a', 150, true); });
+    expect(result.current.editValues['possession']?.a).toBe(100);
+  });
+
+  it('does not clamp non-percent fields at 100', async () => {
+    useStore.setState({ matches: [MATCH] });
+    const { result } = await renderHook(() => useMatchDetail());
+    await act(async () => { result.current.adjustStat('passes', 'a', 150, false); });
+    expect(result.current.editValues['passes']?.a).toBe(150);
+  });
+
+  // #63: expectedGoals (xG) steps by 0.1 — verify no floating point drift (e.g. 2.1 not 2.0999999)
+  it('accumulates 0.1 steps without floating point drift', async () => {
+    useStore.setState({ matches: [MATCH] });
+    const { result } = await renderHook(() => useMatchDetail());
+    await act(async () => {
+      for (let i = 0; i < 21; i++) result.current.adjustStat('expectedGoals', 'a', 0.1, false);
+    });
+    expect(result.current.editValues['expectedGoals']?.a).toBe(2.1);
+  });
+});
+
+// ── openEditStats / handleSaveStats (#63) ─────────────────────────────────────
+
+describe('openEditStats / handleSaveStats', () => {
+  it('seeds editValues with 0/0 for a param missing from statsOverride', async () => {
+    const match = { ...MATCH, statsOverride: { shots: { a: 7, b: 3 } } };
+    useStore.setState({ matches: [match] });
+    const { result } = await renderHook(() => useMatchDetail());
+    await act(async () => { result.current.openEditStats(); });
+    expect(result.current.editValues['fouls']).toEqual({ a: 0, b: 0 });
+    expect(result.current.editValues['shots']).toEqual({ a: 7, b: 3 });
+  });
+
+  it('leaves an untouched, never-set param out of statsOverride after save', async () => {
+    const match = { ...MATCH, statsOverride: { shots: { a: 7, b: 3 } } };
+    useStore.setState({ matches: [match] });
+    const { result } = await renderHook(() => useMatchDetail());
+    await act(async () => { result.current.openEditStats(); });
+    await act(async () => { result.current.handleSaveStats(); });
+    // fouls was never touched — stays excluded, still shows as a muted placeholder
+    expect(useStore.getState().matches[0].statsOverride?.fouls).toBeUndefined();
+  });
+
+  it('includes a param in statsOverride once the user touches it via adjustStat', async () => {
+    const match = { ...MATCH, statsOverride: { shots: { a: 7, b: 3 } } };
+    useStore.setState({ matches: [match] });
+    const { result } = await renderHook(() => useMatchDetail());
+    await act(async () => { result.current.openEditStats(); });
+    await act(async () => { result.current.adjustStat('fouls', 'a', 2, false); });
+    await act(async () => { result.current.handleSaveStats(); });
+    expect(useStore.getState().matches[0].statsOverride?.fouls).toEqual({ a: 2, b: 0, confidence: undefined });
+  });
+
+  it('preserves confidence on an untouched already-set param', async () => {
+    const match = { ...MATCH, statsOverride: { shots: { a: 7, b: 3, confidence: 'low' as const } } };
+    useStore.setState({ matches: [match] });
+    const { result } = await renderHook(() => useMatchDetail());
+    await act(async () => { result.current.openEditStats(); });
+    await act(async () => { result.current.handleSaveStats(); });
+    expect(useStore.getState().matches[0].statsOverride?.shots).toEqual({ a: 7, b: 3, confidence: 'low' });
+  });
+
+  it('drops confidence once the user manually edits an already-set param', async () => {
+    const match = { ...MATCH, statsOverride: { shots: { a: 7, b: 3, confidence: 'low' as const } } };
+    useStore.setState({ matches: [match] });
+    const { result } = await renderHook(() => useMatchDetail());
+    await act(async () => { result.current.openEditStats(); });
+    await act(async () => { result.current.adjustStat('shots', 'a', 1, false); });
+    await act(async () => { result.current.handleSaveStats(); });
+    expect(useStore.getState().matches[0].statsOverride?.shots).toEqual({ a: 8, b: 3, confidence: undefined });
   });
 });
 
@@ -325,6 +437,15 @@ describe('handleAddMedia', () => {
     expect(useStore.getState().matches[0].media).toBeUndefined();
   });
 
+  it('requests images only from the picker — video upload disabled (#59)', async () => {
+    useStore.setState({ matches: [MATCH] });
+    const { result } = await renderHook(() => useMatchDetail());
+    await act(async () => { await result.current.handleAddMedia(); });
+    expect(mockPicker).toHaveBeenCalledWith(
+      expect.objectContaining({ mediaTypes: ['images'] }),
+    );
+  });
+
   it('saves with remote URL when upload succeeds', async () => {
     useStore.setState({ matches: [MATCH] });
     mockPicker.mockResolvedValueOnce({
@@ -354,6 +475,46 @@ describe('handleAddMedia', () => {
     expect(media![0].uri).toBe('file://photo.jpg');
     expect(media![0].pendingUpload).toBe(true);
   });
+
+  it('#67 — uploads to the nested round/match folder for a live match', async () => {
+    useStore.setState({
+      matches: [{ ...MATCH, mediaFolder: 'match_3-1_2026-07-03_1432' }],
+      roundFolder: 'matchday-2026-07-03_1430',
+      tournamentId: 'tour-1',
+    });
+    mockPicker.mockResolvedValueOnce({
+      canceled: false,
+      assets: [{ uri: 'file://photo.jpg', type: 'image' }],
+    });
+    mockUpload.mockResolvedValueOnce('https://cdn.example.com/photo.jpg');
+    const { result } = await renderHook(() => useMatchDetail());
+    await act(async () => { await result.current.handleAddMedia(); });
+
+    expect(mockUpload).toHaveBeenCalledWith('file://photo.jpg', 'image', {
+      tournamentId: 'tour-1',
+      mediaFolder: 'matchday-2026-07-03_1430/match_3-1_2026-07-03_1432',
+    });
+  });
+
+  it('#67 — falls back to matchId as the folder for matches predating the layout', async () => {
+    useStore.setState({
+      matches: [MATCH], // no mediaFolder
+      roundFolder: 'matchday-2026-07-03_1430',
+      tournamentId: 'tour-1',
+    });
+    mockPicker.mockResolvedValueOnce({
+      canceled: false,
+      assets: [{ uri: 'file://photo.jpg', type: 'image' }],
+    });
+    mockUpload.mockResolvedValueOnce('https://cdn.example.com/photo.jpg');
+    const { result } = await renderHook(() => useMatchDetail());
+    await act(async () => { await result.current.handleAddMedia(); });
+
+    expect(mockUpload).toHaveBeenCalledWith('file://photo.jpg', 'image', {
+      tournamentId: 'tour-1',
+      mediaFolder: MATCH.id,
+    });
+  });
 });
 
 // ── handleImportStats ─────────────────────────────────────────────────────────
@@ -366,7 +527,7 @@ describe('handleImportStats', () => {
     await act(async () => { await result.current.handleImportStats(); });
     expect(useStore.getState().matches[0].media).toBeUndefined();
     expect(result.current.showOcrFailed).toBe(false);
-    expect(result.current.showOcrNoStats).toBe(false);
+    expect(result.current.showInvalidStatsPhoto).toBe(false);
   });
 
   it('upload fails: saves locally with pendingUpload flag, runs OCR', async () => {
@@ -376,6 +537,7 @@ describe('handleImportStats', () => {
       assets: [{ uri: 'file://stats.jpg', type: 'image', base64: 'abc', mimeType: 'image/jpeg' }],
     });
     mockUpload.mockResolvedValueOnce(null);
+    mockExtractStats.mockResolvedValueOnce(makeValidStats());
     const { result } = await renderHook(() => useMatchDetail());
     await act(async () => { await result.current.handleImportStats(); });
     // Photo saved locally (no existing media → should save)
@@ -385,7 +547,8 @@ describe('handleImportStats', () => {
     expect(media![0].pendingUpload).toBe(true);
     // OCR still runs — base64 is in memory regardless of upload status
     expect(mockExtractStats).toHaveBeenCalledWith('abc', 'image/jpeg');
-    expect(result.current.showOcrNoStats).toBe(true);
+    // A valid photo (>= 8 canonical stats) applies silently, no dialog
+    expect(result.current.showInvalidStatsPhoto).toBe(false);
   });
 
   it('upload fails: does NOT add media when match already has photos, but still runs OCR', async () => {
@@ -413,20 +576,20 @@ describe('handleImportStats', () => {
       assets: [{ uri: 'file://stats.jpg', type: 'image', base64: 'abc', mimeType: 'image/jpeg' }],
     });
     mockUpload.mockResolvedValueOnce('https://cdn/stats.jpg');
-    mockExtractStats.mockResolvedValueOnce([
-      { key: 'shots', label: 'Shots', home: 7, away: 3, confidence: 'high' },
-    ]);
+    mockExtractStats.mockResolvedValueOnce(makeValidStats({ shots: { home: 7, away: 3 } }));
     const { result } = await renderHook(() => useMatchDetail());
     await act(async () => { await result.current.handleImportStats(); });
     expect(mockExtractStats).toHaveBeenCalledWith('abc', 'image/jpeg');
     const saved = useStore.getState().matches[0];
-    expect(saved.statsOverride?.shots).toEqual({ a: 7, b: 3 });
+    expect(saved.statsOverride?.shots).toEqual({ a: 7, b: 3, confidence: 'high' });
     expect(useStore.getState().modal).toBeNull();
     expect(result.current.showOcrFailed).toBe(false);
-    expect(result.current.showOcrNoStats).toBe(false);
+    expect(result.current.showInvalidStatsPhoto).toBe(false);
   });
 
-  it('upload succeeds but OCR finds no stats: shows no-stats notification', async () => {
+  it('upload succeeds but OCR recognizes too few params: shows invalid-photo notification, skips media', async () => {
+    // #63: a photo below MIN_CANONICAL_STATS (8) — including the old "0 stats
+    // found" case — is treated as the wrong screenshot, not just "no stats".
     useStore.setState({ matches: [MATCH] });
     mockPicker.mockResolvedValueOnce({
       canceled: false,
@@ -436,8 +599,10 @@ describe('handleImportStats', () => {
     mockExtractStats.mockResolvedValueOnce([]);
     const { result } = await renderHook(() => useMatchDetail());
     await act(async () => { await result.current.handleImportStats(); });
-    expect(result.current.showOcrNoStats).toBe(true);
+    expect(result.current.showInvalidStatsPhoto).toBe(true);
     expect(useStore.getState().matches[0].statsOverride).toBeUndefined();
+    // Invalid photo never joins match.media, even though upload itself succeeded
+    expect(useStore.getState().matches[0].media).toBeUndefined();
   });
 
   it('upload succeeds but OCR throws: shows ocr-failed notification', async () => {
@@ -465,6 +630,9 @@ describe('handleImportStats', () => {
     mockUpload
       .mockResolvedValueOnce('https://cdn/a.jpg')
       .mockResolvedValueOnce(null);
+    mockExtractStats
+      .mockResolvedValueOnce(makeValidStats())
+      .mockResolvedValueOnce(makeValidStats());
     const { result } = await renderHook(() => useMatchDetail());
     await act(async () => { await result.current.handleImportStats(); });
     // OCR runs on both photos regardless of partial upload failure
@@ -492,16 +660,73 @@ describe('handleImportStats', () => {
       .mockResolvedValueOnce('https://cdn/a.jpg')
       .mockResolvedValueOnce('https://cdn/b.jpg');
     mockExtractStats
-      .mockResolvedValueOnce([
-        { key: 'shots', label: 'Shots', home: 5, away: 2, confidence: 'low' },
-      ])
-      .mockResolvedValueOnce([
-        { key: 'shots', label: 'Shots', home: 7, away: 3, confidence: 'high' },
-      ]);
+      .mockResolvedValueOnce(makeValidStats({ shots: { home: 5, away: 2, confidence: 'low' } }))
+      .mockResolvedValueOnce(makeValidStats({ shots: { home: 7, away: 3, confidence: 'high' } }));
     const { result } = await renderHook(() => useMatchDetail());
     await act(async () => { await result.current.handleImportStats(); });
     const saved = useStore.getState().matches[0];
-    expect(saved.statsOverride?.shots).toEqual({ a: 7, b: 3 });
+    expect(saved.statsOverride?.shots).toEqual({ a: 7, b: 3, confidence: 'high' });
+  });
+});
+
+describe('#63 — per-photo OCR validation gate', () => {
+  it('uploads a rejected (too-few-stats) photo with a "rejected-" filename prefix', async () => {
+    useStore.setState({ matches: [MATCH] });
+    mockPicker.mockResolvedValueOnce({
+      canceled: false,
+      assets: [{ uri: 'file://bad.jpg', type: 'image', base64: 'xyz', mimeType: 'image/jpeg' }],
+    });
+    mockUpload.mockResolvedValueOnce('https://cdn/bad.jpg');
+    mockExtractStats.mockResolvedValueOnce([
+      { key: 'shots', label: 'Shots', home: 1, away: 0, confidence: 'low' },
+    ]); // only 1 canonical stat — below MIN_CANONICAL_STATS (8)
+    const { result } = await renderHook(() => useMatchDetail());
+    await act(async () => { await result.current.handleImportStats(); });
+
+    expect(result.current.showInvalidStatsPhoto).toBe(true);
+    // Still uploaded (kept in storage, per #63) but tagged for later cleanup
+    expect(mockUpload).toHaveBeenCalledWith(
+      'file://bad.jpg',
+      'image',
+      expect.objectContaining({ filenamePrefix: 'rejected-' }),
+    );
+  });
+
+  it('does not tag a valid photo\'s filename', async () => {
+    useStore.setState({ matches: [MATCH] });
+    mockPicker.mockResolvedValueOnce({
+      canceled: false,
+      assets: [{ uri: 'file://good.jpg', type: 'image', base64: 'abc', mimeType: 'image/jpeg' }],
+    });
+    mockUpload.mockResolvedValueOnce('https://cdn/good.jpg');
+    mockExtractStats.mockResolvedValueOnce(makeValidStats());
+    const { result } = await renderHook(() => useMatchDetail());
+    await act(async () => { await result.current.handleImportStats(); });
+
+    const [, , context] = mockUpload.mock.calls[0];
+    expect(context.filenamePrefix).toBeUndefined();
+  });
+
+  it('re-scan with an invalid photo leaves existing stats completely untouched', async () => {
+    const matchWithStats = {
+      ...MATCH,
+      media: [{ uri: 'https://cdn/existing.jpg', type: 'image' as const }],
+      statsOverride: { shots: { a: 5, b: 2, confidence: 'high' as const } },
+    };
+    useStore.setState({ matches: [matchWithStats] });
+    mockPicker.mockResolvedValueOnce({
+      canceled: false,
+      assets: [{ uri: 'file://bad.jpg', type: 'image', base64: 'xyz', mimeType: 'image/jpeg' }],
+    });
+    mockUpload.mockResolvedValueOnce('https://cdn/bad.jpg');
+    mockExtractStats.mockResolvedValueOnce([]); // 0 canonical stats — invalid
+    const { result } = await renderHook(() => useMatchDetail());
+    await act(async () => { await result.current.handleImportStats(); });
+
+    const saved = useStore.getState().matches[0];
+    expect(saved.statsOverride).toEqual({ shots: { a: 5, b: 2, confidence: 'high' } });
+    expect(saved.media).toEqual([{ uri: 'https://cdn/existing.jpg', type: 'image' }]);
+    expect(result.current.showInvalidStatsPhoto).toBe(true);
   });
 });
 
@@ -517,9 +742,7 @@ describe('Bug 11 — handleImportStats: picker throws → importingStatsRef stuc
         assets: [{ uri: 'file://s.jpg', type: 'image', base64: 'abc', mimeType: 'image/jpeg' }],
       });
     mockUpload.mockResolvedValueOnce('https://cdn/s.jpg');
-    mockExtractStats.mockResolvedValueOnce([
-      { key: 'shots', label: 'Shots', home: 5, away: 2, confidence: 'high' },
-    ]);
+    mockExtractStats.mockResolvedValueOnce(makeValidStats({ shots: { home: 5, away: 2 } }));
     const { result } = await renderHook(() => useMatchDetail());
 
     // First call: picker throws (permission denied) → ref should be released
@@ -531,7 +754,7 @@ describe('Bug 11 — handleImportStats: picker throws → importingStatsRef stuc
     await act(async () => { await result.current.handleImportStats(); });
 
     const saved = useStore.getState().matches[0];
-    expect(saved.statsOverride?.shots).toEqual({ a: 5, b: 2 });
+    expect(saved.statsOverride?.shots).toEqual({ a: 5, b: 2, confidence: 'high' });
   });
 });
 
@@ -544,6 +767,7 @@ describe('Bug 9 — handleImportStats: upload throw loses photos (not saved loca
     });
     // uploadMediaItem THROWS (not returns null) — simulates unexpected network error
     mockUpload.mockRejectedValueOnce(new Error('network timeout'));
+    mockExtractStats.mockResolvedValueOnce(makeValidStats());
     const { result } = await renderHook(() => useMatchDetail());
     await act(async () => { await result.current.handleImportStats(); });
 
@@ -742,8 +966,11 @@ describe('Bug 6 — handleImportStats: no concurrency guard, double-trigger runs
 
     const { result } = await renderHook(() => useMatchDetail());
 
-    // Start first call (upload hangs)
+    // Start first call (upload hangs) and flush its synchronous state update
+    // (#65: importingStats/importStatsStep are now set before the picker await)
+    // via a follow-up act(), matching the existing pattern for uninitiated async calls.
     const firstCall = result.current.handleImportStats();
+    await act(async () => { await Promise.resolve(); });
 
     // While first is in progress, importingStats should now be true — second call should be blocked
     // But there's no guard! Both calls proceed:
@@ -761,25 +988,42 @@ describe('Bug 6 — handleImportStats: no concurrency guard, double-trigger runs
   });
 });
 
-describe('Bug 8 — handleImportStats: importingStats=true shown while picker is open', () => {
-  it('importingStats stays false while picker is resolving (before user selects)', async () => {
-    useStore.setState({ matches: [MATCH] });
-    let resolvePicker!: (v: object) => void;
-    mockPicker.mockReturnValueOnce(new Promise((res) => { resolvePicker = res; }));
+// Bug 8's old assertion ("importingStats stays false while the picker is open") is no
+// longer true by design: #65 now shows a "preparing" state from the moment the picker is
+// invoked, to cover the OS's iCloud-download wait that happens inside that single await
+// with no progress signal of its own. Per project policy this native/picker-touching flow
+// isn't covered by new mocked Jest tests (see feedback_no_tests memory) — verified manually
+// on a Release build on device instead, not re-covered here.
+
+describe('visibleMedia — video items hidden until playback is fixed (#59)', () => {
+  it('filters out video items but keeps their original index for delete/view', async () => {
+    useStore.setState({
+      matches: [{
+        ...MATCH,
+        media: [
+          { uri: 'https://cdn.example.com/photo1.jpg', type: 'image' },
+          { uri: 'https://cdn.example.com/clip.mp4', type: 'video' },
+          { uri: 'https://cdn.example.com/photo2.jpg', type: 'image' },
+        ],
+      }],
+    });
     const { result } = await renderHook(() => useMatchDetail());
+    expect(result.current.visibleMedia).toEqual([
+      { item: { uri: 'https://cdn.example.com/photo1.jpg', type: 'image' }, originalIndex: 0 },
+      { item: { uri: 'https://cdn.example.com/photo2.jpg', type: 'image' }, originalIndex: 2 },
+    ]);
+  });
 
-    // Start handleImportStats without awaiting — picker is "open" (Promise pending)
-    result.current.handleImportStats();
-
-    // Flush React's pending state updates while the picker Promise is still hanging.
-    // If setImportingStats(true) was called BEFORE launchImageLibraryAsync resolves,
-    // this flush will deliver it and importingStats will be true — wrong.
-    // If it's called only AFTER picker confirms a selection, it stays false — correct.
-    await act(async () => { await Promise.resolve(); });
-    expect(result.current.importingStats).toBe(false);
-
-    // Cleanup
-    await act(async () => { resolvePicker({ canceled: true, assets: [] }); });
+  it('hasMediaFiles is false when only video items are attached', async () => {
+    useStore.setState({
+      matches: [{
+        ...MATCH,
+        media: [{ uri: 'https://cdn.example.com/clip.mp4', type: 'video' }],
+      }],
+    });
+    const { result } = await renderHook(() => useMatchDetail());
+    expect(result.current.visibleMedia).toEqual([]);
+    expect(result.current.hasMediaFiles).toBe(false);
   });
 });
 
@@ -797,9 +1041,7 @@ describe('Bug 7 — handleImportStats: per-photo OCR throw discards stats from e
       .mockResolvedValueOnce('https://cdn/a.jpg')
       .mockResolvedValueOnce('https://cdn/b.jpg');
     mockExtractStats
-      .mockResolvedValueOnce([
-        { key: 'shots', label: 'Shots', home: 7, away: 3, confidence: 'high' },
-      ])
+      .mockResolvedValueOnce(makeValidStats({ shots: { home: 7, away: 3 } }))
       .mockRejectedValueOnce(new Error('OCR service error on photo b'));
 
     const { result } = await renderHook(() => useMatchDetail());
@@ -808,7 +1050,7 @@ describe('Bug 7 — handleImportStats: per-photo OCR throw discards stats from e
     // Bug: outer catch fires, stats from photo A (shots) are DISCARDED
     // Expected: shots should be applied from photo A even though photo B failed
     const saved = useStore.getState().matches[0];
-    expect(saved.statsOverride?.shots).toEqual({ a: 7, b: 3 });
+    expect(saved.statsOverride?.shots).toEqual({ a: 7, b: 3, confidence: 'high' });
     // OCR failed notification should NOT have shown (partial success is fine)
     expect(result.current.showOcrFailed).toBe(false);
   });

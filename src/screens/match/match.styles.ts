@@ -178,6 +178,16 @@ export const makeStyles = (colors: AppColors) => StyleSheet.create({
     letterSpacing: 1,
     lineHeight: 20,
   },
+  statsRescanProgress: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+  },
+  statsRescanProgressText: {
+    fontFamily: FontFamily.body,
+    fontSize: FontSize.xs,
+    color: colors.accent.blue,
+  },
   statsMenuDropdown: {
     position: 'absolute',
     backgroundColor: colors.bg.elevated,
@@ -240,16 +250,6 @@ export const makeStyles = (colors: AppColors) => StyleSheet.create({
   mediaImage: {
     width: 90,
     height: 118,
-  },
-  videoOverlay: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  videoPlayIcon: {
-    fontSize: 24,
-    color: '#fff',
   },
   mediaEmpty: {
     height: 80,
@@ -417,12 +417,29 @@ export const makeStyles = (colors: AppColors) => StyleSheet.create({
     minWidth: 28,
     textAlign: 'center',
   },
+  editStatValNA: {
+    color: colors.text.ghost,
+    fontSize: FontSize.sm,
+  },
   editStatLabel: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.xs,
     color: colors.text.muted,
     textAlign: 'center',
     width: 70,
+  },
+  editStatLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    width: 70,
+  },
+  editConfidenceDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: colors.accent.yellow,
   },
 
   // Sheet buttons

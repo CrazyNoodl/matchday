@@ -63,7 +63,7 @@ export function RoundCard({
 
       {!ranked && (
         <View style={styles.friendlyBadge}>
-          <Text style={styles.friendlyBadgeText}>{t('common.friendly')}</Text>
+          <Text style={styles.friendlyBadgeText}>{t('common.friendly').toUpperCase()}</Text>
         </View>
       )}
 

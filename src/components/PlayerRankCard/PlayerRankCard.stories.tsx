@@ -31,9 +31,8 @@ const withMockData: Decorator = (Story) => {
 };
 
 const meta = {
-  title: 'Components/PlayerRankCard',
+  title: 'Cards/PlayerRankCard',
   component: PlayerRankCard,
-  parameters: { backgrounds: { default: 'app-dark' } },
   decorators: [withMockData],
   argTypes: {
     rank: { control: { type: 'number' } },

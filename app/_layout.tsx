@@ -18,9 +18,9 @@ import React from 'react';
 import { Platform, View, ActivityIndicator, Text, TextInput, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Constants from 'expo-constants';
-import { ThemeProvider, useColors } from '@/theme';
+import { ThemeProvider, useColors, useEffectiveColorScheme } from '@/theme';
 import { useStore } from '@/store';
-import { errorStyles, bannerStyles } from '@/screens/layout/layout.styles';
+import { errorStyles, bannerStyles, offlineBannerStyles } from '@/screens/layout/layout.styles';
 import i18n from '@/i18n';
 import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
@@ -28,6 +28,7 @@ import { useRouter } from 'expo-router';
 import { useSyncManager } from '@/supabase/useSyncManager';
 import { supabase, supabaseConfigured } from '@/supabase/client';
 import { LoginScreen } from '@/components';
+import { useIsOnline } from '@/hooks/useIsOnline';
 import type { Session } from '@supabase/supabase-js';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -59,14 +60,14 @@ class AppErrorBoundary extends React.Component<
       return (
         <View style={errorStyles.root}>
           <Text style={errorStyles.emoji}>⚽</Text>
-          <Text style={errorStyles.title}>Щось пішло не так</Text>
-          <Text style={errorStyles.sub}>Спробуй перезавантажити сторінку</Text>
+          <Text style={errorStyles.title}>{i18n.t('errorBoundary.title')}</Text>
+          <Text style={errorStyles.sub}>{i18n.t('errorBoundary.desc')}</Text>
           <TouchableOpacity
             style={errorStyles.btn}
             activeOpacity={0.8}
             onPress={() => this.setState({ hasError: false })}
           >
-            <Text style={errorStyles.btnText}>ПОВТОРИТИ</Text>
+            <Text style={errorStyles.btnText}>{i18n.t('errorBoundary.retry').toUpperCase()}</Text>
           </TouchableOpacity>
         </View>
       );
@@ -90,6 +91,39 @@ function LanguageSync() {
   return null;
 }
 
+function OfflineBanner({ isOnline }: { isOnline: boolean }) {
+  const demoMode = useStore((s) => s.demoMode);
+  const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
+
+  // Demo mode's own banner already occupies the bottom-anchored slot.
+  if (isOnline || demoMode) return null;
+
+  return (
+    <View
+      pointerEvents="none"
+      style={[
+        offlineBannerStyles.root,
+        { paddingBottom: 12 + (insets.bottom > 0 ? insets.bottom : 8) },
+      ]}
+    >
+      <Text style={offlineBannerStyles.title}>{t('offline.bannerTitle').toUpperCase()}</Text>
+      <Text style={offlineBannerStyles.sub}>{t('offline.bannerSub')}</Text>
+    </View>
+  );
+}
+
+function OfflineStub() {
+  const { t } = useTranslation();
+  return (
+    <View style={errorStyles.root}>
+      <Text style={errorStyles.emoji}>📡</Text>
+      <Text style={errorStyles.title}>{t('offline.title')}</Text>
+      <Text style={errorStyles.sub}>{t('offline.desc')}</Text>
+    </View>
+  );
+}
+
 function DemoBanner() {
   const demoMode = useStore((s) => s.demoMode);
   const setDemoMode = useStore((s) => s.setDemoMode);
@@ -108,7 +142,7 @@ function DemoBanner() {
     <View style={[bannerStyles.root, { paddingBottom: insets.bottom > 0 ? insets.bottom : 8 }]}>
       <View style={bannerStyles.inner}>
         <View>
-          <Text style={bannerStyles.title}>{t('demo.banner')}</Text>
+          <Text style={bannerStyles.title}>{t('demo.banner').toUpperCase()}</Text>
           <Text style={bannerStyles.sub}>{t('demo.bannerSub')}</Text>
         </View>
         <TouchableOpacity style={bannerStyles.exitBtn} onPress={handleExit} activeOpacity={0.8}>
@@ -119,9 +153,17 @@ function DemoBanner() {
   );
 }
 
-function AppContent({ fontsLoaded, session }: { fontsLoaded: boolean; session: Session | null | undefined }) {
+function AppContent({
+  fontsLoaded,
+  session,
+  isOnline,
+}: {
+  fontsLoaded: boolean;
+  session: Session | null | undefined;
+  isOnline: boolean;
+}) {
   const colors = useColors();
-  const colorScheme = useStore((s) => s.colorScheme);
+  const colorScheme = useEffectiveColorScheme();
 
   if (!fontsLoaded || session === undefined) {
     return (
@@ -132,6 +174,15 @@ function AppContent({ fontsLoaded, session }: { fontsLoaded: boolean; session: S
   }
 
   if (supabaseConfigured && session === null) {
+    // Signing in requires reaching Supabase — there's no local-first path for an
+    // unauthenticated user, so this is the one case where offline fully blocks the app.
+    if (!isOnline) {
+      return (
+        <AppErrorBoundary>
+          <OfflineStub />
+        </AppErrorBoundary>
+      );
+    }
     return (
       <AppErrorBoundary>
         <LoginScreen onSuccess={() => {/* session update via onAuthStateChange */}} />
@@ -141,7 +192,7 @@ function AppContent({ fontsLoaded, session }: { fontsLoaded: boolean; session: S
 
   return (
     <AppErrorBoundary>
-      <GestureHandlerRootView style={{ flex: 1 }}>
+      <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.bg.base }}>
         {Platform.OS === 'web' && (
           <Head>
             <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -154,32 +205,37 @@ function AppContent({ fontsLoaded, session }: { fontsLoaded: boolean; session: S
         <SyncManager />
         <LanguageSync />
         <StatusBar style={colorScheme === 'light' ? 'dark' : 'light'} />
-        <Stack
-          screenOptions={{
-            headerShown: false,
-            contentStyle: { backgroundColor: colors.bg.base },
-            animation: 'slide_from_right',
-          }}
-        >
-          <Stack.Screen name="index" />
-          <Stack.Screen name="setup" />
-          <Stack.Screen name="round" />
-          <Stack.Screen name="tournament" />
-          <Stack.Screen name="stats" />
-          <Stack.Screen name="archive" />
-          <Stack.Screen name="archive-day" />
-          <Stack.Screen name="season-stats" />
-          <Stack.Screen name="match/[id]" />
-          <Stack.Screen name="settings/index" />
-          <Stack.Screen name="settings/players" />
-          <Stack.Screen name="settings/teams" />
-          <Stack.Screen name="settings/tournaments" />
-          <Stack.Screen name="settings/display" />
-          <Stack.Screen name="settings/language" />
-          <Stack.Screen name="settings/developer" />
-          <Stack.Screen name="settings/import-round" />
-        </Stack>
+        {/* flex:1 wrapper reserves the banners their own row below instead of
+            letting them float on top of screen content — see layout.styles.ts */}
+        <View style={{ flex: 1 }}>
+          <Stack
+            screenOptions={{
+              headerShown: false,
+              contentStyle: { backgroundColor: colors.bg.base },
+              animation: 'slide_from_right',
+            }}
+          >
+            <Stack.Screen name="index" />
+            <Stack.Screen name="setup" />
+            <Stack.Screen name="round" />
+            <Stack.Screen name="tournament" />
+            <Stack.Screen name="stats" />
+            <Stack.Screen name="archive" />
+            <Stack.Screen name="archive-day" />
+            <Stack.Screen name="season-stats" />
+            <Stack.Screen name="match/[id]" />
+            <Stack.Screen name="settings/index" />
+            <Stack.Screen name="settings/players" />
+            <Stack.Screen name="settings/teams" />
+            <Stack.Screen name="settings/tournaments" />
+            <Stack.Screen name="settings/display" />
+            <Stack.Screen name="settings/language" />
+            <Stack.Screen name="settings/developer" />
+            <Stack.Screen name="settings/import-round" />
+          </Stack>
+        </View>
         <DemoBanner />
+        <OfflineBanner isOnline={isOnline} />
       </GestureHandlerRootView>
     </AppErrorBoundary>
   );
@@ -194,6 +250,8 @@ export default function RootLayout() {
     Sora_600SemiBold,
     Sora_700Bold,
   });
+
+  const isOnline = useIsOnline();
 
   // undefined = still checking, null = not logged in, Session = logged in
   const [session, setSession] = useState<Session | null | undefined>(
@@ -216,7 +274,7 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider>
-      <AppContent fontsLoaded={fontsLoaded} session={session} />
+      <AppContent fontsLoaded={fontsLoaded} session={session} isOnline={isOnline} />
     </ThemeProvider>
   );
 }

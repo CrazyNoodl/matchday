@@ -2,8 +2,9 @@ import { useCallback, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import * as ImagePicker from 'expo-image-picker';
 import { Player, Match, MediaItem } from '@/store/types';
-import { uploadMediaItems } from '@/supabase/storage';
+import { uploadMediaItems, buildMatchFolder } from '@/supabase/storage';
 import { extractStatsFromPhoto, ExtractedStat } from '@/utils/extractStats';
+import { resizeImage, OCR_PAYLOAD_MAX_DIMENSION, STAT_PHOTO_STORAGE_MAX_DIMENSION } from '@/utils/imageResize';
 import {
   AddMatchState,
   initAddMatch,
@@ -13,6 +14,7 @@ import {
 interface UseAddMatchFlowParams {
   tournamentRanked: boolean;
   tournamentId: string;
+  roundFolder: string;
   players: Player[];
   addMatchToStore: (match: Match) => void;
   closeModal: () => void;
@@ -21,6 +23,7 @@ interface UseAddMatchFlowParams {
 export function useAddMatchFlow({
   tournamentRanked,
   tournamentId,
+  roundFolder,
   players,
   addMatchToStore,
   closeModal,
@@ -68,10 +71,13 @@ export function useAddMatchFlow({
       const aTeam = addMatch.awayTeam || awayPlayer?.teamCode || 'UNK';
 
       const matchId = `match-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+      // Fixed once at creation and never renamed, even if the score is edited later (#67)
+      const matchFolder = buildMatchFolder(addMatch.homeScore, addMatch.awayScore, new Date());
+      const mediaFolder = roundFolder ? `${roundFolder}/${matchFolder}` : matchFolder;
 
       // Upload local media to Supabase Storage before saving
       const uploadedMedia = addMatch.media.length > 0
-        ? await uploadMediaItems(addMatch.media, { tournamentId, matchId })
+        ? await uploadMediaItems(addMatch.media, { tournamentId, mediaFolder })
         : [];
 
       const match: Match = {
@@ -85,6 +91,7 @@ export function useAddMatchFlow({
         media: uploadedMedia.length > 0 ? uploadedMedia : undefined,
         note: addMatch.note.trim() || undefined,
         statsOverride: addMatch.pendingStats ?? undefined,
+        mediaFolder: matchFolder,
       };
       addMatchToStore(match);
       closeModal();
@@ -94,7 +101,7 @@ export function useAddMatchFlow({
     } finally {
       setIsSavingMatch(false);
     }
-  }, [addMatch, isSavingMatch, players, addMatchToStore, closeModal, reset, t]);
+  }, [addMatch, isSavingMatch, players, addMatchToStore, closeModal, reset, t, tournamentId, roundFolder]);
 
   const runOcr = useCallback(
     async (assets: Array<{ base64: string; mimeType: string }>, isRetry = false) => {
@@ -161,7 +168,8 @@ export function useAddMatchFlow({
     if (slotsLeft <= 0) return;
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images', 'videos'],
+      // Video temporarily disabled — upload/playback broken, see #59
+      mediaTypes: ['images'],
       allowsMultipleSelection: true,
       selectionLimit: slotsLeft,
       quality: 0.85,
@@ -172,14 +180,32 @@ export function useAddMatchFlow({
     // Respect the 5-item cap — only keep assets that actually fit into media
     const fittingAssets = result.assets.slice(0, slotsLeft);
 
-    const newItems: MediaItem[] = fittingAssets.map((a) => ({
-      uri: a.uri,
-      type: a.type === 'video' ? 'video' : 'image',
+    // These photos double as both stored match media and an OCR source — see #62.
+    // The stored copy is compressed hard (nobody zooms into a stat screenshot in the
+    // gallery); the OCR payload gets a lighter downscale so it stays legible.
+    const resizedAssets = await Promise.all(
+      fittingAssets.map(async (a) => {
+        if (a.type === 'video') return { asset: a, storageUri: a.uri, ocrBase64: undefined };
+
+        const [storageResult, ocrResult] = await Promise.all([
+          resizeImage(a.uri, a, STAT_PHOTO_STORAGE_MAX_DIMENSION).catch(() => ({ uri: a.uri })),
+          a.base64
+            ? resizeImage(a.uri, a, OCR_PAYLOAD_MAX_DIMENSION, { base64: true }).catch(() => ({ base64: a.base64 }))
+            : Promise.resolve({ base64: undefined }),
+        ]);
+
+        return { asset: a, storageUri: storageResult.uri, ocrBase64: ocrResult.base64 ?? a.base64 };
+      }),
+    );
+
+    const newItems: MediaItem[] = resizedAssets.map(({ asset, storageUri }) => ({
+      uri: storageUri,
+      type: asset.type === 'video' ? 'video' : 'image',
     }));
 
-    const newImageAssets = fittingAssets
-      .filter((a) => a.type !== 'video' && a.base64)
-      .map((a) => ({ base64: a.base64!, mimeType: a.mimeType ?? 'image/jpeg' }));
+    const newImageAssets = resizedAssets
+      .filter(({ asset, ocrBase64 }) => asset.type !== 'video' && ocrBase64)
+      .map(({ asset, ocrBase64 }) => ({ base64: ocrBase64!, mimeType: asset.mimeType ?? 'image/jpeg' }));
 
     // If user already explicitly skipped stats, don't re-enter the OCR flow on
     // subsequent picks — they've made their decision; don't re-block Next on failure.

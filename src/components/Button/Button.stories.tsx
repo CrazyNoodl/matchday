@@ -4,11 +4,8 @@ import { View } from 'react-native';
 import { Button } from './Button';
 
 const meta = {
-  title: 'Components/Button',
+  title: 'Elements/Button',
   component: Button,
-  parameters: {
-    backgrounds: { default: 'app-dark' },
-  },
   argTypes: {
     variant: {
       control: { type: 'select' },

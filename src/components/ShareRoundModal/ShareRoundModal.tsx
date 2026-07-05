@@ -8,9 +8,9 @@ import {
   ActivityIndicator,
   Platform,
   ScrollView,
-  Switch,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 // Native-only modules loaded dynamically so web build doesn't crash
 type CaptureRef = typeof import('react-native-view-shot')['captureRef'];
 type MediaLibraryModule = typeof import('expo-media-library/legacy');
@@ -20,6 +20,7 @@ import { useStore } from '@/store';
 import { ArchivedRound } from '@/store/types';
 import { calculateStandings, Standing } from '@/utils/standings';
 import { useColors } from '@/theme';
+import { Toggle } from '@/components/Toggle';
 import { FontFamily } from '@/theme/typography';
 import { STANDINGS_NUM_COLS, formatShareCardDate } from '@/utils/shareCard';
 import { makeWinnerStyles, makeModalStyles } from './ShareRoundModal.styles';
@@ -94,6 +95,7 @@ function StandingsTableRow({
   const player = useStore((s) => s.players.find((p) => p.id === standing.playerId));
   const colors = useColors();
   const winnerStyles = makeWinnerStyles(colors);
+  const { t } = useTranslation();
 
   const gdColor =
     standing.gd > 0 ? colors.accent.green : standing.gd < 0 ? colors.accent.red : colors.text.muted;
@@ -109,7 +111,7 @@ function StandingsTableRow({
       <View style={winnerStyles.standingsPlayerCol}>
         <CardAvatar teamCode={player?.teamCode} size={20} />
         <Text style={winnerStyles.standingsName} numberOfLines={1}>
-          {player?.name ?? 'Unknown'}
+          {player?.name ?? t('common.unknown')}
         </Text>
       </View>
       {STANDINGS_NUM_COLS.map((col) => (
@@ -129,6 +131,7 @@ function MatchRow({ match, isLast }: { match: ArchivedRound['matches'][number]; 
   const players = useStore((s) => s.players);
   const colors = useColors();
   const winnerStyles = makeWinnerStyles(colors);
+  const { t } = useTranslation();
   const playerA = players.find((p) => p.id === match.aId);
   const playerB = players.find((p) => p.id === match.bId);
 
@@ -140,7 +143,7 @@ function MatchRow({ match, isLast }: { match: ArchivedRound['matches'][number]; 
       <View style={winnerStyles.matchSide}>
         <CardAvatar teamCode={playerA?.teamCode} size={22} />
         <Text style={[winnerStyles.matchName, aWins && winnerStyles.matchNameWin]} numberOfLines={1}>
-          {playerA?.name ?? 'Unknown'}
+          {playerA?.name ?? t('common.unknown')}
         </Text>
       </View>
       <Text style={winnerStyles.matchScore}>
@@ -150,7 +153,7 @@ function MatchRow({ match, isLast }: { match: ArchivedRound['matches'][number]; 
       </Text>
       <View style={[winnerStyles.matchSide, winnerStyles.matchSideRight]}>
         <Text style={[winnerStyles.matchName, winnerStyles.matchNameRight, bWins && winnerStyles.matchNameWin]} numberOfLines={1}>
-          {playerB?.name ?? 'Unknown'}
+          {playerB?.name ?? t('common.unknown')}
         </Text>
         <CardAvatar teamCode={playerB?.teamCode} size={22} />
       </View>
@@ -162,6 +165,7 @@ function WinnerCard({ round, roundNumber, tournamentName, includeMatches = false
   const players = useStore((s) => s.players);
   const colors = useColors();
   const winnerStyles = makeWinnerStyles(colors);
+  const { t } = useTranslation();
 
   const playerIds = useMemo(() => {
     const ids = new Set<string>();
@@ -199,10 +203,13 @@ function WinnerCard({ round, roundNumber, tournamentName, includeMatches = false
       <View style={winnerStyles.hero}>
         {/* Diamond label */}
         <Text style={winnerStyles.heroLabel}>
-          {isDraw ? '— MATCH DAY RESULT —' : '♦  ROUND WINNER  ♦'}
+          {isDraw ? t('shareRound.matchDayResult').toUpperCase() : t('shareRound.roundWinner').toUpperCase()}
         </Text>
         <Text style={winnerStyles.heroMatchCount}>
-          {round.matches.length} {round.matches.length === 1 ? 'MATCH' : 'MATCHES'}
+          {(round.matches.length === 1
+            ? t('shareRound.matchCount', { count: round.matches.length })
+            : t('shareRound.matchCountPlural', { count: round.matches.length })
+          ).toUpperCase()}
         </Text>
 
         {/* Avatar with glow ring */}
@@ -218,7 +225,7 @@ function WinnerCard({ round, roundNumber, tournamentName, includeMatches = false
 
         {/* Name */}
         <Text style={winnerStyles.heroName}>
-          {isDraw ? 'IT\'S A DRAW' : (winner?.name ?? '—').toUpperCase()}
+          {isDraw ? t('shareRound.drawResult').toUpperCase() : (winner?.name ?? '—').toUpperCase()}
         </Text>
 
         {/* Stats row */}
@@ -226,27 +233,27 @@ function WinnerCard({ round, roundNumber, tournamentName, includeMatches = false
           <View style={winnerStyles.statsRow}>
             <View style={winnerStyles.statItem}>
               <Text style={[winnerStyles.statValue, { color: colors.accent.green }]}>{winnerStats.wins}</Text>
-              <Text style={winnerStyles.statLabel}>W</Text>
+              <Text style={winnerStyles.statLabel}>{t('table.wins')}</Text>
             </View>
             <View style={winnerStyles.statDot} />
             <View style={winnerStyles.statItem}>
               <Text style={winnerStyles.statValue}>{winnerStats.draws}</Text>
-              <Text style={winnerStyles.statLabel}>D</Text>
+              <Text style={winnerStyles.statLabel}>{t('table.draws')}</Text>
             </View>
             <View style={winnerStyles.statDot} />
             <View style={winnerStyles.statItem}>
               <Text style={[winnerStyles.statValue, { color: colors.accent.red }]}>{winnerStats.losses}</Text>
-              <Text style={winnerStyles.statLabel}>L</Text>
+              <Text style={winnerStyles.statLabel}>{t('table.losses')}</Text>
             </View>
             <View style={winnerStyles.statSep} />
             <View style={winnerStyles.statItem}>
               <Text style={winnerStyles.statValue}>{winnerStats.gf}<Text style={winnerStyles.statGA}>:{winnerStats.ga}</Text></Text>
-              <Text style={winnerStyles.statLabel}>Goals</Text>
+              <Text style={winnerStyles.statLabel}>{t('shareRound.goals')}</Text>
             </View>
             <View style={winnerStyles.statDot} />
             <View style={winnerStyles.statItem}>
               <Text style={[winnerStyles.statValue, { color: colors.accent.gold }]}>{winnerStats.pts}</Text>
-              <Text style={winnerStyles.statLabel}>PTS</Text>
+              <Text style={winnerStyles.statLabel}>{t('common.pts')}</Text>
             </View>
           </View>
         )}
@@ -259,15 +266,15 @@ function WinnerCard({ round, roundNumber, tournamentName, includeMatches = false
           <View style={winnerStyles.standingsSection}>
             <View style={winnerStyles.standingsHeaderRow}>
               <Text style={[winnerStyles.standingsHeaderCell, winnerStyles.standingsPlayerCol]}>
-                PLAYER
+                {t('table.player').toUpperCase()}
               </Text>
               {STANDINGS_NUM_COLS.map((col) => (
                 <Text key={col.key} style={[winnerStyles.standingsHeaderCell, winnerStyles.standingsNumCol]}>
                   {col.label}
                 </Text>
               ))}
-              <Text style={[winnerStyles.standingsHeaderCell, winnerStyles.standingsNumCol]}>GD</Text>
-              <Text style={[winnerStyles.standingsHeaderCell, winnerStyles.standingsNumCol]}>PTS</Text>
+              <Text style={[winnerStyles.standingsHeaderCell, winnerStyles.standingsNumCol]}>{t('table.gd')}</Text>
+              <Text style={[winnerStyles.standingsHeaderCell, winnerStyles.standingsNumCol]}>{t('common.pts')}</Text>
             </View>
             {standings.map((s, idx) => (
               <StandingsTableRow
@@ -286,7 +293,7 @@ function WinnerCard({ round, roundNumber, tournamentName, includeMatches = false
         <>
           <View style={winnerStyles.divider} />
           <View style={winnerStyles.matchesSection}>
-            <Text style={winnerStyles.matchesTitle}>ALL MATCHES</Text>
+            <Text style={winnerStyles.matchesTitle}>{t('shareRound.allMatches').toUpperCase()}</Text>
             {round.matches.map((m, idx) => (
               <MatchRow key={m.id} match={m} isLast={idx === round.matches.length - 1} />
             ))}
@@ -298,7 +305,7 @@ function WinnerCard({ round, roundNumber, tournamentName, includeMatches = false
       <View style={winnerStyles.divider} />
       <View style={winnerStyles.footer}>
         <Text style={winnerStyles.footerTour} numberOfLines={1}>{tournamentName.toUpperCase()}</Text>
-        <Text style={winnerStyles.footerRound}>Round {roundNumber} · {round.matches.length} matches</Text>
+        <Text style={winnerStyles.footerRound}>{t('shareRound.footer', { round: roundNumber, count: round.matches.length })}</Text>
       </View>
     </View>
   );
@@ -315,6 +322,7 @@ export function ShareRoundModal({ visible, onClose, round, roundNumber, tourname
   const [saveMessage, setSaveMessage] = useState<{ ok: boolean; text: string } | null>(null);
   const colors = useColors();
   const modalStyles = makeModalStyles(colors);
+  const { t } = useTranslation();
 
   const cardRef = useRef<View>(null);
 
@@ -327,7 +335,7 @@ export function ShareRoundModal({ visible, onClose, round, roundNumber, tourname
       const { captureRef } = await import('react-native-view-shot') as { captureRef: CaptureRef };
       return await captureRef(cardRef, { format: 'png', quality: 1.0, result: 'tmpfile' });
     } catch {
-      setSaveMessage({ ok: false, text: 'Could not capture image. Please try again.' });
+      setSaveMessage({ ok: false, text: t('share.captureError') });
       return null;
     }
   };
@@ -347,7 +355,7 @@ export function ShareRoundModal({ visible, onClose, round, roundNumber, tourname
         canvas.toBlob((blob) => resolve(blob), 'image/png', 1.0);
       });
     } catch {
-      setSaveMessage({ ok: false, text: 'Could not capture image. Please try again.' });
+      setSaveMessage({ ok: false, text: t('share.captureError') });
       return null;
     }
   };
@@ -370,16 +378,16 @@ export function ShareRoundModal({ visible, onClose, round, roundNumber, tourname
         const MediaLibrary = await import('expo-media-library/legacy') as MediaLibraryModule;
         const { status } = await MediaLibrary.requestPermissionsAsync(true);
         if (status !== 'granted') {
-          setSaveMessage({ ok: false, text: 'Photos permission required. Allow access in Settings.' });
+          setSaveMessage({ ok: false, text: t('share.photosPermission') });
           return;
         }
         const uri = await captureNative();
         if (!uri) return;
         await MediaLibrary.saveToLibraryAsync(uri);
-        setSaveMessage({ ok: true, text: 'Saved to Photos!' });
+        setSaveMessage({ ok: true, text: t('share.saved') });
       }
     } catch {
-      setSaveMessage({ ok: false, text: 'Could not save. Please try again.' });
+      setSaveMessage({ ok: false, text: t('share.saveError') });
     } finally {
       setLoading(false);
     }
@@ -393,9 +401,9 @@ export function ShareRoundModal({ visible, onClose, round, roundNumber, tourname
         if (!blob) return;
         const file = new File([blob], `matchday-round-${roundNumber}.png`, { type: 'image/png' });
         if (navigator.canShare?.({ files: [file] })) {
-          await navigator.share({ files: [file], title: `Round ${roundNumber} · ${tournamentName}` });
+          await navigator.share({ files: [file], title: t('shareRound.nativeShareTitle', { round: roundNumber, name: tournamentName }) });
         } else if (navigator.share) {
-          await navigator.share({ title: `Round ${roundNumber} · ${tournamentName}`, text: 'Matchday results' });
+          await navigator.share({ title: t('shareRound.nativeShareTitle', { round: roundNumber, name: tournamentName }), text: t('shareRound.nativeShareText') });
         }
       } else {
         const uri = await captureNative();
@@ -403,10 +411,10 @@ export function ShareRoundModal({ visible, onClose, round, roundNumber, tourname
         const Sharing = await import('expo-sharing') as SharingModule;
         const canShare = await Sharing.isAvailableAsync();
         if (!canShare) {
-          setSaveMessage({ ok: false, text: 'Sharing is not available on this device.' });
+          setSaveMessage({ ok: false, text: t('share.notAvailable') });
           return;
         }
-        await Sharing.shareAsync(uri, { mimeType: 'image/png', dialogTitle: 'Share Round Results' });
+        await Sharing.shareAsync(uri, { mimeType: 'image/png', dialogTitle: t('shareRound.dialogTitle') });
       }
     } catch {
       // user cancelled share dialog
@@ -424,7 +432,7 @@ export function ShareRoundModal({ visible, onClose, round, roundNumber, tourname
       <SafeAreaView style={modalStyles.root} edges={['top', 'bottom']}>
         {/* Header */}
         <View style={modalStyles.header}>
-          <Text style={modalStyles.title}>SHARE ROUND</Text>
+          <Text style={modalStyles.title}>{t('shareRound.title').toUpperCase()}</Text>
           <TouchableOpacity onPress={onClose} style={modalStyles.closeBtn} activeOpacity={0.7}>
             <Text style={modalStyles.closeText}>✕</Text>
           </TouchableOpacity>
@@ -449,23 +457,9 @@ export function ShareRoundModal({ visible, onClose, round, roundNumber, tourname
         </ScrollView>
 
         {/* Options */}
-        <View style={modalStyles.optionRow}>
-          <Text style={modalStyles.optionLabel}>Include standings</Text>
-          <Switch
-            value={includeStandings}
-            onValueChange={setIncludeStandings}
-            trackColor={{ false: colors.bg.elevated, true: colors.accent.green }}
-            thumbColor="#ffffff"
-          />
-        </View>
-        <View style={modalStyles.optionRow}>
-          <Text style={modalStyles.optionLabel}>Include all matches</Text>
-          <Switch
-            value={includeMatches}
-            onValueChange={setIncludeMatches}
-            trackColor={{ false: colors.bg.elevated, true: colors.accent.green }}
-            thumbColor="#ffffff"
-          />
+        <View style={modalStyles.optionsWrap}>
+          <Toggle label={t('share.includeStandings')} value={includeStandings} onValueChange={setIncludeStandings} />
+          <Toggle label={t('share.includeAllMatches')} value={includeMatches} onValueChange={setIncludeMatches} />
         </View>
 
         {/* Action buttons */}
@@ -485,7 +479,7 @@ export function ShareRoundModal({ visible, onClose, round, roundNumber, tourname
               <ActivityIndicator color={colors.text.primary} size="small" />
             ) : (
               <Text style={modalStyles.actionText}>
-              {Platform.OS === 'web' ? '⬇  Download' : '💾  Save to Photos'}
+              {Platform.OS === 'web' ? t('share.download') : t('share.saveToPhotos')}
             </Text>
             )}
           </TouchableOpacity>
@@ -498,7 +492,7 @@ export function ShareRoundModal({ visible, onClose, round, roundNumber, tourname
             {loading ? (
               <ActivityIndicator color={colors.bg.base} size="small" />
             ) : (
-              <Text style={[modalStyles.actionText, { color: colors.bg.base }]}>↗  Share</Text>
+              <Text style={[modalStyles.actionText, { color: colors.bg.base }]}>{t('share.share')}</Text>
             )}
           </TouchableOpacity>
         </View>

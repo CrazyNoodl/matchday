@@ -218,6 +218,22 @@ describe('confirmSignOut', () => {
     expect(mockSignOut).toHaveBeenCalledTimes(1);
     expect(result.current.showSignOutConfirm).toBe(false);
   });
+
+  it('clears locally cached players/teams so the next account on this device starts empty', async () => {
+    setSeedState();
+    const { result } = await renderHook(() => useSettings());
+    await act(async () => { await result.current.confirmSignOut(); });
+    expect(useStore.getState().players).toHaveLength(0);
+    expect(useStore.getState().teams).toHaveLength(0);
+  });
+
+  it('still resets the store when signOut itself throws', async () => {
+    setSeedState();
+    mockSignOut.mockRejectedValueOnce(new Error('network down'));
+    const { result } = await renderHook(() => useSettings());
+    await act(async () => { await result.current.confirmSignOut(); });
+    expect(useStore.getState().players).toHaveLength(0);
+  });
 });
 
 // ── handleReset ───────────────────────────────────────────────────────────────

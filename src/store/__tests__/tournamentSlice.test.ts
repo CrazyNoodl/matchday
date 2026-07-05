@@ -10,8 +10,19 @@ jest.mock('react-native', () => ({
   Platform: { OS: 'web' },
 }));
 
+jest.mock('@/supabase/storage', () => {
+  const actual = jest.requireActual('@/supabase/storage');
+  return {
+    ...actual,
+    deleteStorageFolder: jest.fn().mockResolvedValue(undefined),
+  };
+});
+
 import { useStore } from '../index';
 import type { Match, Player } from '../types';
+import { deleteStorageFolder } from '@/supabase/storage';
+
+const mockDeleteFolder = deleteStorageFolder as jest.Mock;
 
 const P1: Player = { id: 'p1', name: 'Alice', color: '#f00', teamCode: 'JUV' };
 const P2: Player = { id: 'p2', name: 'Bob', color: '#00f', teamCode: 'BAR' };
@@ -28,6 +39,7 @@ const makeMatch = (id: string, aId = 'p1', bId = 'p2', aScore = 2, bScore = 0): 
 
 beforeEach(() => {
   useStore.getState().resetStore();
+  mockDeleteFolder.mockClear();
 });
 
 // ---------------------------------------------------------------------------
@@ -247,5 +259,105 @@ describe('swapMatchSides', () => {
     useStore.setState({ matches: [match] });
     useStore.getState().swapMatchSides('unknown');
     expect(useStore.getState().matches[0]).toEqual(match);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// #67 — per-round/per-match storage folder lifecycle + prefix-based cleanup
+// ---------------------------------------------------------------------------
+
+describe('media storage folder lifecycle (#67)', () => {
+  beforeEach(() => {
+    useStore.getState().addPlayer(P1);
+    useStore.getState().addPlayer(P2);
+    useStore.getState().startTournament('Cup', ['p1', 'p2'], true);
+  });
+
+  it('startRound generates a human-readable roundFolder', () => {
+    useStore.getState().startRound(true, ['p1', 'p2']);
+    expect(useStore.getState().roundFolder).toMatch(/^matchday-\d{4}-\d{2}-\d{2}_\d{4}$/);
+  });
+
+  it('finishRound copies roundFolder onto the archived round and clears it', () => {
+    useStore.getState().startRound(true, ['p1', 'p2']);
+    const roundFolder = useStore.getState().roundFolder;
+    useStore.getState().addMatch(makeMatch('m1'));
+    useStore.getState().finishRound();
+
+    expect(useStore.getState().archivedRounds[0].folder).toBe(roundFolder);
+    expect(useStore.getState().roundFolder).toBe('');
+  });
+
+  it('deleteMatch removes only that match\'s folder', () => {
+    useStore.getState().startRound(true, ['p1', 'p2']);
+    const roundFolder = useStore.getState().roundFolder;
+    const tournamentId = useStore.getState().tournamentId;
+    useStore.getState().addMatch({ ...makeMatch('m1'), mediaFolder: 'match_2-0_stamp' });
+
+    useStore.getState().deleteMatch('m1');
+
+    expect(mockDeleteFolder).toHaveBeenCalledWith(`${tournamentId}/${roundFolder}/match_2-0_stamp`);
+  });
+
+  it('deleteMatch falls back to the matchId as the folder for matches predating the layout', () => {
+    useStore.getState().startRound(true, ['p1', 'p2']);
+    const tournamentId = useStore.getState().tournamentId;
+    useStore.getState().addMatch(makeMatch('m1')); // no mediaFolder
+
+    useStore.getState().deleteMatch('m1');
+
+    expect(mockDeleteFolder).toHaveBeenCalledWith(`${tournamentId}/m1`);
+  });
+
+  it('deleteRound removes the whole round folder in a single sweep', () => {
+    useStore.getState().startRound(true, ['p1', 'p2']);
+    const roundFolder = useStore.getState().roundFolder;
+    const tournamentId = useStore.getState().tournamentId;
+    useStore.getState().addMatch({ ...makeMatch('m1'), mediaFolder: 'match_2-0_stamp' });
+    useStore.getState().addMatch({ ...makeMatch('m2'), mediaFolder: 'match_1-1_stamp' });
+
+    useStore.getState().deleteRound();
+
+    expect(mockDeleteFolder).toHaveBeenCalledWith(`${tournamentId}/${roundFolder}`);
+    expect(mockDeleteFolder).toHaveBeenCalledTimes(1);
+    expect(useStore.getState().roundFolder).toBe('');
+  });
+
+  it('deleteRound also cleans up legacy matches without a mediaFolder individually', () => {
+    useStore.getState().startRound(true, ['p1', 'p2']);
+    const tournamentId = useStore.getState().tournamentId;
+    useStore.getState().addMatch(makeMatch('m1')); // no mediaFolder
+
+    useStore.getState().deleteRound();
+
+    expect(mockDeleteFolder).toHaveBeenCalledWith(`${tournamentId}/m1`);
+  });
+
+  it('deleteArchivedRound removes the round folder using the round\'s stored folder', () => {
+    useStore.getState().startRound(true, ['p1', 'p2']);
+    useStore.getState().addMatch({ ...makeMatch('m1'), mediaFolder: 'match_2-0_stamp' });
+    useStore.getState().finishRound();
+    const roundId = useStore.getState().archivedRounds[0].id;
+    const roundFolder = useStore.getState().archivedRounds[0].folder;
+    const tournamentId = useStore.getState().tournamentId;
+    mockDeleteFolder.mockClear();
+
+    useStore.getState().deleteArchivedRound(roundId);
+
+    expect(mockDeleteFolder).toHaveBeenCalledWith(`${tournamentId}/${roundFolder}`);
+  });
+
+  it('deleteClosedTournament removes the whole tournament folder in one sweep', () => {
+    useStore.getState().startRound(true, ['p1', 'p2']);
+    useStore.getState().addMatch({ ...makeMatch('m1', 'p1', 'p2', 3, 0), mediaFolder: 'match_3-0_stamp' });
+    useStore.getState().finishRound();
+    useStore.getState().closeTournament();
+    const tourId = useStore.getState().closedTournaments[0].id;
+    mockDeleteFolder.mockClear();
+
+    useStore.getState().deleteClosedTournament(tourId);
+
+    expect(mockDeleteFolder).toHaveBeenCalledWith(tourId);
+    expect(mockDeleteFolder).toHaveBeenCalledTimes(1);
   });
 });

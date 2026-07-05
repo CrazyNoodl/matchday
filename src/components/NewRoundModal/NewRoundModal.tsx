@@ -11,6 +11,7 @@ import { useTranslation } from 'react-i18next';
 import { useStore } from '@/store';
 import { Avatar } from '@/components/Avatar';
 import { Sheet } from '@/components/Sheet/Sheet';
+import { Toggle } from '@/components/Toggle';
 import { makeStyles } from './NewRoundModal.styles';
 import { useColors } from '@/theme';
 
@@ -66,40 +67,27 @@ export function NewRoundModal() {
   return (
     <Sheet visible={visible} onClose={close}>
         <View style={styles.sheet}>
-          <Text style={styles.title}>{t('tournament.newRound.title')}</Text>
+          <Text style={styles.title}>{t('tournament.newRound.title').toUpperCase()}</Text>
           <Text style={styles.subtitle} numberOfLines={1}>
             {t('tournament.newRound.subtitle', { name: tournamentName, round: rankedCompleted + 1 })}
           </Text>
 
           {/* Ranked toggle */}
-          <TouchableOpacity
-            style={[styles.toggleRow, rankedLimitReached && styles.toggleRowDisabled]}
-            onPress={() => !rankedLimitReached && setNewRoundRanked((v) => !v)}
-            activeOpacity={rankedLimitReached ? 1 : 0.8}
-          >
-            <View style={styles.toggleLabelBlock}>
-              <Text style={[styles.toggleLabel, rankedLimitReached && styles.toggleLabelDisabled]}>
-                {t('tournament.newRound.rankedLabel')}
-              </Text>
-              <Text style={styles.toggleSub}>
-                {rankedLimitReached
-                  ? t('tournament.newRound.rankedLimitReached', { count: tournamentRounds })
-                  : t('tournament.newRound.rankedSub')}
-              </Text>
-            </View>
-            <View style={[styles.toggle, newRoundRanked && !rankedLimitReached && styles.toggleOn]}>
-              <View
-                style={[
-                  styles.toggleKnob,
-                  newRoundRanked && !rankedLimitReached && styles.toggleKnobOn,
-                ]}
-              />
-            </View>
-          </TouchableOpacity>
+          <Toggle
+            label={t('tournament.newRound.rankedLabel')}
+            subtitle={
+              rankedLimitReached
+                ? t('tournament.newRound.rankedLimitReached', { count: tournamentRounds })
+                : t('tournament.newRound.rankedSub')
+            }
+            value={newRoundRanked}
+            onValueChange={setNewRoundRanked}
+            disabled={rankedLimitReached}
+          />
 
           {/* Players section */}
           <Text style={styles.playersLabel}>
-            {t('tournament.newRound.playersLabel', { count: newRoundPlayerIds.size })}
+            {t('tournament.newRound.playersLabel', { count: newRoundPlayerIds.size }).toUpperCase()}
           </Text>
 
           <BottomSheetScrollView style={styles.playersList} showsVerticalScrollIndicator={false}>
@@ -152,7 +140,7 @@ export function NewRoundModal() {
               disabled={newRoundPlayerIds.size < 2}
             >
               <Text style={[styles.startText, newRoundPlayerIds.size < 2 && styles.startTextDisabled]}>
-                {t('tournament.newRound.start')}
+                {t('tournament.newRound.start').toUpperCase()}
               </Text>
             </TouchableOpacity>
           </View>

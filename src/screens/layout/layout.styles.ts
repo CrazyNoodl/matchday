@@ -1,10 +1,12 @@
 import { StyleSheet } from 'react-native';
 import { Colors } from '@/theme';
 import { FontFamily, FontSize } from '@/theme/typography';
+import { Spacing } from '@/theme/spacing';
 
-// Both blocks below use fixed colors regardless of color scheme: errorStyles
-// renders before ThemeProvider context can be trusted, bannerStyles is
-// intentionally yellow-themed regardless of light/dark mode.
+// All blocks below use fixed colors regardless of color scheme: errorStyles
+// renders before ThemeProvider context can be trusted, bannerStyles and
+// offlineBannerStyles are intentionally yellow/blue-themed regardless of
+// light/dark mode.
 export const errorStyles = StyleSheet.create({
   root: {
     flex: 1,
@@ -47,14 +49,32 @@ export const errorStyles = StyleSheet.create({
   },
 });
 
+export const offlineBannerStyles = StyleSheet.create({
+  root: {
+    marginTop: Spacing.md,
+    backgroundColor: '#15181b',
+    borderTopWidth: 1,
+    borderTopColor: Colors.accent.blue + '55',
+    paddingTop: 10,
+    paddingHorizontal: 20,
+  },
+  title: {
+    fontFamily: FontFamily.displayBold,
+    fontSize: FontSize.xs,
+    color: Colors.accent.blue,
+    letterSpacing: 1.2,
+  },
+  sub: {
+    fontFamily: FontFamily.body,
+    fontSize: 10,
+    color: Colors.accent.blue + 'aa',
+    marginTop: 1,
+  },
+});
+
 export const bannerStyles = StyleSheet.create({
   root: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    zIndex: 999,
-    elevation: 999,
+    marginTop: Spacing.md,
     backgroundColor: '#2a1f00',
     borderTopWidth: 1,
     borderTopColor: Colors.accent.yellow + '55',

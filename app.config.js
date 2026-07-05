@@ -8,10 +8,11 @@ module.exports = {
     orientation: 'portrait',
     icon: './assets/icon.png',
     scheme: 'matchday',
-    userInterfaceStyle: 'dark',
+    userInterfaceStyle: 'automatic',
     ios: {
       supportsTablet: false,
-      bundleIdentifier: 'com.matchday.app',
+      bundleIdentifier: 'com.artemrudenko.matchday.app',
+      appleTeamId: 'H522UCBPJP',
     },
     android: {
       package: 'com.matchday.app',

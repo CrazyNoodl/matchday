@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useGoBack } from '@/utils/useGoBack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NavHeader } from '@/components';
@@ -36,36 +37,49 @@ export default function DeveloperScreen() {
   const goBack = useGoBack();
   const colors = useColors();
   const styles = makeStyles(colors);
+  const { t } = useTranslation();
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
       <View style={styles.glow} pointerEvents="none" />
-      <NavHeader title="Developer Menu" onBack={() => goBack()} />
+      <NavHeader title={t('developer.title')} onBack={() => goBack()} />
       <View style={styles.content}>
         <View style={styles.badge}>
-          <Text style={styles.badgeText}>⚙️  INTERNAL</Text>
+          <Text style={styles.badgeText}>{t('developer.internalBadge').toUpperCase()}</Text>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionHeader}>DATA IMPORT</Text>
+          <Text style={styles.sectionHeader}>{t('developer.dataImport.section').toUpperCase()}</Text>
           <View style={styles.card}>
             <DevRow
               icon="📥"
-              label="Import Round"
-              sub="Paste CSV or Google Sheets match data"
+              label={t('developer.dataImport.importRound')}
+              sub={t('developer.dataImport.importRoundSub')}
               onPress={() => router.push('/settings/import-round')}
             />
           </View>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionHeader}>AI EXPERIMENTS</Text>
+          <Text style={styles.sectionHeader}>{t('developer.aiExperiments.section').toUpperCase()}</Text>
           <View style={styles.card}>
             <DevRow
               icon="🔬"
-              label="OCR Lab"
-              sub="Extract match stats from a screenshot with Claude Vision"
+              label={t('developer.aiExperiments.ocrLab')}
+              sub={t('developer.aiExperiments.ocrLabSub')}
               onPress={() => router.push('/settings/ocr-lab')}
+            />
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionHeader}>{t('developer.imagePipeline.section').toUpperCase()}</Text>
+          <View style={styles.card}>
+            <DevRow
+              icon="🖼️"
+              label={t('developer.imagePipeline.resizeLab')}
+              sub={t('developer.imagePipeline.resizeLabSub')}
+              onPress={() => router.push('/settings/resize-lab')}
             />
           </View>
         </View>

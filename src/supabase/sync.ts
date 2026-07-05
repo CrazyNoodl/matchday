@@ -38,6 +38,23 @@ export interface SyncPayload {
   };
 }
 
+// Every upsert/delete below used to be a bare `await db.from(...)...` — the
+// Supabase client resolves query errors (auth, RLS, FK violations, etc.) as
+// `{ data: null, error }` rather than a rejected promise, so those failures
+// were silently swallowed. runPush() (useSyncManager) only detects a failed
+// push via a thrown exception; a swallowed error looked identical to
+// success, cleared the dirty flag, and the next pull then overwrote local
+// state with cloud data that never actually received the write — e.g. a
+// match added while offline, once the app reconnects, its (silently failed)
+// push looks "done" and the following pull makes it vanish locally too.
+// exec() surfaces these the same way pullState() already does.
+async function exec(query: PromiseLike<{ error: { message?: string; code?: string } | null }>): Promise<void> {
+  const { error } = await query;
+  if (error) {
+    throw new Error(`pushState: ${error.message ?? error.code ?? 'unknown error'}`);
+  }
+}
+
 export async function pushState(payload: SyncPayload, dirty: Set<DirtyTable> = ALL_DIRTY): Promise<void> {
   const userId = await getCurrentUserId();
   if (!userId) return;
@@ -50,7 +67,7 @@ export async function pushState(payload: SyncPayload, dirty: Set<DirtyTable> = A
   // 1. Players
   if (dirty.has('players')) {
     if (payload.players.length > 0) {
-      await db.from('players').upsert(
+      await exec(db.from('players').upsert(
         payload.players.map((p) => ({
           id: p.id,
           user_id: userId,
@@ -62,20 +79,20 @@ export async function pushState(payload: SyncPayload, dirty: Set<DirtyTable> = A
           updated_at: now,
         })),
         { onConflict: 'id,user_id' },
-      );
+      ));
     }
     const playerIds = payload.players.map((p) => p.id);
     if (playerIds.length > 0) {
-      await db.from('players').delete().eq('user_id', userId).not('id', 'in', `(${playerIds})`);
+      await exec(db.from('players').delete().eq('user_id', userId).not('id', 'in', `(${playerIds})`));
     } else {
-      await db.from('players').delete().eq('user_id', userId);
+      await exec(db.from('players').delete().eq('user_id', userId));
     }
   }
 
   // 2. Teams
   if (dirty.has('teams')) {
     if (payload.teams.length > 0) {
-      await db.from('teams').upsert(
+      await exec(db.from('teams').upsert(
         payload.teams.map((t) => ({
           code: t.code,
           user_id: userId,
@@ -87,13 +104,13 @@ export async function pushState(payload: SyncPayload, dirty: Set<DirtyTable> = A
           updated_at: now,
         })),
         { onConflict: 'code,user_id' },
-      );
+      ));
     }
     const teamCodes = payload.teams.map((t) => t.code);
     if (teamCodes.length > 0) {
-      await db.from('teams').delete().eq('user_id', userId).not('code', 'in', `(${teamCodes})`);
+      await exec(db.from('teams').delete().eq('user_id', userId).not('code', 'in', `(${teamCodes})`));
     } else {
-      await db.from('teams').delete().eq('user_id', userId);
+      await exec(db.from('teams').delete().eq('user_id', userId));
     }
   }
 
@@ -102,7 +119,7 @@ export async function pushState(payload: SyncPayload, dirty: Set<DirtyTable> = A
   const tournamentId = payload.tournamentId;
 
   if (dirty.has('activeTournament')) if (hasTournament && tournamentId) {
-    await db.from('tournaments').upsert(
+    await exec(db.from('tournaments').upsert(
       {
         id: tournamentId,
         user_id: userId,
@@ -117,11 +134,11 @@ export async function pushState(payload: SyncPayload, dirty: Set<DirtyTable> = A
         updated_at: now,
       },
       { onConflict: 'id' },
-    );
+    ));
 
     // Archived rounds
     if (payload.archivedRounds.length > 0) {
-      await db.from('rounds').upsert(
+      await exec(db.from('rounds').upsert(
         payload.archivedRounds.map((r) => ({
           id: r.id,
           user_id: userId,
@@ -137,20 +154,20 @@ export async function pushState(payload: SyncPayload, dirty: Set<DirtyTable> = A
           updated_at: now,
         })),
         { onConflict: 'id' },
-      );
+      ));
     }
 
     // Delete archived rounds no longer in local state (matches cascade)
     const archivedRoundIds = payload.archivedRounds.map((r) => r.id);
     if (archivedRoundIds.length > 0) {
-      await db
+      await exec(db
         .from('rounds')
         .delete()
         .eq('user_id', userId)
         .eq('tournament_id', tournamentId)
-        .not('id', 'in', `(${archivedRoundIds})`);
+        .not('id', 'in', `(${archivedRoundIds})`));
     } else {
-      await db.from('rounds').delete().eq('user_id', userId).eq('tournament_id', tournamentId);
+      await exec(db.from('rounds').delete().eq('user_id', userId).eq('tournament_id', tournamentId));
     }
 
     // Upsert matches inside archived rounds
@@ -158,7 +175,7 @@ export async function pushState(payload: SyncPayload, dirty: Set<DirtyTable> = A
       r.matches.map((m) => ({ ...m, roundId: r.id })),
     );
     if (archivedMatches.length > 0) {
-      await db.from('matches').upsert(
+      await exec(db.from('matches').upsert(
         archivedMatches.map((m) => ({
           id: m.id,
           user_id: userId,
@@ -176,17 +193,17 @@ export async function pushState(payload: SyncPayload, dirty: Set<DirtyTable> = A
           updated_at: now,
         })),
         { onConflict: 'id' },
-      );
+      ));
     }
   } else {
     // No active tournament — delete active tournament row (rounds + matches cascade)
-    await db.from('tournaments').delete().eq('user_id', userId).eq('status', 'active');
+    await exec(db.from('tournaments').delete().eq('user_id', userId).eq('status', 'active'));
   }
 
   // 4. Current open round matches (round_id = null)
   if (dirty.has('openMatches')) {
     if (payload.matches.length > 0) {
-      await db.from('matches').upsert(
+      await exec(db.from('matches').upsert(
         payload.matches.map((m) => ({
           id: m.id,
           user_id: userId,
@@ -204,18 +221,18 @@ export async function pushState(payload: SyncPayload, dirty: Set<DirtyTable> = A
           updated_at: now,
         })),
         { onConflict: 'id' },
-      );
+      ));
     }
     const matchIds = payload.matches.map((m) => m.id);
     if (matchIds.length > 0) {
-      await db
+      await exec(db
         .from('matches')
         .delete()
         .eq('user_id', userId)
         .is('round_id', null)
-        .not('id', 'in', `(${matchIds})`);
+        .not('id', 'in', `(${matchIds})`));
     } else {
-      await db.from('matches').delete().eq('user_id', userId).is('round_id', null);
+      await exec(db.from('matches').delete().eq('user_id', userId).is('round_id', null));
     }
   }
 
@@ -223,7 +240,7 @@ export async function pushState(payload: SyncPayload, dirty: Set<DirtyTable> = A
   if (dirty.has('closedTournaments')) {
     for (const ct of payload.closedTournaments) {
       // Keep a tournaments row (status: closed) so rounds can reference tournaments.id via FK
-      await db.from('tournaments').upsert(
+      await exec(db.from('tournaments').upsert(
         {
           id: ct.id,
           user_id: userId,
@@ -238,9 +255,9 @@ export async function pushState(payload: SyncPayload, dirty: Set<DirtyTable> = A
           updated_at: now,
         },
         { onConflict: 'id' },
-      );
+      ));
 
-      await db.from('closed_tournaments').upsert(
+      await exec(db.from('closed_tournaments').upsert(
         {
           id: ct.id,
           user_id: userId,
@@ -254,10 +271,10 @@ export async function pushState(payload: SyncPayload, dirty: Set<DirtyTable> = A
           updated_at: now,
         },
         { onConflict: 'id' },
-      );
+      ));
 
       if (ct.rounds.length > 0) {
-        await db.from('rounds').upsert(
+        await exec(db.from('rounds').upsert(
           ct.rounds.map((r) => ({
             id: r.id,
             user_id: userId,
@@ -273,13 +290,13 @@ export async function pushState(payload: SyncPayload, dirty: Set<DirtyTable> = A
             updated_at: now,
           })),
           { onConflict: 'id' },
-        );
+        ));
 
         const closedMatches = ct.rounds.flatMap((r) =>
           r.matches.map((m) => ({ ...m, roundId: r.id })),
         );
         if (closedMatches.length > 0) {
-          await db.from('matches').upsert(
+          await exec(db.from('matches').upsert(
             closedMatches.map((m) => ({
               id: m.id,
               user_id: userId,
@@ -297,7 +314,7 @@ export async function pushState(payload: SyncPayload, dirty: Set<DirtyTable> = A
               updated_at: now,
             })),
             { onConflict: 'id' },
-          );
+          ));
         }
       }
     }
@@ -305,20 +322,20 @@ export async function pushState(payload: SyncPayload, dirty: Set<DirtyTable> = A
     // Delete closed tournaments not in local state (rounds + matches cascade via tournaments.id)
     const closedTourIds = payload.closedTournaments.map((t) => t.id);
     if (closedTourIds.length > 0) {
-      await db
+      await exec(db
         .from('closed_tournaments')
         .delete()
         .eq('user_id', userId)
-        .not('id', 'in', `(${closedTourIds})`);
-      await db
+        .not('id', 'in', `(${closedTourIds})`));
+      await exec(db
         .from('tournaments')
         .delete()
         .eq('user_id', userId)
         .eq('status', 'closed')
-        .not('id', 'in', `(${closedTourIds})`);
+        .not('id', 'in', `(${closedTourIds})`));
     } else {
-      await db.from('closed_tournaments').delete().eq('user_id', userId);
-      await db.from('tournaments').delete().eq('user_id', userId).eq('status', 'closed');
+      await exec(db.from('closed_tournaments').delete().eq('user_id', userId));
+      await exec(db.from('tournaments').delete().eq('user_id', userId).eq('status', 'closed'));
     }
   }
 }

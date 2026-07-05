@@ -8,10 +8,20 @@ jest.mock('expo-image-picker', () => ({
 
 jest.mock('@/supabase/storage', () => ({
   uploadMediaItems: jest.fn(),
+  buildMatchFolder: jest.fn((a: number, b: number) => `match_${a}-${b}_test-stamp`),
 }));
 
 jest.mock('@/utils/extractStats', () => ({
   extractStatsFromPhoto: jest.fn(),
+}));
+
+// Resize is a pass-through here — its own behavior is covered by imageResize.test.ts
+jest.mock('@/utils/imageResize', () => ({
+  resizeImage: jest.fn((uri: string) => Promise.resolve({ uri })),
+  MEDIA_MAX_DIMENSION: 2000,
+  OCR_PAYLOAD_MAX_DIMENSION: 2000,
+  STAT_PHOTO_STORAGE_MAX_DIMENSION: 1200,
+  TEAM_LOGO_MAX_DIMENSION: 600,
 }));
 
 import { renderHook, act, waitFor } from '@testing-library/react-native';
@@ -25,6 +35,7 @@ import type { Match, Player } from '@/store/types';
 const mockUpload = uploadMediaItems as jest.Mock;
 const mockPicker = ImagePicker.launchImageLibraryAsync as jest.Mock;
 const mockExtractStats = extractStatsFromPhoto as jest.Mock;
+const mockResizeImage = require('@/utils/imageResize').resizeImage as jest.Mock;
 
 const PLAYERS: Player[] = [
   { id: 'p1', name: 'Alice', color: '#f00', teamCode: 'JUV' },
@@ -38,6 +49,7 @@ async function makeHook(overrides: Partial<Parameters<typeof useAddMatchFlow>[0]
     useAddMatchFlow({
       tournamentRanked: true,
       tournamentId: 'test-tournament',
+      roundFolder: 'matchday-2026-01-01_1200',
       players: PLAYERS,
       addMatchToStore,
       closeModal,
@@ -52,6 +64,7 @@ beforeEach(() => {
   jest.resetAllMocks();
   mockUpload.mockResolvedValue([]);
   mockExtractStats.mockResolvedValue([]);
+  mockResizeImage.mockImplementation((uri: string) => Promise.resolve({ uri }));
 });
 
 // ---------------------------------------------------------------------------
@@ -221,6 +234,19 @@ describe('handleSaveMatch — upload error handling', () => {
 // ---------------------------------------------------------------------------
 // Bug 3 — handlePickMedia must combine ocrAssets across multiple picks
 // ---------------------------------------------------------------------------
+
+describe('handlePickMedia — video upload disabled (#59)', () => {
+  it('requests images only from the picker', async () => {
+    mockPicker.mockResolvedValueOnce({ canceled: true });
+    const { result } = await makeHook();
+    await act(async () => {
+      await result.current.handlePickMedia();
+    });
+    expect(mockPicker).toHaveBeenCalledWith(
+      expect.objectContaining({ mediaTypes: ['images'] }),
+    );
+  });
+});
 
 describe('handlePickMedia — multi-batch OCR asset accumulation', () => {
   it('runs OCR on combined old + new assets when called a second time', async () => {

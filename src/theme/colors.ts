@@ -1,4 +1,5 @@
 export type ColorScheme = 'dark' | 'light';
+export type ThemePreference = ColorScheme | 'auto';
 
 export interface AppColors {
   bg: {

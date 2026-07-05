@@ -27,6 +27,12 @@ jest.mock('react-native', () => ({
   Platform: { OS: 'web' },
 }));
 
+// Stub connectivity as always-online — this suite is about pull-failure/
+// bootstrap-push logic, not reconnect behavior (see useSyncManager.reconnect.test.ts).
+jest.mock('@/hooks/useIsOnline', () => ({
+  useIsOnline: () => true,
+}));
+
 jest.mock('../sync', () => ({
   pushState: jest.fn().mockResolvedValue(undefined),
   pullState: jest.fn(),
