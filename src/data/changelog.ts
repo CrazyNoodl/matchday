@@ -9,6 +9,13 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.13',
+    fixed: [
+      'Fixed a sync timing bug where a team or player added right after another change could vanish a moment later (its photo/logo still uploaded, but the record itself disappeared) — cloud sync no longer overwrites a just-made local change with a stale snapshot',
+      'Clearing local data (sign-out) is now guaranteed to only ever affect this device, never cloud-synced data; "Reset All Data" in Settings now explicitly and reliably wipes cloud data too, as intended',
+    ],
+  },
+  {
     version: '1.9.12',
     fixed: [
       'Team logos now load instantly offline once seen before, and fall back to the colored initials badge instead of a blank box when a logo can\'t load',

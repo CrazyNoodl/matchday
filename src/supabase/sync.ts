@@ -341,6 +341,32 @@ export async function pushState(payload: SyncPayload, dirty: Set<DirtyTable> = A
 }
 
 // ---------------------------------------------------------------------------
+// Explicit full wipe — "Reset All Data" (Settings → Danger zone) only.
+//
+// Deliberately NOT routed through pushState()'s dirty-diff mechanism: that
+// mechanism deletes any cloud row missing from the current local payload as
+// a side effect of a normal edit, which is exactly what turned an unrelated
+// local-state wipe (sign-out's cache clear) into a real production data-loss
+// incident (2026-07-06) — a debounced push fired with an emptied payload and
+// deleted every table for the user. Cloud deletion this destructive must
+// only ever happen via one explicit, directly-called function, never as an
+// incidental consequence of some other local state change.
+// ---------------------------------------------------------------------------
+
+export async function deleteAllCloudData(): Promise<void> {
+  const userId = await getCurrentUserId();
+  if (!userId) return;
+
+  const db = supabase;
+  await exec(db.from('players').delete().eq('user_id', userId));
+  await exec(db.from('teams').delete().eq('user_id', userId));
+  await exec(db.from('closed_tournaments').delete().eq('user_id', userId));
+  // Deletes both active and closed tournament rows; rounds/matches cascade
+  // via FK (see supabase/migrations/001_initial_schema.sql).
+  await exec(db.from('tournaments').delete().eq('user_id', userId));
+}
+
+// ---------------------------------------------------------------------------
 // Pull — Supabase → local store shape
 // ---------------------------------------------------------------------------
 

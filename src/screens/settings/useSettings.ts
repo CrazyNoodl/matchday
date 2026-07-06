@@ -5,6 +5,7 @@ import { useStore } from '@/store';
 import { LANGUAGES } from '@/i18n';
 import { signOut } from '@/supabase/auth';
 import { supabase, supabaseConfigured } from '@/supabase/client';
+import { deleteAllCloudData } from '@/supabase/sync';
 
 export function useSettings() {
   const router = useRouter();
@@ -49,6 +50,11 @@ export function useSettings() {
   const handleReset = async () => {
     if (demoMode) store.setDemoMode(false);
     setIsResetting(true);
+    try {
+      await deleteAllCloudData();
+    } catch (e) {
+      console.warn('[handleReset] cloud wipe failed', e);
+    }
     await store.resetStore();
     setIsResetting(false);
     setShowResetConfirm(false);
