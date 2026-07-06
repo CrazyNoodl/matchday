@@ -138,10 +138,20 @@ closedTournaments — fully finished tournaments (hasTournament = false after cl
 | i18n (uk / en / fr) | `src/i18n/locales/` |
 | Dark + light theme, with an Auto option that follows OS appearance live | `src/theme/` |
 | Playwright E2E tests (18 tests, 8 smoke) | `e2e/` — `npm run e2e`, `npm run e2e:smoke` |
-| Storybook: real dark/light theming, full component coverage (27/27) | `.storybook/`, `src/components/*/*.stories.tsx` |
+| Storybook: real dark/light theming, full component coverage (30/30) | `.storybook/`, `src/components/*/*.stories.tsx` |
 | Loading feedback during stat re-scan / media upload (preparing → uploading → scanning) | `src/screens/match/useMatchDetail.ts`, `app/match/[id].tsx` |
 | Stat edit: fixed order, all 23 params always shown, AI-confidence dot, per-photo OCR validation gate | `src/utils/mergedStats.ts`, `src/screens/match/useMatchDetail.ts`, `src/screens/match/MatchModals.tsx` |
-| Offline handling, phase 1: boot-time stub/banner, persisted pending-sync + push-before-pull on reconnect, per-feature upload/delete gating, Supabase reachability health-check | `src/hooks/useIsOnline.ts`, `app/_layout.tsx`, `src/supabase/useSyncManager.ts`, `src/supabase/health.ts` |
+| Offline handling, phase 1: boot-time stub/banner, persisted pending-sync + push-before-pull on reconnect, per-feature upload/delete gating, Supabase reachability health-check | `src/hooks/useIsOnline.ts`, `app/_layout.tsx`, `src/supabase/useSyncManager.ts`, `src/supabase/health.ts`, `src/components/OfflineScreen/` |
+
+## Offline/login screens theming + function-component error boundary — implementation detail
+
+**Fixed (2026-07-06):** the boot-time offline stub (`OfflineStub`, previously inline in `app/_layout.tsx`) and `LoginScreen`'s error/success banners rendered with hardcoded dark colors regardless of the user's light/dark preference — a black screen in light mode, and near-invisible dark-red/dark-green banners.
+
+- `OfflineStub` extracted to its own theme-aware component, `src/components/OfflineScreen/` (`OfflineScreen.tsx` + `.styles.ts` via `makeStyles(colors)`, `index.ts`, `.stories.tsx`), exported from the `src/components` barrel. `app/_layout.tsx` now renders `<OfflineScreen />` instead of the inline function.
+- `LoginScreen.styles.ts`'s `errorBox`/`errorText`/`successBox` hardcoded hex colors (`#3a1a1a`, `#ff453a`, `#1a3a1a`) replaced with theme tokens (`colors.accent.redSubtle`/`red`, `colors.accent.greenSubtle`), matching the pattern already used in `settings/players`, `settings/teams`, etc.
+- `LoginScreen.stories.tsx` gained a `ValidationError` story using a `play` function (`storybook/test`'s `userEvent`/`within`) that submits with empty fields to deterministically trigger the synchronous validation error banner — no network mocking needed.
+- `AppErrorBoundary` (`app/_layout.tsx`) rewritten from a class component to a function component wrapping the new `react-error-boundary` dependency (`ErrorBoundary` with `onError`/`fallbackRender`). Its fallback UI is now `src/components/ErrorFallback/` (own `.tsx`/`.styles.ts`/`index.ts`/`.stories.tsx`), which — unlike the old class fallback — can call `useColors()`/`useTranslation()` directly, so it's theme-aware too. `errorStyles` (the old static-`Colors`-only styles) removed from `src/screens/layout/layout.styles.ts` entirely; `bannerStyles`/`offlineBannerStyles` in that file remain intentionally fixed-color (yellow/blue regardless of theme), unrelated to this fix.
+- New dependency: `react-error-boundary` (peer-compatible with React 19). React itself has no hook equivalent for `componentDidCatch`/`getDerivedStateFromError` — this library is the standard way to keep error-boundary usage sites as plain function components while the (unavoidable) class lives inside the dependency instead of app code.
 
 ## Media upload — implementation detail
 
