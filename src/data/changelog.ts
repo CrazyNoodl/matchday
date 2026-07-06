@@ -9,6 +9,12 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.14',
+    fixed: [
+      'Fixed a crash when tapping "Import from file" in Backup settings on a physical device — a missing native module link is now handled gracefully with an error message instead of crashing the app',
+    ],
+  },
+  {
     version: '1.9.13',
     fixed: [
       'Fixed a sync timing bug where a team or player added right after another change could vanish a moment later (its photo/logo still uploaded, but the record itself disappeared) — cloud sync no longer overwrites a just-made local change with a stale snapshot',
