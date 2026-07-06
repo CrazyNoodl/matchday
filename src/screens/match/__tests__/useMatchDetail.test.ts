@@ -376,6 +376,38 @@ describe('openEditStats / handleSaveStats', () => {
   });
 });
 
+// ── deleteStat (#72) ───────────────────────────────────────────────────────────
+
+describe('deleteStat', () => {
+  it('removes a non-canonical OCR-extra param from statsOverride after save', async () => {
+    const match = {
+      ...MATCH,
+      statsOverride: { shots: { a: 7, b: 3 }, weirdCustomStat: { a: 1, b: 2 } },
+    };
+    useStore.setState({ matches: [match] });
+    const { result } = await renderHook(() => useMatchDetail());
+    await act(async () => { result.current.openEditStats(); });
+    expect(result.current.editValues['weirdCustomStat']).toEqual({ a: 1, b: 2 });
+    await act(async () => { result.current.deleteStat('weirdCustomStat'); });
+    expect(result.current.editValues['weirdCustomStat']).toBeUndefined();
+    await act(async () => { result.current.handleSaveStats(); });
+    expect(useStore.getState().matches[0].statsOverride?.weirdCustomStat).toBeUndefined();
+    expect(useStore.getState().matches[0].statsOverride?.shots).toEqual({ a: 7, b: 3, confidence: undefined });
+  });
+
+  it('does not resurrect the deleted param even if it was touched earlier in the session', async () => {
+    const match = { ...MATCH, statsOverride: { weirdCustomStat: { a: 1, b: 2 } } };
+    useStore.setState({ matches: [match] });
+    const { result } = await renderHook(() => useMatchDetail());
+    await act(async () => { result.current.openEditStats(); });
+    await act(async () => { result.current.adjustStat('weirdCustomStat', 'a', 1, false); });
+    await act(async () => { result.current.deleteStat('weirdCustomStat'); });
+    expect(result.current.touchedStats.has('weirdCustomStat')).toBe(false);
+    await act(async () => { result.current.handleSaveStats(); });
+    expect(useStore.getState().matches[0].statsOverride?.weirdCustomStat).toBeUndefined();
+  });
+});
+
 // ── openEditNote / handleSaveNote ─────────────────────────────────────────────
 
 describe('openEditNote', () => {

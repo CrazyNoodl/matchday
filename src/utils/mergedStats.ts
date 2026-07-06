@@ -13,6 +13,8 @@ export type MergedStat = {
   step: number;
   /** True when this param wasn't recognized/set — aVal/bVal are placeholders, render as N/A. */
   isNA: boolean;
+  /** False for OCR-extracted keys outside the known 23 — those can be deleted, canonical ones can only be edited (#72). */
+  isCanonical: boolean;
   confidence?: StatConfidence;
 };
 
@@ -38,6 +40,7 @@ export function buildMergedStats(match: Match, hasStatsOverride: boolean): Merge
         isPercent: def.isPercent,
         step: def.step ?? 1,
         isNA: entry === undefined,
+        isCanonical: true,
         confidence: entry?.confidence,
       });
     }
@@ -53,6 +56,7 @@ export function buildMergedStats(match: Match, hasStatsOverride: boolean): Merge
           isPercent: false,
           step: 1,
           isNA: false,
+          isCanonical: false,
           confidence: override[key].confidence,
         });
       }
@@ -67,5 +71,6 @@ export function buildMergedStats(match: Match, hasStatsOverride: boolean): Merge
     label: s.label,
     step: STAT_DEF_MAP[s.key]?.step ?? 1,
     isNA: false,
+    isCanonical: true,
   }));
 }
