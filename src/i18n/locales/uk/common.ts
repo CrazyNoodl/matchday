@@ -1,0 +1,28 @@
+const common = {
+  cancel: 'Скасувати',
+  save: 'Зберегти',
+  reset: 'Скинути',
+  delete: 'Видалити',
+  pts: 'ОЧК',
+  soon: 'Скоро',
+  done: 'Готово',
+  unknown: 'Невідомо',
+  back: 'Назад',
+  next: 'Далі',
+  add: 'Додати',
+  friendly: 'Товарис.',
+  matches: 'матчів',
+  games: 'ігор',
+  share: '↑ Поділитись',
+  error: 'Помилка',
+  ok: 'OK',
+  edit: 'Редагувати',
+  cannotDeleteTitle: 'Неможливо видалити',
+  leader: 'Лідер',
+  editing: 'Редагування',
+  archived: 'В архіві',
+  auto: 'Авто',
+  ranked: 'Рейтинговий',
+} as const;
+
+export default common;

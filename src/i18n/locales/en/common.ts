@@ -1,0 +1,28 @@
+const common = {
+  cancel: 'Cancel',
+  save: 'Save',
+  reset: 'Reset',
+  delete: 'Delete',
+  pts: 'PTS',
+  soon: 'Soon',
+  done: 'Done',
+  unknown: 'Unknown',
+  back: 'Back',
+  next: 'Next',
+  add: 'Add',
+  friendly: 'Friendly',
+  matches: 'matches',
+  games: 'games',
+  share: '↑ Share',
+  error: 'Error',
+  ok: 'OK',
+  edit: 'Edit',
+  cannotDeleteTitle: 'Cannot delete',
+  leader: 'Leader',
+  editing: 'Editing',
+  archived: 'Archived',
+  auto: 'Auto',
+  ranked: 'Ranked',
+} as const;
+
+export default common;
