@@ -104,6 +104,21 @@ Covered by new tests in `src/screens/settings/__tests__/useSettings.test.ts` (`c
 
 ---
 
+## Sync data-loss incident + fixes — implementation detail (2026-07-06)
+
+**Production incident:** a user's real Supabase data (players, teams, active tournament, matches) was permanently deleted. No Supabase backup/PITR existed (Free plan), so it was unrecoverable. Two independent bugs in the sync layer were found and fixed (`src/supabase/useSyncManager.ts`, `src/supabase/sync.ts`, `src/store/index.ts`):
+
+1. **`resetStore()` cascaded into a real cloud delete.** `resetStore()` (called by both `handleReset` — Settings → Danger zone "Reset All Data" — and `confirmSignOut`) wiped local Zustand state. `useSyncManager`'s `store.subscribe` listener saw `players`/`teams`/tournament fields change and marked them dirty like a normal edit, so the debounced push fired with an emptied payload — and `pushState()` deletes any cloud row missing from the payload, i.e. it deleted every row for that user. **Fix:** a new `syncSuppressionRef` (`src/store/index.ts`) is set around `resetStore()`'s state wipe; the sync subscriber bails out early while it's set, so a local-only wipe can never be marked dirty or pushed.
+2. **Realtime-triggered `pull()` race.** After any push, Supabase's realtime event schedules a `pull()` ~400ms later. `pull()` unconditionally applied whatever `pullState()` returned, without re-checking dirty/pushing state after the network `await` — so a team or player added during that window got silently overwritten by the stale pre-add cloud snapshot (and, since `applyingRef` suppresses dirty-marking during that overwrite, it was never re-synced either). This is what caused "add a team with a logo → logo lands in Storage, team never appears." **Fix:** `pull()` now bails out (returns `'failed'`, does not call `applyCloudState()`) if `pushingRef.current || dirtyRef.current.size > 0` at the moment it's about to apply the pulled snapshot.
+
+**Design correction found mid-fix:** "Reset All Data" is *intentionally* a full wipe including cloud data — making `resetStore()` unconditionally local-only (the first pass at fix #1) broke that intent. The correct shape: destructive cloud deletion must only ever happen via one explicit, directly-called function, never as a side effect of generic dirty-diffing. New `deleteAllCloudData()` (`src/supabase/sync.ts`) deletes `players`/`teams`/`closed_tournaments`/`tournaments` for the user (rounds/matches cascade via FK); `handleReset` calls it explicitly before `store.resetStore()`. `confirmSignOut` still only does the local-only wipe — signing out must never touch cloud data.
+
+**Structural risk still open, not fixed here:** this project uses a single Supabase project for both local development and real user data (every worktree gets the same `.env` copied in, see the workflow reminder at the bottom of this file) — a dev-time mistake hits real data directly, as happened here. Worth a separate dev/staging Supabase project.
+
+Covered by new tests: `src/supabase/__tests__/useSyncManager.resetStoreNoSync.test.ts`, `src/supabase/__tests__/sync.test.ts` (`deleteAllCloudData` describe block), `src/screens/settings/__tests__/useSettings.test.ts` (`handleReset` now asserts the explicit cloud wipe, including when it fails).
+
+---
+
 ## State model (non-obvious)
 
 ```
