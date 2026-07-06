@@ -10,6 +10,12 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.17',
+    internal: [
+      'What\'s New screen now splits entries into four categories (Added, Changed, Fixed, Internal) instead of three — separates real user-facing improvements from purely internal cleanup, each with its own color',
+    ],
+  },
+  {
     version: '1.9.16',
     added: [
       'Add Match now dims and disables any opponent who already played the picked player this round-robin tour, so the same pairing can\'t repeat until a full tour completes',
