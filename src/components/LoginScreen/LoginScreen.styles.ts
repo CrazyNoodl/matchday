@@ -80,19 +80,19 @@ export const makeStyles = (colors: AppColors) => StyleSheet.create({
     color: colors.accent.green,
   },
   errorBox: {
-    backgroundColor: '#3a1a1a',
+    backgroundColor: colors.accent.redSubtle,
     borderWidth: 1,
-    borderColor: '#ff453a44',
+    borderColor: colors.accent.red + '44',
     borderRadius: Radius.md,
     padding: Spacing.sm,
   },
   errorText: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.sm,
-    color: '#ff453a',
+    color: colors.accent.red,
   },
   successBox: {
-    backgroundColor: '#1a3a1a',
+    backgroundColor: colors.accent.greenSubtle,
     borderWidth: 1,
     borderColor: colors.accent.green + '44',
     borderRadius: Radius.md,

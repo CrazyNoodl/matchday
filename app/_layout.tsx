@@ -18,16 +18,17 @@ import React from 'react';
 import { Platform, View, ActivityIndicator, Text, TextInput, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Constants from 'expo-constants';
+import { ErrorBoundary } from 'react-error-boundary';
 import { ThemeProvider, useColors, useEffectiveColorScheme } from '@/theme';
 import { useStore } from '@/store';
-import { errorStyles, bannerStyles, offlineBannerStyles } from '@/screens/layout/layout.styles';
+import { bannerStyles, offlineBannerStyles } from '@/screens/layout/layout.styles';
 import i18n from '@/i18n';
 import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'expo-router';
 import { useSyncManager } from '@/supabase/useSyncManager';
 import { supabase, supabaseConfigured } from '@/supabase/client';
-import { LoginScreen } from '@/components';
+import { LoginScreen, OfflineScreen, ErrorFallback } from '@/components';
 import { useIsOnline } from '@/hooks/useIsOnline';
 import type { Session } from '@supabase/supabase-js';
 
@@ -38,42 +39,15 @@ import type { Session } from '@supabase/supabase-js';
 
 const BASE_URL: string = (Constants.expoConfig?.experiments as Record<string, string> | undefined)?.baseUrl ?? '';
 
-class AppErrorBoundary extends React.Component<
-  { children: React.ReactNode },
-  { hasError: boolean }
-> {
-  constructor(props: { children: React.ReactNode }) {
-    super(props);
-    this.state = { hasError: false };
-  }
-
-  static getDerivedStateFromError() {
-    return { hasError: true };
-  }
-
-  componentDidCatch(error: Error) {
-    console.error('[AppErrorBoundary]', error);
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return (
-        <View style={errorStyles.root}>
-          <Text style={errorStyles.emoji}>⚽</Text>
-          <Text style={errorStyles.title}>{i18n.t('errorBoundary.title')}</Text>
-          <Text style={errorStyles.sub}>{i18n.t('errorBoundary.desc')}</Text>
-          <TouchableOpacity
-            style={errorStyles.btn}
-            activeOpacity={0.8}
-            onPress={() => this.setState({ hasError: false })}
-          >
-            <Text style={errorStyles.btnText}>{i18n.t('errorBoundary.retry').toUpperCase()}</Text>
-          </TouchableOpacity>
-        </View>
-      );
-    }
-    return this.props.children;
-  }
+function AppErrorBoundary({ children }: { children: React.ReactNode }) {
+  return (
+    <ErrorBoundary
+      onError={(error) => console.error('[AppErrorBoundary]', error)}
+      fallbackRender={({ resetErrorBoundary }) => <ErrorFallback onRetry={resetErrorBoundary} />}
+    >
+      {children}
+    </ErrorBoundary>
+  );
 }
 
 function SyncManager() {
@@ -109,17 +83,6 @@ function OfflineBanner({ isOnline }: { isOnline: boolean }) {
     >
       <Text style={offlineBannerStyles.title}>{t('offline.bannerTitle').toUpperCase()}</Text>
       <Text style={offlineBannerStyles.sub}>{t('offline.bannerSub')}</Text>
-    </View>
-  );
-}
-
-function OfflineStub() {
-  const { t } = useTranslation();
-  return (
-    <View style={errorStyles.root}>
-      <Text style={errorStyles.emoji}>📡</Text>
-      <Text style={errorStyles.title}>{t('offline.title')}</Text>
-      <Text style={errorStyles.sub}>{t('offline.desc')}</Text>
     </View>
   );
 }
@@ -179,7 +142,7 @@ function AppContent({
     if (!isOnline) {
       return (
         <AppErrorBoundary>
-          <OfflineStub />
+          <OfflineScreen />
         </AppErrorBoundary>
       );
     }
