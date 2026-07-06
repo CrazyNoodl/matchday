@@ -79,6 +79,9 @@ export const makeSheetStyles = (colors: AppColors) => StyleSheet.create({
     backgroundColor: colors.accent.blueSubtle,
     borderColor: colors.accent.blue + '44',
   },
+  playerChipDisabled: {
+    opacity: 0.4,
+  },
   playerChipName: {
     flex: 1,
     fontFamily: FontFamily.bodySemiBold,
