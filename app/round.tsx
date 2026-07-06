@@ -256,6 +256,7 @@ export default function MatchdayScreen() {
         tournamentPlayerList={tournamentPlayerList}
         players={players}
         teams={teams}
+        matches={matches}
         flow={addMatchFlow}
       />
 

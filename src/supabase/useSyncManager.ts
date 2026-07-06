@@ -1,23 +1,13 @@
 import { useEffect, useRef } from 'react';
-import { useStore } from '@/store';
-import type { Match } from '@/store/types';
+import { useStore, syncSuppressionRef } from '@/store';
 import { getCurrentUserId } from './auth';
-import { pushState, pullState, subscribeToChanges } from './sync';
+import { pushState, pullState, subscribeToChanges, buildSyncPayload, ALL_DIRTY } from './sync';
 import type { DirtyTable } from './sync';
 import { supabaseConfigured } from './client';
 import { useIsOnline } from '@/hooks/useIsOnline';
 
-function stripPendingMedia(matches: Match[]): Match[] {
-  return matches.map((m) =>
-    m.media?.some((item) => item.pendingUpload)
-      ? { ...m, media: m.media!.filter((item) => !item.pendingUpload) }
-      : m,
-  );
-}
-
 const PUSH_DEBOUNCE_MS = 300;
 const PULL_DEBOUNCE_MS = 400;
-const ALL_DIRTY = new Set<DirtyTable>(['players', 'teams', 'activeTournament', 'openMatches', 'closedTournaments']);
 
 export function useSyncManager() {
   const setSyncStatus = useStore((s) => s.setSyncStatus);
@@ -79,6 +69,14 @@ export function useSyncManager() {
         return 'failed';
       }
       if (!pulled) return 'empty';
+      // A local edit landed (or a push is still in flight) while this pull's
+      // network request was in the air, so `pulled` is a stale snapshot from
+      // before it. applyCloudState() would blind-overwrite the newer local
+      // change — and since applyingRef below suppresses dirty-marking during
+      // that overwrite, the edit would be lost for good, not just delayed.
+      // Skip applying; the edit's own debounced push (or the next pull
+      // trigger once it settles) will catch up.
+      if (pushingRef.current || dirtyRef.current.size > 0) return 'failed';
       const hasCloudData =
         pulled.players.length > 0 ||
         pulled.teams.length > 0 ||
@@ -98,7 +96,7 @@ export function useSyncManager() {
       }
       pushingRef.current = true;
       try {
-        await pushState(buildPushPayload(), dirty);
+        await pushState(buildSyncPayload(useStore.getState()), dirty);
       } catch {
         setSyncStatus('error');
         if (!forceDirty) {
@@ -108,37 +106,6 @@ export function useSyncManager() {
       } finally {
         pushingRef.current = false;
       }
-    }
-
-    function buildPushPayload() {
-      const s = useStore.getState();
-      return {
-        tournamentId: s.tournamentId,
-        players: s.players,
-        teams: s.teams,
-        matches: stripPendingMedia(s.matches),
-        archivedRounds: s.archivedRounds.map((r) => ({
-          ...r,
-          matches: stripPendingMedia(r.matches),
-        })),
-        closedTournaments: s.closedTournaments.map((t) => ({
-          ...t,
-          rounds: t.rounds.map((r) => ({
-            ...r,
-            matches: stripPendingMedia(r.matches),
-          })),
-        })),
-        tournament: {
-          name: s.tournamentName,
-          ranked: s.tournamentRanked,
-          roundsTarget: s.tournamentRounds,
-          playerIds: s.tournamentPlayers,
-          round: s.round,
-          roundOpen: s.roundOpen,
-          roundPlayers: s.roundPlayers,
-          hasTournament: s.hasTournament,
-        },
-      };
     }
 
     async function init() {
@@ -253,6 +220,11 @@ export function useSyncManager() {
       // persistDirty()'s own setState call — nothing to detect, would just
       // re-enter this listener forever if not short-circuited here.
       if (persistingDirty) return;
+
+      // resetStore()'s local-only cache wipe (dev "Reset data", sign-out
+      // account isolation) — must never be treated as a real edit to sync,
+      // or the debounced push would delete the user's actual cloud rows.
+      if (syncSuppressionRef.current) return;
 
       // Detect which table groups changed (reference equality — Zustand+Immer
       // creates new references only for mutated state, unchanged fields keep the same ref)

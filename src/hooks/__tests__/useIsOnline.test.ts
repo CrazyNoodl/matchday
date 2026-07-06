@@ -12,6 +12,13 @@ jest.mock('@react-native-community/netinfo', () => ({
   }),
 }));
 
+// The health-check corroboration layer (src/hooks/__tests__/useIsOnline.healthCheck.test.ts)
+// is covered separately with fake timers. Here it's mocked to always succeed so it never
+// interferes with the plain NetInfo-driven assertions below.
+jest.mock('@/supabase/health', () => ({
+  pingSupabase: jest.fn().mockResolvedValue(true),
+}));
+
 import { useIsOnline } from '../useIsOnline';
 
 beforeEach(() => {

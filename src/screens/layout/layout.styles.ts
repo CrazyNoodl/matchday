@@ -3,52 +3,8 @@ import { Colors } from '@/theme';
 import { FontFamily, FontSize } from '@/theme/typography';
 import { Spacing } from '@/theme/spacing';
 
-// All blocks below use fixed colors regardless of color scheme: errorStyles
-// renders before ThemeProvider context can be trusted, bannerStyles and
-// offlineBannerStyles are intentionally yellow/blue-themed regardless of
-// light/dark mode.
-export const errorStyles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: Colors.bg.base,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 32,
-    gap: 12,
-  },
-  emoji: {
-    fontSize: 48,
-    marginBottom: 8,
-  },
-  title: {
-    fontFamily: FontFamily.displayBold,
-    fontSize: FontSize.lg,
-    color: Colors.text.primary,
-    textAlign: 'center',
-  },
-  sub: {
-    fontFamily: FontFamily.body,
-    fontSize: FontSize.sm,
-    color: Colors.text.muted,
-    textAlign: 'center',
-  },
-  btn: {
-    marginTop: 16,
-    paddingHorizontal: 24,
-    paddingVertical: 10,
-    borderRadius: 8,
-    backgroundColor: Colors.accent.green + '22',
-    borderWidth: 1,
-    borderColor: Colors.accent.green + '55',
-  },
-  btnText: {
-    fontFamily: FontFamily.displayBold,
-    fontSize: FontSize.sm,
-    color: Colors.accent.green,
-    letterSpacing: 1.2,
-  },
-});
-
+// Both blocks below use fixed colors regardless of color scheme — intentionally
+// yellow/blue-themed regardless of light/dark mode.
 export const offlineBannerStyles = StyleSheet.create({
   root: {
     marginTop: Spacing.md,

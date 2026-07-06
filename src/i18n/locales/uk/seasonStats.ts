@@ -1,0 +1,26 @@
+const seasonStats = {
+  title: 'Статистика сезону',
+  noTournament: 'Турнір не вибрано',
+  seasonSubtitle: 'Сезон {{year1}} / {{year2}}',
+  include: 'Включити',
+  rated: 'Рейтингові',
+  friendly: 'Товариські',
+  both: 'Усі',
+  champion: 'FC {{year}} чемпіон',
+  champDays: '{{count}} ігрових дні виграно',
+  days: 'Днів',
+  matches: 'Матчів',
+  goals: 'Голів',
+  seasonRanking: 'Рейтинг сезону',
+  wdlLabel: 'В / Н / П',
+  goalDiffLabel: 'Різниця голів',
+  gfaLabel: 'Голи за/проти',
+  wdlStats: '{{wins}}В  {{draws}}Н  {{losses}}П  ·  {{pts}} очк',
+  goalDiff: 'Різниця  {{gd}}',
+  gfa: 'ГЗ {{gf}}  :  ГП {{ga}}',
+  noMatchesFilter: 'Матчів у цьому фільтрі немає',
+  pts: 'ОЧК',
+  gamesSection: 'Ігри',
+} as const;
+
+export default seasonStats;

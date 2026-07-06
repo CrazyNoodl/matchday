@@ -1,0 +1,26 @@
+const seasonStats = {
+  title: 'Stats saison',
+  noTournament: 'Aucun tournoi sélectionné',
+  seasonSubtitle: 'Saison {{year1}} / {{year2}}',
+  include: 'Inclure',
+  rated: 'Classés',
+  friendly: 'Amicaux',
+  both: 'Tous',
+  champion: 'FC {{year}} champion',
+  champDays: '{{count}} journées gagnées',
+  days: 'Jours',
+  matches: 'Matchs',
+  goals: 'Buts',
+  seasonRanking: 'Classement saison',
+  wdlLabel: 'V / N / D',
+  goalDiffLabel: 'Diff. buts',
+  gfaLabel: 'Buts pour/contre',
+  wdlStats: '{{wins}}V  {{draws}}N  {{losses}}D  ·  {{pts}} pts',
+  goalDiff: 'Diff.  {{gd}}',
+  gfa: 'BP {{gf}}  :  BC {{ga}}',
+  noMatchesFilter: 'Aucun match dans ce filtre',
+  pts: 'PTS',
+  gamesSection: 'Matchs',
+} as const;
+
+export default seasonStats;

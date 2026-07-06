@@ -58,8 +58,9 @@ export default function ChangelogScreen() {
             </View>
 
             <ChangeGroup label={t('settings.changelog.added').toUpperCase()} items={entry.added} color={colors.accent.green} />
-            <ChangeGroup label={t('settings.changelog.fixed').toUpperCase()} items={entry.fixed} color={colors.accent.blue} />
-            <ChangeGroup label={t('settings.changelog.notes').toUpperCase()} items={entry.notes} color={colors.text.muted} />
+            <ChangeGroup label={t('settings.changelog.changed').toUpperCase()} items={entry.changed} color={colors.accent.blue} />
+            <ChangeGroup label={t('settings.changelog.fixed').toUpperCase()} items={entry.fixed} color={colors.accent.red} />
+            <ChangeGroup label={t('settings.changelog.internal').toUpperCase()} items={entry.internal} color={colors.text.muted} />
           </View>
         ))}
       </ScrollView>

@@ -71,6 +71,20 @@ describe('buildMergedStats — fixed order, all 23 params always present (#63)',
     expect(extra.bVal).toBe(2);
   });
 
+  it('marks the 23 canonical params isCanonical:true and appended OCR extras isCanonical:false (#72)', () => {
+    const match: Match = {
+      ...MATCH,
+      statsOverride: {
+        shots: { a: 7, b: 3 },
+        weirdCustomStat: { a: 1, b: 2 },
+      },
+    };
+    const merged = buildMergedStats(match, true);
+    expect(merged.filter((s) => s.isCanonical)).toHaveLength(STAT_DEFINITIONS.length);
+    expect(merged.find((s) => s.key === 'shots')!.isCanonical).toBe(true);
+    expect(merged.find((s) => s.key === 'weirdCustomStat')!.isCanonical).toBe(false);
+  });
+
   it('gives expectedGoals a 0.1 step and every other canonical param a step of 1', () => {
     const match: Match = { ...MATCH, statsOverride: { shots: { a: 7, b: 3 } } };
     const merged = buildMergedStats(match, true);
@@ -86,5 +100,6 @@ describe('buildMergedStats — no override falls back to simulated stats, unaffe
     expect(merged.length).toBeGreaterThan(0);
     expect(merged.every((s) => s.isNA === false)).toBe(true);
     expect(merged.every((s) => s.confidence === undefined)).toBe(true);
+    expect(merged.every((s) => s.isCanonical === true)).toBe(true);
   });
 });
