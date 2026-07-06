@@ -1,0 +1,8 @@
+const offline = {
+  title: 'Pas de connexion internet',
+  desc: 'Vérifiez votre connexion internet et réessayez.',
+  bannerTitle: 'Pas de connexion internet',
+  bannerSub: 'Les modifications sont enregistrées sur cet appareil et seront synchronisées dès que vous serez de nouveau en ligne.',
+} as const;
+
+export default offline;

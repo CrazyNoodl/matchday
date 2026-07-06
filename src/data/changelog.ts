@@ -9,6 +9,12 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.15',
+    notes: [
+      'Internal: translation files (en/uk/fr) split into one file per screen instead of one 680-line file per language, and removed 12 unused translation keys — no visible change',
+    ],
+  },
+  {
     version: '1.9.14',
     fixed: [
       'Fixed a crash when tapping "Import from file" in Backup settings on a physical device — a missing native module link is now handled gracefully with an error message instead of crashing the app',
