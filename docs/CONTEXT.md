@@ -119,6 +119,20 @@ Covered by new tests: `src/supabase/__tests__/useSyncManager.resetStoreNoSync.te
 
 ---
 
+## Local JSON backup (export/import) — implementation detail (2026-07-06)
+
+A second, independent safety net alongside cloud sync, added directly in response to the sync data-loss incident above: a manual, local JSON backup/restore feature, entirely separate from Supabase.
+
+- New `src/utils/backup.ts`: `buildBackupPayload`/`serializeBackup`/`validateBackupFile` (pure), and `applyBackupLocally()` — the only function that mutates the store, bracketed with the same `syncSuppressionRef` the sync-data-loss fix introduced, so restoring an old/smaller backup can never be mistaken for a real edit and pushed as a destructive delete. Platform-branching I/O: native uses `expo-file-system` (new dependency) to persist backups under `Paths.document/backups/` + `expo-sharing` to export; web uses `localStorage` (keyed by the same filename format) + `Blob`/`<a download>`. Import (native: `expo-document-picker`, new dependency; web: hidden `<input type="file">`) is a full overwrite, never a merge — confirmed via an explicit in-app dialog, never `Alert.alert`.
+- New screen at `/settings/backup` (`app/settings/(data)/backup.tsx` + `src/screens/settings/backup/`): create/list/share/delete/restore backups, plus an optional "Push to Cloud" button shown only when `supabaseConfigured` and only after a local import — an explicit, separately-clicked action (never an automatic side effect of import), mirroring how `deleteAllCloudData()` is a dedicated function rather than an implicit consequence of generic sync. Disabled with an inline warning while Demo Mode is active (avoids re-entering the same class of race the sync-data-loss fix just closed — demo-exit already does its own unsuppressed `pull().then(runPush(ALL_DIRTY))` reconciliation).
+- **Initially placed in Settings → Developer (hidden, dev-mode-only), then moved to Settings → Data (always visible, next to Players/Teams) at the user's direction** — this is a safety feature everyone should be able to find, not a dev tool. The route stays `/settings/backup` either way since parenthesized route-group folders don't affect the URL.
+- `src/supabase/sync.ts` gained `buildSyncPayload()`/`stripPendingMedia()`/exported `ALL_DIRTY`/`pushAllTables()` — these were previously private to `useSyncManager.ts` (and `ALL_DIRTY` was independently duplicated in both files); extracting them for the backup feature's "Push to Cloud" button also removed that pre-existing duplication as a side effect. `pushAllTables()` is a standalone full push, deliberately not routed through `useSyncManager`'s internal debounce/dirty-tracking.
+- **Known, accepted limitation:** media (photos/videos/logos) are Supabase Storage URLs referenced by link only — a backup does not contain the bytes. This is narrower than it first sounds: restoring on the *same* Supabase account with storage untouched resolves fine (the URL is still valid). Real breakage only if (a) a media item was mid-upload/failed-upload (local `file://` URI) at backup time, (b) the storage object was deleted since, or (c) restoring under a different Supabase account.
+- **Not manually verified against real Supabase:** the "Push to Cloud" button was unit-tested (`buildSyncPayload`/`pushAllTables` in `src/supabase/__tests__/sync.test.ts`) but not exercised in a live browser session — this project has no separate dev/staging Supabase project (see the sync-data-loss section above), so testing a real cloud push safely would need a throwaway account first.
+- Covered by `src/utils/__tests__/backup.test.ts` (payload building/validation, the `syncSuppressionRef` suppression window, web-path create/list/delete round-trip) and the `buildSyncPayload`/`pushAllTables` additions to `sync.test.ts`. Native file/share/document-picker paths are not unit-tested (matches this repo's convention) — verified manually instead via a Playwright-driven browser session against the dev server with Supabase deliberately unconfigured (`.env` temporarily removed) to avoid any risk to real cloud data.
+
+---
+
 ## State model (non-obvious)
 
 ```
@@ -165,6 +179,7 @@ closedTournaments — fully finished tournaments (hasTournament = false after cl
 | Stat edit: fixed order, all 23 params always shown, AI-confidence dot, per-photo OCR validation gate, score-duplicate OCR blacklist, per-param delete for non-canonical rows | `src/utils/mergedStats.ts`, `src/screens/match/useMatchDetail.ts`, `src/screens/match/MatchModals.tsx`, `src/utils/extractStats.ts` |
 | Offline handling, phase 1: boot-time stub/banner, persisted pending-sync + push-before-pull on reconnect, per-feature upload/delete gating, Supabase reachability health-check | `src/hooks/useIsOnline.ts`, `app/_layout.tsx`, `src/supabase/useSyncManager.ts`, `src/supabase/health.ts`, `src/components/OfflineScreen/` |
 | Team logo offline caching + graceful fallback | `src/components/TeamBadge/`, `src/components/Avatar/`, `src/components/ShareRoundModal/` (`CardAvatar`) |
+| Local JSON backup (export/import/restore), independent of cloud sync | `app/settings/(data)/backup.tsx`, `src/utils/backup.ts` |
 
 ## Offline/login screens theming + function-component error boundary — implementation detail
 
