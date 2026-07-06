@@ -9,10 +9,17 @@
 
 jest.mock('react-native', () => ({
   Platform: { OS: 'web' },
+  AppState: { addEventListener: jest.fn(() => ({ remove: jest.fn() })) },
 }));
 
 jest.mock('@react-native-community/netinfo', () => ({
   addEventListener: jest.fn(),
+}));
+
+// See useIsOnline.healthCheck.test.ts for corroboration-layer coverage — mocked to
+// always succeed here so it never interferes with the raw web-signal assertions below.
+jest.mock('@/supabase/health', () => ({
+  pingSupabase: jest.fn().mockResolvedValue(true),
 }));
 
 import { act, renderHook } from '@testing-library/react-native';
