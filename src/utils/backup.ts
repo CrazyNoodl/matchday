@@ -333,8 +333,13 @@ export async function pickAndReadBackupFile(): Promise<
     });
   }
 
-  const DocumentPicker = (await import('expo-document-picker')) as DocumentPickerModule;
-  const result = await DocumentPicker.getDocumentAsync({ type: 'application/json', copyToCacheDirectory: true });
+  let result: Awaited<ReturnType<DocumentPickerModule['getDocumentAsync']>>;
+  try {
+    const DocumentPicker = (await import('expo-document-picker')) as DocumentPickerModule;
+    result = await DocumentPicker.getDocumentAsync({ type: 'application/json', copyToCacheDirectory: true });
+  } catch {
+    return { ok: false, reason: 'readError' };
+  }
   if (result.canceled || !result.assets?.[0]) return { ok: false, reason: 'canceled' };
 
   let text: string;
