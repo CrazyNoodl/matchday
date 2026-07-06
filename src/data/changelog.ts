@@ -9,6 +9,13 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.12',
+    fixed: [
+      'Team logos now load instantly offline once seen before, and fall back to the colored initials badge instead of a blank box when a logo can\'t load',
+      'AI stat scan no longer surfaces a "goals" row that just duplicates the match score; any other stray stat outside the normal 23 can now be deleted individually (#72)',
+    ],
+  },
+  {
     version: '1.9.11',
     added: [
       'Offline handling, phase 1: a banner appears when you lose connection, and any action that needs the network (adding photos, importing stats, team logos) is disabled until you\'re back online instead of failing silently (#73)',
