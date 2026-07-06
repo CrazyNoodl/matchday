@@ -1,5 +1,6 @@
-import React from 'react';
-import { View, Text, Image, ViewStyle } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, ViewStyle } from 'react-native';
+import { Image } from 'expo-image';
 import { useStore } from '../../store';
 import { useColors } from '../../theme';
 import { SIZES, RADII, FONT_SIZES, styles } from './Avatar.styles';
@@ -16,6 +17,12 @@ export function Avatar({ playerId, size = 'md', style }: AvatarProps) {
   const colors = useColors();
   const player = useStore((s) => s.players.find((p) => p.id === playerId));
   const team = useStore((s) => s.teams.find((t) => t.code === player?.teamCode));
+  const [logoFailed, setLogoFailed] = useState(false);
+  const logoUrl = team?.logo?.startsWith('http') ? team.logo : undefined;
+
+  useEffect(() => {
+    setLogoFailed(false);
+  }, [logoUrl]);
 
   const dim = SIZES[size];
   const radius = RADII[size];
@@ -31,10 +38,17 @@ export function Avatar({ playerId, size = 'md', style }: AvatarProps) {
     return <View style={[...baseStyle, { backgroundColor: colors.bg.elevated }]} />;
   }
 
-  if (team.logo?.startsWith('http')) {
+  if (logoUrl && !logoFailed) {
     return (
       <View style={baseStyle}>
-        <Image source={{ uri: team.logo }} style={styles.image} resizeMode="cover" />
+        <Image
+          testID="avatar-logo"
+          source={{ uri: logoUrl }}
+          style={styles.image}
+          contentFit="cover"
+          cachePolicy="memory-disk"
+          onError={() => setLogoFailed(true)}
+        />
       </View>
     );
   }
