@@ -50,8 +50,9 @@ const settings = {
   changelog: {
     title: 'Nouveautés',
     added: 'Ajouté',
+    changed: 'Modifié',
     fixed: 'Corrigé',
-    notes: 'Notes',
+    internal: 'Interne',
     empty: 'Aucune entrée pour le moment.',
   },
   danger: {

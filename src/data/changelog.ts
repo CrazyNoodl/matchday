@@ -2,8 +2,9 @@ export interface ChangelogEntry {
   version: string;
   date?: string;
   added?: string[];
+  changed?: string[];
   fixed?: string[];
-  notes?: string[];
+  internal?: string[];
 }
 
 // Newest first. Add a new entry here whenever package.json's version is bumped.
@@ -16,7 +17,7 @@ export const CHANGELOG: ChangelogEntry[] = [
   },
   {
     version: '1.9.15',
-    notes: [
+    internal: [
       'Internal: translation files (en/uk/fr) split into one file per screen instead of one 680-line file per language, and removed 12 unused translation keys — no visible change',
     ],
   },
@@ -57,14 +58,16 @@ export const CHANGELOG: ChangelogEntry[] = [
   },
   {
     version: '1.9.9',
-    notes: [
+    internal: [
       'Settings → Players and Settings → Teams screens split into smaller files — the edit sheet and confirmation dialogs now live in their own components, mirroring the existing pattern used by the main Settings screen — no user-visible change',
     ],
   },
   {
     version: '1.9.8',
-    notes: [
+    changed: [
       'Photos are now downscaled before upload instead of only JPEG-compressed at the original camera resolution — regular match media and team logos cap to a smaller max dimension, and stat photos get a lighter downscale for the AI OCR pass plus a more aggressive one for the copy kept in Storage, cutting bandwidth/storage/OCR latency with no visible quality loss (#62)',
+    ],
+    internal: [
       'Added a "Resize Lab" developer tool (Settings → Developer Menu) to inspect before/after size and dimensions for any photo run through each of the new resize presets',
     ],
   },
@@ -80,8 +83,10 @@ export const CHANGELOG: ChangelogEntry[] = [
       'Pinch-to-zoom for photos in the full-screen media viewer — pinch and pan to zoom in, double-tap or release to reset; swiping to the next/previous photo is disabled while zoomed in (#64)',
       'Theme picker now offers an "Auto" option that follows your phone\'s system dark/light appearance live, in addition to Dark and Light (#60)',
     ],
-    notes: [
+    changed: [
       'Match media storage reorganized into per-round/per-match folders (e.g. matchday-2026-07-03_1430/match_2-1_2026-07-03_1432) — deleting a match, round, or tournament now removes its media in a single batch instead of one file at a time (#67)',
+    ],
+    internal: [
       'Match-stat keys now use a typed escape-hatch union internally for better autocomplete and typo protection — no user-visible change (#57)',
     ],
   },
@@ -105,7 +110,7 @@ export const CHANGELOG: ChangelogEntry[] = [
   },
   {
     version: '1.9.3',
-    notes: [
+    internal: [
       'Added Playwright E2E test suite (13 tests, 5 smoke) covering home, teams, players, setup, and full tournament flow — runs automatically on every PR via GitHub Actions',
     ],
   },
@@ -113,9 +118,13 @@ export const CHANGELOG: ChangelogEntry[] = [
     version: '1.9.2',
     added: [
       'Select up to 5 photos/videos at once when adding media to a match — multi-select is always available; the picker limit adjusts automatically based on how many items are already attached',
+    ],
+    changed: [
       'Photos appear instantly after picking — upload happens in the background while you continue using the app; each thumbnail shows a spinner while uploading and switches to a retry indicator if the upload fails',
       'Media viewer now supports swipe gestures to move between photos — previously only the navigation arrows worked',
       'Media viewer closes by tapping anywhere on the image or on the dark background — no longer requires tapping the ✕ button',
+    ],
+    fixed: [
       'Media viewer now uses full screen height for each slide — portrait photos are centred correctly instead of being cropped to a square',
     ],
   },
@@ -123,8 +132,10 @@ export const CHANGELOG: ChangelogEntry[] = [
     version: '1.9.1',
     fixed: [
       'Re-scan in the stats context menu now reliably opens the photo picker on iOS — the picker was silently blocked when the stats dropdown modal had not yet fully dismissed',
-      'Uploaded media is now stored in a structured folder path (userId/tournamentId/matchId) instead of a flat bucket root — makes media easier to manage and clean up',
       'Deleting a match, round, or tournament now also removes its associated photos and videos from Supabase Storage — no more orphaned files left behind',
+    ],
+    internal: [
+      'Uploaded media is now stored in a structured folder path (userId/tournamentId/matchId) instead of a flat bucket root — makes media easier to manage and clean up',
     ],
   },
   {
@@ -136,14 +147,16 @@ export const CHANGELOG: ChangelogEntry[] = [
       'Add-match discard and save-error alerts replaced with in-app dialogs matching the rest of the app — no more native Alert popups in the add-match flow',
       'Max-photos warning in OCR lab replaced with in-app dialog',
     ],
-    notes: [
+    internal: [
       'Selective sync: only table groups with local changes are pushed to Supabase — reduces unnecessary writes on every autosave',
     ],
   },
   {
     version: '1.8.1',
-    fixed: [
+    changed: [
       'Matches within a round are now grouped into tour blocks — a tour is complete when every player has faced every other player once (N×(N-1)/2 matches); with 2 players each match is its own tour (#42)',
+    ],
+    fixed: [
       'Round date chip in archived round view now scrolls with the content instead of staying fixed above it (#41)',
       'Standings table rows now have correct horizontal padding — cells no longer touch the card edge (#39)',
       'Keyboard no longer covers text inputs on the tournament name and add-match screens (#36)',
@@ -180,15 +193,17 @@ export const CHANGELOG: ChangelogEntry[] = [
       'After choosing Skip on stats, picking more photos no longer re-triggers scanning and potentially re-blocks the Next button (#48)',
       'Stats from a previous successful scan no longer survive into a failed state and get silently saved when the user taps Skip (#48)',
     ],
-    notes: [
+    internal: [
       'Add-match flow now has 26 dedicated tests covering every edge case of the OCR, media, and save paths — 274 total (#48)',
     ],
   },
   {
     version: '1.6.9',
-    notes: [
-      'Internal stability pass: match detail and settings screens split into focused hook + modal files (#45)',
+    fixed: [
       'AI stats import now has a 30-second timeout — no more infinite spinner if the network stalls (#45)',
+    ],
+    internal: [
+      'Internal stability pass: match detail and settings screens split into focused hook + modal files (#45)',
       'Match lookup wrapped in useMemo to avoid redundant scans on every render (#45)',
       'Supabase client fully typed — removed all `as any` casts from storage and sync layers (#44)',
       'i18n guard: duplicate locale keys now caught in CI before they reach users (#44)',
@@ -208,7 +223,7 @@ export const CHANGELOG: ChangelogEntry[] = [
   },
   {
     version: '1.6.7',
-    notes: [
+    internal: [
       'Internal cleanup: extracted screen styles into dedicated .styles.ts files, split the global store into per-domain slices, and broke the round screen down into smaller focused files (add-match flow, dialogs)',
     ],
   },
@@ -245,7 +260,7 @@ export const CHANGELOG: ChangelogEntry[] = [
   },
   {
     version: '1.6.3',
-    fixed: [
+    changed: [
       'Bottom sheets (New Match Day, Add Match, Edit Score/Stats, etc.) now swipe down to dismiss and size themselves to fit their content',
       'Standings tables (current round, tournament overview, archived rounds) keep the player column fixed in place while the stats scroll horizontally',
     ],
@@ -269,7 +284,7 @@ export const CHANGELOG: ChangelogEntry[] = [
     added: [
       "A 'What's New' screen — tap the app version 3 times in Settings to see it",
     ],
-    notes: [
+    internal: [
       'Internal cleanup: deduplicated store logic, memoized standings calculations, and moved every component into its own folder with tests/stories alongside it',
     ],
   },

@@ -50,8 +50,9 @@ const settings = {
   changelog: {
     title: 'Що нового',
     added: 'Додано',
+    changed: 'Змінено',
     fixed: 'Виправлено',
-    notes: 'Примітки',
+    internal: 'Внутрішнє',
     empty: 'Записів поки немає.',
   },
   danger: {
