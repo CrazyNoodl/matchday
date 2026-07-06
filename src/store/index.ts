@@ -53,6 +53,12 @@ const buildStorage = () => {
 
 const mmkvStorage = buildStorage();
 
+// Set true for the duration of resetStore()'s state wipe so useSyncManager's
+// dirty-tracking subscriber doesn't mistake a local-only cache clear (dev
+// "Reset data", sign-out account isolation) for a real edit to sync — that
+// previously pushed the emptied state and deleted the user's real cloud rows.
+export const syncSuppressionRef = { current: false };
+
 // ---------------------------------------------------------------------------
 // Root-level actions — cross-cutting concerns that touch most/all slices,
 // so they don't belong to any single domain slice.
@@ -152,6 +158,7 @@ export const useStore = create<RootState>()(
 
         const mediaUris = [...new Set([...matchUris, ...playerPhotoUris, ...teamLogoUris])];
 
+        syncSuppressionRef.current = true;
         set({
           tournamentId: '',
           hasTournament: false,
@@ -179,6 +186,7 @@ export const useStore = create<RootState>()(
           viewingRound: null,
           viewingTournament: null,
         });
+        syncSuppressionRef.current = false;
 
         await Promise.all(mediaUris.map((uri) => deleteMediaItem(uri)));
       },

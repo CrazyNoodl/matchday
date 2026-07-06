@@ -10,7 +10,7 @@ jest.mock('../auth', () => ({
 }));
 
 import { getCurrentUserId } from '../auth';
-import { pushState, pullState, type SyncPayload } from '../sync';
+import { pushState, pullState, deleteAllCloudData, type SyncPayload } from '../sync';
 
 const mockGetCurrentUserId = getCurrentUserId as jest.MockedFunction<typeof getCurrentUserId>;
 
@@ -186,6 +186,47 @@ describe('pushState', () => {
         matches: [{ id: 'm1', aId: 'p1', bId: 'p2', aTeam: 'JUV', bTeam: 'ARS', aScore: 1, bScore: 0 }],
       }, new Set(['openMatches'])),
     ).rejects.toThrow(/foreign key constraint/);
+  });
+});
+
+// ─── deleteAllCloudData ──────────────────────────────────────────────────────
+
+describe('deleteAllCloudData', () => {
+  it('does nothing when there is no signed-in user', async () => {
+    mockGetCurrentUserId.mockResolvedValue(null);
+    const { db, calls } = buildMockDb();
+    setMockDb(db);
+
+    await deleteAllCloudData();
+
+    expect(calls).toHaveLength(0);
+  });
+
+  it('deletes players, teams, closed_tournaments and tournaments scoped to the user, with no survivor filter', async () => {
+    mockGetCurrentUserId.mockResolvedValue('user-1');
+    const { db, calls } = buildMockDb();
+    setMockDb(db);
+
+    await deleteAllCloudData();
+
+    for (const table of ['players', 'teams', 'closed_tournaments', 'tournaments']) {
+      const del = calls.find((c) => c.table === table && c.method === 'delete');
+      expect(del).toBeDefined();
+      const eq = calls.find((c) => c.table === table && c.method === 'eq');
+      expect(eq!.args).toEqual(['user_id', 'user-1']);
+      // No `.not(...)` survivor filter on any table — this is a full wipe.
+      expect(calls.some((c) => c.table === table && c.method === 'not')).toBe(false);
+    }
+  });
+
+  it('throws instead of silently succeeding when a table delete errors', async () => {
+    mockGetCurrentUserId.mockResolvedValue('user-1');
+    const { db } = buildMockDb({
+      teams: { data: null, error: { message: 'network error' } },
+    });
+    setMockDb(db);
+
+    await expect(deleteAllCloudData()).rejects.toThrow(/network error/);
   });
 });
 

@@ -29,13 +29,17 @@ jest.mock('@/supabase/client', () => ({
   supabaseConfigured: false,
 }));
 
+jest.mock('@/supabase/sync', () => ({ deleteAllCloudData: jest.fn().mockResolvedValue(undefined) }));
+
 import { renderHook, act } from '@testing-library/react-native';
 import { useSettings } from '../useSettings';
 import { useStore } from '@/store';
 import { signOut } from '@/supabase/auth';
+import { deleteAllCloudData } from '@/supabase/sync';
 import type { Player, Team } from '@/store/types';
 
 const mockSignOut = signOut as jest.Mock;
+const mockDeleteAllCloudData = deleteAllCloudData as jest.Mock;
 
 const SEED_PLAYERS: Player[] = [
   { id: 'player-1', name: 'Alice', color: '#f00', teamCode: 'JUV' },
@@ -247,5 +251,23 @@ describe('handleReset', () => {
     expect(result.current.showResetConfirm).toBe(false);
     expect(useStore.getState().players.length).toBeLessThan(countBefore);
     expect(mockReplace).toHaveBeenCalledWith('/');
+  });
+
+  it('explicitly wipes cloud data — "Reset All Data" is a genuine full wipe, not local-only', async () => {
+    // Unlike sign-out (which must NOT touch the cloud), this is the one place
+    // a full account wipe is intended, so it must go through the dedicated
+    // deleteAllCloudData() call rather than relying on the generic sync
+    // dirty-diff mechanism (which is deliberately local-only, see resetStore).
+    const { result } = await renderHook(() => useSettings());
+    await act(async () => { await result.current.handleReset(); });
+    expect(mockDeleteAllCloudData).toHaveBeenCalledTimes(1);
+  });
+
+  it('still resets the local store when the cloud wipe fails', async () => {
+    mockDeleteAllCloudData.mockRejectedValueOnce(new Error('network down'));
+    useStore.getState().addPlayer({ id: 'extra', name: 'Dave', color: '#fff', teamCode: 'JUV' });
+    const { result } = await renderHook(() => useSettings());
+    await act(async () => { await result.current.handleReset(); });
+    expect(useStore.getState().players.find((p) => p.id === 'extra')).toBeUndefined();
   });
 });
