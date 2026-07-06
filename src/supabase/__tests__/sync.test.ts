@@ -10,7 +10,7 @@ jest.mock('../auth', () => ({
 }));
 
 import { getCurrentUserId } from '../auth';
-import { pushState, pullState, deleteAllCloudData, type SyncPayload } from '../sync';
+import { pushState, pullState, deleteAllCloudData, buildSyncPayload, pushAllTables, type SyncPayload } from '../sync';
 
 const mockGetCurrentUserId = getCurrentUserId as jest.MockedFunction<typeof getCurrentUserId>;
 
@@ -227,6 +227,89 @@ describe('deleteAllCloudData', () => {
     setMockDb(db);
 
     await expect(deleteAllCloudData()).rejects.toThrow(/network error/);
+  });
+});
+
+// ─── buildSyncPayload ────────────────────────────────────────────────────────
+
+describe('buildSyncPayload', () => {
+  it('applies stripPendingMedia to matches at every nesting level and maps the tournament sub-object', () => {
+    const pendingMedia = { uri: 'file:///tmp/x.jpg', type: 'image' as const, pendingUpload: true };
+    const keptMedia = { uri: 'https://cdn/x.jpg', type: 'image' as const };
+    const matchWithMedia = (id: string) => ({
+      id,
+      aId: 'p1',
+      bId: 'p2',
+      aTeam: 'JUV',
+      bTeam: 'ARS',
+      aScore: 1,
+      bScore: 0,
+      media: [pendingMedia, keptMedia],
+    });
+
+    const payload = buildSyncPayload({
+      tournamentId: 'tour-1',
+      players: [],
+      teams: [],
+      matches: [matchWithMedia('m1')],
+      archivedRounds: [
+        { id: 'r1', n: 1, date: '', winner: '', games: 1, ranked: true, name: '', matches: [matchWithMedia('m2')] },
+      ],
+      closedTournaments: [
+        {
+          id: 'ct1', name: '', date: '', champId: '', champName: '', champColor: '', champInit: '', players: [],
+          rounds: [{ id: 'r2', n: 1, date: '', winner: '', games: 1, ranked: true, name: '', matches: [matchWithMedia('m3')] }],
+        },
+      ],
+      tournamentName: 'Cup',
+      tournamentRanked: true,
+      tournamentRounds: 3,
+      tournamentPlayers: [],
+      round: 1,
+      roundOpen: true,
+      roundPlayers: [],
+      hasTournament: true,
+    });
+
+    expect(payload.matches[0].media).toEqual([keptMedia]);
+    expect(payload.archivedRounds[0].matches[0].media).toEqual([keptMedia]);
+    expect(payload.closedTournaments[0].rounds[0].matches[0].media).toEqual([keptMedia]);
+    expect(payload.tournament).toEqual({
+      name: 'Cup',
+      ranked: true,
+      roundsTarget: 3,
+      playerIds: [],
+      round: 1,
+      roundOpen: true,
+      roundPlayers: [],
+      hasTournament: true,
+    });
+  });
+});
+
+// ─── pushAllTables ───────────────────────────────────────────────────────────
+
+describe('pushAllTables', () => {
+  it('pushes every table group regardless of what changed', async () => {
+    mockGetCurrentUserId.mockResolvedValue('user-1');
+    const { db, calls } = buildMockDb();
+    setMockDb(db);
+
+    await pushAllTables({
+      tournamentId: '',
+      players: [{ id: 'p1', name: 'Alice', color: '#fff', teamCode: 'JUV' }],
+      teams: [{ code: 'JUV', name: 'Juventus', short: 'JUV', color: '#000' }],
+      matches: [],
+      archivedRounds: [],
+      closedTournaments: [],
+      tournament: {
+        name: '', ranked: true, roundsTarget: 0, playerIds: [], round: 0, roundOpen: false, roundPlayers: [], hasTournament: false,
+      },
+    });
+
+    expect(calls.some((c) => c.table === 'players' && c.method === 'upsert')).toBe(true);
+    expect(calls.some((c) => c.table === 'teams' && c.method === 'upsert')).toBe(true);
+    expect(calls.some((c) => c.table === 'tournaments' && c.method === 'delete')).toBe(true);
   });
 });
 

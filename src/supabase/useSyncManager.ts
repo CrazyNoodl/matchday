@@ -1,23 +1,13 @@
 import { useEffect, useRef } from 'react';
 import { useStore, syncSuppressionRef } from '@/store';
-import type { Match } from '@/store/types';
 import { getCurrentUserId } from './auth';
-import { pushState, pullState, subscribeToChanges } from './sync';
+import { pushState, pullState, subscribeToChanges, buildSyncPayload, ALL_DIRTY } from './sync';
 import type { DirtyTable } from './sync';
 import { supabaseConfigured } from './client';
 import { useIsOnline } from '@/hooks/useIsOnline';
 
-function stripPendingMedia(matches: Match[]): Match[] {
-  return matches.map((m) =>
-    m.media?.some((item) => item.pendingUpload)
-      ? { ...m, media: m.media!.filter((item) => !item.pendingUpload) }
-      : m,
-  );
-}
-
 const PUSH_DEBOUNCE_MS = 300;
 const PULL_DEBOUNCE_MS = 400;
-const ALL_DIRTY = new Set<DirtyTable>(['players', 'teams', 'activeTournament', 'openMatches', 'closedTournaments']);
 
 export function useSyncManager() {
   const setSyncStatus = useStore((s) => s.setSyncStatus);
@@ -106,7 +96,7 @@ export function useSyncManager() {
       }
       pushingRef.current = true;
       try {
-        await pushState(buildPushPayload(), dirty);
+        await pushState(buildSyncPayload(useStore.getState()), dirty);
       } catch {
         setSyncStatus('error');
         if (!forceDirty) {
@@ -116,37 +106,6 @@ export function useSyncManager() {
       } finally {
         pushingRef.current = false;
       }
-    }
-
-    function buildPushPayload() {
-      const s = useStore.getState();
-      return {
-        tournamentId: s.tournamentId,
-        players: s.players,
-        teams: s.teams,
-        matches: stripPendingMedia(s.matches),
-        archivedRounds: s.archivedRounds.map((r) => ({
-          ...r,
-          matches: stripPendingMedia(r.matches),
-        })),
-        closedTournaments: s.closedTournaments.map((t) => ({
-          ...t,
-          rounds: t.rounds.map((r) => ({
-            ...r,
-            matches: stripPendingMedia(r.matches),
-          })),
-        })),
-        tournament: {
-          name: s.tournamentName,
-          ranked: s.tournamentRanked,
-          roundsTarget: s.tournamentRounds,
-          playerIds: s.tournamentPlayers,
-          round: s.round,
-          roundOpen: s.roundOpen,
-          roundPlayers: s.roundPlayers,
-          hasTournament: s.hasTournament,
-        },
-      };
     }
 
     async function init() {
