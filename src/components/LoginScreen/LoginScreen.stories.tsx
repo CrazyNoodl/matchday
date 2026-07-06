@@ -1,5 +1,6 @@
 import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
+import { userEvent, within } from 'storybook/test';
 import { LoginScreen } from './LoginScreen';
 
 const meta = {
@@ -20,3 +21,13 @@ type Story = StoryObj<typeof meta>;
 // short-circuit with a "Supabase not configured" error instead of hitting
 // the network.
 export const Default: Story = {};
+
+// Submitting with both fields empty triggers the synchronous validation
+// error (no Supabase call involved) — demonstrates the error banner state
+// deterministically, without needing to mock the network.
+export const ValidationError: Story = {
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByText('SIGN IN'));
+  },
+};
