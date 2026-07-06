@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, Platform } from 'react-native';
 import { BottomSheetScrollView, BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { useTranslation } from 'react-i18next';
@@ -6,8 +6,9 @@ import { useColors } from '@/theme';
 import { useIsOnline } from '@/hooks/useIsOnline';
 import { Spacing } from '@/theme/spacing';
 import { Avatar, ScoreCounter, MediaThumbnail, Sheet, TeamPickerRow } from '@/components';
-import { Player, Team } from '@/store/types';
+import { Player, Team, Match } from '@/store/types';
 import { AddMatchState, getAddMatchStepLabel, canAddMatchGoNext, isAddMatchDirty } from '@/utils/addMatchState';
+import { getCurrentTourMatches, getPlayedPartnerIds } from '@/utils/matchTours';
 import { makeSheetStyles } from './AddMatchSheet.styles';
 import { useAddMatchFlow } from './useAddMatchFlow';
 import { DiscardMatchDialog, SaveMatchErrorDialog } from './RoundDialogs';
@@ -19,6 +20,7 @@ interface AddMatchSheetProps {
   tournamentPlayerList: Player[];
   players: Player[];
   teams: Team[];
+  matches: Match[];
   flow: ReturnType<typeof useAddMatchFlow>;
 }
 
@@ -29,6 +31,7 @@ export function AddMatchSheet({
   tournamentPlayerList,
   players,
   teams,
+  matches,
   flow,
 }: AddMatchSheetProps) {
   const { t } = useTranslation();
@@ -49,6 +52,21 @@ export function AddMatchSheet({
     handleRemoveMedia,
   } = flow;
 
+  const currentTourMatches = useMemo(
+    () => getCurrentTourMatches(matches, tournamentPlayerList.length),
+    [matches, tournamentPlayerList.length],
+  );
+
+  // Whichever of home/away is already picked anchors the "already played" check —
+  // the tap handler below lets home be cleared while away stays set, so this can't
+  // just be addMatch.homeId or a stale pair could slip through undetected.
+  const anchorId = addMatch.homeId ?? addMatch.awayId;
+
+  const disabledPartnerIds = useMemo(
+    () => (anchorId ? getPlayedPartnerIds(currentTourMatches, anchorId) : new Set<string>()),
+    [currentTourMatches, anchorId],
+  );
+
   const renderStepPlayers = () => (
     <View style={sheetStyles.stepContent}>
       <Text style={sheetStyles.stepHint}>{t('matchday.selectHomePlayer')}</Text>
@@ -57,6 +75,7 @@ export function AddMatchSheet({
           const isHome = addMatch.homeId === p.id;
           const isAway = addMatch.awayId === p.id;
           const isUsed = isHome || isAway;
+          const isDisabled = disabledPartnerIds.has(p.id);
           return (
             <TouchableOpacity
               key={p.id}
@@ -64,8 +83,10 @@ export function AddMatchSheet({
                 sheetStyles.playerChip,
                 isHome && sheetStyles.playerChipHome,
                 isAway && sheetStyles.playerChipAway,
+                isDisabled && sheetStyles.playerChipDisabled,
               ]}
               onPress={() => {
+                if (isDisabled) return;
                 setAddMatch((prev) => {
                   if (prev.homeId === p.id) return { ...prev, homeId: null };
                   if (prev.awayId === p.id) return { ...prev, awayId: null };
