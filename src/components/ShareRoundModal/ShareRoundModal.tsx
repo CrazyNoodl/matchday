@@ -2,13 +2,13 @@ import React, { useRef, useState, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
-  Image,
   Modal,
   TouchableOpacity,
   ActivityIndicator,
   Platform,
   ScrollView,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 // Native-only modules loaded dynamically so web build doesn't crash
@@ -46,6 +46,13 @@ interface ShareRoundModalProps {
 export function CardAvatar({ teamCode, size }: { teamCode?: string; size: number }) {
   const team = useStore((s) => s.teams.find((t) => t.code === teamCode));
   const colors = useColors();
+  const [logoFailed, setLogoFailed] = useState(false);
+  const logoUrl = team?.logo?.startsWith('http') ? team.logo : undefined;
+
+  useEffect(() => {
+    setLogoFailed(false);
+  }, [logoUrl]);
+
   const radius = Math.round(size * 0.3);
   const baseStyle = { width: size, height: size, borderRadius: radius, overflow: 'hidden' as const };
 
@@ -53,10 +60,16 @@ export function CardAvatar({ teamCode, size }: { teamCode?: string; size: number
     return <View style={[baseStyle, { backgroundColor: colors.bg.elevated }]} />;
   }
 
-  if (team.logo?.startsWith('http')) {
+  if (logoUrl && !logoFailed) {
     return (
       <View style={baseStyle}>
-        <Image source={{ uri: team.logo }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
+        <Image
+          source={{ uri: logoUrl }}
+          style={{ width: '100%', height: '100%' }}
+          contentFit="cover"
+          cachePolicy="memory-disk"
+          onError={() => setLogoFailed(true)}
+        />
       </View>
     );
   }

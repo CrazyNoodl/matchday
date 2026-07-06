@@ -37,6 +37,7 @@ module.exports = {
     plugins: [
       'expo-router',
       'expo-status-bar',
+      'expo-image',
       [
         'expo-image-picker',
         {

@@ -1,5 +1,6 @@
-import React from 'react';
-import { View, Text, Image, ViewStyle } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, ViewStyle } from 'react-native';
+import { Image } from 'expo-image';
 import { useStore } from '../../store';
 import { styles } from './TeamBadge.styles';
 
@@ -13,16 +14,30 @@ interface TeamBadgeProps {
 
 export function TeamBadge({ teamCode, size = 'md', style }: TeamBadgeProps) {
   const team = useStore((s) => s.teams.find((t) => t.code === teamCode));
+  const [logoFailed, setLogoFailed] = useState(false);
 
   const label = team?.short ?? teamCode.slice(0, 3).toUpperCase();
   const color = team?.color ?? '#5d666b';
-  const logo = team?.logo?.startsWith('http') ? team.logo : undefined;
+  const logoUrl = team?.logo?.startsWith('http') ? team.logo : undefined;
+
+  useEffect(() => {
+    setLogoFailed(false);
+  }, [logoUrl]);
+
+  const logo = logoFailed ? undefined : logoUrl;
 
   if (size === 'xs') {
     if (logo) {
       return (
         <View style={[styles.xs, styles.noBorder, style]}>
-          <Image source={{ uri: logo }} style={styles.imageXs} resizeMode="cover" />
+          <Image
+            testID="team-badge-logo"
+            source={{ uri: logo }}
+            style={styles.imageXs}
+            contentFit="cover"
+            cachePolicy="memory-disk"
+            onError={() => setLogoFailed(true)}
+          />
         </View>
       );
     }
@@ -43,7 +58,14 @@ export function TeamBadge({ teamCode, size = 'md', style }: TeamBadgeProps) {
     if (logo) {
       return (
         <View style={[styles.lg, styles.noBorder, style]}>
-          <Image source={{ uri: logo }} style={styles.imageLg} resizeMode="cover" />
+          <Image
+            testID="team-badge-logo"
+            source={{ uri: logo }}
+            style={styles.imageLg}
+            contentFit="cover"
+            cachePolicy="memory-disk"
+            onError={() => setLogoFailed(true)}
+          />
         </View>
       );
     }
@@ -64,7 +86,14 @@ export function TeamBadge({ teamCode, size = 'md', style }: TeamBadgeProps) {
   if (logo) {
     return (
       <View style={[styles.md, styles.noBorder, style]}>
-        <Image source={{ uri: logo }} style={styles.imageMd} resizeMode="cover" />
+        <Image
+          testID="team-badge-logo"
+          source={{ uri: logo }}
+          style={styles.imageMd}
+          contentFit="cover"
+          cachePolicy="memory-disk"
+          onError={() => setLogoFailed(true)}
+        />
       </View>
     );
   }
