@@ -135,64 +135,77 @@ export function MatchModals({ d }: MatchModalsProps) {
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
           >
-            {mergedStats.map((stat) => {
-              const current = d.editValues[stat.key] ?? { a: stat.aVal, b: stat.bVal };
-              const label = stat.labelKey ? t(stat.labelKey) : stat.label;
-              const isDecimal = stat.step < 1;
-              const format = (v: number) => (isDecimal ? v.toFixed(1) : String(v));
-              // Muted until touched this session — signals "placeholder, not confirmed"
-              // for a param the AI never recognized, without a separate N/A state.
-              const isPlaceholder = stat.isNA && !d.touchedStats.has(stat.key);
-              const lowConfidence = stat.confidence === 'low' || stat.confidence === 'medium';
-              return (
-                <View key={stat.key} style={styles.editStatRow}>
-                  <View style={styles.editSideControls}>
-                    <TouchableOpacity
-                      style={styles.stepBtn}
-                      onPress={() => d.adjustStat(stat.key, 'a', -stat.step, stat.isPercent)}
-                      activeOpacity={0.75}
-                    >
-                      <Text style={styles.stepBtnText}>−</Text>
-                    </TouchableOpacity>
-                    <Text style={[styles.editStatVal, isPlaceholder && styles.editStatValNA]}>
-                      {format(current.a)}
-                    </Text>
-                    <TouchableOpacity
-                      style={styles.stepBtn}
-                      onPress={() => d.adjustStat(stat.key, 'a', stat.step, stat.isPercent)}
-                      activeOpacity={0.75}
-                    >
-                      <Text style={styles.stepBtnText}>+</Text>
-                    </TouchableOpacity>
-                  </View>
+            {mergedStats
+              .filter((stat) => d.editValues[stat.key] !== undefined)
+              .map((stat) => {
+                const current = d.editValues[stat.key] ?? { a: stat.aVal, b: stat.bVal };
+                const label = stat.labelKey ? t(stat.labelKey) : stat.label;
+                const isDecimal = stat.step < 1;
+                const format = (v: number) => (isDecimal ? v.toFixed(1) : String(v));
+                // Muted until touched this session — signals "placeholder, not confirmed"
+                // for a param the AI never recognized, without a separate N/A state.
+                const isPlaceholder = stat.isNA && !d.touchedStats.has(stat.key);
+                const lowConfidence = stat.confidence === 'low' || stat.confidence === 'medium';
+                return (
+                  <View key={stat.key} style={styles.editStatRow}>
+                    <View style={styles.editSideControls}>
+                      <TouchableOpacity
+                        style={styles.stepBtn}
+                        onPress={() => d.adjustStat(stat.key, 'a', -stat.step, stat.isPercent)}
+                        activeOpacity={0.75}
+                      >
+                        <Text style={styles.stepBtnText}>−</Text>
+                      </TouchableOpacity>
+                      <Text style={[styles.editStatVal, isPlaceholder && styles.editStatValNA]}>
+                        {format(current.a)}
+                      </Text>
+                      <TouchableOpacity
+                        style={styles.stepBtn}
+                        onPress={() => d.adjustStat(stat.key, 'a', stat.step, stat.isPercent)}
+                        activeOpacity={0.75}
+                      >
+                        <Text style={styles.stepBtnText}>+</Text>
+                      </TouchableOpacity>
+                    </View>
 
-                  <View style={styles.editStatLabelRow}>
-                    {lowConfidence && <View style={styles.editConfidenceDot} />}
-                    <Text style={styles.editStatLabel}>{label}</Text>
-                  </View>
+                    <View style={styles.editStatLabelRow}>
+                      {lowConfidence && <View style={styles.editConfidenceDot} />}
+                      <Text style={styles.editStatLabel}>{label}</Text>
+                    </View>
 
-                  <View style={styles.editSideControls}>
-                    <TouchableOpacity
-                      style={styles.stepBtn}
-                      onPress={() => d.adjustStat(stat.key, 'b', -stat.step, stat.isPercent)}
-                      activeOpacity={0.75}
-                    >
-                      <Text style={styles.stepBtnText}>−</Text>
-                    </TouchableOpacity>
-                    <Text style={[styles.editStatVal, isPlaceholder && styles.editStatValNA]}>
-                      {format(current.b)}
-                    </Text>
-                    <TouchableOpacity
-                      style={styles.stepBtn}
-                      onPress={() => d.adjustStat(stat.key, 'b', stat.step, stat.isPercent)}
-                      activeOpacity={0.75}
-                    >
-                      <Text style={styles.stepBtnText}>+</Text>
-                    </TouchableOpacity>
+                    <View style={styles.editSideControls}>
+                      <TouchableOpacity
+                        style={styles.stepBtn}
+                        onPress={() => d.adjustStat(stat.key, 'b', -stat.step, stat.isPercent)}
+                        activeOpacity={0.75}
+                      >
+                        <Text style={styles.stepBtnText}>−</Text>
+                      </TouchableOpacity>
+                      <Text style={[styles.editStatVal, isPlaceholder && styles.editStatValNA]}>
+                        {format(current.b)}
+                      </Text>
+                      <TouchableOpacity
+                        style={styles.stepBtn}
+                        onPress={() => d.adjustStat(stat.key, 'b', stat.step, stat.isPercent)}
+                        activeOpacity={0.75}
+                      >
+                        <Text style={styles.stepBtnText}>+</Text>
+                      </TouchableOpacity>
+                    </View>
+
+                    {!stat.isCanonical && (
+                      <TouchableOpacity
+                        style={styles.deleteStatBtn}
+                        onPress={() => d.deleteStat(stat.key)}
+                        activeOpacity={0.75}
+                        accessibilityLabel={t('common.delete')}
+                      >
+                        <Text style={styles.deleteStatIcon}>×</Text>
+                      </TouchableOpacity>
+                    )}
                   </View>
-                </View>
-              );
-            })}
+                );
+              })}
             <View style={{ height: 16 }} />
           </BottomSheetScrollView>
 

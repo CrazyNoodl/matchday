@@ -435,6 +435,23 @@ export const makeStyles = (colors: AppColors) => StyleSheet.create({
     gap: 4,
     width: 70,
   },
+  // Delete button for non-canonical (OCR extra) stat rows only — canonical
+  // rows can be edited but not removed (#72).
+  deleteStatBtn: {
+    width: 22,
+    height: 22,
+    borderRadius: Radius.sm,
+    backgroundColor: colors.accent.redSubtle,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  deleteStatIcon: {
+    fontFamily: FontFamily.bodyBold,
+    fontSize: FontSize.md,
+    color: colors.accent.red,
+    lineHeight: 20,
+    includeFontPadding: false,
+  },
   editConfidenceDot: {
     width: 5,
     height: 5,

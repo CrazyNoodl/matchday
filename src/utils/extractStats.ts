@@ -61,6 +61,15 @@ export function normalizeKey(raw: string): StatKey {
   return KEY_ALIASES[lower] ?? raw;
 }
 
+// Stats that just repeat the match score itself (see #72) — dropped outright
+// rather than surfaced as a separate, unremovable extra row.
+const BLOCKED_KEYS = new Set(['goals', 'score', 'finalscore', 'matchscore', 'result']);
+
+function isBlockedKey(raw: string): boolean {
+  const lower = raw.toLowerCase().replace(/[^a-z]/g, '');
+  return BLOCKED_KEYS.has(lower);
+}
+
 // Local dev (Metro/standalone proxy) serves this at the relative path.
 // Production web builds (GitHub Pages has no backend) point it at the
 // deployed Cloudflare Worker via EXPO_PUBLIC_ANTHROPIC_PROXY_URL.
@@ -95,7 +104,8 @@ Rules:
 - "away": RIGHT team value as number only
 - "confidence": "high" = clearly readable, "medium" = slightly unclear, "low" = guessed or blurry
 - Include EVERY stat row visible, even if uncertain
-- For percentage stats (possession, accuracy, dribbles): store the number without % sign`;
+- For percentage stats (possession, accuracy, dribbles): store the number without % sign
+- Do NOT include "goals"/"score"/"result" — that's the match score, not a stat row`;
 
 export async function extractStatsFromPhoto(
   base64: string,
@@ -156,10 +166,12 @@ export async function extractStatsFromPhoto(
       throw new Error('Invalid response format');
     }
 
-    return ((parsed as Record<string, unknown>).stats as ExtractedStat[]).map((s) => ({
-      ...s,
-      key: normalizeKey(s.key),
-    }));
+    return ((parsed as Record<string, unknown>).stats as ExtractedStat[])
+      .filter((s) => !isBlockedKey(String(s.key)))
+      .map((s) => ({
+        ...s,
+        key: normalizeKey(s.key),
+      }));
   } finally {
     clearTimeout(timeoutId);
   }

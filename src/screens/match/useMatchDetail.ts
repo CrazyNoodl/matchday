@@ -486,6 +486,23 @@ export function useMatchDetail() {
     setEditingNote(false);
   }, [match, store, editNoteValue]);
 
+  // Only for non-canonical (OCR extra) rows — canonical params can be edited
+  // but never removed from the fixed 23-param list (#72). Removing here just
+  // drops the key from the in-progress edit session; it's excluded from
+  // statsOverride once handleSaveStats writes editValues back to the store.
+  const deleteStat = useCallback((key: string) => {
+    setEditValues((prev) => {
+      const { [key]: _omit, ...rest } = prev;
+      return rest;
+    });
+    setTouchedStats((prev) => {
+      if (!prev.has(key)) return prev;
+      const next = new Set(prev);
+      next.delete(key);
+      return next;
+    });
+  }, []);
+
   const adjustStat = useCallback((key: string, side: 'a' | 'b', delta: number, isPercent: boolean) => {
     setTouchedStats((prev) => (prev.has(key) ? prev : new Set(prev).add(key)));
     setEditValues((prev) => {
@@ -564,6 +581,7 @@ export function useMatchDetail() {
     openEditNote,
     handleSaveNote,
     adjustStat,
+    deleteStat,
   };
 }
 
