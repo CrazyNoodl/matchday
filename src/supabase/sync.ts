@@ -17,7 +17,7 @@ import type { Player, Team, Match, ArchivedRound, ClosedTournament } from '../st
 
 export type DirtyTable = 'players' | 'teams' | 'activeTournament' | 'openMatches' | 'closedTournaments';
 
-const ALL_DIRTY = new Set<DirtyTable>(['players', 'teams', 'activeTournament', 'openMatches', 'closedTournaments']);
+export const ALL_DIRTY = new Set<DirtyTable>(['players', 'teams', 'activeTournament', 'openMatches', 'closedTournaments']);
 
 export interface SyncPayload {
   tournamentId: string;
@@ -35,6 +35,68 @@ export interface SyncPayload {
     roundOpen: boolean;
     roundPlayers: string[];
     hasTournament: boolean;
+  };
+}
+
+// Strips locally-in-flight media (still uploading, or a failed upload awaiting
+// retry) from a push payload — its `uri` is a device-local file:// path that
+// means nothing to any other client, and would otherwise get written to the
+// cloud as if it were a real, resolvable URL.
+export function stripPendingMedia(matches: Match[]): Match[] {
+  return matches.map((m) =>
+    m.media?.some((item) => item.pendingUpload)
+      ? { ...m, media: m.media!.filter((item) => !item.pendingUpload) }
+      : m,
+  );
+}
+
+// Shape pushState() needs, expressed independently of the Zustand store so
+// this module never imports '@/store' — callers (useSyncManager, the backup
+// feature) pass in whatever slice of `useStore.getState()` applies.
+export interface SyncPayloadSource {
+  tournamentId: string;
+  players: Player[];
+  teams: Team[];
+  matches: Match[];
+  archivedRounds: ArchivedRound[];
+  closedTournaments: ClosedTournament[];
+  tournamentName: string;
+  tournamentRanked: boolean;
+  tournamentRounds: number;
+  tournamentPlayers: string[];
+  round: number;
+  roundOpen: boolean;
+  roundPlayers: string[];
+  hasTournament: boolean;
+}
+
+export function buildSyncPayload(s: SyncPayloadSource): SyncPayload {
+  return {
+    tournamentId: s.tournamentId,
+    players: s.players,
+    teams: s.teams,
+    matches: stripPendingMedia(s.matches),
+    archivedRounds: s.archivedRounds.map((r) => ({
+      ...r,
+      matches: stripPendingMedia(r.matches),
+    })),
+    closedTournaments: s.closedTournaments.map((t) => ({
+      ...t,
+      rounds: t.rounds.map((r) => ({
+        ...r,
+        matches: stripPendingMedia(r.matches),
+      })),
+    })),
+    tournament: {
+      name: s.tournamentName,
+      ranked: s.tournamentRanked,
+      roundsTarget: s.tournamentRounds,
+      playerIds: s.tournamentPlayers,
+      round: s.round,
+      roundOpen: s.roundOpen,
+      roundPlayers: s.roundPlayers,
+      hasTournament: s.hasTournament,
+    },
   };
 }
 
@@ -352,6 +414,16 @@ export async function pushState(payload: SyncPayload, dirty: Set<DirtyTable> = A
 // only ever happen via one explicit, directly-called function, never as an
 // incidental consequence of some other local state change.
 // ---------------------------------------------------------------------------
+
+// Explicit, standalone full push — used by the local-backup "Push to Cloud"
+// action. Deliberately bypasses useSyncManager's debounce/dirty-tracking
+// entirely: that mechanism is for reacting to incremental local edits, not
+// for "the user just restored a backup and wants to deliberately overwrite
+// Supabase with it." Same principle as deleteAllCloudData() above — a
+// full-replace cloud action must be one explicit, directly-called function.
+export async function pushAllTables(payload: SyncPayload): Promise<void> {
+  await pushState(payload, ALL_DIRTY);
+}
 
 export async function deleteAllCloudData(): Promise<void> {
   const userId = await getCurrentUserId();

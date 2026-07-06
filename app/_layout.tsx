@@ -195,6 +195,7 @@ function AppContent({
             <Stack.Screen name="settings/language" />
             <Stack.Screen name="settings/developer" />
             <Stack.Screen name="settings/import-round" />
+            <Stack.Screen name="settings/backup" />
           </Stack>
         </View>
         <DemoBanner />

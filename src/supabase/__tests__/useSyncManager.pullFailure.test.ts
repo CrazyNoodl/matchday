@@ -34,6 +34,7 @@ jest.mock('@/hooks/useIsOnline', () => ({
 }));
 
 jest.mock('../sync', () => ({
+  ...jest.requireActual('../sync'),
   pushState: jest.fn().mockResolvedValue(undefined),
   pullState: jest.fn(),
   subscribeToChanges: jest.fn().mockReturnValue({ unsubscribe: jest.fn() }),

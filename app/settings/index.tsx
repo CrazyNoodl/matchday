@@ -75,6 +75,13 @@ export default function SettingsScreen() {
               sub={t('settings.data.teamsCount', { count: teams.length })}
               onPress={() => router.push('/settings/teams')}
             />
+            <View style={styles.divider} />
+            <SettingsRow
+              icon="💾"
+              label={t('settings.data.backup')}
+              sub={t('settings.data.backupSub')}
+              onPress={() => router.push('/settings/backup')}
+            />
           </View>
         </View>
 
