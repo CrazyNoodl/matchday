@@ -63,6 +63,7 @@ Supabase Storage (`match-media` bucket) layout for new uploads:
 |---|---|
 | Tournament create/close/archive | `app/setup.tsx`, `app/tournament.tsx` |
 | Round management (add match, finish, archive, delete) | `app/round.tsx`, `app/archive-day.tsx` |
+| No-repeat pairings within a round tour (already-played opponent disabled in Add Match) | `src/utils/matchTours.ts` (`getCurrentTourMatches`, `getPlayedPartnerIds`), `src/screens/round/AddMatchSheet.tsx` |
 | Match detail + 23-type stat entry | `app/match/[id].tsx` |
 | Standings with H2H tiebreaker | `src/utils/standings.ts` |
 | Form chips W/D/L (last 3) | `standings.ts → getFormChips` |
@@ -167,6 +168,7 @@ Status drifts too fast to keep a manual table in sync — run `gh issue list --r
 - `AppErrorBoundary` (`app/_layout.tsx`) is a function component wrapping the `react-error-boundary` dependency — React has no hook equivalent for `componentDidCatch`/`getDerivedStateFromError`, so the (unavoidable) class lives inside the dependency instead of app code, keeping the error UI (`src/components/ErrorFallback/`) itself able to use `useColors()`/`useTranslation()`.
 - Shared dialog strings (e.g. "cannot delete") live under `common.*` i18n keys, reused by `PlayerDialogs`/`TeamDialogs` — avoid re-introducing a screen-local duplicate when adding a similar dialog elsewhere.
 - `src/i18n/locales/{en,uk,fr}/` are directories, one file per top-level translation group (`common.ts`, `home.ts`, ...) merged by that locale's `index.ts` — not single monolithic files anymore. `src/i18n/index.ts`'s `import en from './locales/en'` is unchanged (resolves to the directory's `index.ts`). `en/index.ts` derives a `TranslationSchema` type; `uk`/`fr` are checked against it via `satisfies`, so a key present in one locale but missing in another is a `tsc` error, not just a runtime gap. `noDuplicateKeys.test.ts` additionally enforces exact key-set parity across all three at test time. See `docs/pitfalls.md`.
+- **`AddMatchSheet`'s player-chip disabling ("already played this tour") anchors off `addMatch.homeId ?? addMatch.awayId`, not just `homeId`** — the existing tap handler lets `homeId` be cleared while `awayId` stays set (tap the home chip again to deselect it), and a naive `homeId`-only anchor would stop disabling in that state, letting a duplicate pairing slip through. `getCurrentTourMatches`/`getPlayedPartnerIds` (`src/utils/matchTours.ts`) are positional — they treat the tail of `matches` past the last full `tourSize` block as the in-progress tour, which is only correct because this same feature guarantees no duplicate pairs land inside a block. Known accepted edge case: picking a player who's already faced everyone else this tour as the anchor disables every other chip (no valid opponent) — the player must deselect and pick someone else; no explicit message is shown.
 
 ### Testing gotchas
 
