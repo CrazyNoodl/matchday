@@ -196,7 +196,7 @@ export default function MatchDetailScreen() {
 
             <View style={styles.statsCard}>
               {mergedStats.map((stat) => {
-                const aLeads = stat.aVal >= stat.bVal;
+                const aLeads = stat.aVal === stat.bVal ? null : stat.aVal > stat.bVal;
                 const label = stat.labelKey ? t(stat.labelKey) : stat.label;
                 return (
                   <StatsRow

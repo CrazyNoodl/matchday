@@ -29,11 +29,12 @@ export const BSideWinning: Story = {
 };
 
 export const EvenSplit: Story = {
-  args: { label: 'Fouls', aValue: 5, bValue: 5, aWins: true },
+  name: 'Tie',
+  args: { label: 'Fouls', aValue: 5, bValue: 5, aWins: null },
 };
 
 export const ZeroValues: Story = {
-  args: { label: 'Red cards', aValue: 0, bValue: 0, aWins: true },
+  args: { label: 'Red cards', aValue: 0, bValue: 0, aWins: null },
 };
 
 export const Showcase: Story = {
@@ -43,7 +44,7 @@ export const Showcase: Story = {
       <StatsRow label="Possession" aValue={58} bValue={42} aWins />
       <StatsRow label="Shots on target" aValue={7} bValue={3} aWins />
       <StatsRow label="Fouls" aValue={4} bValue={9} aWins={false} />
-      <StatsRow label="Corners" aValue={5} bValue={5} aWins />
+      <StatsRow label="Corners" aValue={5} bValue={5} aWins={null} />
     </View>
   ),
 };
