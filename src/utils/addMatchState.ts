@@ -1,4 +1,14 @@
 import type { MediaItem } from '@/store/types';
+import type { ExtractedStat } from '@/utils/extractStats';
+
+export interface OcrPhotoEntry {
+  // null when the picker gave no usable base64 for this image — permanently
+  // unscannable, but still occupies its slot so this array's indices stay
+  // aligned with media's image-type entries after later removals.
+  asset: { base64: string; mimeType: string } | null;
+  // null until a scan succeeds for this photo. Once set, never rescanned.
+  stats: ExtractedStat[] | null;
+}
 
 export interface AddMatchState {
   step: number;
@@ -13,7 +23,7 @@ export interface AddMatchState {
   pendingStats: Record<string, { a: number; b: number }> | null;
   ocrScanning: boolean;
   ocrStatus: 'idle' | 'scanning' | 'done' | 'error' | 'skipped';
-  ocrAssets: Array<{ base64: string; mimeType: string }>;
+  ocrPhotos: OcrPhotoEntry[];
 }
 
 export function initAddMatch(): AddMatchState {
@@ -30,7 +40,7 @@ export function initAddMatch(): AddMatchState {
     pendingStats: null,
     ocrScanning: false,
     ocrStatus: 'idle',
-    ocrAssets: [],
+    ocrPhotos: [],
   };
 }
 
