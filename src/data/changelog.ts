@@ -10,6 +10,13 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.18',
+    fixed: [
+      'Add Match: a photo that fails to upload is now flagged for retry (via the existing match-detail retry overlay) instead of silently staying local and never reaching Storage (#68)',
+      'Add Match and OCR Lab: adding a new stat photo no longer re-scans every already-scanned photo, and removing a photo no longer wipes its siblings\' already-extracted stats (#71)',
+    ],
+  },
+  {
     version: '1.9.17',
     internal: [
       'What\'s New screen now splits entries into four categories (Added, Changed, Fixed, Internal) instead of three — separates real user-facing improvements from purely internal cleanup, each with its own color',
