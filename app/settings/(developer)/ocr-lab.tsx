@@ -204,7 +204,7 @@ export default function OcrLabScreen() {
 
             <View style={styles.statsCard}>
               {stats.map((stat, i) => {
-                const aLeads = stat.home >= stat.away;
+                const aLeads = stat.home === stat.away ? null : stat.home > stat.away;
                 const isLast = i === stats.length - 1;
                 const stripeColor = getStripeColor(stat.confidence);
                 return (

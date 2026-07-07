@@ -7,7 +7,8 @@ interface StatsRowProps {
   label: string;
   aValue: number;
   bValue: number;
-  aWins: boolean;
+  /** true = A leads, false = B leads, null = tie (both shown neutral) */
+  aWins: boolean | null;
   /** Param wasn't recognized/set — shown as a muted placeholder value, no winner bars. */
   isNA?: boolean;
   /** AI wasn't fully confident about this value — shown as a small dot next to the label. */
@@ -21,8 +22,8 @@ export function StatsRow({ label, aValue, bValue, aWins, isNA, lowConfidence }: 
   const aRatio = isNA ? 0.5 : total > 0 ? aValue / total : 0.5;
   const bRatio = isNA ? 0.5 : total > 0 ? bValue / total : 0.5;
 
-  const aBarColor = isNA ? colors.text.ghost : aWins ? colors.accent.green : colors.text.ghost;
-  const bBarColor = isNA ? colors.text.ghost : !aWins ? colors.accent.green : colors.text.ghost;
+  const aBarColor = !isNA && aWins === true ? colors.accent.green : colors.text.ghost;
+  const bBarColor = !isNA && aWins === false ? colors.accent.green : colors.text.ghost;
 
   return (
     <View style={styles.row}>
@@ -30,7 +31,9 @@ export function StatsRow({ label, aValue, bValue, aWins, isNA, lowConfidence }: 
       <Text
         style={[
           styles.value,
-          isNA ? styles.valueNA : { color: aWins ? colors.text.primary : colors.text.muted },
+          isNA
+            ? styles.valueNA
+            : { color: aWins === true ? colors.text.primary : colors.text.muted },
         ]}
       >
         {aValue}
@@ -77,7 +80,9 @@ export function StatsRow({ label, aValue, bValue, aWins, isNA, lowConfidence }: 
       <Text
         style={[
           styles.value,
-          isNA ? styles.valueNA : { color: !aWins ? colors.text.primary : colors.text.muted },
+          isNA
+            ? styles.valueNA
+            : { color: aWins === false ? colors.text.primary : colors.text.muted },
         ]}
       >
         {bValue}
