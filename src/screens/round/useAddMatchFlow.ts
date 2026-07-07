@@ -3,10 +3,12 @@ import { useTranslation } from 'react-i18next';
 import * as ImagePicker from 'expo-image-picker';
 import { Player, Match, MediaItem } from '@/store/types';
 import { uploadMediaItems, buildMatchFolder } from '@/supabase/storage';
-import { extractStatsFromPhoto, ExtractedStat } from '@/utils/extractStats';
+import { extractStatsFromPhoto } from '@/utils/extractStats';
 import { resizeImage, OCR_PAYLOAD_MAX_DIMENSION, STAT_PHOTO_STORAGE_MAX_DIMENSION } from '@/utils/imageResize';
+import { mergeStatArrays, toPendingStatsRecord } from '@/utils/ocrPhotoMerge';
 import {
   AddMatchState,
+  OcrPhotoEntry,
   initAddMatch,
   isAddMatchDirty,
 } from '@/utils/addMatchState';
@@ -103,60 +105,45 @@ export function useAddMatchFlow({
     }
   }, [addMatch, isSavingMatch, players, addMatchToStore, closeModal, reset, t, tournamentId, roundFolder]);
 
+  // Only (re)scans photos that don't have stats yet — already-succeeded photos
+  // are never re-sent to the AI provider (#71 twin bug). A photo that fails
+  // mid-batch does not discard sibling photos that succeeded earlier in the
+  // same call: `updated` accumulates in place, and both the success path and
+  // the catch below derive `pendingStats` from whatever's in it at that point.
   const runOcr = useCallback(
-    async (assets: Array<{ base64: string; mimeType: string }>, isRetry = false) => {
+    async (photos: OcrPhotoEntry[]) => {
       ocrCancelledRef.current = false;
-      setAddMatch((prev) => ({
-        ...prev,
-        ocrScanning: true,
-        ocrStatus: 'scanning',
-        ...(isRetry ? {} : { ocrAssets: assets }),
-      }));
-      try {
-        const rank = (c: ExtractedStat['confidence']) => (c === 'high' ? 3 : c === 'medium' ? 2 : 1);
-        const map = new Map<string, { a: number; b: number; __conf: ExtractedStat['confidence'] }>();
+      setAddMatch((prev) => ({ ...prev, ocrScanning: true, ocrStatus: 'scanning', ocrPhotos: photos }));
 
-        for (const asset of assets) {
-          const stats = await extractStatsFromPhoto(asset.base64, asset.mimeType);
-          if (ocrCancelledRef.current) return;
-          for (const s of stats) {
-            const existing = map.get(s.key);
-            if (!existing || rank(s.confidence) > rank(existing.__conf)) {
-              map.set(s.key, { a: s.home, b: s.away, __conf: s.confidence });
-            }
-          }
-        }
+      const updated = [...photos];
+      const toScan = photos
+        .map((p, i) => ({ p, i }))
+        .filter(({ p }) => p.asset !== null && p.stats === null);
 
-        if (ocrCancelledRef.current) return;
-        const pendingStats: Record<string, { a: number; b: number }> = {};
-        map.forEach((v, k) => { pendingStats[k] = { a: v.a, b: v.b }; });
-
+      const commit = (ocrStatus: 'done' | 'error') => {
+        const merged = mergeStatArrays(updated.map((p) => p.stats ?? []));
         setAddMatch((prev) => ({
           ...prev,
           ocrScanning: false,
-          ocrStatus: 'done',
-          pendingStats: Object.keys(pendingStats).length > 0 ? pendingStats : null,
+          ocrStatus,
+          ocrPhotos: updated,
+          pendingStats: toPendingStatsRecord(merged),
         }));
+      };
+
+      try {
+        for (const { p, i } of toScan) {
+          const stats = await extractStatsFromPhoto(p.asset!.base64, p.asset!.mimeType);
+          if (ocrCancelledRef.current) return;
+          updated[i] = { ...p, stats };
+        }
+        commit('done');
       } catch {
         if (ocrCancelledRef.current) return;
-        if (isRetry) {
-          // Second failure — skip stats, unblock Next
-          setAddMatch((prev) => ({
-            ...prev,
-            ocrScanning: false,
-            ocrStatus: 'skipped',
-            pendingStats: null,
-          }));
-        } else {
-          setAddMatch((prev) => ({
-            ...prev,
-            ocrScanning: false,
-            ocrStatus: 'error',
-            // Clear stale pendingStats — the combined run failed, old partial results
-            // are no longer trustworthy and must not silently survive to save time.
-            pendingStats: null,
-          }));
-        }
+        // A sibling photo's failure must not wipe already-good stats from
+        // photos that succeeded — unlike the old flat-scan model, we know
+        // exactly which photo failed and leave everything else intact.
+        commit('error');
       }
     },
     [],
@@ -203,49 +190,85 @@ export function useAddMatchFlow({
       type: asset.type === 'video' ? 'video' : 'image',
     }));
 
-    const newImageAssets = resizedAssets
-      .filter(({ asset, ocrBase64 }) => asset.type !== 'video' && ocrBase64)
-      .map(({ asset, ocrBase64 }) => ({ base64: ocrBase64!, mimeType: asset.mimeType ?? 'image/jpeg' }));
+    // Every image gets a slot, even with no usable base64 (asset: null) — this
+    // keeps ocrPhotos indices aligned with media's image-type entries so a
+    // later removal targets the right photo (see handleRemoveMedia).
+    const newOcrPhotos: OcrPhotoEntry[] = resizedAssets
+      .filter(({ asset }) => asset.type !== 'video')
+      .map(({ asset, ocrBase64 }) => ({
+        asset: ocrBase64 ? { base64: ocrBase64, mimeType: asset.mimeType ?? 'image/jpeg' } : null,
+        stats: null,
+      }));
+
+    const hasScannableNewPhotos = newOcrPhotos.some((p) => p.asset !== null);
 
     // If user already explicitly skipped stats, don't re-enter the OCR flow on
     // subsequent picks — they've made their decision; don't re-block Next on failure.
     const userSkippedOcr = addMatch.ocrStatus === 'skipped';
 
-    // Combine with previously scanned assets so second pick doesn't lose first OCR data
-    const allImageAssets = [...addMatch.ocrAssets, ...newImageAssets];
+    const allOcrPhotos = [...addMatch.ocrPhotos, ...newOcrPhotos];
 
     setAddMatch((prev) => ({
       ...prev,
       media: [...prev.media, ...newItems],
-      ocrStatus: (newImageAssets.length > 0 && !userSkippedOcr) ? 'scanning' : prev.ocrStatus,
+      ocrPhotos: allOcrPhotos,
+      ocrStatus: (hasScannableNewPhotos && !userSkippedOcr) ? 'scanning' : prev.ocrStatus,
     }));
 
-    if (newImageAssets.length > 0 && !userSkippedOcr) {
-      runOcr(allImageAssets);
+    if (hasScannableNewPhotos && !userSkippedOcr) {
+      runOcr(allOcrPhotos);
     }
-  }, [addMatch.ocrAssets, addMatch.ocrStatus, addMatch.media.length, runOcr]);
+  }, [addMatch.ocrPhotos, addMatch.ocrStatus, addMatch.media.length, runOcr]);
 
+  // Only the photo(s) still missing stats get rescanned — already-succeeded
+  // photos in ocrPhotos are skipped by runOcr, making this a free granular retry.
   const handleRetryOcr = useCallback(() => {
-    if (addMatch.ocrAssets.length > 0) {
-      runOcr(addMatch.ocrAssets, true);
+    if (addMatch.ocrPhotos.length > 0) {
+      runOcr(addMatch.ocrPhotos);
     }
-  }, [addMatch.ocrAssets, runOcr]);
+  }, [addMatch.ocrPhotos, runOcr]);
 
   const handleRemoveMedia = useCallback((idx: number) => {
     setAddMatch((prev) => {
       if (prev.ocrStatus === 'scanning') return prev;
       const removedIsImage = prev.media[idx]?.type === 'image';
-      const ocrWasRun = prev.ocrStatus !== 'idle';
-      return {
-        ...prev,
-        media: prev.media.filter((_, i) => i !== idx),
-        // Only invalidate OCR data when an image is removed — videos don't affect stats
-        ...(ocrWasRun && removedIsImage ? {
+      const nextMedia = prev.media.filter((_, i) => i !== idx);
+
+      if (!removedIsImage || prev.ocrStatus === 'idle') {
+        return { ...prev, media: nextMedia };
+      }
+
+      // media and ocrPhotos are appended to together in the same relative
+      // order — the k-th image-type entry in media always corresponds to
+      // ocrPhotos[k], regardless of interleaved videos.
+      const imagePos = prev.media.slice(0, idx).filter((m) => m.type === 'image').length;
+      const nextOcrPhotos = prev.ocrPhotos.filter((_, i) => i !== imagePos);
+
+      if (nextOcrPhotos.length === 0) {
+        return {
+          ...prev,
+          media: nextMedia,
+          ocrPhotos: [],
           pendingStats: null,
           ocrStatus: 'idle' as const,
-          ocrAssets: [],
           ocrScanning: false,
-        } : {}),
+        };
+      }
+
+      if (prev.ocrStatus === 'skipped') {
+        // User explicitly opted out — don't silently repopulate pendingStats.
+        return { ...prev, media: nextMedia, ocrPhotos: nextOcrPhotos };
+      }
+
+      const merged = mergeStatArrays(nextOcrPhotos.map((p) => p.stats ?? []));
+      const stillHasUnscanned = nextOcrPhotos.some((p) => p.asset !== null && p.stats === null);
+      return {
+        ...prev,
+        media: nextMedia,
+        ocrPhotos: nextOcrPhotos,
+        pendingStats: toPendingStatsRecord(merged),
+        // Self-heals 'error' -> 'done' once the specific failing photo is gone.
+        ocrStatus: stillHasUnscanned ? prev.ocrStatus : 'done',
       };
     });
   }, []);

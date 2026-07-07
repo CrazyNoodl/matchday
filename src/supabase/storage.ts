@@ -59,7 +59,8 @@ export async function uploadTeamLogo(localUri: string): Promise<string | null> {
 
 // ---------------------------------------------------------------------------
 // Upload multiple items, return MediaItem[] with remote URLs
-// Items that fail upload are kept with their local URI as fallback
+// Items that fail upload are marked pendingUpload so the caller can retry
+// later (same pattern as useMatchDetail.ts's handleAddMedia/handleRetryUpload)
 // ---------------------------------------------------------------------------
 
 export async function uploadMediaItems(
@@ -70,7 +71,7 @@ export async function uploadMediaItems(
     items.map(async (item) => {
       if (isRemoteUrl(item.uri)) return item; // already uploaded
       const remoteUrl = await uploadMediaItem(item.uri, item.type, context);
-      return { ...item, uri: remoteUrl ?? item.uri };
+      return remoteUrl ? { uri: remoteUrl, type: item.type } : { ...item, pendingUpload: true };
     }),
   );
 }

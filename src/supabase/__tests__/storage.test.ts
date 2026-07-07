@@ -18,6 +18,7 @@ jest.mock('@/supabase/auth', () => ({
 
 import {
   uploadMediaItem,
+  uploadMediaItems,
   uploadTeamLogo,
   deleteMediaItem,
   deleteStorageFolder,
@@ -142,6 +143,76 @@ describe('uploadMediaItem', () => {
     expect(uploadUrl).toContain(
       '/user-123/tour-1/matchday-2026-07-03_1430/match_2-1_2026-07-03_1432/',
     );
+  });
+});
+
+// ── uploadMediaItems (#68) ───────────────────────────────────────────────────
+
+describe('uploadMediaItems', () => {
+  it('passes an already-remote item through unchanged, without attempting an upload', async () => {
+    const result = await uploadMediaItems([{ uri: 'https://cdn.example.com/existing.jpg', type: 'image' }]);
+
+    expect(result).toEqual([{ uri: 'https://cdn.example.com/existing.jpg', type: 'image' }]);
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
+
+  it('returns a clean item with the remote uri on success, no pendingUpload', async () => {
+    mockFetch
+      .mockResolvedValueOnce(makeLocalFetchResponse())
+      .mockResolvedValueOnce(makeUploadFetchResponse(true));
+
+    const result = await uploadMediaItems([{ uri: 'file://photo.jpg', type: 'image' }]);
+
+    expect(result).toEqual([{ uri: 'https://cdn.example.com/file.jpg', type: 'image' }]);
+  });
+
+  it('marks a failed upload pendingUpload:true and keeps the local uri', async () => {
+    mockFetch
+      .mockResolvedValueOnce(makeLocalFetchResponse())
+      .mockResolvedValueOnce(makeUploadFetchResponse(false));
+
+    const result = await uploadMediaItems([{ uri: 'file://photo.jpg', type: 'image' }]);
+
+    expect(result).toEqual([{ uri: 'file://photo.jpg', type: 'image', pendingUpload: true }]);
+  });
+
+  it('resolves a mixed batch independently — one success, one failure', async () => {
+    // Both items upload concurrently (Promise.all), so fetch call order between
+    // them isn't guaranteed — dispatch by argument identity instead of by queue
+    // position. Local reads are matched by their uri; each item's own upload
+    // POST is matched by its arrayBuffer body, which always traces back to that
+    // same item's own local read.
+    const okBuffer = new ArrayBuffer(8);
+    const badBuffer = new ArrayBuffer(16);
+    mockFetch.mockImplementation((url: string, opts?: any) => {
+      if (!opts) {
+        return Promise.resolve(makeLocalFetchResponse(url.includes('ok.jpg') ? okBuffer : badBuffer));
+      }
+      return Promise.resolve(makeUploadFetchResponse(opts.body === okBuffer));
+    });
+
+    const result = await uploadMediaItems([
+      { uri: 'file://ok.jpg', type: 'image' },
+      { uri: 'file://bad.jpg', type: 'image' },
+    ]);
+
+    // Promise.all/map preserve input order in the result regardless of completion timing
+    expect(result).toEqual([
+      { uri: 'https://cdn.example.com/file.jpg', type: 'image' },
+      { uri: 'file://bad.jpg', type: 'image', pendingUpload: true },
+    ]);
+  });
+
+  it('clears a stale pendingUpload flag when a retried item succeeds', async () => {
+    mockFetch
+      .mockResolvedValueOnce(makeLocalFetchResponse())
+      .mockResolvedValueOnce(makeUploadFetchResponse(true));
+
+    const result = await uploadMediaItems([
+      { uri: 'file://photo.jpg', type: 'image', pendingUpload: true },
+    ]);
+
+    expect(result).toEqual([{ uri: 'https://cdn.example.com/file.jpg', type: 'image' }]);
   });
 });
 

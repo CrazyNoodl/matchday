@@ -68,7 +68,7 @@ beforeEach(() => {
 });
 
 // ---------------------------------------------------------------------------
-// Bug 1 — handleRemoveMedia must clear pendingStats / ocrAssets after OCR ran
+// Bug 1 — handleRemoveMedia must clear pendingStats / ocrPhotos after OCR ran
 // ---------------------------------------------------------------------------
 
 describe('handleRemoveMedia — ghost stats fix', () => {
@@ -82,7 +82,7 @@ describe('handleRemoveMedia — ghost stats fix', () => {
         ocrScanning: false,
         pendingStats: { shots: { a: 5, b: 3 } },
         media: [{ uri: 'file://photo.jpg', type: 'image' }],
-        ocrAssets: [{ base64: 'abc123', mimeType: 'image/jpeg' }],
+        ocrPhotos: [{ asset: { base64: 'abc123', mimeType: 'image/jpeg' }, stats: [] }],
       });
     });
 
@@ -94,7 +94,7 @@ describe('handleRemoveMedia — ghost stats fix', () => {
     expect(s.media).toHaveLength(0);
     expect(s.pendingStats).toBeNull();
     expect(s.ocrStatus).toBe('idle');
-    expect(s.ocrAssets).toHaveLength(0);
+    expect(s.ocrPhotos).toHaveLength(0);
     expect(s.ocrScanning).toBe(false);
   });
 
@@ -111,7 +111,7 @@ describe('handleRemoveMedia — ghost stats fix', () => {
           { uri: 'file://a.jpg', type: 'image' },
           { uri: 'file://b.jpg', type: 'image' },
         ],
-        ocrAssets: [{ base64: 'x', mimeType: 'image/jpeg' }],
+        ocrPhotos: [{ asset: { base64: 'x', mimeType: 'image/jpeg' }, stats: null }],
       });
     });
 
@@ -120,7 +120,7 @@ describe('handleRemoveMedia — ghost stats fix', () => {
     });
 
     expect(result.current.addMatch.ocrStatus).toBe('idle');
-    expect(result.current.addMatch.ocrAssets).toHaveLength(0);
+    expect(result.current.addMatch.ocrPhotos).toHaveLength(0);
   });
 
   it('leaves ocrStatus unchanged when removing media before any OCR', async () => {
@@ -232,7 +232,8 @@ describe('handleSaveMatch — upload error handling', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Bug 3 — handlePickMedia must combine ocrAssets across multiple picks
+// Bug 3 — handlePickMedia must combine ocrPhotos across multiple picks,
+//          and (#71) must not re-scan photos already scanned in a prior pick
 // ---------------------------------------------------------------------------
 
 describe('handlePickMedia — video upload disabled (#59)', () => {
@@ -249,7 +250,7 @@ describe('handlePickMedia — video upload disabled (#59)', () => {
 });
 
 describe('handlePickMedia — multi-batch OCR asset accumulation', () => {
-  it('runs OCR on combined old + new assets when called a second time', async () => {
+  it('does not re-scan an already-scanned photo when a new one is added (#71)', async () => {
     mockExtractStats.mockResolvedValue([]);
     mockPicker.mockResolvedValueOnce({
       canceled: false,
@@ -263,12 +264,15 @@ describe('handlePickMedia — multi-batch OCR asset accumulation', () => {
 
     const { result } = await makeHook();
 
-    // Simulate state after a previous OCR run
+    // Simulate state after a previous OCR run — old photo already has stats
     await act(async () => {
       result.current.setAddMatch({
         ...initAddMatch(),
         ocrStatus: 'done',
-        ocrAssets: [{ base64: 'oldBase64', mimeType: 'image/jpeg' }],
+        ocrPhotos: [{
+          asset: { base64: 'oldBase64', mimeType: 'image/jpeg' },
+          stats: [{ key: 'shots', label: 'Shots', home: 3, away: 2, confidence: 'high' }],
+        }],
         media: [{ uri: 'file://old.jpg', type: 'image' }],
         pendingStats: { shots: { a: 3, b: 2 } },
       });
@@ -279,15 +283,18 @@ describe('handlePickMedia — multi-batch OCR asset accumulation', () => {
     });
 
     await waitFor(() => {
-      expect(mockExtractStats).toHaveBeenCalledTimes(2);
+      expect(result.current.addMatch.ocrStatus).toBe('done');
     });
 
-    const calledWith = mockExtractStats.mock.calls.map((c: [string]) => c[0]);
-    expect(calledWith).toContain('oldBase64');
-    expect(calledWith).toContain('newBase64');
+    // Only the new photo is sent to the AI provider — the already-scanned one isn't
+    expect(mockExtractStats).toHaveBeenCalledTimes(1);
+    expect(mockExtractStats).toHaveBeenCalledWith('newBase64', 'image/jpeg');
+
+    // Old photo's stats survive, merged with whatever the new photo produced
+    expect(result.current.addMatch.pendingStats).toEqual({ shots: { a: 3, b: 2 } });
   });
 
-  it('calls OCR only once on the first pick when ocrAssets is empty', async () => {
+  it('calls OCR only once on the first pick when ocrPhotos is empty', async () => {
     mockExtractStats.mockResolvedValue([]);
     mockPicker.mockResolvedValueOnce({
       canceled: false,
@@ -394,7 +401,7 @@ describe('handleRetryOcr — no side effect inside setState', () => {
         ...initAddMatch(),
         ocrStatus: 'error',
         ocrScanning: false,
-        ocrAssets: [{ base64: 'img1', mimeType: 'image/jpeg' }],
+        ocrPhotos: [{ asset: { base64: 'img1', mimeType: 'image/jpeg' }, stats: null }],
       });
     });
 
@@ -411,14 +418,14 @@ describe('handleRetryOcr — no side effect inside setState', () => {
     expect(mockExtractStats).toHaveBeenCalledWith('img1', 'image/jpeg');
   });
 
-  it('does nothing when ocrAssets is empty', async () => {
+  it('does nothing when ocrPhotos is empty', async () => {
     const { result } = await makeHook();
 
     await act(async () => {
       result.current.setAddMatch({
         ...initAddMatch(),
         ocrStatus: 'error',
-        ocrAssets: [],
+        ocrPhotos: [],
       });
     });
 
@@ -556,7 +563,10 @@ describe('handleRemoveMedia — video removal preserves OCR state', () => {
         ocrStatus: 'done',
         ocrScanning: false,
         pendingStats: { shots: { a: 5, b: 3 } },
-        ocrAssets: [{ base64: 'img1', mimeType: 'image/jpeg' }],
+        ocrPhotos: [{
+          asset: { base64: 'img1', mimeType: 'image/jpeg' },
+          stats: [{ key: 'shots', label: 'Shots', home: 5, away: 3, confidence: 'high' }],
+        }],
         media: [
           { uri: 'file://img1.jpg', type: 'image' },
           { uri: 'file://clip.mp4', type: 'video' },
@@ -573,7 +583,7 @@ describe('handleRemoveMedia — video removal preserves OCR state', () => {
     // OCR data must be untouched
     expect(s.ocrStatus).toBe('done');
     expect(s.pendingStats).toEqual({ shots: { a: 5, b: 3 } });
-    expect(s.ocrAssets).toHaveLength(1);
+    expect(s.ocrPhotos).toHaveLength(1);
   });
 
   it('still resets OCR state when an image is removed', async () => {
@@ -584,7 +594,10 @@ describe('handleRemoveMedia — video removal preserves OCR state', () => {
         ...initAddMatch(),
         ocrStatus: 'done',
         pendingStats: { shots: { a: 5, b: 3 } },
-        ocrAssets: [{ base64: 'img1', mimeType: 'image/jpeg' }],
+        ocrPhotos: [{
+          asset: { base64: 'img1', mimeType: 'image/jpeg' },
+          stats: [{ key: 'shots', label: 'Shots', home: 5, away: 3, confidence: 'high' }],
+        }],
         media: [
           { uri: 'file://img1.jpg', type: 'image' },
           { uri: 'file://clip.mp4', type: 'video' },
@@ -592,13 +605,13 @@ describe('handleRemoveMedia — video removal preserves OCR state', () => {
       });
     });
 
-    // Remove the image (index 0)
+    // Remove the image (index 0) — no images left, so this is the full-reset case
     await act(async () => { result.current.handleRemoveMedia(0); });
 
     const s = result.current.addMatch;
     expect(s.ocrStatus).toBe('idle');
     expect(s.pendingStats).toBeNull();
-    expect(s.ocrAssets).toHaveLength(0);
+    expect(s.ocrPhotos).toHaveLength(0);
   });
 
   it('preserves OCR state on video removal when ocrStatus is skipped', async () => {
@@ -608,7 +621,7 @@ describe('handleRemoveMedia — video removal preserves OCR state', () => {
       result.current.setAddMatch({
         ...initAddMatch(),
         ocrStatus: 'skipped',
-        ocrAssets: [{ base64: 'img1', mimeType: 'image/jpeg' }],
+        ocrPhotos: [{ asset: { base64: 'img1', mimeType: 'image/jpeg' }, stats: null }],
         media: [
           { uri: 'file://img1.jpg', type: 'image' },
           { uri: 'file://clip.mp4', type: 'video' },
@@ -619,17 +632,117 @@ describe('handleRemoveMedia — video removal preserves OCR state', () => {
     await act(async () => { result.current.handleRemoveMedia(1); });
 
     expect(result.current.addMatch.ocrStatus).toBe('skipped');
-    expect(result.current.addMatch.ocrAssets).toHaveLength(1);
+    expect(result.current.addMatch.ocrPhotos).toHaveLength(1);
   });
 });
 
 // ---------------------------------------------------------------------------
-// Bug 12 — pendingStats from a previous successful OCR run must NOT survive
-//           into the error state and get silently saved when user clicks Skip
+// #71 — handleRemoveMedia must re-derive pendingStats per-photo, not wipe
+//        everything, and self-heal an error state when the bad photo is gone
 // ---------------------------------------------------------------------------
 
-describe('runOcr — pendingStats is cleared on non-retry failure', () => {
-  it('clears pendingStats when OCR fails after a previous successful run', async () => {
+describe('handleRemoveMedia — per-photo incremental removal (#71)', () => {
+  it('re-derives pendingStats from the surviving photo when a non-last image is removed', async () => {
+    const { result } = await makeHook();
+
+    await act(async () => {
+      result.current.setAddMatch({
+        ...initAddMatch(),
+        ocrStatus: 'done',
+        pendingStats: { shots: { a: 5, b: 3 }, possession: { a: 60, b: 40 } },
+        media: [
+          { uri: 'file://img1.jpg', type: 'image' },
+          { uri: 'file://img2.jpg', type: 'image' },
+        ],
+        ocrPhotos: [
+          { asset: { base64: 'img1', mimeType: 'image/jpeg' }, stats: [{ key: 'shots', label: 'Shots', home: 5, away: 3, confidence: 'high' }] },
+          { asset: { base64: 'img2', mimeType: 'image/jpeg' }, stats: [{ key: 'possession', label: 'Possession', home: 60, away: 40, confidence: 'medium' }] },
+        ],
+      });
+    });
+
+    // Remove the first image — the second's stats must survive, no rescan
+    await act(async () => { result.current.handleRemoveMedia(0); });
+
+    const s = result.current.addMatch;
+    expect(s.media).toHaveLength(1);
+    expect(s.ocrPhotos).toHaveLength(1);
+    expect(s.pendingStats).toEqual({ possession: { a: 60, b: 40 } });
+    expect(s.ocrStatus).toBe('done');
+    expect(mockExtractStats).not.toHaveBeenCalled();
+  });
+
+  it('self-heals ocrStatus from error to done when the specific failing photo is removed', async () => {
+    const { result } = await makeHook();
+
+    await act(async () => {
+      result.current.setAddMatch({
+        ...initAddMatch(),
+        ocrStatus: 'error',
+        pendingStats: { shots: { a: 5, b: 3 } },
+        media: [
+          { uri: 'file://good.jpg', type: 'image' },
+          { uri: 'file://bad.jpg', type: 'image' },
+        ],
+        ocrPhotos: [
+          { asset: { base64: 'good', mimeType: 'image/jpeg' }, stats: [{ key: 'shots', label: 'Shots', home: 5, away: 3, confidence: 'high' }] },
+          { asset: { base64: 'bad', mimeType: 'image/jpeg' }, stats: null },
+        ],
+      });
+    });
+
+    // Remove the failing photo (index 1)
+    await act(async () => { result.current.handleRemoveMedia(1); });
+
+    const s = result.current.addMatch;
+    expect(s.ocrStatus).toBe('done');
+    expect(s.pendingStats).toEqual({ shots: { a: 5, b: 3 } });
+    expect(s.ocrPhotos).toHaveLength(1);
+  });
+
+  it('keeps ocrPhotos aligned with media when an image has no usable base64', async () => {
+    mockExtractStats.mockResolvedValue([]);
+    mockPicker
+      .mockResolvedValueOnce({
+        canceled: false,
+        assets: [{ uri: 'file://noBase.jpg', type: 'image', base64: undefined, mimeType: 'image/jpeg' }],
+      })
+      .mockResolvedValueOnce({
+        canceled: false,
+        assets: [{ uri: 'file://scannable.jpg', type: 'image', base64: 'scanBase', mimeType: 'image/jpeg' }],
+      });
+
+    const { result } = await makeHook();
+
+    // First pick — image with no usable base64 still gets a slot
+    await act(async () => { await result.current.handlePickMedia(); });
+    expect(result.current.addMatch.ocrPhotos).toEqual([{ asset: null, stats: null }]);
+
+    // Second pick — a normal scannable image
+    await act(async () => { await result.current.handlePickMedia(); });
+    await waitFor(() => expect(result.current.addMatch.ocrStatus).toBe('done'));
+
+    expect(result.current.addMatch.ocrPhotos).toHaveLength(2);
+    expect(result.current.addMatch.ocrPhotos[0]).toEqual({ asset: null, stats: null });
+    expect(result.current.addMatch.ocrPhotos[1].asset).toEqual({ base64: 'scanBase', mimeType: 'image/jpeg' });
+
+    // Remove the first (no-base64) image — the second's slot must be the one that remains
+    await act(async () => { result.current.handleRemoveMedia(0); });
+    expect(result.current.addMatch.media).toHaveLength(1);
+    expect(result.current.addMatch.ocrPhotos).toHaveLength(1);
+    expect(result.current.addMatch.ocrPhotos[0].asset).toEqual({ base64: 'scanBase', mimeType: 'image/jpeg' });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// #68/#71 twin bug — a sibling photo's already-good stats must survive a
+// later photo's OCR failure, since the per-photo model knows exactly which
+// photo failed instead of nuking the whole combined result (former Bug 12
+// behavior, now deliberately reversed)
+// ---------------------------------------------------------------------------
+
+describe('runOcr — per-photo failure isolation', () => {
+  it('preserves a sibling photo\'s pendingStats when a later photo\'s OCR fails', async () => {
     // First pick succeeds and sets pendingStats
     mockExtractStats.mockResolvedValueOnce([
       { key: 'shots', home: 5, away: 3, confidence: 'high' },
@@ -644,9 +757,10 @@ describe('runOcr — pendingStats is cleared on non-retry failure', () => {
     // First pick — OCR succeeds
     await act(async () => { await result.current.handlePickMedia(); });
     await waitFor(() => expect(result.current.addMatch.ocrStatus).toBe('done'));
+    expect(mockExtractStats).toHaveBeenCalledTimes(1);
     expect(result.current.addMatch.pendingStats).toEqual({ shots: { a: 5, b: 3 } });
 
-    // Second pick — combined OCR fails
+    // Second pick — the new photo's OCR fails
     mockExtractStats.mockRejectedValueOnce(new Error('ocr fail'));
     mockPicker.mockResolvedValueOnce({
       canceled: false,
@@ -656,11 +770,14 @@ describe('runOcr — pendingStats is cleared on non-retry failure', () => {
     await act(async () => { await result.current.handlePickMedia(); });
     await waitFor(() => expect(result.current.addMatch.ocrStatus).toBe('error'));
 
-    // pendingStats must be cleared — stale stats from old run must not survive
-    expect(result.current.addMatch.pendingStats).toBeNull();
+    // Exactly one more call, for the new photo only — photo1 is never rescanned
+    expect(mockExtractStats).toHaveBeenCalledTimes(2);
+    expect(mockExtractStats).toHaveBeenLastCalledWith('base2', 'image/jpeg');
+    // photo1's already-good stats must survive photo2's failure
+    expect(result.current.addMatch.pendingStats).toEqual({ shots: { a: 5, b: 3 } });
   });
 
-  it('does not save ghost stats when user skips after a prior successful OCR run followed by failure', async () => {
+  it('saves a sibling photo\'s already-good stats when the user skips past a failing photo', async () => {
     mockExtractStats.mockResolvedValueOnce([
       { key: 'possession', home: 60, away: 40, confidence: 'medium' },
     ]);
@@ -685,22 +802,24 @@ describe('runOcr — pendingStats is cleared on non-retry failure', () => {
     await act(async () => { await result.current.handlePickMedia(); });
     await waitFor(() => expect(result.current.addMatch.ocrStatus).toBe('done'));
 
-    // Second pick — OCR fails → error state, pendingStats cleared
+    // Second pick — OCR fails → error state, but photo1's stats survive
     mockExtractStats.mockRejectedValueOnce(new Error('ocr fail'));
     await act(async () => { await result.current.handlePickMedia(); });
     await waitFor(() => expect(result.current.addMatch.ocrStatus).toBe('error'));
+    expect(result.current.addMatch.pendingStats).toEqual({ possession: { a: 60, b: 40 } });
 
-    // User skips stats
+    // User skips the still-failing photo (same trigger as AddMatchSheet.tsx's Skip
+    // button, which no longer nulls pendingStats)
     await act(async () => {
-      result.current.setAddMatch((p) => ({ ...p, ocrStatus: 'skipped', pendingStats: null }));
+      result.current.setAddMatch((p) => ({ ...p, ocrStatus: 'skipped' }));
     });
 
     // Save match
     await act(async () => { await result.current.handleSaveMatch(); });
 
     const saved: Match = addMatchToStore.mock.calls[0][0];
-    // statsOverride must be undefined — user skipped, no ghost stats from old run
-    expect(saved.statsOverride).toBeUndefined();
+    // photo1's legitimate stats are saved — skipping the failing photo must not discard them
+    expect(saved.statsOverride).toEqual({ possession: { a: 60, b: 40 } });
   });
 });
 
@@ -723,7 +842,7 @@ describe('handlePickMedia — skipped OCR is preserved when more images are adde
       result.current.setAddMatch({
         ...initAddMatch(),
         ocrStatus: 'skipped',
-        ocrAssets: [{ base64: 'oldFailed', mimeType: 'image/jpeg' }],
+        ocrPhotos: [{ asset: { base64: 'oldFailed', mimeType: 'image/jpeg' }, stats: null }],
         media: [{ uri: 'file://old.jpg', type: 'image' }],
       });
     });
