@@ -90,6 +90,7 @@ Supabase Storage (`match-media` bucket) layout for new uploads:
 | Playwright E2E tests (18 tests, 8 smoke) | `e2e/` — `npm run e2e`, `npm run e2e:smoke` |
 | Storybook: real dark/light theming, full component coverage | `.storybook/`, `src/components/*/*.stories.tsx` |
 | Shared confirm/alert dialog and sheet header/footer — `ConfirmDialog`, `SheetHeader`, `SheetFooter` replace ~10 hand-rolled confirm-dialog implementations and repeated Sheet header/footer markup app-wide | `src/components/ConfirmDialog/`, `src/components/Sheet/SheetHeader.tsx`, `src/components/Sheet/SheetFooter.tsx` |
+| Render-count optimization pass: full-store `useStore()` subscriptions converted to per-field selectors (`app/round.tsx`, `app/tournament.tsx`, all settings screens, `NewRoundModal`), `React.memo` on hot list rows (`Avatar`, `StandingCard`, `MatchCard`, `RoundCard`, `PlayerRankCard`, `FormChip`, `TeamBadge`, `StatusBadge`, `MediaThumbnail`), `useMemo` on `makeStyles`/derived standings/tour grouping, `MatchCard.onPress` contract changed to `(matchId: string) => void`. Measured: opening the Add Match sheet (a `modal`-only store write, unrelated to match data) no longer re-renders any `MatchCard` row — previously re-rendered every row in the round. `StandingCard` uses `useShallow` (`zustand/react/shallow`) on its `matches`-derived form-chips selector — the only place in the codebase using it | `app/round.tsx`, `app/tournament.tsx`, `src/components/StandingCard/`, `src/components/MatchCard/` |
 
 ---
 
