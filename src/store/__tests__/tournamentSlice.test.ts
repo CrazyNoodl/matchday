@@ -63,7 +63,12 @@ describe('startTournament', () => {
   });
 
   it('clears existing matches and archived rounds', () => {
-    useStore.setState({ matches: [makeMatch('m0')], archivedRounds: [{ id: 'r0', n: 1, date: '', winner: '', games: 1, ranked: true, matches: [], name: 'R1' }] });
+    useStore.setState({
+      matches: [makeMatch('m0')],
+      archivedRounds: [
+        { id: 'r0', n: 1, date: '', winner: '', games: 1, ranked: true, matches: [], name: 'R1' },
+      ],
+    });
     useStore.getState().startTournament('New Cup', [], true);
     const s = useStore.getState();
     expect(s.matches).toHaveLength(0);
@@ -288,7 +293,7 @@ describe('media storage folder lifecycle (#67)', () => {
     expect(useStore.getState().roundFolder).toBe('');
   });
 
-  it('deleteMatch removes only that match\'s folder', () => {
+  it("deleteMatch removes only that match's folder", () => {
     useStore.getState().startRound(true, ['p1', 'p2']);
     const roundFolder = useStore.getState().roundFolder;
     const tournamentId = useStore.getState().tournamentId;
@@ -333,7 +338,7 @@ describe('media storage folder lifecycle (#67)', () => {
     expect(mockDeleteFolder).toHaveBeenCalledWith(`${tournamentId}/m1`);
   });
 
-  it('deleteArchivedRound removes the round folder using the round\'s stored folder', () => {
+  it("deleteArchivedRound removes the round folder using the round's stored folder", () => {
     useStore.getState().startRound(true, ['p1', 'p2']);
     useStore.getState().addMatch({ ...makeMatch('m1'), mediaFolder: 'match_2-0_stamp' });
     useStore.getState().finishRound();
@@ -349,7 +354,9 @@ describe('media storage folder lifecycle (#67)', () => {
 
   it('deleteClosedTournament removes the whole tournament folder in one sweep', () => {
     useStore.getState().startRound(true, ['p1', 'p2']);
-    useStore.getState().addMatch({ ...makeMatch('m1', 'p1', 'p2', 3, 0), mediaFolder: 'match_3-0_stamp' });
+    useStore
+      .getState()
+      .addMatch({ ...makeMatch('m1', 'p1', 'p2', 3, 0), mediaFolder: 'match_3-0_stamp' });
     useStore.getState().finishRound();
     useStore.getState().closeTournament();
     const tourId = useStore.getState().closedTournaments[0].id;

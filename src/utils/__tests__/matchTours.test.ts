@@ -1,4 +1,4 @@
-import { Match } from '@/store/types';
+import { type Match } from '@/store/types';
 import { groupMatchesByTour, getCurrentTourMatches, getPlayedPartnerIds } from '../matchTours';
 
 function makeMatch(id: string, aId: string, bId: string): Match {
@@ -64,10 +64,7 @@ describe('getCurrentTourMatches', () => {
 
 describe('getPlayedPartnerIds', () => {
   it('returns opponents for a player who appears as aId or bId', () => {
-    const matches = [
-      makeMatch('m1', 'p1', 'p2'),
-      makeMatch('m2', 'p3', 'p1'),
-    ];
+    const matches = [makeMatch('m1', 'p1', 'p2'), makeMatch('m2', 'p3', 'p1')];
     expect(getPlayedPartnerIds(matches, 'p1')).toEqual(new Set(['p2', 'p3']));
   });
 

@@ -7,7 +7,7 @@ import { useStore } from '@/store';
 import { Colors, useColors } from '@/theme';
 import { useIsOnline } from '@/hooks/useIsOnline';
 import { NavHeader, TeamBadge, EmptyState, GlowBackground } from '@/components';
-import { Team } from '@/store/types';
+import { type Team } from '@/store/types';
 import { useTranslation } from 'react-i18next';
 import { uploadTeamLogo } from '@/supabase/storage';
 import { resizeImage, TEAM_LOGO_MAX_DIMENSION } from '@/utils/imageResize';
@@ -87,7 +87,9 @@ export default function TeamsScreen() {
     // Downscale before upload — see #62. Logos only ever render as a small badge.
     try {
       localUri = (await resizeImage(asset.uri, asset, TEAM_LOGO_MAX_DIMENSION)).uri;
-    } catch { /* fall back to the original file if resizing fails */ }
+    } catch {
+      /* fall back to the original file if resizing fails */
+    }
     const remoteUrl = await uploadTeamLogo(localUri);
     if (editSessionRef.current !== session) return; // user moved to a different team's form
     setLogoUploading(false);
@@ -117,19 +119,22 @@ export default function TeamsScreen() {
     setShowEdit(false);
   }, [formName, formShort, formColor, formLogo, editingTeam, addTeam, updateTeam]);
 
-  const handleDelete = useCallback((code: string) => {
-    const allMatches = [
-      ...matches,
-      ...archivedRounds.flatMap((r) => r.matches),
-      ...closedTournaments.flatMap((t) => t.rounds.flatMap((r) => r.matches)),
-    ];
-    if (allMatches.some((m) => m.aTeam === code || m.bTeam === code)) {
-      setShowCannotDelete(true);
-      return;
-    }
-    setPendingDeleteCode(code);
-    setShowDeleteConfirm(true);
-  }, [matches, archivedRounds, closedTournaments]);
+  const handleDelete = useCallback(
+    (code: string) => {
+      const allMatches = [
+        ...matches,
+        ...archivedRounds.flatMap((r) => r.matches),
+        ...closedTournaments.flatMap((t) => t.rounds.flatMap((r) => r.matches)),
+      ];
+      if (allMatches.some((m) => m.aTeam === code || m.bTeam === code)) {
+        setShowCannotDelete(true);
+        return;
+      }
+      setPendingDeleteCode(code);
+      setShowDeleteConfirm(true);
+    },
+    [matches, archivedRounds, closedTournaments],
+  );
 
   const confirmDelete = useCallback(() => {
     if (pendingDeleteCode) {
@@ -147,11 +152,7 @@ export default function TeamsScreen() {
         subtitle={t('settings.data.teamsCount', { count: teams.length })}
         onBack={() => goBack()}
         rightElement={
-          <TouchableOpacity
-            style={styles.addBtn}
-            onPress={openCreate}
-            activeOpacity={0.8}
-          >
+          <TouchableOpacity style={styles.addBtn} onPress={openCreate} activeOpacity={0.8}>
             <Text style={styles.addBtnText}>{'+ ' + t('common.add').toUpperCase()}</Text>
           </TouchableOpacity>
         }

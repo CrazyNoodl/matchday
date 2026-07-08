@@ -57,6 +57,5 @@ test.describe('Create tournament', () => {
     await expect(page).toHaveURL('/');
     await expect(page.getByText('LIVE TOURNAMENT').last()).toBeVisible();
     await expect(page.getByText('Test Cup', { exact: true }).last()).toBeVisible();
-
   });
 });

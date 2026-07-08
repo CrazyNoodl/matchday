@@ -18,7 +18,9 @@ export function mergeStatArrays(all: ExtractedStat[][]): ExtractedStat[] {
   return Array.from(map.values());
 }
 
-export function toPendingStatsRecord(stats: ExtractedStat[]): Record<string, { a: number; b: number }> | null {
+export function toPendingStatsRecord(
+  stats: ExtractedStat[],
+): Record<string, { a: number; b: number }> | null {
   if (stats.length === 0) return null;
   const record: Record<string, { a: number; b: number }> = {};
   for (const s of stats) record[s.key] = { a: s.home, b: s.away };

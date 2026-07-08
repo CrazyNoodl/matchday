@@ -2,7 +2,10 @@ import { act, renderHook } from '@testing-library/react-native';
 
 import { useIsOnline } from '../useIsOnline';
 
-type Listener = (state: { isConnected: boolean | null; isInternetReachable: boolean | null }) => void;
+type Listener = (state: {
+  isConnected: boolean | null;
+  isInternetReachable: boolean | null;
+}) => void;
 
 let mockListener: Listener | null = null;
 const mockUnsubscribe = jest.fn();
@@ -36,9 +39,9 @@ describe('useIsOnline', () => {
     const { pingSupabase } = jest.requireMock('@/supabase/health');
     let resolvePing: (value: boolean) => void = () => {};
     (pingSupabase as jest.Mock).mockReturnValueOnce(
-      new Promise<boolean>(resolve => {
+      new Promise<boolean>((resolve) => {
         resolvePing = resolve;
-      })
+      }),
     );
 
     const { result } = await renderHook(() => useIsOnline());

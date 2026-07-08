@@ -19,9 +19,10 @@ export async function uploadMediaItem(
   try {
     const ext = type === 'video' ? 'mp4' : 'jpg';
     const filename = `${context?.filenamePrefix ?? ''}${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-    const path = context?.tournamentId && context?.mediaFolder
-      ? `${userId}/${context.tournamentId}/${context.mediaFolder}/${filename}`
-      : `${userId}/${filename}`;
+    const path =
+      context?.tournamentId && context?.mediaFolder
+        ? `${userId}/${context.tournamentId}/${context.mediaFolder}/${filename}`
+        : `${userId}/${filename}`;
     const mimeType = type === 'video' ? 'video/mp4' : 'image/jpeg';
 
     const ok = await uploadViaFetch(localUri, path, mimeType);
@@ -176,11 +177,7 @@ function extractStoragePath(publicUrl: string): string | null {
 // Bypasses supabase-js storage client to avoid internal new Blob() calls
 // that Hermes (iOS 26+) does not support. Uses the Supabase REST API directly
 // with a native blob body — React Native's networking layer handles it natively.
-async function uploadViaFetch(
-  localUri: string,
-  path: string,
-  mimeType: string,
-): Promise<boolean> {
+async function uploadViaFetch(localUri: string, path: string, mimeType: string): Promise<boolean> {
   const { data: sessionData } = await supabase.auth.getSession();
   const token = sessionData.session?.access_token;
   if (!token) return false;
@@ -188,20 +185,17 @@ async function uploadViaFetch(
   const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL ?? '';
   const anonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? '';
 
-  const arrayBuffer = await fetch(localUri).then(r => r.arrayBuffer());
+  const arrayBuffer = await fetch(localUri).then((r) => r.arrayBuffer());
 
-  const response = await fetch(
-    `${supabaseUrl}/storage/v1/object/${BUCKET}/${path}`,
-    {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        apikey: anonKey,
-        'Content-Type': mimeType,
-      },
-      body: arrayBuffer,
+  const response = await fetch(`${supabaseUrl}/storage/v1/object/${BUCKET}/${path}`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      apikey: anonKey,
+      'Content-Type': mimeType,
     },
-  );
+    body: arrayBuffer,
+  });
 
   if (!response.ok) {
     const text = await response.text();

@@ -71,7 +71,11 @@ describe('pingSupabase', () => {
   });
 
   it('resolves true without making a request when Supabase is not configured', async () => {
-    process.env = { ...ORIGINAL_ENV, EXPO_PUBLIC_SUPABASE_URL: '', EXPO_PUBLIC_SUPABASE_ANON_KEY: '' };
+    process.env = {
+      ...ORIGINAL_ENV,
+      EXPO_PUBLIC_SUPABASE_URL: '',
+      EXPO_PUBLIC_SUPABASE_ANON_KEY: '',
+    };
     const fetchMock = jest.fn();
     mockFetch(fetchMock);
     const { pingSupabase } = require('../health');

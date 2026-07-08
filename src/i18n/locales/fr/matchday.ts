@@ -6,7 +6,7 @@ const matchday = {
   matchesSection: 'Matchs · {{count}}',
   tour: 'Tour {{n}}',
   addMatch: '+ Ajouter un match',
-  noMatches: 'Aucun match pour l\'instant. Appuyez sur + pour ajouter.',
+  noMatches: "Aucun match pour l'instant. Appuyez sur + pour ajouter.",
   noMatchesAction: 'Ajouter un match',
   step: 'Étape {{current}}/{{total}}',
   steps: {
@@ -23,10 +23,10 @@ const matchday = {
   homeWin: 'Victoire dom.',
   awayWin: 'Victoire ext.',
   draw: 'Match nul',
-  addMedia: 'Ajoutez jusqu\'à 7 photos ou vidéos',
+  addMedia: "Ajoutez jusqu'à 7 photos ou vidéos",
   addMediaBtn: 'Ajouter',
   commentaryHint: 'Ajouter un commentaire (optionnel)',
-  commentaryPlaceholder: 'Comment s\'est passé le match ?',
+  commentaryPlaceholder: "Comment s'est passé le match ?",
   saveMatch: 'Sauvegarder le match',
   saveMatchError: 'Échec de la sauvegarde du match. Veuillez réessayer.',
   discard: {
@@ -36,12 +36,14 @@ const matchday = {
   },
   dialogs: {
     finishTitle: 'Terminer le tour ?',
-    finishDesc: 'Couronnez le vainqueur de ce tour. Les résultats seront archivés et ne pourront pas être annulés.',
+    finishDesc:
+      'Couronnez le vainqueur de ce tour. Les résultats seront archivés et ne pourront pas être annulés.',
     leading: '{{name}} est en tête avec {{pts}} pts.',
     keepPlaying: 'Continuer à jouer',
     crownWinner: 'Couronner le vainqueur',
     evenGamesTitle: 'Égalisez le nombre de matchs',
-    evenGamesDesc: 'Chaque joueur doit avoir le même nombre de matchs avant de pouvoir terminer le tour.',
+    evenGamesDesc:
+      'Chaque joueur doit avoir le même nombre de matchs avant de pouvoir terminer le tour.',
     gotIt: 'Compris',
     deleteTitle: 'Supprimer le match ?',
     deleteDesc: 'Ce match sera définitivement supprimé du tour.',

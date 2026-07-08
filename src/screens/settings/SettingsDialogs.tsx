@@ -35,7 +35,10 @@ export function SettingsDialogs({ d }: SettingsDialogsProps) {
         variant="gold"
         title={t('demo.label').toUpperCase()}
         description={t('demo.replaceWarning')}
-        cancel={{ label: t('common.cancel').toUpperCase(), onPress: () => d.setShowDemoConfirm(false) }}
+        cancel={{
+          label: t('common.cancel').toUpperCase(),
+          onPress: () => d.setShowDemoConfirm(false),
+        }}
         confirm={{ label: t('demo.enable').toUpperCase(), onPress: d.confirmEnableDemo }}
       />
 

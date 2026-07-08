@@ -5,9 +5,7 @@ import { RoundCard } from './RoundCard';
 import { useStore } from '../../store';
 import { Colors } from '../../theme/colors';
 
-const MOCK_TEAMS = [
-  { code: 'MCI', name: 'Manchester City', short: 'MCI', color: Colors.team[0] },
-];
+const MOCK_TEAMS = [{ code: 'MCI', name: 'Manchester City', short: 'MCI', color: Colors.team[0] }];
 
 const MOCK_PLAYERS = [
   { id: 'p1', name: 'Artem Rudenko', nick: 'Atom', color: Colors.player[0], teamCode: 'MCI' },
@@ -79,8 +77,26 @@ export const Showcase: Story = {
   name: 'Showcase – Card vs Row',
   render: () => (
     <View style={{ gap: 12 }}>
-      <RoundCard variant="card" n={4} ranked dateText="23/06/26" matchCountText="8 matches" winnerId="p1" winnerName="Atom" onPress={() => {}} />
-      <RoundCard variant="row" n={3} ranked dateText="16/06/26" matchCountText="6 matches" winnerId="p1" winnerName="Atom" onPress={() => {}} />
+      <RoundCard
+        variant="card"
+        n={4}
+        ranked
+        dateText="23/06/26"
+        matchCountText="8 matches"
+        winnerId="p1"
+        winnerName="Atom"
+        onPress={() => {}}
+      />
+      <RoundCard
+        variant="row"
+        n={3}
+        ranked
+        dateText="16/06/26"
+        matchCountText="6 matches"
+        winnerId="p1"
+        winnerName="Atom"
+        onPress={() => {}}
+      />
     </View>
   ),
 };

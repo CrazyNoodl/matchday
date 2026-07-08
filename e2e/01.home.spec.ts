@@ -16,7 +16,9 @@ test.describe('Home screen', () => {
     await expect(page).toHaveURL('/');
   });
 
-  test('navigates to setup screen on "START NEW TOURNAMENT" @smoke', async ({ authedPage: page }) => {
+  test('navigates to setup screen on "START NEW TOURNAMENT" @smoke', async ({
+    authedPage: page,
+  }) => {
     await page.getByText('START NEW TOURNAMENT').click();
     await expect(page).toHaveURL(/.*setup/);
   });

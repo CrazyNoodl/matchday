@@ -6,9 +6,14 @@ export function useKeyboardHeight(enabled = true): number {
 
   useEffect(() => {
     if (!enabled) return;
-    const show = Keyboard.addListener('keyboardWillShow', e => setKeyboardHeight(e.endCoordinates.height));
+    const show = Keyboard.addListener('keyboardWillShow', (e) =>
+      setKeyboardHeight(e.endCoordinates.height),
+    );
     const hide = Keyboard.addListener('keyboardWillHide', () => setKeyboardHeight(0));
-    return () => { show.remove(); hide.remove(); };
+    return () => {
+      show.remove();
+      hide.remove();
+    };
   }, [enabled]);
 
   return keyboardHeight;

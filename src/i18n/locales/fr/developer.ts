@@ -12,7 +12,7 @@ const developer = {
     ocrLabSub: 'Extraire les stats du match depuis une capture avec Claude Vision',
   },
   imagePipeline: {
-    section: 'Traitement d\'image',
+    section: "Traitement d'image",
     resizeLab: 'Labo redimensionnement',
     resizeLabSub: 'Comparer la taille avant/après pour chaque préréglage de compression (#62)',
   },

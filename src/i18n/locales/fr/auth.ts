@@ -7,7 +7,7 @@ const auth = {
   passwordLabel: 'Mot de passe',
   signIn: 'Se connecter',
   createAccount: 'Créer un compte',
-  noAccountPrompt: 'Pas de compte ? S\'inscrire',
+  noAccountPrompt: "Pas de compte ? S'inscrire",
   hasAccountPrompt: 'Déjà un compte ? Se connecter',
 } as const;
 

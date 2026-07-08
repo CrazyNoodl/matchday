@@ -181,19 +181,17 @@ export const FullGrid: Story = {
   name: 'Showcase – Full grid',
   render: () => (
     <View style={{ gap: 20 }}>
-      {(['primary', 'secondary', 'outlined', 'ghost', 'destructive'] as const).map(
-        (variant) => (
-          <View key={variant} style={{ gap: 8 }}>
-            <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
-              <Button label={variant} variant={variant} size="sm" />
-              <Button label={variant} variant={variant} size="md" />
-              <Button label={variant} variant={variant} size="lg" />
-              <Button label={variant} variant={variant} loading />
-              <Button label={variant} variant={variant} disabled />
-            </View>
+      {(['primary', 'secondary', 'outlined', 'ghost', 'destructive'] as const).map((variant) => (
+        <View key={variant} style={{ gap: 8 }}>
+          <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
+            <Button label={variant} variant={variant} size="sm" />
+            <Button label={variant} variant={variant} size="md" />
+            <Button label={variant} variant={variant} size="lg" />
+            <Button label={variant} variant={variant} loading />
+            <Button label={variant} variant={variant} disabled />
           </View>
-        ),
-      )}
+        </View>
+      ))}
     </View>
   ),
 };

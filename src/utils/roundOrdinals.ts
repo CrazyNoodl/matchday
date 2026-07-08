@@ -1,4 +1,4 @@
-import { ArchivedRound } from '@/store/types';
+import { type ArchivedRound } from '@/store/types';
 
 /** Maps round id → its ordinal among ranked rounds only (chronological order). Friendly rounds are absent from the map. */
 export function getRankedRoundOrdinals(archivedRounds: ArchivedRound[]): Record<string, number> {

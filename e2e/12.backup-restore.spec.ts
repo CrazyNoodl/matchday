@@ -17,7 +17,9 @@ const BACKUP_FIXTURE = path.join(__dirname, 'test-data', 'backup-sample.json');
 const RESTORED_LOCALLY = /^Backup restored locally\.?/;
 
 test.describe('Backup & Restore', () => {
-  test('creates a backup, changes data, then restores it from the on-device list @smoke', async ({ authedPage: page }) => {
+  test('creates a backup, changes data, then restores it from the on-device list @smoke', async ({
+    authedPage: page,
+  }) => {
     await createTeamViaUI(page, 'Liverpool', 'LIV');
     await createPlayerViaUI(page, 'Alice', 'LIV');
 

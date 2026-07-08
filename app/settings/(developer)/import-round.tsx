@@ -1,5 +1,13 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, ScrollView, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
+import {
+  View,
+  Text,
+  ScrollView,
+  TextInput,
+  TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useGoBack } from '@/utils/useGoBack';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -54,10 +62,7 @@ export default function ImportRoundScreen() {
   }, [parseResult, players, teams]);
 
   const canImport =
-    hasTournament &&
-    roundOpen &&
-    parseResult != null &&
-    parseResult.matches.length > 0;
+    hasTournament && roundOpen && parseResult != null && parseResult.matches.length > 0;
 
   const handleImport = () => {
     if (!parseResult || !canImport) return;
@@ -66,7 +71,9 @@ export default function ImportRoundScreen() {
     goBack();
   };
 
-  const roundLabel = hasTournament ? `${tournamentName} · ${t('matchday.round', { n: round })}` : null;
+  const roundLabel = hasTournament
+    ? `${tournamentName} · ${t('matchday.round', { n: round })}`
+    : null;
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
@@ -75,192 +82,181 @@ export default function ImportRoundScreen() {
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Status */}
-        {!hasTournament || !roundOpen ? (
-          <View style={styles.warnCard}>
-            <Text style={styles.warnIcon}>⚠️</Text>
-            <View style={styles.warnText}>
-              <Text style={styles.warnTitle}>{t('importRound.noOpenRound.title')}</Text>
-              <Text style={styles.warnDesc}>
-                {!hasTournament
-                  ? t('importRound.noOpenRound.noTournament')
-                  : t('importRound.noOpenRound.hasTournament')}
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Status */}
+          {!hasTournament || !roundOpen ? (
+            <View style={styles.warnCard}>
+              <Text style={styles.warnIcon}>⚠️</Text>
+              <View style={styles.warnText}>
+                <Text style={styles.warnTitle}>{t('importRound.noOpenRound.title')}</Text>
+                <Text style={styles.warnDesc}>
+                  {!hasTournament
+                    ? t('importRound.noOpenRound.noTournament')
+                    : t('importRound.noOpenRound.hasTournament')}
+                </Text>
+              </View>
+            </View>
+          ) : (
+            <View style={styles.statusCard}>
+              <Text style={styles.statusIcon}>🟢</Text>
+              <View>
+                <Text style={styles.statusTitle}>{t('importRound.roundIsOpen')}</Text>
+                {roundLabel ? <Text style={styles.statusDesc}>{roundLabel}</Text> : null}
+              </View>
+            </View>
+          )}
+
+          {/* Format hint */}
+          <View style={styles.section}>
+            <Text style={styles.sectionHeader}>
+              {t('importRound.supportedFormats').toUpperCase()}
+            </Text>
+            <View style={styles.hintCard}>
+              <Text style={styles.hintLine}>
+                <Text style={styles.hintBold}>{t('importRound.sheetsFormat')}</Text>
               </Text>
+              <Text style={styles.hintCode}>
+                {'1  [logo]  PlayerA  scoreA  scoreB  PlayerB  [logo]'}
+              </Text>
+              <View style={styles.hintDivider} />
+              <Text style={styles.hintLine}>
+                <Text style={styles.hintBold}>{t('importRound.csvFormat')}</Text>
+              </Text>
+              <Text style={styles.hintCode}>{'PlayerA,TeamA,scoreA,scoreB,PlayerB,TeamB'}</Text>
+              <View style={styles.hintDivider} />
+              <Text style={styles.hintLine}>
+                <Text style={styles.hintBold}>{t('importRound.simpleCsvFormat')}</Text>
+              </Text>
+              <Text style={styles.hintCode}>{'PlayerA,scoreA,scoreB,PlayerB'}</Text>
+              <View style={styles.hintDivider} />
+              <Text style={styles.hintNote}>{t('importRound.logoNote')}</Text>
             </View>
           </View>
-        ) : (
-          <View style={styles.statusCard}>
-            <Text style={styles.statusIcon}>🟢</Text>
-            <View>
-              <Text style={styles.statusTitle}>{t('importRound.roundIsOpen')}</Text>
-              {roundLabel ? (
-                <Text style={styles.statusDesc}>{roundLabel}</Text>
+
+          {/* Input */}
+          <View style={styles.section}>
+            <View style={styles.inputHeader}>
+              <Text style={styles.sectionHeader}>{t('importRound.pasteData').toUpperCase()}</Text>
+              {text.length > 0 ? (
+                <TouchableOpacity onPress={() => setText('')}>
+                  <Text style={styles.clearBtn}>{t('importRound.clear').toUpperCase()}</Text>
+                </TouchableOpacity>
               ) : null}
             </View>
+            <TextInput
+              style={styles.input}
+              value={text}
+              onChangeText={setText}
+              placeholder={EXAMPLE_CSV}
+              placeholderTextColor={colors.text.ghost}
+              multiline
+              autoCorrect={false}
+              autoCapitalize="none"
+              spellCheck={false}
+            />
           </View>
-        )}
 
-        {/* Format hint */}
-        <View style={styles.section}>
-          <Text style={styles.sectionHeader}>{t('importRound.supportedFormats').toUpperCase()}</Text>
-          <View style={styles.hintCard}>
-            <Text style={styles.hintLine}>
-              <Text style={styles.hintBold}>{t('importRound.sheetsFormat')}</Text>
+          {/* Preview */}
+          {parseResult && (
+            <View style={styles.section}>
+              <Text style={styles.sectionHeader}>{t('importRound.preview').toUpperCase()}</Text>
+
+              {/* Errors */}
+              {parseResult.errors.length > 0 && (
+                <View style={styles.errorsCard}>
+                  <Text style={styles.errorsTitle}>
+                    {parseResult.errors.length === 1
+                      ? t('importRound.parsingIssue', { count: parseResult.errors.length })
+                      : t('importRound.parsingIssuePlural', { count: parseResult.errors.length })}
+                  </Text>
+                  {parseResult.errors.map((e, i) => (
+                    <Text key={i} style={styles.errorLine}>
+                      {e}
+                    </Text>
+                  ))}
+                </View>
+              )}
+
+              {/* New players warning */}
+              {preview && preview.newNames.length > 0 && (
+                <View style={styles.newPlayersCard}>
+                  <Text style={styles.newPlayersTitle}>
+                    {preview.newNames.length === 1
+                      ? t('importRound.newPlayers', { count: preview.newNames.length })
+                      : t('importRound.newPlayersPlural', { count: preview.newNames.length })}
+                  </Text>
+                  {preview.newNames.map((name) => (
+                    <Text key={name} style={styles.newPlayerName}>
+                      + {name.charAt(0).toUpperCase() + name.slice(1)}
+                    </Text>
+                  ))}
+                </View>
+              )}
+
+              {/* Unknown teams */}
+              {preview && preview.unknownTeams.length > 0 && (
+                <View style={styles.warnTeamCard}>
+                  <Text style={styles.warnTeamTitle}>{t('importRound.unknownTeams')}</Text>
+                  {preview.unknownTeams.map((code) => (
+                    <Text key={code} style={styles.warnTeamCode}>
+                      {code}
+                    </Text>
+                  ))}
+                </View>
+              )}
+
+              {/* Match list */}
+              {parseResult.matches.length > 0 ? (
+                <View style={styles.matchesCard}>
+                  <Text style={styles.matchesTitle}>
+                    {parseResult.matches.length === 1
+                      ? t('importRound.matchesReady', { count: parseResult.matches.length })
+                      : t('importRound.matchesReadyPlural', { count: parseResult.matches.length })}
+                  </Text>
+                  {parseResult.matches.map((m, i) => (
+                    <View key={i} style={styles.matchRow}>
+                      <Text style={styles.matchNum}>{i + 1}</Text>
+                      <Text style={styles.matchPlayer} numberOfLines={1}>
+                        {m.playerAName}
+                      </Text>
+                      {m.teamACode ? <Text style={styles.matchTeam}>{m.teamACode}</Text> : null}
+                      <Text style={styles.matchScore}>
+                        {m.scoreA}:{m.scoreB}
+                      </Text>
+                      {m.teamBCode ? <Text style={styles.matchTeam}>{m.teamBCode}</Text> : null}
+                      <Text style={[styles.matchPlayer, styles.matchPlayerB]} numberOfLines={1}>
+                        {m.playerBName}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              ) : null}
+            </View>
+          )}
+
+          <View style={{ height: 100 }} />
+        </ScrollView>
+
+        {/* Import button */}
+        <View style={styles.footer}>
+          <TouchableOpacity
+            style={[styles.importBtn, !canImport && styles.importBtnDisabled]}
+            onPress={handleImport}
+            activeOpacity={canImport ? 0.8 : 1}
+          >
+            <Text style={[styles.importBtnText, !canImport && styles.importBtnTextDisabled]}>
+              {parseResult && parseResult.matches.length > 0
+                ? t('importRound.importBtn', { count: parseResult.matches.length }).toUpperCase()
+                : t('importRound.importBtnEmpty').toUpperCase()}
             </Text>
-            <Text style={styles.hintCode}>
-              {'1  [logo]  PlayerA  scoreA  scoreB  PlayerB  [logo]'}
-            </Text>
-            <View style={styles.hintDivider} />
-            <Text style={styles.hintLine}>
-              <Text style={styles.hintBold}>{t('importRound.csvFormat')}</Text>
-            </Text>
-            <Text style={styles.hintCode}>
-              {'PlayerA,TeamA,scoreA,scoreB,PlayerB,TeamB'}
-            </Text>
-            <View style={styles.hintDivider} />
-            <Text style={styles.hintLine}>
-              <Text style={styles.hintBold}>{t('importRound.simpleCsvFormat')}</Text>
-            </Text>
-            <Text style={styles.hintCode}>{'PlayerA,scoreA,scoreB,PlayerB'}</Text>
-            <View style={styles.hintDivider} />
-            <Text style={styles.hintNote}>
-              {t('importRound.logoNote')}
-            </Text>
-          </View>
+          </TouchableOpacity>
         </View>
-
-        {/* Input */}
-        <View style={styles.section}>
-          <View style={styles.inputHeader}>
-            <Text style={styles.sectionHeader}>{t('importRound.pasteData').toUpperCase()}</Text>
-            {text.length > 0 ? (
-              <TouchableOpacity onPress={() => setText('')}>
-                <Text style={styles.clearBtn}>{t('importRound.clear').toUpperCase()}</Text>
-              </TouchableOpacity>
-            ) : null}
-          </View>
-          <TextInput
-            style={styles.input}
-            value={text}
-            onChangeText={setText}
-            placeholder={EXAMPLE_CSV}
-            placeholderTextColor={colors.text.ghost}
-            multiline
-            autoCorrect={false}
-            autoCapitalize="none"
-            spellCheck={false}
-          />
-        </View>
-
-        {/* Preview */}
-        {parseResult && (
-          <View style={styles.section}>
-            <Text style={styles.sectionHeader}>{t('importRound.preview').toUpperCase()}</Text>
-
-            {/* Errors */}
-            {parseResult.errors.length > 0 && (
-              <View style={styles.errorsCard}>
-                <Text style={styles.errorsTitle}>
-                  {parseResult.errors.length === 1
-                    ? t('importRound.parsingIssue', { count: parseResult.errors.length })
-                    : t('importRound.parsingIssuePlural', { count: parseResult.errors.length })}
-                </Text>
-                {parseResult.errors.map((e, i) => (
-                  <Text key={i} style={styles.errorLine}>
-                    {e}
-                  </Text>
-                ))}
-              </View>
-            )}
-
-            {/* New players warning */}
-            {preview && preview.newNames.length > 0 && (
-              <View style={styles.newPlayersCard}>
-                <Text style={styles.newPlayersTitle}>
-                  {preview.newNames.length === 1
-                    ? t('importRound.newPlayers', { count: preview.newNames.length })
-                    : t('importRound.newPlayersPlural', { count: preview.newNames.length })}
-                </Text>
-                {preview.newNames.map((name) => (
-                  <Text key={name} style={styles.newPlayerName}>
-                    + {name.charAt(0).toUpperCase() + name.slice(1)}
-                  </Text>
-                ))}
-              </View>
-            )}
-
-            {/* Unknown teams */}
-            {preview && preview.unknownTeams.length > 0 && (
-              <View style={styles.warnTeamCard}>
-                <Text style={styles.warnTeamTitle}>
-                  {t('importRound.unknownTeams')}
-                </Text>
-                {preview.unknownTeams.map((code) => (
-                  <Text key={code} style={styles.warnTeamCode}>
-                    {code}
-                  </Text>
-                ))}
-              </View>
-            )}
-
-            {/* Match list */}
-            {parseResult.matches.length > 0 ? (
-              <View style={styles.matchesCard}>
-                <Text style={styles.matchesTitle}>
-                  {parseResult.matches.length === 1
-                    ? t('importRound.matchesReady', { count: parseResult.matches.length })
-                    : t('importRound.matchesReadyPlural', { count: parseResult.matches.length })}
-                </Text>
-                {parseResult.matches.map((m, i) => (
-                  <View key={i} style={styles.matchRow}>
-                    <Text style={styles.matchNum}>{i + 1}</Text>
-                    <Text style={styles.matchPlayer} numberOfLines={1}>
-                      {m.playerAName}
-                    </Text>
-                    {m.teamACode ? (
-                      <Text style={styles.matchTeam}>{m.teamACode}</Text>
-                    ) : null}
-                    <Text style={styles.matchScore}>
-                      {m.scoreA}:{m.scoreB}
-                    </Text>
-                    {m.teamBCode ? (
-                      <Text style={styles.matchTeam}>{m.teamBCode}</Text>
-                    ) : null}
-                    <Text style={[styles.matchPlayer, styles.matchPlayerB]} numberOfLines={1}>
-                      {m.playerBName}
-                    </Text>
-                  </View>
-                ))}
-              </View>
-            ) : null}
-          </View>
-        )}
-
-        <View style={{ height: 100 }} />
-      </ScrollView>
-
-      {/* Import button */}
-      <View style={styles.footer}>
-        <TouchableOpacity
-          style={[styles.importBtn, !canImport && styles.importBtnDisabled]}
-          onPress={handleImport}
-          activeOpacity={canImport ? 0.8 : 1}
-        >
-          <Text style={[styles.importBtnText, !canImport && styles.importBtnTextDisabled]}>
-            {parseResult && parseResult.matches.length > 0
-              ? t('importRound.importBtn', { count: parseResult.matches.length }).toUpperCase()
-              : t('importRound.importBtnEmpty').toUpperCase()}
-          </Text>
-        </TouchableOpacity>
-      </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
-

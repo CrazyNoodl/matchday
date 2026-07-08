@@ -24,7 +24,12 @@ const MOCK_MATCHES = [
 
 const withMockData: Decorator = (Story) => {
   useEffect(() => {
-    useStore.setState({ teams: MOCK_TEAMS, players: MOCK_PLAYERS, matches: MOCK_MATCHES, showNick: true });
+    useStore.setState({
+      teams: MOCK_TEAMS,
+      players: MOCK_PLAYERS,
+      matches: MOCK_MATCHES,
+      showNick: true,
+    });
   }, []);
   return <Story />;
 };
@@ -81,7 +86,11 @@ export const Showcase: Story = {
   render: () => (
     <View style={{ gap: 4 }}>
       <StandingCard position={1} playerId="p1" standing={{ ...baseStanding, pts: 7, gd: 3 }} />
-      <StandingCard position={2} playerId="p2" standing={{ ...baseStanding, playerId: 'p2', pts: 4, gd: 0 }} />
+      <StandingCard
+        position={2}
+        playerId="p2"
+        standing={{ ...baseStanding, playerId: 'p2', pts: 4, gd: 0 }}
+      />
     </View>
   ),
 };

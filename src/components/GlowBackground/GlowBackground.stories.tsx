@@ -29,7 +29,13 @@ const meta = {
     },
   },
   args: { variant: 'green' },
-  decorators: [(Story) => <Frame><Story /></Frame>],
+  decorators: [
+    (Story) => (
+      <Frame>
+        <Story />
+      </Frame>
+    ),
+  ],
 } satisfies Meta<typeof GlowBackground>;
 
 export default meta;

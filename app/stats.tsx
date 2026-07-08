@@ -1,10 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-} from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { useGoBack } from '@/utils/useGoBack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStore } from '@/store';
@@ -19,7 +14,13 @@ import {
 } from '@/utils/statsAggregation';
 import { useColors } from '@/theme';
 import { Radius } from '@/theme/spacing';
-import { Avatar, SectionLabel, GlowBackground, SegmentedControl, PlayerRankCard } from '@/components';
+import {
+  Avatar,
+  SectionLabel,
+  GlowBackground,
+  SegmentedControl,
+  PlayerRankCard,
+} from '@/components';
 import type { Match, Player } from '@/store/types';
 import { useTranslation } from 'react-i18next';
 import { makeStyles } from '@/screens/stats/stats.styles';
@@ -86,9 +87,14 @@ export default function StatsScreen() {
           <Text style={styles.chevron}>‹</Text>
         </TouchableOpacity>
         <View style={styles.headerTitleWrap}>
-          {t('stats.title').toUpperCase().split('\n').map((line, i) => (
-            <Text key={i} style={styles.headerTitle}>{line}</Text>
-          ))}
+          {t('stats.title')
+            .toUpperCase()
+            .split('\n')
+            .map((line, i) => (
+              <Text key={i} style={styles.headerTitle}>
+                {line}
+              </Text>
+            ))}
         </View>
         <View style={styles.headerRight} />
       </View>
@@ -136,36 +142,34 @@ interface RankingTabProps {
   matchDaysPlayed: number;
 }
 
-function RankingTab({
-  standings,
-  players,
-  totalGoals,
-  matchDaysPlayed,
-}: RankingTabProps) {
+function RankingTab({ standings, players, totalGoals, matchDaysPlayed }: RankingTabProps) {
   const { t } = useTranslation();
   const colors = useColors();
   const styles = makeStyles(colors);
 
-  const MEDALS = useMemo(() => [
-    {
-      rank: 1,
-      badgeColor: colors.accent.gold,
-      badgeBg: 'rgba(255,212,94,0.18)',
-      cardBorder: colors.accent.greenBorder,
-    },
-    {
-      rank: 2,
-      badgeColor: colors.text.secondary,
-      badgeBg: 'rgba(200,205,210,0.16)',
-      cardBorder: colors.border.default,
-    },
-    {
-      rank: 3,
-      badgeColor: '#d08a4a',
-      badgeBg: 'rgba(205,127,50,0.16)',
-      cardBorder: colors.border.default,
-    },
-  ], [colors]);
+  const MEDALS = useMemo(
+    () => [
+      {
+        rank: 1,
+        badgeColor: colors.accent.gold,
+        badgeBg: 'rgba(255,212,94,0.18)',
+        cardBorder: colors.accent.greenBorder,
+      },
+      {
+        rank: 2,
+        badgeColor: colors.text.secondary,
+        badgeBg: 'rgba(200,205,210,0.16)',
+        cardBorder: colors.border.default,
+      },
+      {
+        rank: 3,
+        badgeColor: '#d08a4a',
+        badgeBg: 'rgba(205,127,50,0.16)',
+        cardBorder: colors.border.default,
+      },
+    ],
+    [colors],
+  );
 
   const sectionLabel = t('stats.allTime').toUpperCase();
 
@@ -184,7 +188,14 @@ function RankingTab({
             medal={MEDALS[index] ?? null}
             playerId={player.id}
             name={player.name}
-            subText={t('stats.record', { played: s.played, wins: s.wins, draws: s.draws, losses: s.losses, gf: s.gf, ga: s.ga })}
+            subText={t('stats.record', {
+              played: s.played,
+              wins: s.wins,
+              draws: s.draws,
+              losses: s.losses,
+              gf: s.gf,
+              ga: s.ga,
+            })}
             points={s.pts}
             pointsLabel={t('common.pts')}
             pointsColor={colors.accent.green}
@@ -206,9 +217,7 @@ function RankingTab({
         </View>
         <View style={styles.statTile}>
           <Text style={styles.statTileLabel}>{t('stats.goalsScored').toUpperCase()}</Text>
-          <Text style={[styles.statTileValue, styles.statTileValueGreen]}>
-            {totalGoals}
-          </Text>
+          <Text style={[styles.statTileValue, styles.statTileValueGreen]}>{totalGoals}</Text>
         </View>
       </View>
     </View>
@@ -262,13 +271,9 @@ function H2HTab({ pairs }: H2HTabProps) {
 
             {/* Wins counts + draws label */}
             <View style={styles.h2hScoreRow}>
-              <Text style={[styles.h2hWinsCount, { color: playerA.color }]}>
-                {aWins}
-              </Text>
+              <Text style={[styles.h2hWinsCount, { color: playerA.color }]}>{aWins}</Text>
               <Text style={styles.h2hDrawsLabel}>{t('stats.h2hDraws', { count: draws })}</Text>
-              <Text style={[styles.h2hWinsCount, { color: playerB.color }]}>
-                {bWins}
-              </Text>
+              <Text style={[styles.h2hWinsCount, { color: playerB.color }]}>{bWins}</Text>
             </View>
 
             {/* Progress bar */}
@@ -318,9 +323,7 @@ function H2HTab({ pairs }: H2HTabProps) {
             </View>
 
             {/* Goals line */}
-            <Text style={styles.h2hGoals}>
-              {t('stats.h2hGoals', { a: aGoals, b: bGoals })}
-            </Text>
+            <Text style={styles.h2hGoals}>{t('stats.h2hGoals', { a: aGoals, b: bGoals })}</Text>
           </View>
         );
       })}

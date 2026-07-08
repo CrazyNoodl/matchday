@@ -1,5 +1,5 @@
-import { StateCreator } from 'zustand';
-import { RealDataBackup } from '../types';
+import { type StateCreator } from 'zustand';
+import { type RealDataBackup } from '../types';
 import { DEMO_STATE } from '@/demo/data';
 import type { ThemePreference } from '@/theme/colors';
 import type { Language } from '@/i18n';

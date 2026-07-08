@@ -22,7 +22,9 @@ function LongContent() {
   const colors = useColors();
   return (
     <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 24, gap: 12 }}>
-      <Text style={{ color: colors.text.primary, fontSize: 18, fontWeight: '700', marginBottom: 8 }}>
+      <Text
+        style={{ color: colors.text.primary, fontSize: 18, fontWeight: '700', marginBottom: 8 }}
+      >
         Full-height sheet (snapToMax)
       </Text>
       {Array.from({ length: 20 }).map((_, i) => (

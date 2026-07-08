@@ -2,7 +2,9 @@ import { supabase, supabaseConfigured } from './client';
 
 export async function getCurrentUserId(): Promise<string | null> {
   if (!supabaseConfigured) return null;
-  const { data: { session } } = await supabase.auth.getSession();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
   return session?.user?.id ?? null;
 }
 

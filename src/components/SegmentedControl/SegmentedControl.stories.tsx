@@ -10,14 +10,7 @@ const OPTIONS: { value: 'table' | 'cards'; label: string }[] = [
 
 function LiveSegmentedControl({ variant }: { variant?: 'boxed' | 'pill' }) {
   const [value, setValue] = useState<'table' | 'cards'>('table');
-  return (
-    <SegmentedControl
-      variant={variant}
-      value={value}
-      onChange={setValue}
-      options={OPTIONS}
-    />
-  );
+  return <SegmentedControl variant={variant} value={value} onChange={setValue} options={OPTIONS} />;
 }
 
 const meta = {

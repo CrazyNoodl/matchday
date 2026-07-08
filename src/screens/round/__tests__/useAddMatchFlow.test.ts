@@ -39,7 +39,7 @@ const mockResizeImage = require('@/utils/imageResize').resizeImage as jest.Mock;
 
 const PLAYERS: Player[] = [
   { id: 'p1', name: 'Alice', color: '#f00', teamCode: 'JUV' },
-  { id: 'p2', name: 'Bob',   color: '#00f', teamCode: 'BAR' },
+  { id: 'p2', name: 'Bob', color: '#00f', teamCode: 'BAR' },
 ];
 
 async function makeHook(overrides: Partial<Parameters<typeof useAddMatchFlow>[0]> = {}) {
@@ -243,9 +243,7 @@ describe('handlePickMedia — video upload disabled (#59)', () => {
     await act(async () => {
       await result.current.handlePickMedia();
     });
-    expect(mockPicker).toHaveBeenCalledWith(
-      expect.objectContaining({ mediaTypes: ['images'] }),
-    );
+    expect(mockPicker).toHaveBeenCalledWith(expect.objectContaining({ mediaTypes: ['images'] }));
   });
 });
 
@@ -254,12 +252,14 @@ describe('handlePickMedia — multi-batch OCR asset accumulation', () => {
     mockExtractStats.mockResolvedValue([]);
     mockPicker.mockResolvedValueOnce({
       canceled: false,
-      assets: [{
-        uri: 'file://new.jpg',
-        type: 'image',
-        base64: 'newBase64',
-        mimeType: 'image/jpeg',
-      }],
+      assets: [
+        {
+          uri: 'file://new.jpg',
+          type: 'image',
+          base64: 'newBase64',
+          mimeType: 'image/jpeg',
+        },
+      ],
     });
 
     const { result } = await makeHook();
@@ -269,10 +269,12 @@ describe('handlePickMedia — multi-batch OCR asset accumulation', () => {
       result.current.setAddMatch({
         ...initAddMatch(),
         ocrStatus: 'done',
-        ocrPhotos: [{
-          asset: { base64: 'oldBase64', mimeType: 'image/jpeg' },
-          stats: [{ key: 'shots', label: 'Shots', home: 3, away: 2, confidence: 'high' }],
-        }],
+        ocrPhotos: [
+          {
+            asset: { base64: 'oldBase64', mimeType: 'image/jpeg' },
+            stats: [{ key: 'shots', label: 'Shots', home: 3, away: 2, confidence: 'high' }],
+          },
+        ],
         media: [{ uri: 'file://old.jpg', type: 'image' }],
         pendingStats: { shots: { a: 3, b: 2 } },
       });
@@ -298,12 +300,14 @@ describe('handlePickMedia — multi-batch OCR asset accumulation', () => {
     mockExtractStats.mockResolvedValue([]);
     mockPicker.mockResolvedValueOnce({
       canceled: false,
-      assets: [{
-        uri: 'file://first.jpg',
-        type: 'image',
-        base64: 'firstBase64',
-        mimeType: 'image/jpeg',
-      }],
+      assets: [
+        {
+          uri: 'file://first.jpg',
+          type: 'image',
+          base64: 'firstBase64',
+          mimeType: 'image/jpeg',
+        },
+      ],
     });
 
     const { result } = await makeHook();
@@ -322,12 +326,14 @@ describe('handlePickMedia — multi-batch OCR asset accumulation', () => {
   it('does not trigger OCR when only videos are picked', async () => {
     mockPicker.mockResolvedValueOnce({
       canceled: false,
-      assets: [{
-        uri: 'file://clip.mp4',
-        type: 'video',
-        base64: null,
-        mimeType: 'video/mp4',
-      }],
+      assets: [
+        {
+          uri: 'file://clip.mp4',
+          type: 'video',
+          base64: null,
+          mimeType: 'video/mp4',
+        },
+      ],
     });
 
     const { result } = await makeHook();
@@ -351,16 +357,23 @@ describe('handlePickMedia — blocked during active OCR scan', () => {
   it('does not start a second OCR run when called while ocrStatus is scanning', async () => {
     // Simulate first OCR run in progress
     mockExtractStats.mockImplementation(
-      () => new Promise(() => {/* never resolves in this test */}),
+      () =>
+        new Promise(() => {
+          /* never resolves in this test */
+        }),
     );
     mockPicker
       .mockResolvedValueOnce({
         canceled: false,
-        assets: [{ uri: 'file://img1.jpg', type: 'image', base64: 'base1', mimeType: 'image/jpeg' }],
+        assets: [
+          { uri: 'file://img1.jpg', type: 'image', base64: 'base1', mimeType: 'image/jpeg' },
+        ],
       })
       .mockResolvedValueOnce({
         canceled: false,
-        assets: [{ uri: 'file://img2.jpg', type: 'image', base64: 'base2', mimeType: 'image/jpeg' }],
+        assets: [
+          { uri: 'file://img2.jpg', type: 'image', base64: 'base2', mimeType: 'image/jpeg' },
+        ],
       });
 
     const { result } = await makeHook();
@@ -445,7 +458,9 @@ describe('handleBack — blocked during save', () => {
   it('does not navigate back while isSavingMatch is true, save still completes', async () => {
     let resolveUpload!: (v: never[]) => void;
     mockUpload.mockReturnValueOnce(
-      new Promise<never[]>((res) => { resolveUpload = res; }),
+      new Promise<never[]>((res) => {
+        resolveUpload = res;
+      }),
     );
 
     const { result, addMatchToStore, closeModal } = await makeHook();
@@ -461,18 +476,24 @@ describe('handleBack — blocked during save', () => {
     });
 
     // Start save — flush the synchronous setIsSavingMatch(true) state update
-    await act(async () => { result.current.handleSaveMatch(); });
+    await act(async () => {
+      result.current.handleSaveMatch();
+    });
 
     // Upload is still pending; isSavingMatch should be true
     expect(result.current.isSavingMatch).toBe(true);
 
     // Try to go back while saving — must be a no-op
-    await act(async () => { result.current.handleBack(); });
+    await act(async () => {
+      result.current.handleBack();
+    });
     expect(result.current.addMatch.step).toBe(4);
     expect(closeModal).not.toHaveBeenCalled();
 
     // Resolve upload and let everything settle
-    await act(async () => { resolveUpload([]); });
+    await act(async () => {
+      resolveUpload([]);
+    });
     await waitFor(() => expect(result.current.isSavingMatch).toBe(false));
 
     expect(addMatchToStore).toHaveBeenCalledTimes(1);
@@ -489,7 +510,9 @@ describe('handleBack — side-effect-free state update on cancel', () => {
   it('calls closeModal exactly once when cancelling from step 1', async () => {
     const { result, closeModal } = await makeHook();
 
-    await act(async () => { result.current.handleBack(); });
+    await act(async () => {
+      result.current.handleBack();
+    });
 
     expect(closeModal).toHaveBeenCalledTimes(1);
     // State is reset after cancel
@@ -504,7 +527,9 @@ describe('handleBack — side-effect-free state update on cancel', () => {
       result.current.setAddMatch({ ...initAddMatch(), step: 3 });
     });
 
-    await act(async () => { result.current.handleBack(); });
+    await act(async () => {
+      result.current.handleBack();
+    });
 
     expect(result.current.addMatch.step).toBe(2);
     expect(closeModal).not.toHaveBeenCalled();
@@ -519,7 +544,9 @@ describe('handleSaveMatch — double-save guard', () => {
   it('does not call addMatchToStore twice when invoked while already saving', async () => {
     let resolveFirst!: (v: never[]) => void;
     mockUpload.mockReturnValueOnce(
-      new Promise<never[]>((res) => { resolveFirst = res; }),
+      new Promise<never[]>((res) => {
+        resolveFirst = res;
+      }),
     );
 
     const { result, addMatchToStore } = await makeHook();
@@ -534,14 +561,20 @@ describe('handleSaveMatch — double-save guard', () => {
     });
 
     // Start first save — upload is blocking
-    await act(async () => { result.current.handleSaveMatch(); });
+    await act(async () => {
+      result.current.handleSaveMatch();
+    });
     expect(result.current.isSavingMatch).toBe(true);
 
     // Try to fire save again while first is in progress — should be no-op
-    await act(async () => { await result.current.handleSaveMatch(); });
+    await act(async () => {
+      await result.current.handleSaveMatch();
+    });
 
     // Resolve first upload
-    await act(async () => { resolveFirst([]); });
+    await act(async () => {
+      resolveFirst([]);
+    });
     await waitFor(() => expect(result.current.isSavingMatch).toBe(false));
 
     // Only one match saved despite two calls
@@ -563,10 +596,12 @@ describe('handleRemoveMedia — video removal preserves OCR state', () => {
         ocrStatus: 'done',
         ocrScanning: false,
         pendingStats: { shots: { a: 5, b: 3 } },
-        ocrPhotos: [{
-          asset: { base64: 'img1', mimeType: 'image/jpeg' },
-          stats: [{ key: 'shots', label: 'Shots', home: 5, away: 3, confidence: 'high' }],
-        }],
+        ocrPhotos: [
+          {
+            asset: { base64: 'img1', mimeType: 'image/jpeg' },
+            stats: [{ key: 'shots', label: 'Shots', home: 5, away: 3, confidence: 'high' }],
+          },
+        ],
         media: [
           { uri: 'file://img1.jpg', type: 'image' },
           { uri: 'file://clip.mp4', type: 'video' },
@@ -575,7 +610,9 @@ describe('handleRemoveMedia — video removal preserves OCR state', () => {
     });
 
     // Remove the video (index 1)
-    await act(async () => { result.current.handleRemoveMedia(1); });
+    await act(async () => {
+      result.current.handleRemoveMedia(1);
+    });
 
     const s = result.current.addMatch;
     expect(s.media).toHaveLength(1);
@@ -594,10 +631,12 @@ describe('handleRemoveMedia — video removal preserves OCR state', () => {
         ...initAddMatch(),
         ocrStatus: 'done',
         pendingStats: { shots: { a: 5, b: 3 } },
-        ocrPhotos: [{
-          asset: { base64: 'img1', mimeType: 'image/jpeg' },
-          stats: [{ key: 'shots', label: 'Shots', home: 5, away: 3, confidence: 'high' }],
-        }],
+        ocrPhotos: [
+          {
+            asset: { base64: 'img1', mimeType: 'image/jpeg' },
+            stats: [{ key: 'shots', label: 'Shots', home: 5, away: 3, confidence: 'high' }],
+          },
+        ],
         media: [
           { uri: 'file://img1.jpg', type: 'image' },
           { uri: 'file://clip.mp4', type: 'video' },
@@ -606,7 +645,9 @@ describe('handleRemoveMedia — video removal preserves OCR state', () => {
     });
 
     // Remove the image (index 0) — no images left, so this is the full-reset case
-    await act(async () => { result.current.handleRemoveMedia(0); });
+    await act(async () => {
+      result.current.handleRemoveMedia(0);
+    });
 
     const s = result.current.addMatch;
     expect(s.ocrStatus).toBe('idle');
@@ -629,7 +670,9 @@ describe('handleRemoveMedia — video removal preserves OCR state', () => {
       });
     });
 
-    await act(async () => { result.current.handleRemoveMedia(1); });
+    await act(async () => {
+      result.current.handleRemoveMedia(1);
+    });
 
     expect(result.current.addMatch.ocrStatus).toBe('skipped');
     expect(result.current.addMatch.ocrPhotos).toHaveLength(1);
@@ -655,14 +698,24 @@ describe('handleRemoveMedia — per-photo incremental removal (#71)', () => {
           { uri: 'file://img2.jpg', type: 'image' },
         ],
         ocrPhotos: [
-          { asset: { base64: 'img1', mimeType: 'image/jpeg' }, stats: [{ key: 'shots', label: 'Shots', home: 5, away: 3, confidence: 'high' }] },
-          { asset: { base64: 'img2', mimeType: 'image/jpeg' }, stats: [{ key: 'possession', label: 'Possession', home: 60, away: 40, confidence: 'medium' }] },
+          {
+            asset: { base64: 'img1', mimeType: 'image/jpeg' },
+            stats: [{ key: 'shots', label: 'Shots', home: 5, away: 3, confidence: 'high' }],
+          },
+          {
+            asset: { base64: 'img2', mimeType: 'image/jpeg' },
+            stats: [
+              { key: 'possession', label: 'Possession', home: 60, away: 40, confidence: 'medium' },
+            ],
+          },
         ],
       });
     });
 
     // Remove the first image — the second's stats must survive, no rescan
-    await act(async () => { result.current.handleRemoveMedia(0); });
+    await act(async () => {
+      result.current.handleRemoveMedia(0);
+    });
 
     const s = result.current.addMatch;
     expect(s.media).toHaveLength(1);
@@ -685,14 +738,19 @@ describe('handleRemoveMedia — per-photo incremental removal (#71)', () => {
           { uri: 'file://bad.jpg', type: 'image' },
         ],
         ocrPhotos: [
-          { asset: { base64: 'good', mimeType: 'image/jpeg' }, stats: [{ key: 'shots', label: 'Shots', home: 5, away: 3, confidence: 'high' }] },
+          {
+            asset: { base64: 'good', mimeType: 'image/jpeg' },
+            stats: [{ key: 'shots', label: 'Shots', home: 5, away: 3, confidence: 'high' }],
+          },
           { asset: { base64: 'bad', mimeType: 'image/jpeg' }, stats: null },
         ],
       });
     });
 
     // Remove the failing photo (index 1)
-    await act(async () => { result.current.handleRemoveMedia(1); });
+    await act(async () => {
+      result.current.handleRemoveMedia(1);
+    });
 
     const s = result.current.addMatch;
     expect(s.ocrStatus).toBe('done');
@@ -705,32 +763,53 @@ describe('handleRemoveMedia — per-photo incremental removal (#71)', () => {
     mockPicker
       .mockResolvedValueOnce({
         canceled: false,
-        assets: [{ uri: 'file://noBase.jpg', type: 'image', base64: undefined, mimeType: 'image/jpeg' }],
+        assets: [
+          { uri: 'file://noBase.jpg', type: 'image', base64: undefined, mimeType: 'image/jpeg' },
+        ],
       })
       .mockResolvedValueOnce({
         canceled: false,
-        assets: [{ uri: 'file://scannable.jpg', type: 'image', base64: 'scanBase', mimeType: 'image/jpeg' }],
+        assets: [
+          {
+            uri: 'file://scannable.jpg',
+            type: 'image',
+            base64: 'scanBase',
+            mimeType: 'image/jpeg',
+          },
+        ],
       });
 
     const { result } = await makeHook();
 
     // First pick — image with no usable base64 still gets a slot
-    await act(async () => { await result.current.handlePickMedia(); });
+    await act(async () => {
+      await result.current.handlePickMedia();
+    });
     expect(result.current.addMatch.ocrPhotos).toEqual([{ asset: null, stats: null }]);
 
     // Second pick — a normal scannable image
-    await act(async () => { await result.current.handlePickMedia(); });
+    await act(async () => {
+      await result.current.handlePickMedia();
+    });
     await waitFor(() => expect(result.current.addMatch.ocrStatus).toBe('done'));
 
     expect(result.current.addMatch.ocrPhotos).toHaveLength(2);
     expect(result.current.addMatch.ocrPhotos[0]).toEqual({ asset: null, stats: null });
-    expect(result.current.addMatch.ocrPhotos[1].asset).toEqual({ base64: 'scanBase', mimeType: 'image/jpeg' });
+    expect(result.current.addMatch.ocrPhotos[1].asset).toEqual({
+      base64: 'scanBase',
+      mimeType: 'image/jpeg',
+    });
 
     // Remove the first (no-base64) image — the second's slot must be the one that remains
-    await act(async () => { result.current.handleRemoveMedia(0); });
+    await act(async () => {
+      result.current.handleRemoveMedia(0);
+    });
     expect(result.current.addMatch.media).toHaveLength(1);
     expect(result.current.addMatch.ocrPhotos).toHaveLength(1);
-    expect(result.current.addMatch.ocrPhotos[0].asset).toEqual({ base64: 'scanBase', mimeType: 'image/jpeg' });
+    expect(result.current.addMatch.ocrPhotos[0].asset).toEqual({
+      base64: 'scanBase',
+      mimeType: 'image/jpeg',
+    });
   });
 });
 
@@ -742,7 +821,7 @@ describe('handleRemoveMedia — per-photo incremental removal (#71)', () => {
 // ---------------------------------------------------------------------------
 
 describe('runOcr — per-photo failure isolation', () => {
-  it('preserves a sibling photo\'s pendingStats when a later photo\'s OCR fails', async () => {
+  it("preserves a sibling photo's pendingStats when a later photo's OCR fails", async () => {
     // First pick succeeds and sets pendingStats
     mockExtractStats.mockResolvedValueOnce([
       { key: 'shots', home: 5, away: 3, confidence: 'high' },
@@ -755,7 +834,9 @@ describe('runOcr — per-photo failure isolation', () => {
     const { result } = await makeHook();
 
     // First pick — OCR succeeds
-    await act(async () => { await result.current.handlePickMedia(); });
+    await act(async () => {
+      await result.current.handlePickMedia();
+    });
     await waitFor(() => expect(result.current.addMatch.ocrStatus).toBe('done'));
     expect(mockExtractStats).toHaveBeenCalledTimes(1);
     expect(result.current.addMatch.pendingStats).toEqual({ shots: { a: 5, b: 3 } });
@@ -767,7 +848,9 @@ describe('runOcr — per-photo failure isolation', () => {
       assets: [{ uri: 'file://img2.jpg', type: 'image', base64: 'base2', mimeType: 'image/jpeg' }],
     });
 
-    await act(async () => { await result.current.handlePickMedia(); });
+    await act(async () => {
+      await result.current.handlePickMedia();
+    });
     await waitFor(() => expect(result.current.addMatch.ocrStatus).toBe('error'));
 
     // Exactly one more call, for the new photo only — photo1 is never rescanned
@@ -777,18 +860,22 @@ describe('runOcr — per-photo failure isolation', () => {
     expect(result.current.addMatch.pendingStats).toEqual({ shots: { a: 5, b: 3 } });
   });
 
-  it('saves a sibling photo\'s already-good stats when the user skips past a failing photo', async () => {
+  it("saves a sibling photo's already-good stats when the user skips past a failing photo", async () => {
     mockExtractStats.mockResolvedValueOnce([
       { key: 'possession', home: 60, away: 40, confidence: 'medium' },
     ]);
     mockPicker
       .mockResolvedValueOnce({
         canceled: false,
-        assets: [{ uri: 'file://img1.jpg', type: 'image', base64: 'base1', mimeType: 'image/jpeg' }],
+        assets: [
+          { uri: 'file://img1.jpg', type: 'image', base64: 'base1', mimeType: 'image/jpeg' },
+        ],
       })
       .mockResolvedValueOnce({
         canceled: false,
-        assets: [{ uri: 'file://img2.jpg', type: 'image', base64: 'base2', mimeType: 'image/jpeg' }],
+        assets: [
+          { uri: 'file://img2.jpg', type: 'image', base64: 'base2', mimeType: 'image/jpeg' },
+        ],
       });
 
     const { result, addMatchToStore } = await makeHook();
@@ -799,12 +886,16 @@ describe('runOcr — per-photo failure isolation', () => {
     });
 
     // First pick — OCR succeeds → pendingStats set
-    await act(async () => { await result.current.handlePickMedia(); });
+    await act(async () => {
+      await result.current.handlePickMedia();
+    });
     await waitFor(() => expect(result.current.addMatch.ocrStatus).toBe('done'));
 
     // Second pick — OCR fails → error state, but photo1's stats survive
     mockExtractStats.mockRejectedValueOnce(new Error('ocr fail'));
-    await act(async () => { await result.current.handlePickMedia(); });
+    await act(async () => {
+      await result.current.handlePickMedia();
+    });
     await waitFor(() => expect(result.current.addMatch.ocrStatus).toBe('error'));
     expect(result.current.addMatch.pendingStats).toEqual({ possession: { a: 60, b: 40 } });
 
@@ -815,7 +906,9 @@ describe('runOcr — per-photo failure isolation', () => {
     });
 
     // Save match
-    await act(async () => { await result.current.handleSaveMatch(); });
+    await act(async () => {
+      await result.current.handleSaveMatch();
+    });
 
     const saved: Match = addMatchToStore.mock.calls[0][0];
     // photo1's legitimate stats are saved — skipping the failing photo must not discard them
@@ -865,17 +958,23 @@ describe('handlePickMedia — skipped OCR is preserved when more images are adde
     mockPicker
       .mockResolvedValueOnce({
         canceled: false,
-        assets: [{ uri: 'file://img1.jpg', type: 'image', base64: 'base1', mimeType: 'image/jpeg' }],
+        assets: [
+          { uri: 'file://img1.jpg', type: 'image', base64: 'base1', mimeType: 'image/jpeg' },
+        ],
       })
       .mockResolvedValueOnce({
         canceled: false,
-        assets: [{ uri: 'file://img2.jpg', type: 'image', base64: 'base2', mimeType: 'image/jpeg' }],
+        assets: [
+          { uri: 'file://img2.jpg', type: 'image', base64: 'base2', mimeType: 'image/jpeg' },
+        ],
       });
 
     const { result } = await makeHook();
 
     // First pick — OCR starts
-    await act(async () => { await result.current.handlePickMedia(); });
+    await act(async () => {
+      await result.current.handlePickMedia();
+    });
     await waitFor(() => expect(result.current.addMatch.ocrStatus).toBe('error'));
 
     // User skips stats manually
@@ -885,10 +984,12 @@ describe('handlePickMedia — skipped OCR is preserved when more images are adde
     expect(result.current.addMatch.ocrStatus).toBe('skipped');
 
     // Second pick — should NOT trigger OCR
-    await act(async () => { await result.current.handlePickMedia(); });
+    await act(async () => {
+      await result.current.handlePickMedia();
+    });
 
     expect(result.current.addMatch.ocrStatus).toBe('skipped'); // still skipped
-    expect(result.current.addMatch.media).toHaveLength(2);     // both images in media
+    expect(result.current.addMatch.media).toHaveLength(2); // both images in media
     // extractStatsFromPhoto was only called during the first pick (1 time), not again
     expect(mockExtractStats).toHaveBeenCalledTimes(1);
   });
@@ -924,7 +1025,9 @@ describe('handlePickMedia — no phantom OCR assets beyond media cap', () => {
       });
     });
 
-    await act(async () => { await result.current.handlePickMedia(); });
+    await act(async () => {
+      await result.current.handlePickMedia();
+    });
 
     await waitFor(() => expect(mockExtractStats).toHaveBeenCalled());
 
@@ -952,7 +1055,9 @@ describe('handlePickMedia — no phantom OCR assets beyond media cap', () => {
       });
     });
 
-    await act(async () => { await result.current.handlePickMedia(); });
+    await act(async () => {
+      await result.current.handlePickMedia();
+    });
 
     expect(mockPicker).not.toHaveBeenCalled();
   });
@@ -966,7 +1071,9 @@ describe('handleBack — discard confirmation', () => {
   it('calls closeModal directly when state is clean', async () => {
     const { result, closeModal } = await makeHook();
 
-    await act(async () => { result.current.handleBack(); });
+    await act(async () => {
+      result.current.handleBack();
+    });
 
     expect(result.current.showDiscardDialog).toBe(false);
     expect(closeModal).toHaveBeenCalledTimes(1);
@@ -979,7 +1086,9 @@ describe('handleBack — discard confirmation', () => {
       result.current.setAddMatch({ ...initAddMatch(), homeId: 'p1' });
     });
 
-    await act(async () => { result.current.handleBack(); });
+    await act(async () => {
+      result.current.handleBack();
+    });
 
     expect(result.current.showDiscardDialog).toBe(true);
     expect(closeModal).not.toHaveBeenCalled();
@@ -995,7 +1104,9 @@ describe('handleBack — discard confirmation', () => {
       });
     });
 
-    await act(async () => { result.current.handleBack(); });
+    await act(async () => {
+      result.current.handleBack();
+    });
 
     expect(result.current.showDiscardDialog).toBe(true);
     expect(closeModal).not.toHaveBeenCalled();
@@ -1008,10 +1119,14 @@ describe('handleBack — discard confirmation', () => {
       result.current.setAddMatch({ ...initAddMatch(), homeId: 'p1', awayId: 'p2' });
     });
 
-    await act(async () => { result.current.handleBack(); });
+    await act(async () => {
+      result.current.handleBack();
+    });
     expect(result.current.showDiscardDialog).toBe(true);
 
-    await act(async () => { result.current.handleConfirmDiscard(); });
+    await act(async () => {
+      result.current.handleConfirmDiscard();
+    });
 
     expect(closeModal).toHaveBeenCalledTimes(1);
     expect(result.current.addMatch.homeId).toBeNull();
@@ -1025,10 +1140,14 @@ describe('handleBack — discard confirmation', () => {
       result.current.setAddMatch({ ...initAddMatch(), homeId: 'p1' });
     });
 
-    await act(async () => { result.current.handleBack(); });
+    await act(async () => {
+      result.current.handleBack();
+    });
     expect(result.current.showDiscardDialog).toBe(true);
 
-    await act(async () => { result.current.setShowDiscardDialog(false); });
+    await act(async () => {
+      result.current.setShowDiscardDialog(false);
+    });
 
     expect(closeModal).not.toHaveBeenCalled();
     expect(result.current.addMatch.homeId).toBe('p1');
@@ -1041,7 +1160,9 @@ describe('handleBack — discard confirmation', () => {
       result.current.setAddMatch({ ...initAddMatch(), homeScore: 1 });
     });
 
-    await act(async () => { result.current.handleBack(); });
+    await act(async () => {
+      result.current.handleBack();
+    });
 
     expect(result.current.showDiscardDialog).toBe(true);
     expect(closeModal).not.toHaveBeenCalled();

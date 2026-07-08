@@ -98,19 +98,19 @@ export const CHANGELOG: ChangelogEntry[] = [
     version: '1.9.18',
     fixed: [
       'Add Match: a photo that fails to upload is now flagged for retry (via the existing match-detail retry overlay) instead of silently staying local and never reaching Storage (#68)',
-      'Add Match and OCR Lab: adding a new stat photo no longer re-scans every already-scanned photo, and removing a photo no longer wipes its siblings\' already-extracted stats (#71)',
+      "Add Match and OCR Lab: adding a new stat photo no longer re-scans every already-scanned photo, and removing a photo no longer wipes its siblings' already-extracted stats (#71)",
     ],
   },
   {
     version: '1.9.17',
     internal: [
-      'What\'s New screen now splits entries into four categories (Added, Changed, Fixed, Internal) instead of three — separates real user-facing improvements from purely internal cleanup, each with its own color',
+      "What's New screen now splits entries into four categories (Added, Changed, Fixed, Internal) instead of three — separates real user-facing improvements from purely internal cleanup, each with its own color",
     ],
   },
   {
     version: '1.9.16',
     added: [
-      'Add Match now dims and disables any opponent who already played the picked player this round-robin tour, so the same pairing can\'t repeat until a full tour completes',
+      "Add Match now dims and disables any opponent who already played the picked player this round-robin tour, so the same pairing can't repeat until a full tour completes",
     ],
   },
   {
@@ -135,14 +135,14 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '1.9.12',
     fixed: [
-      'Team logos now load instantly offline once seen before, and fall back to the colored initials badge instead of a blank box when a logo can\'t load',
+      "Team logos now load instantly offline once seen before, and fall back to the colored initials badge instead of a blank box when a logo can't load",
       'AI stat scan no longer surfaces a "goals" row that just duplicates the match score; any other stray stat outside the normal 23 can now be deleted individually (#72)',
     ],
   },
   {
     version: '1.9.11',
     added: [
-      'Offline handling, phase 1: a banner appears when you lose connection, and any action that needs the network (adding photos, importing stats, team logos) is disabled until you\'re back online instead of failing silently (#73)',
+      "Offline handling, phase 1: a banner appears when you lose connection, and any action that needs the network (adding photos, importing stats, team logos) is disabled until you're back online instead of failing silently (#73)",
     ],
     fixed: [
       'Local changes made right before the app is killed or crashes could be lost instead of syncing on next launch — pending changes are now saved and retried automatically on reconnect',
@@ -191,9 +191,9 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '1.9.5',
     added: [
-      'Match stats edit screen now always shows all 23 tracked params in a fixed order — ones the AI didn\'t recognize show as a muted placeholder instead of being hidden, and a small dot marks values the AI wasn\'t fully confident about (#63)',
+      "Match stats edit screen now always shows all 23 tracked params in a fixed order — ones the AI didn't recognize show as a muted placeholder instead of being hidden, and a small dot marks values the AI wasn't fully confident about (#63)",
       'Expected Goals (xG) now steps by 0.1 in the stats editor instead of whole numbers; percentage stats (possession, dribbles, accuracy) are capped at 100 on each side (#63)',
-      'Stat photos that don\'t look like a real stats screen are now rejected automatically during import/re-scan — they\'re no longer added to the match or applied as stats, and you\'re asked to upload a clearer photo instead (#63)',
+      "Stat photos that don't look like a real stats screen are now rejected automatically during import/re-scan — they're no longer added to the match or applied as stats, and you're asked to upload a clearer photo instead (#63)",
     ],
     fixed: [
       'Re-scanning stats or adding new photos now shows a visible loading indicator for the entire upload + AI-read duration, including the wait for photos not yet downloaded from iCloud — previously the app could look frozen with no feedback (#65)',
@@ -327,9 +327,7 @@ export const CHANGELOG: ChangelogEntry[] = [
   },
   {
     version: '1.6.6',
-    added: [
-      'Light theme — toggle between dark and light appearance in Settings → Display',
-    ],
+    added: ['Light theme — toggle between dark and light appearance in Settings → Display'],
     fixed: [
       'Stats screen showed raw translation keys instead of text due to a duplicate locale block (#27)',
       'Edit stats sheet now scrolls fully instead of clipping the stat list at the bottom (#32)',
@@ -379,9 +377,7 @@ export const CHANGELOG: ChangelogEntry[] = [
   },
   {
     version: '1.6.0',
-    added: [
-      "A 'What's New' screen — tap the app version 3 times in Settings to see it",
-    ],
+    added: ["A 'What's New' screen — tap the app version 3 times in Settings to see it"],
     internal: [
       'Internal cleanup: deduplicated store logic, memoized standings calculations, and moved every component into its own folder with tests/stories alongside it',
     ],

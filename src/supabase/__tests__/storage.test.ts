@@ -57,9 +57,7 @@ const makeUploadFetchResponse = (ok = true) => ({
 describe('uploadMediaItem', () => {
   it('reads the file via arrayBuffer(), never via blob()', async () => {
     const localResponse = makeLocalFetchResponse();
-    mockFetch
-      .mockResolvedValueOnce(localResponse)
-      .mockResolvedValueOnce(makeUploadFetchResponse());
+    mockFetch.mockResolvedValueOnce(localResponse).mockResolvedValueOnce(makeUploadFetchResponse());
 
     await uploadMediaItem('file://photo.jpg', 'image');
 
@@ -76,7 +74,9 @@ describe('uploadMediaItem', () => {
     await uploadMediaItem('file://photo.jpg', 'image');
 
     const [uploadUrl, uploadOpts] = mockFetch.mock.calls[1];
-    expect(uploadUrl).toMatch(/https:\/\/project\.supabase\.co\/storage\/v1\/object\/match-media\//);
+    expect(uploadUrl).toMatch(
+      /https:\/\/project\.supabase\.co\/storage\/v1\/object\/match-media\//,
+    );
     expect(uploadOpts.method).toBe('POST');
     expect(uploadOpts.headers['Authorization']).toBe('Bearer token-abc');
     expect(uploadOpts.headers['apikey']).toBe('anon-key');
@@ -150,7 +150,9 @@ describe('uploadMediaItem', () => {
 
 describe('uploadMediaItems', () => {
   it('passes an already-remote item through unchanged, without attempting an upload', async () => {
-    const result = await uploadMediaItems([{ uri: 'https://cdn.example.com/existing.jpg', type: 'image' }]);
+    const result = await uploadMediaItems([
+      { uri: 'https://cdn.example.com/existing.jpg', type: 'image' },
+    ]);
 
     expect(result).toEqual([{ uri: 'https://cdn.example.com/existing.jpg', type: 'image' }]);
     expect(mockFetch).not.toHaveBeenCalled();
@@ -186,7 +188,9 @@ describe('uploadMediaItems', () => {
     const badBuffer = new ArrayBuffer(16);
     mockFetch.mockImplementation((url: string, opts?: any) => {
       if (!opts) {
-        return Promise.resolve(makeLocalFetchResponse(url.includes('ok.jpg') ? okBuffer : badBuffer));
+        return Promise.resolve(
+          makeLocalFetchResponse(url.includes('ok.jpg') ? okBuffer : badBuffer),
+        );
       }
       return Promise.resolve(makeUploadFetchResponse(opts.body === okBuffer));
     });
@@ -251,7 +255,9 @@ describe('deleteStorageFolder', () => {
 
     await deleteStorageFolder('tour-1/matchday-2026-07-03_1430');
 
-    expect(mockList).toHaveBeenCalledWith('user-123/tour-1/matchday-2026-07-03_1430', { limit: 1000 });
+    expect(mockList).toHaveBeenCalledWith('user-123/tour-1/matchday-2026-07-03_1430', {
+      limit: 1000,
+    });
     expect(mockRemove).toHaveBeenCalledWith([
       'user-123/tour-1/matchday-2026-07-03_1430/a.jpg',
       'user-123/tour-1/matchday-2026-07-03_1430/b.jpg',
@@ -259,7 +265,8 @@ describe('deleteStorageFolder', () => {
   });
 
   it('recurses into nested pseudo-folders (id === null) before removing', async () => {
-    const mockList = jest.fn()
+    const mockList = jest
+      .fn()
       .mockResolvedValueOnce({
         data: [{ name: 'match_2-1_2026-07-03_1432', id: null }],
         error: null,
@@ -330,16 +337,24 @@ describe('uploadTeamLogo', () => {
 describe('deleteMediaItem', () => {
   it('calls storage.remove with the extracted path', async () => {
     const mockRemove = jest.fn().mockResolvedValue({ error: null });
-    (supabase.storage.from as jest.Mock).mockReturnValue({ remove: mockRemove, getPublicUrl: jest.fn() });
+    (supabase.storage.from as jest.Mock).mockReturnValue({
+      remove: mockRemove,
+      getPublicUrl: jest.fn(),
+    });
 
-    await deleteMediaItem('https://project.supabase.co/storage/v1/object/public/match-media/user-123/file.jpg');
+    await deleteMediaItem(
+      'https://project.supabase.co/storage/v1/object/public/match-media/user-123/file.jpg',
+    );
 
     expect(mockRemove).toHaveBeenCalledWith(['user-123/file.jpg']);
   });
 
   it('skips deletion for local URIs', async () => {
     const mockRemove = jest.fn();
-    (supabase.storage.from as jest.Mock).mockReturnValue({ remove: mockRemove, getPublicUrl: jest.fn() });
+    (supabase.storage.from as jest.Mock).mockReturnValue({
+      remove: mockRemove,
+      getPublicUrl: jest.fn(),
+    });
 
     await deleteMediaItem('file://local.jpg');
     expect(mockRemove).not.toHaveBeenCalled();

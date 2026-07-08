@@ -44,8 +44,12 @@ export function SegmentedControl<T extends string>({
               style={[
                 isPill ? styles.textPill : styles.textBoxed,
                 active
-                  ? (isPill ? styles.textPillActive : styles.textBoxedActive)
-                  : (isPill ? styles.textPillInactive : null),
+                  ? isPill
+                    ? styles.textPillActive
+                    : styles.textBoxedActive
+                  : isPill
+                    ? styles.textPillInactive
+                    : null,
               ]}
             >
               {opt.label}

@@ -1,9 +1,19 @@
 import React from 'react';
-import { View, Text, Modal, Pressable, TextInput, TouchableOpacity, ScrollView, FlatList, Platform } from 'react-native';
+import {
+  View,
+  Text,
+  Modal,
+  Pressable,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  FlatList,
+  Platform,
+} from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Colors, useColors } from '@/theme';
 import { TeamBadge } from '@/components';
-import { Team } from '@/store/types';
+import { type Team } from '@/store/types';
 import { makeStyles } from './setup.styles';
 
 const PLAYER_COLORS = Colors.player;
@@ -82,8 +92,14 @@ export function AddPlayerSheet({
             />
           </View>
           <View style={styles.addPlayerFormGroup}>
-            <Text style={styles.addPlayerFormLabel}>{t('setup.form.defaultTeam').toUpperCase()}</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.addPlayerTeamPicker}>
+            <Text style={styles.addPlayerFormLabel}>
+              {t('setup.form.defaultTeam').toUpperCase()}
+            </Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.addPlayerTeamPicker}
+            >
               {teams.map((team) => (
                 <TouchableOpacity
                   key={team.code}
@@ -98,7 +114,9 @@ export function AddPlayerSheet({
                   activeOpacity={0.8}
                 >
                   <TeamBadge teamCode={team.code} size="md" />
-                  <Text style={styles.addPlayerTeamName} numberOfLines={1}>{team.short}</Text>
+                  <Text style={styles.addPlayerTeamName} numberOfLines={1}>
+                    {team.short}
+                  </Text>
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -131,7 +149,11 @@ export function AddPlayerSheet({
             <Text style={styles.addPlayerCancelText}>{t('common.cancel').toUpperCase()}</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.doneBtn, { flex: 2, marginTop: 0 }, !name.trim() && styles.doneBtnDisabled]}
+            style={[
+              styles.doneBtn,
+              { flex: 2, marginTop: 0 },
+              !name.trim() && styles.doneBtnDisabled,
+            ]}
             onPress={onSubmit}
             disabled={!name.trim()}
             activeOpacity={0.85}
@@ -215,11 +237,7 @@ export function AssignTeamSheet({
             );
           }}
         />
-        <TouchableOpacity
-          style={styles.doneBtn}
-          onPress={onClose}
-          activeOpacity={0.85}
-        >
+        <TouchableOpacity style={styles.doneBtn} onPress={onClose} activeOpacity={0.85}>
           <Text style={styles.doneBtnText}>{t('common.done').toUpperCase()}</Text>
         </TouchableOpacity>
         {Platform.OS === 'ios' && <View style={{ height: 16 }} />}
@@ -305,10 +323,7 @@ export function ManageTeamsSheet({
               autoCorrect={false}
             />
             <TouchableOpacity
-              style={[
-                styles.addTeamBtn,
-                !newTeamName.trim() && styles.addTeamBtnDisabled,
-              ]}
+              style={[styles.addTeamBtn, !newTeamName.trim() && styles.addTeamBtnDisabled]}
               onPress={onAddTeam}
               disabled={!newTeamName.trim()}
               activeOpacity={0.8}
@@ -325,11 +340,7 @@ export function ManageTeamsSheet({
           </View>
           <View style={{ height: 20 }} />
         </ScrollView>
-        <TouchableOpacity
-          style={styles.doneBtn}
-          onPress={onClose}
-          activeOpacity={0.85}
-        >
+        <TouchableOpacity style={styles.doneBtn} onPress={onClose} activeOpacity={0.85}>
           <Text style={styles.doneBtnText}>{t('common.done').toUpperCase()}</Text>
         </TouchableOpacity>
         {Platform.OS === 'ios' && <View style={{ height: 16 }} />}

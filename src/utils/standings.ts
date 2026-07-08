@@ -1,4 +1,4 @@
-import { Match, MatchResult } from '../store/types';
+import { type Match, type MatchResult } from '../store/types';
 
 export interface Standing {
   playerId: string;
@@ -22,14 +22,9 @@ interface H2HStats {
   gf: number;
 }
 
-function calcH2HGroup(
-  group: Standing[],
-  allMatches: Match[],
-): Map<string, H2HStats> {
+function calcH2HGroup(group: Standing[], allMatches: Match[]): Map<string, H2HStats> {
   const groupIds = new Set(group.map((s) => s.playerId));
-  const h2hMatches = allMatches.filter(
-    (m) => groupIds.has(m.aId) && groupIds.has(m.bId),
-  );
+  const h2hMatches = allMatches.filter((m) => groupIds.has(m.aId) && groupIds.has(m.bId));
 
   const map = new Map<string, H2HStats>();
   for (const s of group) {
@@ -191,14 +186,8 @@ export function isTopTied(standings: Standing[], allMatches: Match[]): boolean {
   return ha.pts === hb.pts && ha.gd === hb.gd && ha.gf === hb.gf;
 }
 
-export function getFormChips(
-  matches: Match[],
-  playerId: string,
-  count = 3,
-): MatchResult[] {
-  const relevant = matches
-    .filter((m) => m.aId === playerId || m.bId === playerId)
-    .slice(-count);
+export function getFormChips(matches: Match[], playerId: string, count = 3): MatchResult[] {
+  const relevant = matches.filter((m) => m.aId === playerId || m.bId === playerId).slice(-count);
 
   return relevant.map((m) => {
     const isA = m.aId === playerId;

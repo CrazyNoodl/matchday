@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleProp, Text, View, ViewStyle } from 'react-native';
+import { type StyleProp, Text, View, type ViewStyle } from 'react-native';
 import { useColors } from '@/theme';
 import { Avatar } from '@/components/Avatar';
 import { makeStyles } from './PlayerRankCard.styles';
@@ -48,10 +48,7 @@ export const PlayerRankCard = React.memo(function PlayerRankCard({
       ]}
     >
       <View
-        style={[
-          styles.medalBadge,
-          { backgroundColor: medal ? medal.badgeBg : colors.bg.elevated },
-        ]}
+        style={[styles.medalBadge, { backgroundColor: medal ? medal.badgeBg : colors.bg.elevated }]}
       >
         <Text style={[styles.medalText, { color: medal ? medal.badgeColor : colors.text.muted }]}>
           {rank}

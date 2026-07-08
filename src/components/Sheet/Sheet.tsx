@@ -41,7 +41,15 @@ interface SheetProps {
 // Open/close are driven imperatively via ref (snapToIndex/close), not the
 // declarative `index` prop — the declarative path was unreliable for
 // closing the sheet from a button (e.g. Cancel) in this app.
-export function Sheet({ visible, onClose, children, snapToMax, disableClose = false, keyboardBehavior = 'interactive', avoidKeyboard = false }: SheetProps) {
+export function Sheet({
+  visible,
+  onClose,
+  children,
+  snapToMax,
+  disableClose = false,
+  keyboardBehavior = 'interactive',
+  avoidKeyboard = false,
+}: SheetProps) {
   const colors = useColors();
   const ref = useRef<BottomSheet>(null);
   const [height, setHeight] = useState(MIN_HEIGHT);
@@ -64,10 +72,13 @@ export function Sheet({ visible, onClose, children, snapToMax, disableClose = fa
     }
   }, [visible]);
 
-  const handleLayout = useCallback((event: LayoutChangeEvent) => {
-    const measured = event.nativeEvent.layout.height;
-    setHeight(Math.min(Math.max(measured + bottomInset, MIN_HEIGHT), MAX_HEIGHT));
-  }, [bottomInset]);
+  const handleLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      const measured = event.nativeEvent.layout.height;
+      setHeight(Math.min(Math.max(measured + bottomInset, MIN_HEIGHT), MAX_HEIGHT));
+    },
+    [bottomInset],
+  );
 
   const renderBackdrop = useCallback(
     (props: BottomSheetBackdropProps) => (
@@ -82,9 +93,7 @@ export function Sheet({ visible, onClose, children, snapToMax, disableClose = fa
     [disableClose],
   );
 
-  const snapPoint = snapToMax
-    ? MAX_HEIGHT
-    : Math.min(height + keyboardHeight, MAX_HEIGHT);
+  const snapPoint = snapToMax ? MAX_HEIGHT : Math.min(height + keyboardHeight, MAX_HEIGHT);
 
   return (
     <BottomSheet
@@ -99,12 +108,21 @@ export function Sheet({ visible, onClose, children, snapToMax, disableClose = fa
       backdropComponent={renderBackdrop}
       backgroundStyle={{ backgroundColor: colors.bg.sheet }}
       handleIndicatorStyle={{ backgroundColor: colors.border.strong }}
-      onClose={disableClose ? undefined : () => {
-        if (!closedExternallyRef.current) onClose();
-        closedExternallyRef.current = false;
-      }}
+      onClose={
+        disableClose
+          ? undefined
+          : () => {
+              if (!closedExternallyRef.current) onClose();
+              closedExternallyRef.current = false;
+            }
+      }
     >
-      {everOpened && (snapToMax ? children : <BottomSheetView onLayout={handleLayout}>{children}</BottomSheetView>)}
+      {everOpened &&
+        (snapToMax ? (
+          children
+        ) : (
+          <BottomSheetView onLayout={handleLayout}>{children}</BottomSheetView>
+        ))}
     </BottomSheet>
   );
 }

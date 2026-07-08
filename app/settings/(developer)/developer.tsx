@@ -49,7 +49,9 @@ export default function DeveloperScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionHeader}>{t('developer.dataImport.section').toUpperCase()}</Text>
+          <Text style={styles.sectionHeader}>
+            {t('developer.dataImport.section').toUpperCase()}
+          </Text>
           <View style={styles.card}>
             <DevRow
               icon="📥"
@@ -61,7 +63,9 @@ export default function DeveloperScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionHeader}>{t('developer.aiExperiments.section').toUpperCase()}</Text>
+          <Text style={styles.sectionHeader}>
+            {t('developer.aiExperiments.section').toUpperCase()}
+          </Text>
           <View style={styles.card}>
             <DevRow
               icon="🔬"
@@ -73,7 +77,9 @@ export default function DeveloperScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionHeader}>{t('developer.imagePipeline.section').toUpperCase()}</Text>
+          <Text style={styles.sectionHeader}>
+            {t('developer.imagePipeline.section').toUpperCase()}
+          </Text>
           <View style={styles.card}>
             <DevRow
               icon="🖼️"
@@ -87,4 +93,3 @@ export default function DeveloperScreen() {
     </SafeAreaView>
   );
 }
-

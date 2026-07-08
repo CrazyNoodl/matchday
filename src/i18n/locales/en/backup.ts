@@ -1,8 +1,10 @@
 const backup = {
   title: 'Backup & Restore',
   infoTitle: 'Local JSON backup',
-  infoDesc: 'Creates a snapshot of your players, teams, and tournaments as a file on this device — independent of cloud sync.',
-  mediaLimitationNote: 'Player photos, team logos, and match photos/videos are not included in this backup.',
+  infoDesc:
+    'Creates a snapshot of your players, teams, and tournaments as a file on this device — independent of cloud sync.',
+  mediaLimitationNote:
+    'Player photos, team logos, and match photos/videos are not included in this backup.',
   demoModeWarning: 'Exit Demo Mode in Settings before creating or restoring a backup.',
   createSection: 'Create',
   createBtn: 'Create Backup',
@@ -23,7 +25,8 @@ const backup = {
   deleteConfirmTitle: 'Delete backup?',
   deleteConfirmDesc: 'This only removes the file from this device.',
   importConfirmTitle: 'Replace all local data?',
-  importConfirmDesc: 'This replaces every player, team, and tournament on this device with the contents of this backup, and — if cloud sync is enabled — overwrites your cloud data to match. It is not a merge, and cannot be undone.',
+  importConfirmDesc:
+    'This replaces every player, team, and tournament on this device with the contents of this backup, and — if cloud sync is enabled — overwrites your cloud data to match. It is not a merge, and cannot be undone.',
   importConfirmBtn: 'Replace',
   error: {
     invalidFormat: 'This file is not a valid Matchday backup.',

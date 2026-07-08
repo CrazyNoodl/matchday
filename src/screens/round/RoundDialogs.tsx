@@ -3,8 +3,8 @@ import { View, Text, Modal, TouchableOpacity } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useColors } from '@/theme';
 import { Avatar, ConfettiPiece, ConfirmDialog } from '@/components';
-import { Player } from '@/store/types';
-import { Standing } from '@/utils/standings';
+import { type Player } from '@/store/types';
+import { type Standing } from '@/utils/standings';
 import { makeDialogStyles, makeWinnerStyles } from './RoundDialogs.styles';
 
 interface DiscardMatchDialogProps {
@@ -57,7 +57,13 @@ interface EndRoundDialogProps {
   leaderName: string;
 }
 
-export function EndRoundDialog({ visible, onClose, onConfirm, leader, leaderName }: EndRoundDialogProps) {
+export function EndRoundDialog({
+  visible,
+  onClose,
+  onConfirm,
+  leader,
+  leaderName,
+}: EndRoundDialogProps) {
   const { t } = useTranslation();
 
   return (
@@ -100,7 +106,9 @@ export function NeedEqualDialog({ visible, onClose, standings, players }: NeedEq
           <View key={s.playerId} style={dialogStyles.equalRow}>
             <Avatar playerId={s.playerId} size="sm" />
             <Text style={dialogStyles.equalName}>{player?.nick ?? player?.name}</Text>
-            <Text style={dialogStyles.equalCount}>{s.played} {t('common.games')}</Text>
+            <Text style={dialogStyles.equalCount}>
+              {s.played} {t('common.games')}
+            </Text>
           </View>
         );
       })}
@@ -115,30 +123,46 @@ interface WinnerCelebrationModalProps {
   winner: Player | null | undefined;
 }
 
-export function WinnerCelebrationModal({ visible, onDone, winnerId, winner }: WinnerCelebrationModalProps) {
+export function WinnerCelebrationModal({
+  visible,
+  onDone,
+  winnerId,
+  winner,
+}: WinnerCelebrationModalProps) {
   const { t } = useTranslation();
   const colors = useColors();
   const winnerStyles = makeWinnerStyles(colors);
 
   return (
-    <Modal visible={visible} transparent animationType="fade" statusBarTranslucent onRequestClose={onDone}>
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      statusBarTranslucent
+      onRequestClose={onDone}
+    >
       <View style={winnerStyles.overlay}>
         {/* Confetti only for winner, not draw */}
-        {winnerId && Array.from({ length: 30 }).map((_, i) => (
-          <ConfettiPiece key={i} delay={i * 80} />
-        ))}
+        {winnerId &&
+          Array.from({ length: 30 }).map((_, i) => <ConfettiPiece key={i} delay={i * 80} />)}
 
         <View style={winnerStyles.content}>
           {winnerId ? (
             <>
-              <Text style={winnerStyles.matchDayLabel}>{t('matchday.winner.winnerLabel').toUpperCase()}</Text>
+              <Text style={winnerStyles.matchDayLabel}>
+                {t('matchday.winner.winnerLabel').toUpperCase()}
+              </Text>
               <Text style={winnerStyles.trophyEmoji}>🏆</Text>
               <Avatar playerId={winnerId} size="xl" />
-              <Text style={winnerStyles.winnerName}>{winner?.nick ?? winner?.name ?? t('common.unknown')}</Text>
+              <Text style={winnerStyles.winnerName}>
+                {winner?.nick ?? winner?.name ?? t('common.unknown')}
+              </Text>
             </>
           ) : (
             <>
-              <Text style={winnerStyles.matchDayLabel}>{t('matchday.winner.drawLabel').toUpperCase()}</Text>
+              <Text style={winnerStyles.matchDayLabel}>
+                {t('matchday.winner.drawLabel').toUpperCase()}
+              </Text>
               <Text style={winnerStyles.trophyEmoji}>🤝</Text>
               <Text style={winnerStyles.winnerName}>{t('matchday.winner.draw').toUpperCase()}</Text>
             </>

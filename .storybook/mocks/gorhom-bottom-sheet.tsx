@@ -62,19 +62,34 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(function Bottom
   return (
     <>
       <View
-        style={[fixed, { top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.65)' }]}
+        style={[
+          fixed,
+          { top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.65)' },
+        ]}
         onTouchEnd={close}
       />
       <View
         style={[
           fixed,
-          { left: 0, right: 0, bottom: 0, borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: 'hidden' },
+          {
+            left: 0,
+            right: 0,
+            bottom: 0,
+            borderTopLeftRadius: 20,
+            borderTopRightRadius: 20,
+            overflow: 'hidden',
+          },
           backgroundStyle,
           typeof height === 'number' ? { height } : null,
           style,
         ]}
       >
-        <View style={[{ alignSelf: 'center', width: 36, height: 4, borderRadius: 2, marginVertical: 8 }, handleIndicatorStyle]} />
+        <View
+          style={[
+            { alignSelf: 'center', width: 36, height: 4, borderRadius: 2, marginVertical: 8 },
+            handleIndicatorStyle,
+          ]}
+        />
         {children}
       </View>
     </>

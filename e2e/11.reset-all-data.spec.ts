@@ -8,7 +8,9 @@ import { test, expect, createTeamViaUI, createPlayerViaUI } from './fixtures';
 // shortcut — are exactly the behavior that must not regress.
 
 test.describe('Reset All Data', () => {
-  test('confirm button is disabled during the 5s cooldown and does nothing if clicked', async ({ authedPage: page }) => {
+  test('confirm button is disabled during the 5s cooldown and does nothing if clicked', async ({
+    authedPage: page,
+  }) => {
     await page.goto('/settings');
     await page.waitForLoadState('networkidle');
 
@@ -22,7 +24,9 @@ test.describe('Reset All Data', () => {
     await expect(page.getByText(/Reset All Data\? \(\d\)/)).toBeVisible();
   });
 
-  test('"Backup My Data First" closes the dialog and navigates to Backup & Restore', async ({ authedPage: page }) => {
+  test('"Backup My Data First" closes the dialog and navigates to Backup & Restore', async ({
+    authedPage: page,
+  }) => {
     await page.goto('/settings');
     await page.waitForLoadState('networkidle');
 
@@ -35,7 +39,9 @@ test.describe('Reset All Data', () => {
     await expect(page.getByText(/Reset All Data\? \(\d\)/)).not.toBeVisible();
   });
 
-  test('confirming after the cooldown wipes local tournament data and returns home', async ({ authedPage: page }) => {
+  test('confirming after the cooldown wipes local tournament data and returns home', async ({
+    authedPage: page,
+  }) => {
     await createTeamViaUI(page, 'Liverpool', 'LIV');
     await createPlayerViaUI(page, 'Alice', 'LIV');
 

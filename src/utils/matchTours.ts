@@ -1,4 +1,4 @@
-import { Match } from '@/store/types';
+import { type Match } from '@/store/types';
 
 export interface TourGroup {
   tourNumber: number;

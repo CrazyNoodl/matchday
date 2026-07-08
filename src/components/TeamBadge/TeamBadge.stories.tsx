@@ -9,12 +9,12 @@ import { Colors } from '../../theme/colors';
 // The store uses localStorage on web so this is safe in Storybook.
 const MOCK_TEAMS = [
   { code: 'MCI', name: 'Manchester City', short: 'MCI', color: Colors.team[0] },
-  { code: 'BAR', name: 'FC Barcelona',    short: 'BAR', color: Colors.team[1] },
-  { code: 'RMA', name: 'Real Madrid',     short: 'RMA', color: Colors.team[2] },
-  { code: 'LIV', name: 'Liverpool',       short: 'LIV', color: Colors.team[3] },
-  { code: 'PSG', name: 'PSG',             short: 'PSG', color: Colors.team[4] },
-  { code: 'JUV', name: 'Juventus',        short: 'JUV', color: Colors.team[5] },
-  { code: 'ACM', name: 'AC Milan',        short: 'ACM', color: Colors.team[6] },
+  { code: 'BAR', name: 'FC Barcelona', short: 'BAR', color: Colors.team[1] },
+  { code: 'RMA', name: 'Real Madrid', short: 'RMA', color: Colors.team[2] },
+  { code: 'LIV', name: 'Liverpool', short: 'LIV', color: Colors.team[3] },
+  { code: 'PSG', name: 'PSG', short: 'PSG', color: Colors.team[4] },
+  { code: 'JUV', name: 'Juventus', short: 'JUV', color: Colors.team[5] },
+  { code: 'ACM', name: 'AC Milan', short: 'ACM', color: Colors.team[6] },
 ];
 
 const withTeams: Decorator = (Story) => {

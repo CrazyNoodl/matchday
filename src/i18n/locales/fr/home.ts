@@ -9,7 +9,8 @@ const home = {
   currentLeader: 'Leader actuel',
   noLeaderTie: 'Aucun leader — égalité',
   noActiveTournament: 'Aucun tournoi actif',
-  noActiveTournamentDesc: 'Commencez un nouveau tournoi pour suivre les classements et l\'historique',
+  noActiveTournamentDesc:
+    "Commencez un nouveau tournoi pour suivre les classements et l'historique",
   startNewTournament: 'Nouveau tournoi',
   newMatchDay: 'Nouvelle journée',
   continueMatchDay: 'Continuer',

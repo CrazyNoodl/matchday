@@ -18,7 +18,13 @@ const COLUMNS: StandingsColumn[] = [
 const PLAYERS: Player[] = [
   { id: 'p1', name: 'Artem Rudenko', nick: 'Atom', color: Colors.player[0], teamCode: 'MCI' },
   { id: 'p2', name: 'Oleh Bondar', color: Colors.player[1], teamCode: 'BAR' },
-  { id: 'p3', name: 'A Player With A Really Long Name', nick: 'Longname', color: Colors.player[2], teamCode: 'RMA' },
+  {
+    id: 'p3',
+    name: 'A Player With A Really Long Name',
+    nick: 'Longname',
+    color: Colors.player[2],
+    teamCode: 'RMA',
+  },
 ];
 
 const STANDINGS: Standing[] = [

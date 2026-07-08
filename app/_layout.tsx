@@ -30,9 +30,13 @@ import { useIsOnline } from '@/hooks/useIsOnline';
 import type { Session } from '@supabase/supabase-js';
 
 (Text as any).defaultProps = { ...((Text as any).defaultProps ?? {}), allowFontScaling: false };
-(TextInput as any).defaultProps = { ...((TextInput as any).defaultProps ?? {}), allowFontScaling: false };
+(TextInput as any).defaultProps = {
+  ...((TextInput as any).defaultProps ?? {}),
+  allowFontScaling: false,
+};
 
-const BASE_URL: string = (Constants.expoConfig?.experiments as Record<string, string> | undefined)?.baseUrl ?? '';
+const BASE_URL: string =
+  (Constants.expoConfig?.experiments as Record<string, string> | undefined)?.baseUrl ?? '';
 
 function AppErrorBoundary({ children }: { children: React.ReactNode }) {
   return (
@@ -125,7 +129,14 @@ function AppContent({
 
   if (!fontsLoaded || session === undefined) {
     return (
-      <View style={{ flex: 1, backgroundColor: colors.bg.base, alignItems: 'center', justifyContent: 'center' }}>
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: colors.bg.base,
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
         <ActivityIndicator color={colors.accent.green} size="large" />
       </View>
     );
@@ -143,7 +154,11 @@ function AppContent({
     }
     return (
       <AppErrorBoundary>
-        <LoginScreen onSuccess={() => {/* session update via onAuthStateChange */}} />
+        <LoginScreen
+          onSuccess={() => {
+            /* session update via onAuthStateChange */
+          }}
+        />
       </AppErrorBoundary>
     );
   }
@@ -157,7 +172,10 @@ function AppContent({
             <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
             <meta name="apple-mobile-web-app-title" content="Matchday" />
             <link rel="apple-touch-icon" href={`${BASE_URL}/apple-touch-icon.png`} />
-            <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+            <meta
+              name="viewport"
+              content="width=device-width, initial-scale=1, viewport-fit=cover"
+            />
           </Head>
         )}
         <SyncManager />
@@ -220,7 +238,9 @@ export default function RootLayout() {
   useEffect(() => {
     if (!supabaseConfigured) return;
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => setSession(s));
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, s) => setSession(s));
     return () => subscription.unsubscribe();
   }, []);
 
