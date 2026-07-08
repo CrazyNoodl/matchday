@@ -10,6 +10,13 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.21',
+    changed: [
+      'Settings screen redesigned: account card up top (email + Sign Out), tournament/players/teams/backup grouped under "Play," display/language under "Personalize," and about/demo mode/developer tools under a plain "More" list',
+      '"Show nicknames" and "Show team logos" moved to their own "Coming soon" section on Display settings and disabled, since neither is fully wired up yet',
+    ],
+  },
+  {
     version: '1.9.20',
     added: [
       'Reset All Data confirmation now has a "Backup My Data First" shortcut straight to the backup screen',
