@@ -10,6 +10,12 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.28',
+    added: [
+      'Tournament screen: a sort toggle next to "Played rounds" switches the list between newest-first (default) and oldest-first',
+    ],
+  },
+  {
     version: '1.9.27',
     fixed: [
       'Match detail → Edit stats: a low-confidence (AI-flagged) stat can now be confirmed correct by tapping its label — previously the only way to clear the flag was nudging the value with +/-, even when it was already right',
