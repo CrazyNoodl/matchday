@@ -73,6 +73,7 @@ const settings = {
     resetTitle: 'Réinitialiser les données ?',
     resetDesc:
       'Cela supprimera définitivement tous les tournois, matchs, tours et réinitialisera les joueurs et équipes par défaut.',
+    resetDisabledDemo: 'Désactivez le mode démo pour réinitialiser vos données.',
     backupFirst: "Sauvegarder d'abord mes données",
     cancel: 'Annuler',
     reset: 'Réinitialiser',

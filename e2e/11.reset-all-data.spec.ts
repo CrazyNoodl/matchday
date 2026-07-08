@@ -24,6 +24,25 @@ test.describe('Reset All Data', () => {
     await expect(page.getByText(/Reset All Data\? \(\d\)/)).toBeVisible();
   });
 
+  test('is disabled while Demo Mode is on, since it would wipe the real cloud account', async ({
+    authedPage: page,
+  }) => {
+    await page.goto('/settings');
+    await page.waitForLoadState('networkidle');
+
+    await page.getByRole('switch').first().click();
+    await expect(page).toHaveURL('/');
+
+    await page.goto('/settings');
+    await page.waitForLoadState('networkidle');
+    await expect(page.getByText('Turn off Demo Mode to reset your data.')).toBeVisible();
+
+    // Disabled TouchableOpacity must not open the confirm dialog.
+    await page.getByText('Reset', { exact: true }).first().click();
+    await expect(page.getByText(/Reset All Data\? \(\d\)/)).not.toBeVisible();
+    await expect(page).toHaveURL(/.*settings/);
+  });
+
   test('"Backup My Data First" closes the dialog and navigates to Backup & Restore', async ({
     authedPage: page,
   }) => {
