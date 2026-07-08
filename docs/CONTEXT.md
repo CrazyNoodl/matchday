@@ -33,7 +33,7 @@ closedTournaments — fully finished tournaments (hasTournament = false after cl
 ```
 
 - Once `closeTournament()` fires, `hasTournament` → false, matches move into `closedTournaments`, all edit UI disappears.
-- Stats screen (`app/stats.tsx`) aggregates ALL three layers: `closedTournaments` + `archivedRounds` + `matches`.
+- Stats screen (`app/stats.tsx`) aggregates ALL three layers: `closedTournaments` + `archivedRounds` + `matches`. The merge/union/H2H-pair logic behind this (`collectAllMatches`, `collectPlayerIds`, `buildH2HPairs`, `sumGoals`, `countMatchDaysPlayed`) is extracted into `src/utils/statsAggregation.ts` — pure functions, unit-tested in `src/utils/__tests__/statsAggregation.test.ts` — rather than left as inline `useMemo` blocks in the screen, specifically so the 3-layer merge and the H2H perspective-flip logic have real regression coverage. `app/season-stats.tsx` (single-`ClosedTournament` scope, no cross-layer merge) has its own `filterRoundsByRanked`/`countChampDaysWon` extracted the same way into `src/utils/seasonStatsAggregation.ts`, tested in `src/utils/__tests__/seasonStatsAggregation.test.ts`. **Known quirk, not fixed, flagged for a future call**: `countChampDaysWon` counts any round (including a friendly one) whose `winner` matches `champId`, but the champion itself is decided from ranked rounds only (`closeTournament()` in `tournamentSlice.ts`) — so with the season-stats INCLUDE filter set to "Friendly" or "Both", a champion's friendly-round wins can inflate "match days won" beyond what crowned them.
 - Modal system is a discriminated union in `src/store/types.ts`; all modals rendered inline in their screen, driven by `store.setModal('name')`.
 - `deletePlayer` (`src/store/slices/playersSlice.ts`) also prunes the deleted id from `tournamentPlayers`/`roundPlayers` — otherwise a deleted player who'd already been removed from their match leaves a ghost zero-stat row in `app/tournament.tsx`'s standings (which trusts `tournamentPlayers` as source of truth, no filtering against `players`).
 - Round ordinals are **not** read from a stored field at display time. `startRound()` still writes `ArchivedRound.n`, but `src/utils/roundOrdinals.ts` (`getRankedRoundOrdinals`) recomputes the ranked-only ordinal live from `archivedRounds.filter(r => r.ranked)` every render — friendly rounds consume no slot and show `–` instead of a number. This makes historical data self-correct without a migration if the numbering rule ever changes again.
@@ -68,8 +68,8 @@ Supabase Storage (`match-media` bucket) layout for new uploads:
 | Standings with H2H tiebreaker | `src/utils/standings.ts` |
 | Form chips W/D/L (last 3) | `standings.ts → getFormChips` |
 | Share Round / Share Standings as image | `src/components/ShareRoundModal/`, `src/components/ShareStandingsModal/` |
-| Stats screen — Ranking (all-time) + H2H pairs | `app/stats.tsx` |
-| Season stats | `app/season-stats.tsx` |
+| Stats screen — Ranking (all-time) + H2H pairs | `app/stats.tsx`, aggregation logic in `src/utils/statsAggregation.ts` |
+| Season stats | `app/season-stats.tsx`, aggregation logic in `src/utils/seasonStatsAggregation.ts` |
 | Archive (closed tournaments accordion) | `app/archive.tsx`, `app/archive-day.tsx` |
 | Match media: multi-select (up to 5), optimistic upload, full-screen swipeable viewer | `src/screens/match/useMatchDetail.ts`, `src/components/MediaSlider/` |
 | Photos downscaled before upload (media, stat photos, team logos) | `src/utils/imageResize.ts` |
@@ -215,7 +215,9 @@ src/supabase/sync.ts           — push/pull, deleteAllCloudData, buildSyncPaylo
 src/supabase/useSyncManager.ts — dirty-tracking, debounced push, reconnect retry
 src/hooks/useIsOnline.ts       — connectivity + Supabase reachability
 app/stats.tsx                  — Ranking + H2H tabs (all-time aggregation)
+src/utils/statsAggregation.ts  — pure aggregation behind app/stats.tsx (3-layer merge, H2H pairs)
 app/season-stats.tsx           — season-level stats screen
+src/utils/seasonStatsAggregation.ts — pure aggregation behind app/season-stats.tsx (ranked/friendly filter, champ days)
 src/store/types.ts             — all types incl. modal discriminated union
 src/store/index.ts             — Zustand store, MMKV/localStorage adapter
 docs/pitfalls.md               — read before touching i18n or Sheet+scroll
