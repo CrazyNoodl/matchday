@@ -51,6 +51,17 @@ export const Gold: Story = {
   },
 };
 
+export const Neutral: Story = {
+  name: 'Single neutral OK (info acknowledgment)',
+  args: {
+    cancel: undefined,
+    variant: 'neutral',
+    title: 'COULD NOT READ PHOTO',
+    description: "We couldn't recognize stats in this photo.",
+    confirm: { label: 'OK', onPress: () => {} },
+  },
+};
+
 export const Loading: Story = {
   name: 'Confirm loading',
   args: { confirm: { label: 'Delete', onPress: () => {}, loading: true } },

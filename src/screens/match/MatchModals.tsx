@@ -316,128 +316,58 @@ export function MatchModals({ d }: MatchModalsProps) {
       </Modal>
 
       {/* ── CLEAR STATS DIALOG ── */}
-      <Modal
+      <ConfirmDialog
         visible={d.showClearStats}
-        transparent
-        animationType="fade"
         onRequestClose={() => d.setShowClearStats(false)}
-        statusBarTranslucent
-      >
-        <View style={styles.dialogOverlay}>
-          <View style={styles.dialog}>
-            <Text style={styles.dialogTitle}>{t('matchDetail.clearStats.title').toUpperCase()}</Text>
-            <Text style={styles.dialogDesc}>{t('matchDetail.clearStats.desc')}</Text>
-            <View style={styles.dialogActions}>
-              <TouchableOpacity
-                style={styles.dialogCancel}
-                onPress={() => d.setShowClearStats(false)}
-                activeOpacity={0.75}
-              >
-                <Text style={styles.dialogCancelText}>{t('matchday.dialogs.cancel')}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.dialogConfirm}
-                onPress={() => {
-                  if (match) d.store.updateMatchStats(match.id, undefined);
-                  d.setShowClearStats(false);
-                }}
-                activeOpacity={0.85}
-              >
-                <Text style={styles.dialogConfirmText}>{t('matchDetail.clearStats.confirm')}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+        variant="destructive"
+        title={t('matchDetail.clearStats.title').toUpperCase()}
+        description={t('matchDetail.clearStats.desc')}
+        cancel={{ label: t('matchday.dialogs.cancel'), onPress: () => d.setShowClearStats(false) }}
+        confirm={{
+          label: t('matchDetail.clearStats.confirm'),
+          onPress: () => {
+            if (match) d.store.updateMatchStats(match.id, undefined);
+            d.setShowClearStats(false);
+          },
+        }}
+      />
 
       {/* ── SWAP SIDES DIALOG ── */}
-      <Modal
+      <ConfirmDialog
         visible={d.showSwapSides}
-        transparent
-        animationType="fade"
         onRequestClose={() => d.setShowSwapSides(false)}
-        statusBarTranslucent
-      >
-        <View style={styles.dialogOverlay}>
-          <View style={styles.dialog}>
-            <Text style={styles.dialogTitle}>{t('matchDetail.swapSidesDialog.title').toUpperCase()}</Text>
-            <Text style={styles.dialogDesc}>
-              {t('matchDetail.swapSidesDialog.desc')}
-            </Text>
-            <View style={styles.dialogActions}>
-              <TouchableOpacity
-                style={styles.dialogCancel}
-                onPress={() => d.setShowSwapSides(false)}
-                activeOpacity={0.75}
-              >
-                <Text style={styles.dialogCancelText}>{t('matchday.dialogs.cancel')}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.dialogConfirm}
-                onPress={() => {
-                  if (match) d.store.swapMatchSides(match.id);
-                  d.setShowSwapSides(false);
-                }}
-                activeOpacity={0.85}
-              >
-                <Text style={styles.dialogConfirmText}>{t('matchDetail.swapSidesDialog.confirm')}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
-
+        variant="destructive"
+        title={t('matchDetail.swapSidesDialog.title').toUpperCase()}
+        description={t('matchDetail.swapSidesDialog.desc')}
+        cancel={{ label: t('matchday.dialogs.cancel'), onPress: () => d.setShowSwapSides(false) }}
+        confirm={{
+          label: t('matchDetail.swapSidesDialog.confirm'),
+          onPress: () => {
+            if (match) d.store.swapMatchSides(match.id);
+            d.setShowSwapSides(false);
+          },
+        }}
+      />
 
       {/* ── OCR FAILED ── */}
-      <Modal
+      <ConfirmDialog
         visible={d.showOcrFailed}
-        transparent
-        animationType="fade"
         onRequestClose={() => d.setShowOcrFailed(false)}
-        statusBarTranslucent
-      >
-        <View style={styles.dialogOverlay}>
-          <View style={styles.dialog}>
-            <Text style={styles.dialogTitle}>{t('matchDetail.ocr.failed')}</Text>
-            <Text style={styles.dialogDesc}>{t('matchDetail.ocr.failedDesc')}</Text>
-            <View style={styles.dialogActions}>
-              <TouchableOpacity
-                style={styles.dialogCancel}
-                onPress={() => d.setShowOcrFailed(false)}
-                activeOpacity={0.75}
-              >
-                <Text style={styles.dialogCancelText}>{t('common.ok')}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+        variant="neutral"
+        title={t('matchDetail.ocr.failed')}
+        description={t('matchDetail.ocr.failedDesc')}
+        confirm={{ label: t('common.ok'), onPress: () => d.setShowOcrFailed(false) }}
+      />
 
       {/* ── OCR INVALID PHOTO (recognized too few params to be a real stats screen) ── */}
-      <Modal
+      <ConfirmDialog
         visible={d.showInvalidStatsPhoto}
-        transparent
-        animationType="fade"
         onRequestClose={() => d.setShowInvalidStatsPhoto(false)}
-        statusBarTranslucent
-      >
-        <View style={styles.dialogOverlay}>
-          <View style={styles.dialog}>
-            <Text style={styles.dialogTitle}>{t('matchDetail.ocr.invalidPhoto')}</Text>
-            <Text style={styles.dialogDesc}>{t('matchDetail.ocr.invalidPhotoDesc')}</Text>
-            <View style={styles.dialogActions}>
-              <TouchableOpacity
-                style={styles.dialogCancel}
-                onPress={() => d.setShowInvalidStatsPhoto(false)}
-                activeOpacity={0.75}
-              >
-                <Text style={styles.dialogCancelText}>{t('common.ok')}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
-
+        variant="neutral"
+        title={t('matchDetail.ocr.invalidPhoto')}
+        description={t('matchDetail.ocr.invalidPhotoDesc')}
+        confirm={{ label: t('common.ok'), onPress: () => d.setShowInvalidStatsPhoto(false) }}
+      />
 
       {/* ── DELETE MATCH MODAL ── */}
       <ConfirmDialog

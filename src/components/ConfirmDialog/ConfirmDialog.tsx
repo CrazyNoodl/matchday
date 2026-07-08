@@ -10,7 +10,7 @@ export interface ConfirmDialogAction {
   disabled?: boolean;
 }
 
-export type ConfirmDialogVariant = 'default' | 'destructive' | 'gold';
+export type ConfirmDialogVariant = 'default' | 'destructive' | 'gold' | 'neutral';
 
 export interface ConfirmDialogProps {
   visible: boolean;
@@ -32,6 +32,7 @@ function variantBtnStyle(styles: Styles, variant: ConfirmDialogVariant): ViewSty
   switch (variant) {
     case 'destructive': return styles.confirmBtnDestructive;
     case 'gold': return styles.confirmBtnGold;
+    case 'neutral': return styles.confirmBtnNeutral;
     default: return null;
   }
 }
@@ -40,6 +41,7 @@ function variantTextStyle(styles: Styles, variant: ConfirmDialogVariant): TextSt
   switch (variant) {
     case 'destructive': return styles.confirmTextDestructive;
     case 'gold': return styles.confirmTextGold;
+    case 'neutral': return styles.confirmTextNeutral;
     default: return null;
   }
 }
@@ -48,6 +50,7 @@ function variantLoadingColor(colors: AppColors, variant: ConfirmDialogVariant): 
   switch (variant) {
     case 'destructive': return '#fff';
     case 'gold': return '#1a1200';
+    case 'neutral': return colors.text.muted;
     default: return colors.accent.greenDark;
   }
 }

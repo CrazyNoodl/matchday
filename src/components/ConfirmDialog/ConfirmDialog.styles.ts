@@ -71,6 +71,11 @@ export const makeConfirmDialogStyles = (colors: AppColors) => StyleSheet.create(
   confirmBtnGold: {
     backgroundColor: colors.accent.gold,
   },
+  confirmBtnNeutral: {
+    backgroundColor: colors.bg.elevated,
+    borderWidth: 1,
+    borderColor: colors.border.medium,
+  },
   confirmBtnDisabled: {
     opacity: 0.5,
   },
@@ -85,5 +90,9 @@ export const makeConfirmDialogStyles = (colors: AppColors) => StyleSheet.create(
   },
   confirmTextGold: {
     color: '#1a1200',
+  },
+  confirmTextNeutral: {
+    fontFamily: FontFamily.bodySemiBold,
+    color: colors.text.muted,
   },
 });
