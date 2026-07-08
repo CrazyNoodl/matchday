@@ -1,16 +1,15 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Image, ActivityIndicator, Modal } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useGoBack } from '@/utils/useGoBack';
-import { NavHeader, SectionLabel, StatsRow, GlowBackground } from '@/components';
+import { NavHeader, SectionLabel, StatsRow, GlowBackground, ConfirmDialog } from '@/components';
 import { useColors } from '@/theme';
 import { extractStatsFromPhoto, type ExtractedStat } from '@/utils/extractStats';
 import { resizeImage, OCR_PAYLOAD_MAX_DIMENSION } from '@/utils/imageResize';
 import { mergeStatArrays } from '@/utils/ocrPhotoMerge';
 import { makeStyles } from '@/screens/settings/ocr-lab/ocr-lab.styles';
-import { makeDialogStyles } from '@/screens/round/RoundDialogs.styles';
 
 interface PhotoItem {
   uri: string;
@@ -30,7 +29,6 @@ export default function OcrLabScreen() {
   const goBack = useGoBack();
   const colors = useColors();
   const styles = makeStyles(colors);
-  const dialogStyles = makeDialogStyles(colors);
   const { t } = useTranslation();
 
   const getStripeColor = (c: ExtractedStat['confidence']): string | null => {
@@ -250,21 +248,13 @@ export default function OcrLabScreen() {
         <View style={{ height: 48 }} />
       </ScrollView>
 
-      <Modal visible={showMaxPhotosDialog} transparent animationType="fade" statusBarTranslucent onRequestClose={() => setShowMaxPhotosDialog(false)}>
-        <View style={dialogStyles.overlay}>
-          <View style={dialogStyles.dialog}>
-            <Text style={dialogStyles.dialogTitle}>{t('ocrLab.maxPhotos')}</Text>
-            <Text style={dialogStyles.dialogDesc}>{t('ocrLab.removeOneFirst')}</Text>
-            <TouchableOpacity
-              style={dialogStyles.confirmBtn}
-              onPress={() => setShowMaxPhotosDialog(false)}
-              activeOpacity={0.85}
-            >
-              <Text style={dialogStyles.confirmText}>{t('common.ok')}</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+      <ConfirmDialog
+        visible={showMaxPhotosDialog}
+        onRequestClose={() => setShowMaxPhotosDialog(false)}
+        title={t('ocrLab.maxPhotos')}
+        description={t('ocrLab.removeOneFirst')}
+        confirm={{ label: t('common.ok'), onPress: () => setShowMaxPhotosDialog(false) }}
+      />
     </SafeAreaView>
   );
 }
