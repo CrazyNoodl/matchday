@@ -315,46 +315,6 @@ export const makeInputStyles = (colors: AppColors) => StyleSheet.create({
     marginTop: Spacing.lg,
     marginBottom: Spacing.lg,
   },
-  actions: {
-    flexDirection: 'row',
-    gap: Spacing.md,
-  },
-  cancelBtn: {
-    flex: 1,
-    backgroundColor: colors.bg.elevated,
-    borderRadius: Radius.md,
-    paddingVertical: Spacing.lg,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: colors.border.medium,
-  },
-  cancelText: {
-    fontFamily: FontFamily.displayBold,
-    fontSize: FontSize.base,
-    color: colors.text.muted,
-    letterSpacing: 0.4,
-  },
-  saveBtn: {
-    flex: 2,
-    backgroundColor: colors.accent.green,
-    borderRadius: Radius.md,
-    paddingVertical: Spacing.lg,
-    alignItems: 'center',
-  },
-  saveBtnDisabled: {
-    backgroundColor: colors.bg.elevated,
-    borderWidth: 1,
-    borderColor: colors.border.medium,
-  },
-  saveText: {
-    fontFamily: FontFamily.displayBold,
-    fontSize: FontSize.base,
-    color: colors.accent.greenDark,
-    letterSpacing: 0.4,
-  },
-  saveTextDisabled: {
-    color: colors.text.ghost,
-  },
 });
 
 

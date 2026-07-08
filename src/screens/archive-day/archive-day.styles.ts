@@ -189,12 +189,6 @@ export const makeStyles = (colors: AppColors) => StyleSheet.create({
     paddingTop: Spacing.lg,
     paddingBottom: Spacing['2xl'],
   },
-  dateSheetTitle: {
-    fontFamily: FontFamily.displayBold,
-    fontSize: FontSize['2xl'],
-    color: colors.text.primary,
-    letterSpacing: 0.5,
-  },
   dateInputError: {
     borderColor: colors.accent.red,
   },

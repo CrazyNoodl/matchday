@@ -3,7 +3,7 @@ import { View, Text, Modal, Pressable, StyleSheet, TouchableOpacity } from 'reac
 import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { useTranslation } from 'react-i18next';
 import { useColors } from '@/theme';
-import { Sheet } from '@/components';
+import { Sheet, SheetHeader, SheetFooter } from '@/components';
 import { makeStyles, makeMenuStyles } from './archive-day.styles';
 import { makeInputStyles } from '@/screens/tournament/tournament.styles';
 
@@ -63,7 +63,7 @@ export function EditRoundDateSheet({ visible, onClose, value, onChangeValue, err
   return (
     <Sheet visible={visible} onClose={onClose} avoidKeyboard>
       <View style={styles.dateSheet}>
-        <Text style={styles.dateSheetTitle}>{t('archive.editDate.title').toUpperCase()}</Text>
+        <SheetHeader title={t('archive.editDate.title').toUpperCase()} />
         <BottomSheetTextInput
           style={[inputStyles.input, error && styles.dateInputError]}
           value={value}
@@ -76,14 +76,12 @@ export function EditRoundDateSheet({ visible, onClose, value, onChangeValue, err
           onSubmitEditing={onSave}
         />
         {error ? <Text style={styles.dateErrorText}>{t('archive.editDate.invalid')}</Text> : null}
-        <View style={inputStyles.actions}>
-          <TouchableOpacity style={inputStyles.cancelBtn} onPress={onClose} activeOpacity={0.75}>
-            <Text style={inputStyles.cancelText}>{t('archive.editDate.cancel')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={inputStyles.saveBtn} onPress={onSave} activeOpacity={0.85}>
-            <Text style={inputStyles.saveText}>{t('archive.editDate.save')}</Text>
-          </TouchableOpacity>
-        </View>
+        <SheetFooter
+          cancelLabel={t('archive.editDate.cancel')}
+          onCancel={onClose}
+          confirmLabel={t('archive.editDate.save')}
+          onConfirm={onSave}
+        />
       </View>
     </Sheet>
   );

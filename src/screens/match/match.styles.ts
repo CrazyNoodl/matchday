@@ -300,28 +300,6 @@ export const makeStyles = (colors: AppColors) => StyleSheet.create({
     backgroundColor: colors.bg.sheet,
     paddingBottom: 32,
   },
-  sheetHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: Spacing['2xl'],
-    paddingTop: Spacing['2xl'],
-    paddingBottom: Spacing.lg,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border.default,
-  },
-  sheetTitle: {
-    fontFamily: FontFamily.display,
-    fontSize: FontSize.xl,
-    color: colors.text.primary,
-    letterSpacing: 0.5,
-  },
-  sheetSubtitle: {
-    fontFamily: FontFamily.body,
-    fontSize: FontSize.sm,
-    color: colors.text.muted,
-    textAlign: 'right',
-  },
   sheetScroll: {
     maxHeight: 360,
     paddingHorizontal: Spacing['2xl'],
@@ -457,41 +435,6 @@ export const makeStyles = (colors: AppColors) => StyleSheet.create({
     height: 5,
     borderRadius: 3,
     backgroundColor: colors.accent.yellow,
-  },
-
-  // Sheet buttons
-  sheetButtons: {
-    flexDirection: 'row',
-    paddingHorizontal: Spacing['2xl'],
-    paddingTop: Spacing.lg,
-    gap: Spacing.md,
-  },
-  cancelBtn: {
-    flex: 1,
-    height: 48,
-    borderRadius: Radius.md,
-    borderWidth: 1,
-    borderColor: colors.border.strong,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cancelBtnText: {
-    fontFamily: FontFamily.bodySemiBold,
-    fontSize: FontSize.base,
-    color: colors.text.secondary,
-  },
-  saveBtn: {
-    flex: 1,
-    height: 48,
-    borderRadius: Radius.md,
-    backgroundColor: colors.accent.green,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  saveBtnText: {
-    fontFamily: FontFamily.bodySemiBold,
-    fontSize: FontSize.base,
-    color: colors.bg.base,
   },
 
   // Media section actions

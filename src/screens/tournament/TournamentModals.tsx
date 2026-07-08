@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, Platform } from 'react-native';
 import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { useTranslation } from 'react-i18next';
 import { useColors } from '@/theme';
-import { Sheet, ConfirmDialog } from '@/components';
+import { Sheet, SheetHeader, SheetFooter, ConfirmDialog } from '@/components';
 import { makeSheetStyles, makeInputStyles } from './tournament.styles';
 
 // ---------------------------------------------------------------------------
@@ -115,7 +115,7 @@ export function EditTournamentNameSheet({
   return (
     <Sheet visible={visible} onClose={onClose} avoidKeyboard>
       <View style={sheetStyles.sheet}>
-        <Text style={sheetStyles.sheetTitle}>{t('tournament.rename.title').toUpperCase()}</Text>
+        <SheetHeader title={t('tournament.rename.title').toUpperCase()} />
         <BottomSheetTextInput
           style={inputStyles.input}
           value={value}
@@ -126,21 +126,13 @@ export function EditTournamentNameSheet({
           returnKeyType="done"
           onSubmitEditing={onSave}
         />
-        <View style={inputStyles.actions}>
-          <TouchableOpacity style={inputStyles.cancelBtn} onPress={onClose} activeOpacity={0.75}>
-            <Text style={inputStyles.cancelText}>{t('tournament.rename.cancel')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[inputStyles.saveBtn, !value.trim() && inputStyles.saveBtnDisabled]}
-            onPress={onSave}
-            disabled={!value.trim()}
-            activeOpacity={0.85}
-          >
-            <Text style={[inputStyles.saveText, !value.trim() && inputStyles.saveTextDisabled]}>
-              {t('tournament.rename.save')}
-            </Text>
-          </TouchableOpacity>
-        </View>
+        <SheetFooter
+          cancelLabel={t('tournament.rename.cancel')}
+          onCancel={onClose}
+          confirmLabel={t('tournament.rename.save')}
+          onConfirm={onSave}
+          confirmDisabled={!value.trim()}
+        />
         {Platform.OS === 'ios' && <View style={{ height: 16 }} />}
       </View>
     </Sheet>

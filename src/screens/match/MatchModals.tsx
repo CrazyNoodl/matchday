@@ -11,7 +11,7 @@ import {
 import { BottomSheetScrollView, BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { useTranslation } from 'react-i18next';
 import { useColors } from '@/theme';
-import { Sheet, MediaSlider, ConfirmDialog } from '@/components';
+import { Sheet, SheetHeader, SheetFooter, MediaSlider, ConfirmDialog } from '@/components';
 import { makeStyles } from '@/screens/match/match.styles';
 import type { MatchDetailHook } from './useMatchDetail';
 
@@ -31,10 +31,10 @@ export function MatchModals({ d }: MatchModalsProps) {
       {/* ── EDIT SCORE MODAL ── */}
       <Sheet visible={modal === 'editScore'} onClose={() => d.store.setModal(null)}>
         <View style={styles.sheet}>
-          <View style={styles.sheetHeader}>
-            <Text style={styles.sheetTitle}>{t('matchDetail.editScore.title').toUpperCase()}</Text>
-            <Text style={styles.sheetSubtitle}>{t('matchDetail.editScore.subtitle')}</Text>
-          </View>
+          <SheetHeader
+            title={t('matchDetail.editScore.title').toUpperCase()}
+            subtitle={t('matchDetail.editScore.subtitle')}
+          />
 
           <View style={styles.scoreEditRow}>
             <View style={styles.scoreEditSide}>
@@ -86,22 +86,12 @@ export function MatchModals({ d }: MatchModalsProps) {
             </View>
           </View>
 
-          <View style={styles.sheetButtons}>
-            <TouchableOpacity
-              style={styles.cancelBtn}
-              onPress={() => d.store.setModal(null)}
-              activeOpacity={0.75}
-            >
-              <Text style={styles.cancelBtnText}>{t('matchday.dialogs.cancel')}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.saveBtn}
-              onPress={d.handleSaveScore}
-              activeOpacity={0.75}
-            >
-              <Text style={styles.saveBtnText}>{t('common.save')}</Text>
-            </TouchableOpacity>
-          </View>
+          <SheetFooter
+            cancelLabel={t('matchday.dialogs.cancel')}
+            onCancel={() => d.store.setModal(null)}
+            confirmLabel={t('common.save')}
+            onConfirm={d.handleSaveScore}
+          />
         </View>
       </Sheet>
 
@@ -125,10 +115,10 @@ export function MatchModals({ d }: MatchModalsProps) {
       {/* ── EDIT STATS MODAL ── */}
       <Sheet visible={modal === 'editStats'} onClose={() => d.store.setModal(null)} snapToMax>
         <View style={styles.sheetFlex}>
-          <View style={styles.sheetHeader}>
-            <Text style={styles.sheetTitle}>{t('matchDetail.editStats.title').toUpperCase()}</Text>
-            <Text style={styles.sheetSubtitle}>{t('matchDetail.editStats.subtitle')}</Text>
-          </View>
+          <SheetHeader
+            title={t('matchDetail.editStats.title').toUpperCase()}
+            subtitle={t('matchDetail.editStats.subtitle')}
+          />
 
           <BottomSheetScrollView
             style={styles.sheetScrollFlex}
@@ -209,32 +199,22 @@ export function MatchModals({ d }: MatchModalsProps) {
             <View style={{ height: 16 }} />
           </BottomSheetScrollView>
 
-          <View style={styles.sheetButtons}>
-            <TouchableOpacity
-              style={styles.cancelBtn}
-              onPress={() => d.store.setModal(null)}
-              activeOpacity={0.75}
-            >
-              <Text style={styles.cancelBtnText}>{t('matchday.dialogs.cancel')}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.saveBtn}
-              onPress={d.handleSaveStats}
-              activeOpacity={0.75}
-            >
-              <Text style={styles.saveBtnText}>{t('common.save')}</Text>
-            </TouchableOpacity>
-          </View>
+          <SheetFooter
+            cancelLabel={t('matchday.dialogs.cancel')}
+            onCancel={() => d.store.setModal(null)}
+            confirmLabel={t('common.save')}
+            onConfirm={d.handleSaveStats}
+          />
         </View>
       </Sheet>
 
       {/* ── EDIT NOTE MODAL ── */}
       <Sheet visible={d.editingNote} onClose={() => d.setEditingNote(false)} avoidKeyboard>
         <View style={styles.sheet}>
-          <View style={styles.sheetHeader}>
-            <Text style={styles.sheetTitle}>{t('matchDetail.commentary').toUpperCase()}</Text>
-            <Text style={styles.sheetSubtitle}>{t('matchDetail.editNote.subtitle')}</Text>
-          </View>
+          <SheetHeader
+            title={t('matchDetail.commentary').toUpperCase()}
+            subtitle={t('matchDetail.editNote.subtitle')}
+          />
           <View style={styles.noteEditBody}>
             <BottomSheetTextInput
               style={styles.noteInput}
@@ -248,22 +228,12 @@ export function MatchModals({ d }: MatchModalsProps) {
             />
             <Text style={styles.noteCharCount}>{d.editNoteValue.length}/500</Text>
           </View>
-          <View style={styles.sheetButtons}>
-            <TouchableOpacity
-              style={styles.cancelBtn}
-              onPress={() => d.setEditingNote(false)}
-              activeOpacity={0.75}
-            >
-              <Text style={styles.cancelBtnText}>{t('matchday.dialogs.cancel')}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.saveBtn}
-              onPress={d.handleSaveNote}
-              activeOpacity={0.75}
-            >
-              <Text style={styles.saveBtnText}>{t('common.save')}</Text>
-            </TouchableOpacity>
-          </View>
+          <SheetFooter
+            cancelLabel={t('matchday.dialogs.cancel')}
+            onCancel={() => d.setEditingNote(false)}
+            confirmLabel={t('common.save')}
+            onConfirm={d.handleSaveNote}
+          />
         </View>
       </Sheet>
 
