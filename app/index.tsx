@@ -19,20 +19,17 @@ export default function HomeScreen() {
   const styles = makeStyles(colors);
   const router = useRouter();
   const { t } = useTranslation();
-  const store = useStore();
-
-  const {
-    hasTournament,
-    tournamentName,
-    round,
-    roundOpen,
-    matches,
-    players,
-    tournamentPlayers,
-    tournamentRounds,
-    archivedRounds,
-    closedTournaments,
-  } = store;
+  const hasTournament = useStore((s) => s.hasTournament);
+  const tournamentName = useStore((s) => s.tournamentName);
+  const round = useStore((s) => s.round);
+  const roundOpen = useStore((s) => s.roundOpen);
+  const matches = useStore((s) => s.matches);
+  const players = useStore((s) => s.players);
+  const tournamentPlayers = useStore((s) => s.tournamentPlayers);
+  const tournamentRounds = useStore((s) => s.tournamentRounds);
+  const archivedRounds = useStore((s) => s.archivedRounds);
+  const closedTournaments = useStore((s) => s.closedTournaments);
+  const setModal = useStore((s) => s.setModal);
 
   const SPORT_CHIPS = [
     { label: 'FC / FIFA', active: true, soon: false },
@@ -55,9 +52,9 @@ export default function HomeScreen() {
     if (roundOpen) {
       router.push('/round');
     } else {
-      store.setModal('newRound');
+      setModal('newRound');
     }
-  }, [hasTournament, roundOpen, router, store]);
+  }, [hasTournament, roundOpen, router, setModal]);
 
   const matchDayDisabled = !hasTournament;
 
@@ -66,10 +63,6 @@ export default function HomeScreen() {
     (acc, t) => acc + t.rounds.reduce((ra, r) => ra + r.matches.length, 0),
     0,
   );
-
-  // Total rounds = archived + current open round (if any)
-  const totalRounds = archivedRounds.length + (roundOpen ? 1 : 0);
-  const displayTotalRounds = archivedRounds.length + 1;
 
   const rankedCompleted = archivedRounds.filter((r) => r.ranked).length;
   const progressFraction = tournamentRounds > 0
@@ -141,9 +134,6 @@ export default function HomeScreen() {
                   <View style={styles.livePillDot} />
                   <Text style={styles.livePillText}>{t('home.liveTournament').toUpperCase()}</Text>
                 </View>
-                <Text style={styles.tournamentRoundText}>
-                  {t('home.roundInfo', { round, total: displayTotalRounds })}
-                </Text>
               </View>
               <TouchableOpacity
                 style={styles.playButton}
@@ -245,7 +235,7 @@ export default function HomeScreen() {
             </Text>
             {hasTournament && (
               <Text style={styles.newMatchDaySubtitle}>
-                {t('home.roundSubtitle', { round: round + (roundOpen ? 0 : 1), name: tournamentName })}
+                {t('home.roundSubtitle', { round: roundOpen ? round : rankedCompleted + 1, name: tournamentName })}
               </Text>
             )}
           </View>

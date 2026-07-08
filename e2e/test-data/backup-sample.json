@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "exportedAt": "2026-01-01T00:00:00.000Z",
+  "data": {
+    "tournamentId": "",
+    "tournamentName": "",
+    "colorScheme": "auto",
+    "language": "en",
+    "hasTournament": false,
+    "roundOpen": false,
+    "tournamentRanked": true,
+    "showNick": true,
+    "showTeamLogo": true,
+    "round": 0,
+    "tournamentRounds": 0,
+    "tournamentPlayers": [],
+    "roundPlayers": [],
+    "matches": [],
+    "archivedRounds": [],
+    "closedTournaments": [],
+    "players": [
+      { "id": "imported-player-1", "name": "Zed", "color": "#654321", "teamCode": "ZZZ" }
+    ],
+    "teams": [
+      { "code": "ZZZ", "name": "Zenith", "short": "ZZZ", "color": "#123456" }
+    ]
+  }
+}

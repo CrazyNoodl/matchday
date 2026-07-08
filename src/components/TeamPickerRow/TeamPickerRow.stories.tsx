@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import type { Meta, StoryObj, Decorator } from '@storybook/react';
+import type { Meta, StoryObj, Decorator } from '@storybook/react-native-web-vite';
 import { TeamPickerRow } from './TeamPickerRow';
 import { useStore } from '../../store';
 import { Colors } from '../../theme/colors';

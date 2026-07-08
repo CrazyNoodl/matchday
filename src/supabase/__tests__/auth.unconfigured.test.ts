@@ -1,6 +1,9 @@
 // Tests for src/supabase/auth.ts when Supabase is not configured (no env vars set).
 // Each function must return a safe fallback without calling the Supabase client.
 
+import { getCurrentUserId, signInWithEmail, signUpWithEmail, signOut } from '../auth';
+import { supabase } from '@/supabase/client';
+
 jest.mock('@/supabase/client', () => ({
   supabase: {
     auth: {
@@ -12,9 +15,6 @@ jest.mock('@/supabase/client', () => ({
   },
   supabaseConfigured: false,
 }));
-
-import { getCurrentUserId, signInWithEmail, signUpWithEmail, signOut } from '../auth';
-import { supabase } from '@/supabase/client';
 
 const mockGetUser = supabase.auth.getUser as jest.Mock;
 const mockSignIn = supabase.auth.signInWithPassword as jest.Mock;

@@ -1,3 +1,6 @@
+import { useStore } from '../index';
+import type { Match, Team } from '../types';
+
 jest.mock('react-native-mmkv', () => ({
   createMMKV: () => ({
     getString: () => null,
@@ -9,9 +12,6 @@ jest.mock('react-native-mmkv', () => ({
 jest.mock('react-native', () => ({
   Platform: { OS: 'web' },
 }));
-
-import { useStore } from '../index';
-import type { Match, Team } from '../types';
 
 const T1: Team = { code: 'JUV', name: 'Juventus', short: 'JUV', color: '#000' };
 const T2: Team = { code: 'BAR', name: 'Barcelona', short: 'BAR', color: '#00f' };

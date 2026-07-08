@@ -33,6 +33,7 @@ const tournament = {
     placeholder: 'Nom du tournoi',
     cancel: 'Annuler',
     save: 'Sauvegarder',
+    button: 'Renommer',
   },
   close: {
     title: 'Clôturer le tournoi ?',

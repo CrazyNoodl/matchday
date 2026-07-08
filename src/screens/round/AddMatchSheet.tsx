@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, Platform } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Platform } from 'react-native';
 import { BottomSheetScrollView, BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { useTranslation } from 'react-i18next';
 import { useColors } from '@/theme';
@@ -7,7 +7,7 @@ import { useIsOnline } from '@/hooks/useIsOnline';
 import { Spacing } from '@/theme/spacing';
 import { Avatar, ScoreCounter, MediaThumbnail, Sheet, TeamPickerRow } from '@/components';
 import { Player, Team, Match } from '@/store/types';
-import { AddMatchState, getAddMatchStepLabel, canAddMatchGoNext, isAddMatchDirty } from '@/utils/addMatchState';
+import { getAddMatchStepLabel, canAddMatchGoNext, isAddMatchDirty } from '@/utils/addMatchState';
 import { getCurrentTourMatches, getPlayedPartnerIds } from '@/utils/matchTours';
 import { makeSheetStyles } from './AddMatchSheet.styles';
 import { useAddMatchFlow } from './useAddMatchFlow';

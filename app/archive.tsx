@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Animated,  } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useGoBack } from '@/utils/useGoBack';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -182,13 +182,9 @@ export default function ArchiveScreen() {
   const router = useRouter();
   const goBack = useGoBack();
   const { t } = useTranslation();
-  const store = useStore();
-
-  const {
-    closedTournaments,
-    setViewingRound,
-    setViewingTournament,
-  } = store;
+  const closedTournaments = useStore((s) => s.closedTournaments);
+  const setViewingRound = useStore((s) => s.setViewingRound);
+  const setViewingTournament = useStore((s) => s.setViewingTournament);
 
   const handleRoundPress = useCallback(
     (round: ArchivedRound) => {

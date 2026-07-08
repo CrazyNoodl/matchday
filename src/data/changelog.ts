@@ -10,6 +10,51 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.26',
+    internal: [
+      'Internal: added e2e coverage for match detail editing, the Reset All Data safety cooldown, and local backup/restore; e2e fixtures now block all real Supabase network calls (Metro was inlining the live project URL/key into the test bundle regardless of playwright.config.ts overrides) — no visible change',
+    ],
+  },
+  {
+    version: '1.9.25',
+    internal: [
+      'Internal: added ESLint (eslint-config-expo + eslint-plugin-storybook) and cleaned up dead imports/vars, redundant Storybook story names, and stale eslint-disable comments — no visible change',
+    ],
+  },
+  {
+    version: '1.9.24',
+    changed: [
+      'Home screen: removed the "Round X / Y · Today" line from the live tournament card — it duplicated the progress bar below it and always said "Today" regardless of the actual date',
+    ],
+    fixed: [
+      'Fixed "NEW MATCH DAY" button subtitle showing the wrong next round number when the most recently played round was a friendly one',
+    ],
+  },
+  {
+    version: '1.9.23',
+    changed: [
+      'Settings screen reordered: Personalize now comes first, Backup & Restore moved under More (after Demo Mode, before the version row), and Reset All Data moved into its own red "Danger Zone" card with a compact button instead of a full-width one',
+      'Settings → Tournament: the button that opens the rename sheet now says "Rename" instead of "Save" (the sheet\'s own confirm button still says "Save")',
+    ],
+    internal: [
+      'Internal: extracted the repeated title+card+divider section markup on the Settings screen into a shared `SettingsSection` component, and the Danger Zone block into `DangerZoneCard` — no visible change',
+    ],
+  },
+  {
+    version: '1.9.22',
+    internal: [
+      'Internal: replaced ~10 hand-rolled confirm/alert dialog implementations and repeated bottom-sheet header/footer markup with shared ConfirmDialog/SheetHeader/SheetFooter components, and consolidated two duplicate context-menu implementations onto the existing DropdownMenu — no visible change',
+      'Fixed a latent bug where the tournament rename/close dialogs had two competing implementations (Tournament screen and Settings → Tournament) that could both react to the same state at once',
+    ],
+  },
+  {
+    version: '1.9.21',
+    changed: [
+      'Settings screen redesigned: account card up top (email + Sign Out), tournament/players/teams/backup grouped under "Play," display/language under "Personalize," and about/demo mode/developer tools under a plain "More" list',
+      '"Show nicknames" and "Show team logos" moved to their own "Coming soon" section on Display settings and disabled, since neither is fully wired up yet',
+    ],
+  },
+  {
     version: '1.9.20',
     added: [
       'Reset All Data confirmation now has a "Backup My Data First" shortcut straight to the backup screen',

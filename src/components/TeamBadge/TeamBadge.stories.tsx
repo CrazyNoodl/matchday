@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import type { Meta, StoryObj, Decorator } from '@storybook/react';
+import type { Meta, StoryObj, Decorator } from '@storybook/react-native-web-vite';
 import { View } from 'react-native';
 import { TeamBadge } from './TeamBadge';
 import { useStore } from '../../store';

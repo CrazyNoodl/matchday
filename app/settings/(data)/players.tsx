@@ -1,6 +1,5 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
-import { useRouter } from 'expo-router';
 import { useGoBack } from '@/utils/useGoBack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStore } from '@/store';
@@ -15,13 +14,18 @@ import { PlayerDialogs } from '@/screens/settings/players/PlayerDialogs';
 const PLAYER_COLORS = Colors.player;
 
 export default function PlayersScreen() {
-  const router = useRouter();
   const goBack = useGoBack();
   const { t } = useTranslation();
   const colors = useColors();
   const styles = makeStyles(colors);
-  const store = useStore();
-  const { players, teams, matches, archivedRounds, closedTournaments, addPlayer, updatePlayer, deletePlayer } = store;
+  const players = useStore((s) => s.players);
+  const teams = useStore((s) => s.teams);
+  const matches = useStore((s) => s.matches);
+  const archivedRounds = useStore((s) => s.archivedRounds);
+  const closedTournaments = useStore((s) => s.closedTournaments);
+  const addPlayer = useStore((s) => s.addPlayer);
+  const updatePlayer = useStore((s) => s.updatePlayer);
+  const deletePlayer = useStore((s) => s.deletePlayer);
 
   const [editingPlayer, setEditingPlayer] = useState<Player | null>(null);
   const [showEdit, setShowEdit] = useState(false);
@@ -89,7 +93,7 @@ export default function PlayersScreen() {
     }
     setPendingDeleteId(id);
     setShowDeleteConfirm(true);
-  }, [matches, archivedRounds, closedTournaments, store]);
+  }, [matches, archivedRounds, closedTournaments]);
 
   const confirmDelete = useCallback(() => {
     if (pendingDeleteId) {

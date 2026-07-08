@@ -1,8 +1,6 @@
 import React from 'react';
-import { View, Text, Modal, TouchableOpacity } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { useColors } from '@/theme';
-import { makeStyles } from './backup.styles';
+import { ConfirmDialog } from '@/components';
 
 interface BackupDialogsProps {
   showDeleteConfirm: boolean;
@@ -23,58 +21,28 @@ export function BackupDialogs({
   onConfirmImport,
 }: BackupDialogsProps) {
   const { t } = useTranslation();
-  const colors = useColors();
-  const styles = makeStyles(colors);
 
   return (
     <>
-      {/* Delete backup */}
-      <Modal
+      <ConfirmDialog
         visible={showDeleteConfirm}
-        transparent
-        animationType="fade"
-        statusBarTranslucent
         onRequestClose={onCloseDeleteConfirm}
-      >
-        <View style={styles.dialogOverlay}>
-          <View style={styles.dialog}>
-            <Text style={styles.dialogTitle}>{t('backup.deleteConfirmTitle').toUpperCase()}</Text>
-            <Text style={styles.dialogDesc}>{t('backup.deleteConfirmDesc')}</Text>
-            <View style={styles.dialogActions}>
-              <TouchableOpacity style={styles.dialogCancel} onPress={onCloseDeleteConfirm} activeOpacity={0.75}>
-                <Text style={styles.dialogCancelText}>{t('matchday.dialogs.cancel')}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.dialogConfirm} onPress={onConfirmDelete} activeOpacity={0.85}>
-                <Text style={styles.dialogConfirmText}>{t('common.delete')}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+        variant="destructive"
+        title={t('backup.deleteConfirmTitle').toUpperCase()}
+        description={t('backup.deleteConfirmDesc')}
+        cancel={{ label: t('matchday.dialogs.cancel'), onPress: onCloseDeleteConfirm }}
+        confirm={{ label: t('common.delete'), onPress: onConfirmDelete }}
+      />
 
-      {/* Import confirm — full local overwrite */}
-      <Modal
+      <ConfirmDialog
         visible={showImportConfirm}
-        transparent
-        animationType="fade"
-        statusBarTranslucent
         onRequestClose={onCloseImportConfirm}
-      >
-        <View style={styles.dialogOverlay}>
-          <View style={styles.dialog}>
-            <Text style={styles.dialogTitle}>{t('backup.importConfirmTitle').toUpperCase()}</Text>
-            <Text style={styles.dialogDesc}>{t('backup.importConfirmDesc')}</Text>
-            <View style={styles.dialogActions}>
-              <TouchableOpacity style={styles.dialogCancel} onPress={onCloseImportConfirm} activeOpacity={0.75}>
-                <Text style={styles.dialogCancelText}>{t('matchday.dialogs.cancel')}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.dialogConfirm} onPress={onConfirmImport} activeOpacity={0.85}>
-                <Text style={styles.dialogConfirmText}>{t('backup.importConfirmBtn')}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+        variant="destructive"
+        title={t('backup.importConfirmTitle').toUpperCase()}
+        description={t('backup.importConfirmDesc')}
+        cancel={{ label: t('matchday.dialogs.cancel'), onPress: onCloseImportConfirm }}
+        confirm={{ label: t('backup.importConfirmBtn'), onPress: onConfirmImport }}
+      />
     </>
   );
 }

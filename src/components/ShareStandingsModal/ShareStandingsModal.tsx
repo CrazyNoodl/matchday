@@ -10,17 +10,17 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-// Native-only modules loaded dynamically so web build doesn't crash
-type CaptureRef = typeof import('react-native-view-shot')['captureRef'];
-type MediaLibraryModule = typeof import('expo-media-library/legacy');
-type SharingModule = typeof import('expo-sharing');
-type Html2Canvas = typeof import('html2canvas').default;
 import { useStore } from '@/store';
 import { Standing } from '@/utils/standings';
 import { useColors } from '@/theme';
 import { CardAvatar } from '@/components/ShareRoundModal';
 import { STANDINGS_NUM_COLS, formatShareCardDate } from '@/utils/shareCard';
 import { makeCardStyles, makeModalStyles } from './ShareStandingsModal.styles';
+// Native-only modules loaded dynamically so web build doesn't crash
+type CaptureRef = typeof import('react-native-view-shot')['captureRef'];
+type MediaLibraryModule = typeof import('expo-media-library/legacy');
+type SharingModule = typeof import('expo-sharing');
+type Html2Canvas = typeof import('html2canvas').default;
 
 // ---------------------------------------------------------------------------
 // Types

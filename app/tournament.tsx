@@ -1,13 +1,10 @@
-import React, { useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   View,
   Text,
   ScrollView,
   TouchableOpacity,
-  Modal,
-  Platform,
 } from 'react-native';
-import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStore } from '@/store';
@@ -15,9 +12,11 @@ import { calculateStandings } from '@/utils/standings';
 import { formatShortDate } from '@/utils/dateFormat';
 import { getRankedRoundOrdinals } from '@/utils/roundOrdinals';
 import { useColors } from '@/theme';
-import { SectionLabel, GlowBackground, RoundCard, ShareStandingsModal, NewRoundModal, Sheet, StandingsTable, getStandingsTableColumns } from '@/components';
+import { SectionLabel, GlowBackground, RoundCard, ShareStandingsModal, NewRoundModal, StandingsTable, getStandingsTableColumns } from '@/components';
 import { useTranslation } from 'react-i18next';
-import { makeStyles, makeSheetStyles, makeInputStyles, makeDialogStyles } from '@/screens/tournament/tournament.styles';
+import { makeStyles } from '@/screens/tournament/tournament.styles';
+import { TourSettingsSheet, EditTournamentNameSheet, CloseTournamentDialog } from '@/screens/tournament/TournamentModals';
+import type { ArchivedRound } from '@/store/types';
 
 // ---------------------------------------------------------------------------
 // Column definitions (outside component to avoid recreation on every render)
@@ -34,38 +33,41 @@ import { makeStyles, makeSheetStyles, makeInputStyles, makeDialogStyles } from '
 
 export default function TournamentScreen() {
   const router = useRouter();
-  const store = useStore();
-
-  const {
-    tournamentName,
-    round,
-    roundOpen,
-    tournamentRanked,
-    tournamentRounds,
-    tournamentPlayers,
-    matches,
-    archivedRounds,
-    players,
-    modal,
-  } = store;
+  const tournamentName = useStore((s) => s.tournamentName);
+  const round = useStore((s) => s.round);
+  const roundOpen = useStore((s) => s.roundOpen);
+  const tournamentRanked = useStore((s) => s.tournamentRanked);
+  const tournamentRounds = useStore((s) => s.tournamentRounds);
+  const tournamentPlayers = useStore((s) => s.tournamentPlayers);
+  const matches = useStore((s) => s.matches);
+  const archivedRounds = useStore((s) => s.archivedRounds);
+  const players = useStore((s) => s.players);
+  const modal = useStore((s) => s.modal);
+  const setModal = useStore((s) => s.setModal);
+  const setViewingRound = useStore((s) => s.setViewingRound);
+  const renameTournament = useStore((s) => s.renameTournament);
+  const closeTournament = useStore((s) => s.closeTournament);
 
   const colors = useColors();
   const styles = makeStyles(colors);
-  const sheetStyles = makeSheetStyles(colors);
-  const inputStyles = makeInputStyles(colors);
-  const dialogStyles = makeDialogStyles(colors);
 
   const [renameValue, setRenameValue] = useState('');
   const [shareStandingsVisible, setShareStandingsVisible] = useState(false);
   const { t } = useTranslation();
 
   // All ranked matches across all archived rounds + current open round (if ranked)
-  const allRankedMatches = [
-    ...archivedRounds.filter((r) => r.ranked).flatMap((r) => r.matches),
-    ...(tournamentRanked && roundOpen ? matches : []),
-  ];
+  const allRankedMatches = useMemo(
+    () => [
+      ...archivedRounds.filter((r) => r.ranked).flatMap((r) => r.matches),
+      ...(tournamentRanked && roundOpen ? matches : []),
+    ],
+    [archivedRounds, tournamentRanked, roundOpen, matches],
+  );
 
-  const standings = calculateStandings(allRankedMatches, tournamentPlayers);
+  const standings = useMemo(
+    () => calculateStandings(allRankedMatches, tournamentPlayers),
+    [allRankedMatches, tournamentPlayers],
+  );
   const leader = standings[0]
     ? players.find((p) => p.id === standings[0].playerId)
     : null;
@@ -82,6 +84,15 @@ export default function TournamentScreen() {
     date: formatShortDate(new Date().toISOString()),
   });
   const shareRoundLabel = t('tournament.shareStandings.roundLabel', { round: rankedTotal, total: roundsTarget });
+  const reversedArchivedRounds = useMemo(() => [...archivedRounds].reverse(), [archivedRounds]);
+
+  const handleRoundPress = useCallback(
+    (r: ArchivedRound) => {
+      setViewingRound(r);
+      router.push('/archive-day');
+    },
+    [setViewingRound, router],
+  );
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
@@ -109,7 +120,7 @@ export default function TournamentScreen() {
 
         <TouchableOpacity
           style={styles.dotsBtn}
-          onPress={() => store.setModal('tourSettings')}
+          onPress={() => setModal('tourSettings')}
           activeOpacity={0.75}
         >
           <Text style={styles.dotsIcon}>···</Text>
@@ -186,7 +197,7 @@ export default function TournamentScreen() {
             <Text style={styles.emptyRoundsText}>{t('tournament.noRounds')}</Text>
           </View>
         ) : (
-          [...archivedRounds].reverse().map((r) => {
+          reversedArchivedRounds.map((r) => {
             const roundWinner = players.find((p) => p.id === r.winner);
             return (
               <RoundCard
@@ -197,10 +208,7 @@ export default function TournamentScreen() {
                 matchCountText={t('tournament.roundMatches', { count: r.games })}
                 winnerId={roundWinner?.id}
                 winnerName={roundWinner ? (roundWinner.nick ?? roundWinner.name) : '—'}
-                onPress={() => {
-                  store.setViewingRound(r);
-                  router.push('/archive-day');
-                }}
+                onPress={() => handleRoundPress(r)}
               />
             );
           })
@@ -222,7 +230,7 @@ export default function TournamentScreen() {
         ) : (
           <TouchableOpacity
             style={styles.ctaBtn}
-            onPress={() => store.setModal('newRound')}
+            onPress={() => setModal('newRound')}
             activeOpacity={0.85}
           >
             <Text style={styles.ctaBtnText}>{t('tournament.newMatchDay')}</Text>
@@ -234,178 +242,44 @@ export default function TournamentScreen() {
           MODALS
           ================================================================ */}
 
-      {/* ---- Tour Settings Sheet ---- */}
-      <Sheet visible={modal === 'tourSettings'} onClose={() => store.setModal(null)}>
-          <View style={sheetStyles.sheet}>
-            {/* Header row */}
-            <View style={sheetStyles.sheetHeaderRow}>
-              <View style={sheetStyles.sheetTitleBlock}>
-                <Text style={sheetStyles.sheetTitle}>{t('tournament.sheet.title').toUpperCase()}</Text>
-                <Text style={sheetStyles.sheetSubtitle} numberOfLines={1}>
-                  {tournamentName}
-                </Text>
-              </View>
-              <TouchableOpacity
-                style={sheetStyles.doneBtn}
-                onPress={() => store.setModal(null)}
-                activeOpacity={0.75}
-              >
-                <Text style={sheetStyles.doneBtnText}>{t('tournament.sheet.done')}</Text>
-              </TouchableOpacity>
-            </View>
+      <TourSettingsSheet
+        visible={modal === 'tourSettings'}
+        onClose={() => setModal(null)}
+        tournamentName={tournamentName}
+        onRename={() => {
+          setRenameValue(tournamentName);
+          setModal('editTourName');
+        }}
+        onShareStandings={() => {
+          setModal(null);
+          setShareStandingsVisible(true);
+        }}
+        onCloseTournament={() => setModal('closeTour')}
+      />
 
-            <View style={sheetStyles.rows}>
-              {/* Rename */}
-              <TouchableOpacity
-                style={sheetStyles.row}
-                onPress={() => {
-                  setRenameValue(tournamentName);
-                  store.setModal('editTourName');
-                }}
-                activeOpacity={0.8}
-              >
-                <View style={[sheetStyles.rowIcon, { backgroundColor: colors.accent.blueSubtle }]}>
-                  <Text style={sheetStyles.rowIconText}>✎</Text>
-                </View>
-                <Text style={sheetStyles.rowLabel}>{t('tournament.sheet.rename')}</Text>
-                <Text style={sheetStyles.rowChevron}>›</Text>
-              </TouchableOpacity>
+      <EditTournamentNameSheet
+        visible={modal === 'editTourName'}
+        onClose={() => setModal('tourSettings')}
+        value={renameValue}
+        onChangeValue={setRenameValue}
+        onSave={() => {
+          const trimmed = renameValue.trim();
+          if (trimmed) {
+            renameTournament(trimmed);
+          }
+          setModal(null);
+        }}
+      />
 
-              {/* Share standings */}
-              <TouchableOpacity
-                style={sheetStyles.row}
-                onPress={() => {
-                  store.setModal(null);
-                  setShareStandingsVisible(true);
-                }}
-                activeOpacity={0.8}
-              >
-                <View style={[sheetStyles.rowIcon, { backgroundColor: colors.accent.greenSubtle }]}>
-                  <Text style={[sheetStyles.rowIconText, { color: colors.accent.green }]}>↗</Text>
-                </View>
-                <View style={sheetStyles.rowLabelBlock}>
-                  <Text style={sheetStyles.rowLabel}>{t('tournament.sheet.shareStandings')}</Text>
-                  <Text style={sheetStyles.rowSubtitle}>{t('tournament.sheet.shareStandingsSubtitle')}</Text>
-                </View>
-                <Text style={sheetStyles.rowChevron}>›</Text>
-              </TouchableOpacity>
-
-              {/* Close & archive */}
-              <TouchableOpacity
-                style={sheetStyles.row}
-                onPress={() => store.setModal('closeTour')}
-                activeOpacity={0.8}
-              >
-                <View style={[sheetStyles.rowIcon, { backgroundColor: colors.accent.redSubtle }]}>
-                  <Text style={[sheetStyles.rowIconText, { color: colors.accent.red }]}>🔒</Text>
-                </View>
-                <View style={sheetStyles.rowLabelBlock}>
-                  <Text style={sheetStyles.rowLabel}>{t('tournament.sheet.closeAndArchive')}</Text>
-                  <Text style={sheetStyles.rowSubtitle}>{t('tournament.sheet.closeSubtitle')}</Text>
-                </View>
-                <Text style={sheetStyles.rowChevron}>›</Text>
-              </TouchableOpacity>
-            </View>
-
-            {Platform.OS === 'ios' && <View style={{ height: 16 }} />}
-          </View>
-      </Sheet>
-
-      {/* ---- Edit Tournament Name Sheet ---- */}
-      <Sheet visible={modal === 'editTourName'} onClose={() => store.setModal('tourSettings')} avoidKeyboard>
-          <View style={sheetStyles.sheet}>
-            <Text style={sheetStyles.sheetTitle}>{t('tournament.rename.title').toUpperCase()}</Text>
-            <BottomSheetTextInput
-              style={inputStyles.input}
-              value={renameValue}
-              onChangeText={setRenameValue}
-              placeholder={t('tournament.rename.placeholder')}
-              placeholderTextColor={colors.text.placeholder}
-              autoFocus
-              returnKeyType="done"
-              onSubmitEditing={() => {
-                const trimmed = renameValue.trim();
-                if (trimmed) {
-                  store.renameTournament(trimmed);
-                }
-                store.setModal(null);
-              }}
-            />
-            <View style={inputStyles.actions}>
-              <TouchableOpacity
-                style={inputStyles.cancelBtn}
-                onPress={() => store.setModal('tourSettings')}
-                activeOpacity={0.75}
-              >
-                <Text style={inputStyles.cancelText}>{t('tournament.rename.cancel')}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  inputStyles.saveBtn,
-                  !renameValue.trim() && inputStyles.saveBtnDisabled,
-                ]}
-                onPress={() => {
-                  const trimmed = renameValue.trim();
-                  if (trimmed) {
-                    store.renameTournament(trimmed);
-                  }
-                  store.setModal(null);
-                }}
-                disabled={!renameValue.trim()}
-                activeOpacity={0.85}
-              >
-                <Text
-                  style={[
-                    inputStyles.saveText,
-                    !renameValue.trim() && inputStyles.saveTextDisabled,
-                  ]}
-                >
-                  {t('tournament.rename.save')}
-                </Text>
-              </TouchableOpacity>
-            </View>
-            {Platform.OS === 'ios' && <View style={{ height: 16 }} />}
-          </View>
-      </Sheet>
-
-      {/* ---- Close Tournament Confirmation ---- */}
-      <Modal
+      <CloseTournamentDialog
         visible={modal === 'closeTour'}
-        transparent
-        animationType="fade"
-        statusBarTranslucent
-        onRequestClose={() => store.setModal('tourSettings')}
-      >
-        <View style={dialogStyles.overlay}>
-          <View style={dialogStyles.dialog}>
-            <Text style={dialogStyles.dialogIcon}>🏆</Text>
-            <Text style={dialogStyles.dialogTitle}>{t('tournament.close.title').toUpperCase()}</Text>
-            <Text style={dialogStyles.dialogDesc}>
-              {t('tournament.close.desc')}
-            </Text>
-            <View style={dialogStyles.actions}>
-              <TouchableOpacity
-                style={dialogStyles.cancelBtn}
-                onPress={() => store.setModal('tourSettings')}
-                activeOpacity={0.75}
-              >
-                <Text style={dialogStyles.cancelText}>{t('tournament.close.keepGoing')}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={dialogStyles.archiveBtn}
-                onPress={() => {
-                  store.closeTournament();
-                  store.setModal(null);
-                  router.push('/');
-                }}
-                activeOpacity={0.85}
-              >
-                <Text style={dialogStyles.archiveBtnText}>{t('tournament.close.archive')}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+        onClose={() => setModal('tourSettings')}
+        onConfirm={() => {
+          closeTournament();
+          setModal(null);
+          router.push('/');
+        }}
+      />
 
       {/* ---- New Round Sheet ---- */}
       <NewRoundModal />

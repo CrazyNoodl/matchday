@@ -22,6 +22,34 @@ export const makeStyles = (colors: AppColors) => StyleSheet.create({
     paddingTop: Spacing.lg,
     paddingBottom: Spacing.sm,
   },
+  sectionTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.lg,
+    paddingBottom: Spacing.sm,
+  },
+  sectionTitleRowText: {
+    fontFamily: FontFamily.bodySemiBold,
+    fontSize: FontSize.xs,
+    color: colors.text.muted,
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+  },
+  badge: {
+    backgroundColor: colors.accent.blueSubtle,
+    borderRadius: Radius.sm,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 3,
+  },
+  badgeText: {
+    fontFamily: FontFamily.bodyBold,
+    fontSize: 10,
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+    color: colors.accent.blue,
+  },
   card: {
     backgroundColor: colors.bg.surface,
     borderRadius: Radius.xl,
@@ -66,6 +94,9 @@ export const makeStyles = (colors: AppColors) => StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.lg,
     gap: Spacing.md,
+  },
+  rowDisabled: {
+    opacity: 0.5,
   },
   rowLeft: {
     flex: 1,

@@ -33,6 +33,7 @@ const tournament = {
     placeholder: 'Назва турніру',
     cancel: 'Скасувати',
     save: 'Зберегти',
+    button: 'Перейменувати',
   },
   close: {
     title: 'Закрити турнір?',

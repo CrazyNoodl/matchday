@@ -189,12 +189,6 @@ export const makeStyles = (colors: AppColors) => StyleSheet.create({
     paddingTop: Spacing.lg,
     paddingBottom: Spacing['2xl'],
   },
-  dateSheetTitle: {
-    fontFamily: FontFamily.displayBold,
-    fontSize: FontSize['2xl'],
-    color: colors.text.primary,
-    letterSpacing: 0.5,
-  },
   dateInputError: {
     borderColor: colors.accent.red,
   },
@@ -204,30 +198,5 @@ export const makeStyles = (colors: AppColors) => StyleSheet.create({
     color: colors.accent.red,
     marginTop: -Spacing.sm,
     marginBottom: Spacing.md,
-  },
-});
-
-export const makeMenuStyles = (colors: AppColors) => StyleSheet.create({
-  dropdown: {
-    position: 'absolute',
-    backgroundColor: colors.bg.elevated,
-    borderRadius: Radius.md,
-    borderWidth: 1,
-    borderColor: colors.border.strong,
-    minWidth: 150,
-    overflow: 'hidden',
-  },
-  item: {
-    paddingVertical: 11,
-    paddingHorizontal: Spacing.lg,
-  },
-  itemText: {
-    fontFamily: FontFamily.bodySemiBold,
-    fontSize: FontSize.sm,
-    color: colors.text.primary,
-  },
-  sep: {
-    height: 1,
-    backgroundColor: colors.border.default,
   },
 });

@@ -5,7 +5,6 @@ const home = {
     basketball: 'Баскетбол',
   },
   liveTournament: 'Живий турнір',
-  roundInfo: 'Раунд {{round}} / {{total}} · Сьогодні',
   progressRounds: '{{done}} / {{total}} рейтингових раундів',
   currentLeader: 'Поточний лідер',
   noLeaderTie: 'Немає лідера — нічия',

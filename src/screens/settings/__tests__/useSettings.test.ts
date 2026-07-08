@@ -1,3 +1,10 @@
+import { renderHook, act } from '@testing-library/react-native';
+import { useSettings } from '../useSettings';
+import { useStore } from '@/store';
+import { signOut } from '@/supabase/auth';
+import { deleteAllCloudData } from '@/supabase/sync';
+import type { Player, Team } from '@/store/types';
+
 jest.mock('react-native-mmkv', () => ({
   createMMKV: () => ({ getString: () => null, set: jest.fn(), remove: jest.fn() }),
 }));
@@ -30,13 +37,6 @@ jest.mock('@/supabase/client', () => ({
 }));
 
 jest.mock('@/supabase/sync', () => ({ deleteAllCloudData: jest.fn().mockResolvedValue(undefined) }));
-
-import { renderHook, act } from '@testing-library/react-native';
-import { useSettings } from '../useSettings';
-import { useStore } from '@/store';
-import { signOut } from '@/supabase/auth';
-import { deleteAllCloudData } from '@/supabase/sync';
-import type { Player, Team } from '@/store/types';
 
 const mockSignOut = signOut as jest.Mock;
 const mockDeleteAllCloudData = deleteAllCloudData as jest.Mock;

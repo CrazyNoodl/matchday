@@ -24,7 +24,7 @@ interface PlayerRankCardProps {
   style?: StyleProp<ViewStyle>;
 }
 
-export function PlayerRankCard({
+export const PlayerRankCard = React.memo(function PlayerRankCard({
   rank,
   medal,
   playerId,
@@ -78,4 +78,4 @@ export function PlayerRankCard({
       </View>
     </View>
   );
-}
+});

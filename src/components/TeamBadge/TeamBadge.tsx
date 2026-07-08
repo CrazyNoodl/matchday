@@ -12,7 +12,7 @@ interface TeamBadgeProps {
   style?: ViewStyle;
 }
 
-export function TeamBadge({ teamCode, size = 'md', style }: TeamBadgeProps) {
+export const TeamBadge = React.memo(function TeamBadge({ teamCode, size = 'md', style }: TeamBadgeProps) {
   const team = useStore((s) => s.teams.find((t) => t.code === teamCode));
   const [logoFailed, setLogoFailed] = useState(false);
 
@@ -108,4 +108,4 @@ export function TeamBadge({ teamCode, size = 'md', style }: TeamBadgeProps) {
       <Text style={[styles.textMd, { color }]}>{label}</Text>
     </View>
   );
-}
+});

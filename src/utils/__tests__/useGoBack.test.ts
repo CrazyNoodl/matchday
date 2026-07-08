@@ -1,3 +1,6 @@
+// useGoBack is a plain hook with no state/effects — safe to call directly in tests
+import { useGoBack } from '../useGoBack';
+
 const mockBack = jest.fn();
 const mockReplace = jest.fn();
 const mockCanGoBack = jest.fn();
@@ -9,9 +12,6 @@ jest.mock('expo-router', () => ({
     canGoBack: mockCanGoBack,
   }),
 }));
-
-// useGoBack is a plain hook with no state/effects — safe to call directly in tests
-import { useGoBack } from '../useGoBack';
 
 beforeEach(() => {
   jest.clearAllMocks();

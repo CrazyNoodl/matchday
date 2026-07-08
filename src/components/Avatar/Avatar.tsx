@@ -13,7 +13,7 @@ interface AvatarProps {
   style?: ViewStyle;
 }
 
-export function Avatar({ playerId, size = 'md', style }: AvatarProps) {
+export const Avatar = React.memo(function Avatar({ playerId, size = 'md', style }: AvatarProps) {
   const colors = useColors();
   const player = useStore((s) => s.players.find((p) => p.id === playerId));
   const team = useStore((s) => s.teams.find((t) => t.code === player?.teamCode));
@@ -66,4 +66,4 @@ export function Avatar({ playerId, size = 'md', style }: AvatarProps) {
       </Text>
     </View>
   );
-}
+});

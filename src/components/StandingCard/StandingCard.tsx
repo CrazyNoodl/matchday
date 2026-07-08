@@ -1,12 +1,12 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { useShallow } from 'zustand/react/shallow';
 import { useStore } from '../../store';
-import { Standing } from '../../utils/standings';
+import { Standing, getFormChips } from '../../utils/standings';
 import { useColors } from '../../theme';
 import { Avatar } from '../Avatar';
 import { FormChip } from '../FormChip';
-import { getFormChips } from '../../utils/standings';
 import { getPlayerDisplayName } from '../../utils/playerDisplay';
 import { makeStyles } from './StandingCard.styles';
 
@@ -17,7 +17,7 @@ interface StandingCardProps {
   showFormChips?: boolean;
 }
 
-export function StandingCard({
+export const StandingCard = React.memo(function StandingCard({
   standing,
   position,
   playerId,
@@ -27,18 +27,16 @@ export function StandingCard({
   const colors = useColors();
   const styles = makeStyles(colors);
   const player = useStore((s) => s.players.find((p) => p.id === playerId));
-  const matches = useStore((s) => s.matches);
   const showNick = useStore((s) => s.showNick);
+  const formChips = useStore(
+    useShallow((s) => (showFormChips ? getFormChips(s.matches, playerId, 3) : [])),
+  );
 
   const POSITION_COLORS: Record<number, string> = {
     1: colors.accent.green,
     2: '#b0b8be',
     3: '#cd7f32',
   };
-
-  const formChips = showFormChips
-    ? getFormChips(matches, playerId, 3)
-    : [];
 
   const posColor = POSITION_COLORS[position] ?? colors.text.muted;
   const isLeader = position === 1;
@@ -112,4 +110,4 @@ export function StandingCard({
       </View>
     </View>
   );
-}
+});

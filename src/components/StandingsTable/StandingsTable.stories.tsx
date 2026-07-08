@@ -1,5 +1,4 @@
-import React from 'react';
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/react-native-web-vite';
 import { StandingsTable, type StandingsColumn } from './StandingsTable';
 import type { Standing } from '@/utils/standings';
 import type { Player } from '@/store/types';
