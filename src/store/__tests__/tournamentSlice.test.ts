@@ -24,8 +24,8 @@ jest.mock('@/supabase/storage', () => {
 
 const mockDeleteFolder = deleteStorageFolder as jest.Mock;
 
-const P1: Player = { id: 'p1', name: 'Alice', color: '#f00', teamCode: 'JUV' };
-const P2: Player = { id: 'p2', name: 'Bob', color: '#00f', teamCode: 'BAR' };
+const P1: Player = { id: 'p1', name: 'Alice', teamCode: 'JUV' };
+const P2: Player = { id: 'p2', name: 'Bob', teamCode: 'BAR' };
 
 const makeMatch = (id: string, aId = 'p1', bId = 'p2', aScore = 2, bScore = 0): Match => ({
   id,

@@ -130,20 +130,6 @@ export const makeStyles = (colors: AppColors) =>
       color: colors.text.secondary,
       textAlign: 'center',
     },
-    colorPicker: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      gap: Spacing.sm,
-    },
-    colorDot: {
-      width: 32,
-      height: 32,
-      borderRadius: 16,
-    },
-    colorDotSelected: {
-      borderWidth: 3,
-      borderColor: '#fff',
-    },
     sheetActions: {
       flexDirection: 'row',
       gap: Spacing.md,

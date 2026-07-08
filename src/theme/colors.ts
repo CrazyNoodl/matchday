@@ -35,7 +35,6 @@ export interface AppColors {
     medium: string;
     strong: string;
   };
-  player: string[];
   team: string[];
 }
 
@@ -54,18 +53,6 @@ const sharedAccent = {
 };
 
 const sharedPalette = {
-  player: [
-    '#3ddc84',
-    '#f6c350',
-    '#6aa6ff',
-    '#c98bff',
-    '#ff8f6b',
-    '#52d0c8',
-    '#e89bd0',
-    '#9b8bff',
-    '#ffb86b',
-    '#7bd389',
-  ],
   team: ['#7bd389', '#e89bd0', '#9b8bff', '#ffb86b', '#5ad6cf', '#ff7b7b', '#d0c24a'],
 };
 

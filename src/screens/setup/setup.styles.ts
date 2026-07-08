@@ -460,20 +460,6 @@ export const makeStyles = (colors: AppColors) =>
       color: colors.text.secondary,
       textAlign: 'center',
     },
-    addPlayerColorPicker: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      gap: Spacing.sm,
-    },
-    addPlayerColorDot: {
-      width: 32,
-      height: 32,
-      borderRadius: 16,
-    },
-    addPlayerColorDotSelected: {
-      borderWidth: 3,
-      borderColor: '#fff',
-    },
     addPlayerActions: {
       flexDirection: 'row',
       gap: Spacing.md,

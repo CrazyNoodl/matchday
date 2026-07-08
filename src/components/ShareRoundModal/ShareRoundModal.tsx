@@ -210,6 +210,7 @@ function WinnerCard({
   includeStandings = false,
 }: WinnerCardProps) {
   const players = useStore((s) => s.players);
+  const teams = useStore((s) => s.teams);
   const colors = useColors();
   const winnerStyles = makeWinnerStyles(colors);
   const { t } = useTranslation();
@@ -229,10 +230,11 @@ function WinnerCard({
   );
 
   const winner = players.find((p) => p.id === round.winner);
+  const winnerTeam = teams.find((team) => team.code === winner?.teamCode);
   const winnerStats = standings.find((s) => s.playerId === round.winner);
   const isDraw = !round.winner;
 
-  const glowColor = winner?.color ?? colors.accent.green;
+  const glowColor = winnerTeam?.color ?? colors.accent.green;
   const dateStr = formatShareCardDate(round.date);
 
   return (

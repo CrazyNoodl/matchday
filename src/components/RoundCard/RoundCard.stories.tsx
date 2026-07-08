@@ -8,7 +8,7 @@ import { Colors } from '../../theme/colors';
 const MOCK_TEAMS = [{ code: 'MCI', name: 'Manchester City', short: 'MCI', color: Colors.team[0] }];
 
 const MOCK_PLAYERS = [
-  { id: 'p1', name: 'Artem Rudenko', nick: 'Atom', color: Colors.player[0], teamCode: 'MCI' },
+  { id: 'p1', name: 'Artem Rudenko', nick: 'Atom', teamCode: 'MCI' },
 ];
 
 const withMockData: Decorator = (Story) => {

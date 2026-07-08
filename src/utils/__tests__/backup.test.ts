@@ -58,7 +58,7 @@ class MemoryLocalStorage {
   }
 }
 
-const REAL_PLAYER: Player = { id: 'p1', name: 'Player One', color: '#ff0000', teamCode: 'JUV' };
+const REAL_PLAYER: Player = { id: 'p1', name: 'Player One', teamCode: 'JUV' };
 const REAL_TEAM: Team = { code: 'JUV', name: 'Juventus', short: 'JUV', color: '#000000' };
 
 function freshStore() {
@@ -203,7 +203,7 @@ describe('validateBackupFile', () => {
 
 describe('applyBackupLocally', () => {
   it('brackets the mutation with syncSuppressionRef and fully replaces state', () => {
-    const otherPlayer: Player = { id: 'other', name: 'Other', color: '#00ff00', teamCode: 'GAL' };
+    const otherPlayer: Player = { id: 'other', name: 'Other', teamCode: 'GAL' };
     const backupData: BackupData = {
       ...buildBackupPayload(useStore.getState()).data,
       players: [otherPlayer],

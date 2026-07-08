@@ -5,9 +5,9 @@ import type { Player, Team, Match, ArchivedRound, ClosedTournament } from '@/sto
 // Players & Teams
 // ---------------------------------------------------------------------------
 export const DEMO_PLAYERS: Player[] = [
-  { id: 'demo-p1', name: 'Ruslan', nick: 'Rusik', color: Colors.player[0], teamCode: 'JUV' },
-  { id: 'demo-p2', name: 'Artem', nick: 'Art', color: Colors.player[1], teamCode: 'TOT' },
-  { id: 'demo-p3', name: 'Uz', color: Colors.player[2], teamCode: 'GAL' },
+  { id: 'demo-p1', name: 'Ruslan', nick: 'Rusik', teamCode: 'JUV' },
+  { id: 'demo-p2', name: 'Artem', nick: 'Art', teamCode: 'TOT' },
+  { id: 'demo-p3', name: 'Uz', teamCode: 'GAL' },
 ];
 
 export const DEMO_TEAMS: Team[] = [
@@ -110,7 +110,7 @@ const DEMO_CLOSED_TOURNAMENTS: ClosedTournament[] = [
     rounds: CC_ARCHIVED_ROUNDS,
     champId: 'demo-p1',
     champName: 'Ruslan',
-    champColor: Colors.player[0],
+    champColor: Colors.team[0],
     champInit: 'RU',
     players: ['demo-p1', 'demo-p2', 'demo-p3'],
   },

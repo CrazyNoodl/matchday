@@ -61,7 +61,7 @@ const mockPushState = pushState as jest.MockedFunction<typeof pushState>;
 const mockPullState = pullState as jest.MockedFunction<typeof pullState>;
 
 const stalePulledState = {
-  players: [{ id: 'cloud-only', name: 'CloudOnly', color: '#00f', teamCode: 'ARS' }],
+  players: [{ id: 'cloud-only', name: 'CloudOnly', teamCode: 'ARS' }],
   teams: [],
   matches: [],
   archivedRounds: [],
@@ -89,7 +89,7 @@ it('pushes leftover unsynced edits before pulling on the next cold start, instea
   await waitFor(() => expect(mockPullState).toHaveBeenCalledTimes(1));
 
   mockPushState.mockRejectedValueOnce(new Error('network down'));
-  const localPlayer: Player = { id: 'local-1', name: 'Local', color: '#f00', teamCode: 'JUV' };
+  const localPlayer: Player = { id: 'local-1', name: 'Local', teamCode: 'JUV' };
   useStore.getState().addPlayer(localPlayer);
 
   await waitFor(() => expect(mockPushState).toHaveBeenCalledTimes(1));

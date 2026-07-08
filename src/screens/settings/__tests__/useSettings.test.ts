@@ -44,9 +44,9 @@ const mockSignOut = signOut as jest.Mock;
 const mockDeleteAllCloudData = deleteAllCloudData as jest.Mock;
 
 const SEED_PLAYERS: Player[] = [
-  { id: 'player-1', name: 'Alice', color: '#f00', teamCode: 'JUV' },
-  { id: 'player-2', name: 'Bob', color: '#00f', teamCode: 'TOT' },
-  { id: 'player-3', name: 'Carol', color: '#0f0', teamCode: 'GAL' },
+  { id: 'player-1', name: 'Alice', teamCode: 'JUV' },
+  { id: 'player-2', name: 'Bob', teamCode: 'TOT' },
+  { id: 'player-3', name: 'Carol', teamCode: 'GAL' },
 ];
 
 const SEED_TEAMS: Team[] = [
@@ -85,7 +85,7 @@ describe('isDefaultState', () => {
 
   it('is false when an extra player is added', async () => {
     setSeedState();
-    useStore.getState().addPlayer({ id: 'extra', name: 'Dave', color: '#0ff', teamCode: 'JUV' });
+    useStore.getState().addPlayer({ id: 'extra', name: 'Dave', teamCode: 'JUV' });
     const { result } = await renderHook(() => useSettings());
     expect(result.current.isDefaultState).toBe(false);
   });
@@ -279,7 +279,7 @@ describe('confirmSignOut', () => {
 
 describe('handleReset', () => {
   it('resets store and navigates to home', async () => {
-    useStore.getState().addPlayer({ id: 'extra', name: 'Dave', color: '#fff', teamCode: 'JUV' });
+    useStore.getState().addPlayer({ id: 'extra', name: 'Dave', teamCode: 'JUV' });
     const countBefore = useStore.getState().players.length;
     const { result } = await renderHook(() => useSettings());
     await act(async () => {
@@ -304,7 +304,7 @@ describe('handleReset', () => {
 
   it('still resets the local store when the cloud wipe fails', async () => {
     mockDeleteAllCloudData.mockRejectedValueOnce(new Error('network down'));
-    useStore.getState().addPlayer({ id: 'extra', name: 'Dave', color: '#fff', teamCode: 'JUV' });
+    useStore.getState().addPlayer({ id: 'extra', name: 'Dave', teamCode: 'JUV' });
     const { result } = await renderHook(() => useSettings());
     await act(async () => {
       await result.current.handleReset();

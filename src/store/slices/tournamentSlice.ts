@@ -225,6 +225,7 @@ export const createTournamentSlice: StateCreator<RootState, [], [], TournamentSl
     const standings = calculateStandings(allMatches, s.tournamentPlayers);
     const champId = standings[0]?.playerId ?? '';
     const champPlayer = s.players.find((p: Player) => p.id === champId);
+    const champTeam = s.teams.find((t) => t.code === champPlayer?.teamCode);
 
     const closed: ClosedTournament = {
       id: s.tournamentId || `tour-${Date.now()}`,
@@ -233,7 +234,7 @@ export const createTournamentSlice: StateCreator<RootState, [], [], TournamentSl
       rounds: [...s.archivedRounds],
       champId,
       champName: champPlayer?.name ?? '',
-      champColor: champPlayer?.color ?? Colors.player[0],
+      champColor: champTeam?.color ?? Colors.team[0],
       champInit: champPlayer ? initials(champPlayer.name) : '',
       players: [...s.tournamentPlayers],
     };
@@ -286,7 +287,6 @@ export const createTournamentSlice: StateCreator<RootState, [], [], TournamentSl
           player = {
             id: `player-import-${ts}-${newPlayers.length}`,
             name,
-            color: Colors.player[(s.players.length + newPlayers.length) % Colors.player.length],
             teamCode: s.teams[0]?.code ?? 'JUV',
           };
           newPlayers.push(player);

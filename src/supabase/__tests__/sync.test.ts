@@ -121,7 +121,7 @@ describe('pushState', () => {
 
     await pushState({
       ...basePayload,
-      players: [{ id: 'p1', name: 'Alice', color: '#fff', teamCode: 'JUV' }],
+      players: [{ id: 'p1', name: 'Alice', teamCode: 'JUV' }],
     });
 
     const playerUpsert = calls.find((c) => c.table === 'players' && c.method === 'upsert');
@@ -337,7 +337,7 @@ describe('pushAllTables', () => {
 
     await pushAllTables({
       tournamentId: '',
-      players: [{ id: 'p1', name: 'Alice', color: '#fff', teamCode: 'JUV' }],
+      players: [{ id: 'p1', name: 'Alice', teamCode: 'JUV' }],
       teams: [{ code: 'JUV', name: 'Juventus', short: 'JUV', color: '#000' }],
       matches: [],
       archivedRounds: [],
@@ -375,7 +375,7 @@ describe('pullState', () => {
     mockGetCurrentUserId.mockResolvedValue('user-1');
     const { db } = buildMockDb({
       players: {
-        data: [{ id: 'p1', name: 'Alice', color: '#fff', team_code: 'JUV' }],
+        data: [{ id: 'p1', name: 'Alice', team_code: 'JUV' }],
         error: null,
       },
       teams: { data: [], error: null },
@@ -394,7 +394,6 @@ describe('pullState', () => {
         id: 'p1',
         name: 'Alice',
         nick: undefined,
-        color: '#fff',
         teamCode: 'JUV',
         photo: undefined,
       },

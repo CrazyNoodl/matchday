@@ -12,15 +12,12 @@ interface PlayerEditSheetProps {
   onClose: () => void;
   editingPlayer: Player | null;
   teams: Team[];
-  playerColors: string[];
   formName: string;
   onChangeName: (v: string) => void;
   formNick: string;
   onChangeNick: (v: string) => void;
   formTeam: string;
   onChangeTeam: (v: string) => void;
-  formColor: string;
-  onChangeColor: (v: string) => void;
   onSave: () => void;
 }
 
@@ -29,15 +26,12 @@ export function PlayerEditSheet({
   onClose,
   editingPlayer,
   teams,
-  playerColors,
   formName,
   onChangeName,
   formNick,
   onChangeNick,
   formTeam,
   onChangeTeam,
-  formColor,
-  onChangeColor,
   onSave,
 }: PlayerEditSheetProps) {
   const { t } = useTranslation();
@@ -105,24 +99,6 @@ export function PlayerEditSheet({
                 </TouchableOpacity>
               ))}
             </ScrollView>
-          </View>
-
-          <View style={styles.formGroup}>
-            <Text style={styles.formLabel}>{t('setup.form.color').toUpperCase()}</Text>
-            <View style={styles.colorPicker}>
-              {playerColors.map((c) => (
-                <TouchableOpacity
-                  key={c}
-                  style={[
-                    styles.colorDot,
-                    { backgroundColor: c },
-                    formColor === c && styles.colorDotSelected,
-                  ]}
-                  onPress={() => onChangeColor(c)}
-                  activeOpacity={0.8}
-                />
-              ))}
-            </View>
           </View>
         </BottomSheetScrollView>
 

@@ -22,7 +22,6 @@ export interface Database {
           user_id: string;
           name: string;
           nick: string | null;
-          color: string;
           team_code: string;
           photo: string | null;
           updated_at: string;

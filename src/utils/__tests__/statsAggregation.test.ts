@@ -48,7 +48,6 @@ const closedTournament = (
 const player = (id: string, name = id): Player => ({
   id,
   name,
-  color: '#f00',
   teamCode: 'JUV',
 });
 
