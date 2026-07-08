@@ -156,9 +156,11 @@ export default function SettingsScreen() {
         <DangerZoneCard
           title={t('settings.danger.section')}
           label={t('settings.danger.resetAll')}
-          description={t('settings.danger.resetDesc')}
+          description={
+            demoMode ? t('settings.danger.resetDisabledDemo') : t('settings.danger.resetDesc')
+          }
           buttonLabel={t('settings.danger.reset')}
-          disabled={isDefaultState}
+          disabled={isDefaultState || demoMode}
           onPress={() => d.setShowResetConfirm(true)}
         />
 
