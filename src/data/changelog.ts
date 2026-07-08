@@ -10,6 +10,12 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.30',
+    fixed: [
+      'Fixed a sync bug where matches added while offline could vanish — a second edit landing while an earlier sync push was still mid-flight could race it, and the stale push then deleted the newer match from the cloud, which then got wiped locally too on the next app relaunch',
+    ],
+  },
+  {
     version: '1.9.29',
     added: [
       'Display settings: "Group matches by tours" switch (default on) — turn it off to see a round\'s matches as one flat list instead of TOUR N blocks',

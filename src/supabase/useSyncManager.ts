@@ -18,6 +18,10 @@ export function useSyncManager() {
   const pushTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pullTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pushingRef = useRef(false);
+  // Set when a store edit's debounce settles while a push is already in
+  // flight — that push's payload was captured before this edit, so starting
+  // a second overlapping push now would race it (see runPush's finally below).
+  const pushQueuedRef = useRef(false);
   const dirtyRef = useRef<Set<DirtyTable>>(new Set());
   const prevDemoModeRef = useRef<boolean>(useStore.getState().demoMode);
   // Bridges the reconnect effect (below) into the main effect's closure —
@@ -104,6 +108,13 @@ export function useSyncManager() {
         }
       } finally {
         pushingRef.current = false;
+        if (pushQueuedRef.current) {
+          // An edit's debounce settled while this push was in flight and got
+          // deferred instead of overlapping it. Run now with a fresh
+          // dirtyRef/state snapshot — by now it includes that edit.
+          pushQueuedRef.current = false;
+          runPush();
+        }
       }
     }
 
@@ -276,7 +287,19 @@ export function useSyncManager() {
       }
 
       if (pushTimerRef.current) clearTimeout(pushTimerRef.current);
-      pushTimerRef.current = setTimeout(runPush, PUSH_DEBOUNCE_MS);
+      pushTimerRef.current = setTimeout(() => {
+        if (pushingRef.current) {
+          // A push is already mid-flight with a payload snapshot taken
+          // before this edit. Starting a second one now would race it: if
+          // this stale in-flight push's delete-by-absence writes land after
+          // the newer push's, it deletes rows the newer push just added
+          // (see useSyncManager.overlappingPush.test.ts). Defer instead —
+          // the in-flight push's finally() picks this back up once it's done.
+          pushQueuedRef.current = true;
+          return;
+        }
+        runPush();
+      }, PUSH_DEBOUNCE_MS);
     });
 
     return () => {
