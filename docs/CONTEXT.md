@@ -12,7 +12,8 @@
 6. [Open GitHub issues](#open-github-issues)
 7. [Gotchas & non-obvious behavior](#gotchas--non-obvious-behavior) — by subsystem
 8. [Sync data-loss incident (2026-07-06)](#sync-data-loss-incident-2026-07-06)
-9. [Key file locations](#key-file-locations)
+9. [Overlapping-push race deleting matches added while offline (2026-07-09)](#overlapping-push-race-deleting-matches-added-while-offline-2026-07-09)
+10. [Key file locations](#key-file-locations)
 
 ---
 
@@ -212,6 +213,16 @@ Status drifts too fast to keep a manual table in sync — run `gh issue list --r
 **Structural risk still open:** this project uses a single Supabase project for both local development and real user data (every worktree gets the same `.env` copied in) — a dev-time mistake hits real data directly, as happened here. Worth a separate dev/staging Supabase project.
 
 This incident is also why the [local JSON backup](#what-is-fully-implemented) feature exists — a second, independent safety net entirely separate from Supabase (`src/utils/backup.ts`, `/settings/backup`). Its `applyBackupLocally()` is bracketed with the same `syncSuppressionRef`. Backups deliberately exclude **all** media links (player photos, team logos, match photos/videos — `buildBackupPayload()`'s `stripPlayerMedia`/`stripTeamMedia`/`stripMatchMedia`/`stripRoundMedia`/`stripClosedTournamentMedia`): those are Supabase Storage URLs, a backup can be restored long after it was made, and a "Reset All Data" in between would leave any embedded URL pointing at nothing. Restoring a backup never reintroduces a broken media reference — the tradeoff is that photos/logos/match media are never restored either and must be re-added manually.
+
+---
+
+## Overlapping-push race deleting matches added while offline (2026-07-09)
+
+**Reported symptom:** add matches to an open round while offline, force-quit the app, reconnect, relaunch — the offline-added matches were gone. Staying inside the app through the same offline→online transition never lost anything.
+
+**Root cause:** `useSyncManager.ts`'s store-subscribe listener rescheduled a debounced `runPush()` on every qualifying edit without checking whether a push was already in flight (`pushingRef.current`). If a second edit's debounce settled while an earlier push was still mid-network-call (offline, slow connection, retry), both pushes ran concurrently, each with its own `buildSyncPayload()` snapshot taken at its own start time. `pushState()`'s `openMatches` section is upsert-current-list-then-delete-by-absence — if the *earlier* push (stale, smaller matches array) finished its network round-trip *after* the *later* push (fresher, bigger array) had already landed, the earlier push's delete-by-absence removed the newer match from the cloud even though it had just synced successfully. Because both pushes reported success, `dirtyRef`/`pendingSyncTables` ended up empty — so on the next relaunch, `init()` skipped the "flush leftover dirty tables" step and went straight to `pull()`, which blind-overwrote local state with the now-incomplete cloud snapshot, deleting the match locally too. Staying in the app didn't hit this because the reconnect path's `pull()` is guarded by `pushingRef`/`dirtyRef` checks that a fresh relaunch doesn't retain.
+
+**Fix:** added `pushQueuedRef` (`src/supabase/useSyncManager.ts`). A debounce that settles while `pushingRef.current` is true no longer starts a second overlapping push — it just sets `pushQueuedRef.current = true` and returns. `runPush()`'s `finally` checks that flag and, if set, immediately calls itself again with a fresh `dirtyRef`/state snapshot (which by then includes every edit made during the first push's flight). Regression test: `src/supabase/__tests__/useSyncManager.overlappingPush.test.ts` — uses a stateful fake Supabase client (real upsert/delete/select semantics, not scripted responses) with manually-held promises to force the exact interleaving. `src/supabase/__tests__/useSyncManager.offlineMatchLoss.test.ts` covers the adjacent (already-fixed) force-quit-with-a-single-edit case for comparison — both now pass.
 
 ---
 
