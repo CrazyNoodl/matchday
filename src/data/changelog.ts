@@ -10,6 +10,12 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.26',
+    internal: [
+      'Internal: added e2e coverage for match detail editing, the Reset All Data safety cooldown, and local backup/restore; e2e fixtures now block all real Supabase network calls (Metro was inlining the live project URL/key into the test bundle regardless of playwright.config.ts overrides) — no visible change',
+    ],
+  },
+  {
     version: '1.9.25',
     internal: [
       'Internal: added ESLint (eslint-config-expo + eslint-plugin-storybook) and cleaned up dead imports/vars, redundant Storybook story names, and stale eslint-disable comments — no visible change',
