@@ -92,7 +92,7 @@ export default function TournamentsScreen() {
                 onPress={handleOpenRename}
                 activeOpacity={0.8}
               >
-                <Text style={styles.actionBtnText}>{t('tournament.rename.save')}</Text>
+                <Text style={styles.actionBtnText}>{t('tournament.rename.button')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.actionBtn, styles.actionBtnDanger]}

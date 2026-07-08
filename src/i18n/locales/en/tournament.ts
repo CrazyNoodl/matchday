@@ -33,6 +33,7 @@ const tournament = {
     placeholder: 'Tournament name',
     cancel: 'Cancel',
     save: 'Save',
+    button: 'Rename',
   },
   close: {
     title: 'Close tournament?',

@@ -65,6 +65,7 @@ const settings = {
     empty: 'Aucune entrée pour le moment.',
   },
   danger: {
+    section: 'Zone dangereuse',
     resetAll: 'Réinitialiser les données',
     resetTitle: 'Réinitialiser les données ?',
     resetDesc: 'Cela supprimera définitivement tous les tournois, matchs, tours et réinitialisera les joueurs et équipes par défaut.',

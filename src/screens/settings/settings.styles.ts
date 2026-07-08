@@ -117,12 +117,49 @@ export const makeStyles = (colors: AppColors) => StyleSheet.create({
     backgroundColor: colors.border.default,
     marginLeft: 56 + Spacing.lg,
   },
-  resetBtn: {
-    backgroundColor: 'rgba(255,93,90,0.10)',
+  dangerHeader: {
+    fontFamily: FontFamily.bodyBold,
+    fontSize: FontSize.xs,
+    color: colors.accent.red,
+    letterSpacing: 1.2,
+    paddingLeft: Spacing.xs,
+  },
+  dangerCard: {
+    backgroundColor: colors.bg.surface,
     borderRadius: Radius.xl,
     borderWidth: 1,
-    borderColor: 'rgba(255,93,90,0.25)',
+    borderColor: 'rgba(255,93,90,0.35)',
+    overflow: 'hidden',
+  },
+  dangerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
+    gap: Spacing.md,
+    minHeight: 56,
+  },
+  dangerRowInfo: {
+    flex: 1,
+    gap: 2,
+  },
+  dangerRowLabel: {
+    fontFamily: FontFamily.bodySemiBold,
+    fontSize: FontSize.base,
+    color: colors.text.primary,
+  },
+  dangerRowSub: {
+    fontFamily: FontFamily.body,
+    fontSize: FontSize.xs,
+    color: colors.text.muted,
+  },
+  resetBtn: {
+    backgroundColor: 'rgba(255,93,90,0.10)',
+    borderRadius: Radius.lg,
+    borderWidth: 1,
+    borderColor: 'rgba(255,93,90,0.25)',
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.lg,
     alignItems: 'center',
   },
   resetBtnDisabled: {
@@ -131,7 +168,7 @@ export const makeStyles = (colors: AppColors) => StyleSheet.create({
   },
   resetBtnText: {
     fontFamily: FontFamily.bodySemiBold,
-    fontSize: FontSize.base,
+    fontSize: FontSize.sm,
     color: colors.accent.red,
   },
   resetBtnTextDisabled: {

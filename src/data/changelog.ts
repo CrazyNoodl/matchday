@@ -10,6 +10,16 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.23',
+    changed: [
+      'Settings screen reordered: Personalize now comes first, Backup & Restore moved under More (after Demo Mode, before the version row), and Reset All Data moved into its own red "Danger Zone" card with a compact button instead of a full-width one',
+      'Settings → Tournament: the button that opens the rename sheet now says "Rename" instead of "Save" (the sheet\'s own confirm button still says "Save")',
+    ],
+    internal: [
+      'Internal: extracted the repeated title+card+divider section markup on the Settings screen into a shared `SettingsSection` component, and the Danger Zone block into `DangerZoneCard` — no visible change',
+    ],
+  },
+  {
     version: '1.9.22',
     internal: [
       'Internal: replaced ~10 hand-rolled confirm/alert dialog implementations and repeated bottom-sheet header/footer markup with shared ConfirmDialog/SheetHeader/SheetFooter components, and consolidated two duplicate context-menu implementations onto the existing DropdownMenu — no visible change',
