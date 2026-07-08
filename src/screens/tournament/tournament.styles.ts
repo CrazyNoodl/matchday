@@ -158,6 +158,39 @@ export const makeStyles = (colors: AppColors) => StyleSheet.create({
   },
 
   // ---- Played Rounds ----
+  playedRoundsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: Spacing.xl,
+    marginBottom: Spacing.md,
+    gap: Spacing.sm,
+  },
+  sortToggleBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+    backgroundColor: colors.bg.elevated,
+    borderWidth: 1,
+    borderColor: colors.border.medium,
+    borderRadius: Radius.full,
+    paddingVertical: 6,
+    paddingHorizontal: Spacing.sm,
+  },
+  sortToggleIcon: {
+    fontFamily: FontFamily.display,
+    fontSize: FontSize.sm,
+    color: colors.text.secondary,
+    lineHeight: FontSize.sm + 2,
+  },
+  sortToggleIconAsc: {
+    transform: [{ rotate: '180deg' }],
+  },
+  sortToggleText: {
+    fontFamily: FontFamily.bodySemiBold,
+    fontSize: FontSize.xs,
+    color: colors.text.secondary,
+  },
   emptyRounds: {
     borderWidth: 1,
     borderColor: colors.border.medium,

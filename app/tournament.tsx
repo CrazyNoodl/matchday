@@ -53,6 +53,7 @@ export default function TournamentScreen() {
 
   const [renameValue, setRenameValue] = useState('');
   const [shareStandingsVisible, setShareStandingsVisible] = useState(false);
+  const [roundsNewestFirst, setRoundsNewestFirst] = useState(true);
   const { t } = useTranslation();
 
   // All ranked matches across all archived rounds + current open round (if ranked)
@@ -84,7 +85,10 @@ export default function TournamentScreen() {
     date: formatShortDate(new Date().toISOString()),
   });
   const shareRoundLabel = t('tournament.shareStandings.roundLabel', { round: rankedTotal, total: roundsTarget });
-  const reversedArchivedRounds = useMemo(() => [...archivedRounds].reverse(), [archivedRounds]);
+  const sortedArchivedRounds = useMemo(
+    () => (roundsNewestFirst ? [...archivedRounds].reverse() : archivedRounds),
+    [archivedRounds, roundsNewestFirst],
+  );
 
   const handleRoundPress = useCallback(
     (r: ArchivedRound) => {
@@ -187,17 +191,33 @@ export default function TournamentScreen() {
         )}
 
         {/* ---- PLAYED ROUNDS ---- */}
-        <SectionLabel
-          label={t('tournament.playedRounds', { count: archivedRounds.length }).toUpperCase()}
-          style={styles.sectionLabel}
-        />
+        <View style={styles.playedRoundsHeader}>
+          <SectionLabel
+            label={t('tournament.playedRounds', { count: archivedRounds.length }).toUpperCase()}
+          />
+
+          {archivedRounds.length > 1 && (
+            <TouchableOpacity
+              style={styles.sortToggleBtn}
+              onPress={() => setRoundsNewestFirst((v) => !v)}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel={roundsNewestFirst ? t('tournament.sortNewestFirst') : t('tournament.sortOldestFirst')}
+            >
+              <Text style={[styles.sortToggleIcon, !roundsNewestFirst && styles.sortToggleIconAsc]}>▾</Text>
+              <Text style={styles.sortToggleText}>
+                {roundsNewestFirst ? t('tournament.sortNewestFirst') : t('tournament.sortOldestFirst')}
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
 
         {archivedRounds.length === 0 ? (
           <View style={styles.emptyRounds}>
             <Text style={styles.emptyRoundsText}>{t('tournament.noRounds')}</Text>
           </View>
         ) : (
-          reversedArchivedRounds.map((r) => {
+          sortedArchivedRounds.map((r) => {
             const roundWinner = players.find((p) => p.id === r.winner);
             return (
               <RoundCard
