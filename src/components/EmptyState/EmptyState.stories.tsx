@@ -1,5 +1,4 @@
-import React from 'react';
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/react-native-web-vite';
 import { EmptyState } from './EmptyState';
 import { Colors } from '../../theme/colors';
 
@@ -31,12 +30,10 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const WithoutCTA: Story = {
-  name: 'Without CTA',
   args: { message: 'No matches yet' },
 };
 
 export const WithCTA: Story = {
-  name: 'With CTA',
   args: {
     message: 'No matches yet',
     ctaText: 'Add first match',

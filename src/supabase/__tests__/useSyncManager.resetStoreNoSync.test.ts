@@ -12,6 +12,12 @@
  * ever marked dirty for that transition and no push follows.
  */
 
+import { renderHook, waitFor } from '@testing-library/react-native';
+import { useStore } from '../../store';
+import { pullState, pushState } from '../sync';
+import { useSyncManager } from '../useSyncManager';
+import type { Player } from '../../store/types';
+
 jest.mock('react-native-mmkv', () => ({
   createMMKV: () => ({
     getString: () => null,
@@ -47,12 +53,6 @@ jest.mock('../client', () => ({
 jest.mock('../storage', () => ({
   deleteMediaItem: jest.fn().mockResolvedValue(undefined),
 }));
-
-import { renderHook, waitFor } from '@testing-library/react-native';
-import { useStore } from '../../store';
-import { pullState, pushState } from '../sync';
-import { useSyncManager } from '../useSyncManager';
-import type { Player } from '../../store/types';
 
 const mockPullState = pullState as jest.MockedFunction<typeof pullState>;
 const mockPushState = pushState as jest.MockedFunction<typeof pushState>;

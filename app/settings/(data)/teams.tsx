@@ -1,7 +1,6 @@
 import React, { useState, useCallback, useRef } from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { useRouter } from 'expo-router';
 import { useGoBack } from '@/utils/useGoBack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStore } from '@/store';
@@ -21,7 +20,6 @@ const TEAM_COLORS = Colors.team;
 
 export default function TeamsScreen() {
   const { t } = useTranslation();
-  const router = useRouter();
   const goBack = useGoBack();
   const colors = useColors();
   const styles = makeStyles(colors);

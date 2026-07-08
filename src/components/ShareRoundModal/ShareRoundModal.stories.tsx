@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import type { Meta, StoryObj, Decorator } from '@storybook/react';
+import type { Meta, StoryObj, Decorator } from '@storybook/react-native-web-vite';
 import { ShareRoundModal } from './ShareRoundModal';
 import { useStore } from '@/store';
 import { Colors } from '@/theme/colors';

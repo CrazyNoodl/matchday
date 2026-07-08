@@ -1,3 +1,7 @@
+import { useStore } from '../index';
+import type { Match, Player } from '../types';
+import { deleteStorageFolder } from '@/supabase/storage';
+
 jest.mock('react-native-mmkv', () => ({
   createMMKV: () => ({
     getString: () => null,
@@ -17,10 +21,6 @@ jest.mock('@/supabase/storage', () => {
     deleteStorageFolder: jest.fn().mockResolvedValue(undefined),
   };
 });
-
-import { useStore } from '../index';
-import type { Match, Player } from '../types';
-import { deleteStorageFolder } from '@/supabase/storage';
 
 const mockDeleteFolder = deleteStorageFolder as jest.Mock;
 

@@ -19,9 +19,7 @@ export default function TournamentsScreen() {
   const hasTournament = useStore((s) => s.hasTournament);
   const tournamentName = useStore((s) => s.tournamentName);
   const round = useStore((s) => s.round);
-  const archivedRounds = useStore((s) => s.archivedRounds);
   const closedTournaments = useStore((s) => s.closedTournaments);
-  const players = useStore((s) => s.players);
   const tournamentPlayers = useStore((s) => s.tournamentPlayers);
   const modal = useStore((s) => s.modal);
   const setModal = useStore((s) => s.setModal);

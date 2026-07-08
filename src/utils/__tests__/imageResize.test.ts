@@ -1,3 +1,5 @@
+import { resizeImage, MEDIA_MAX_DIMENSION, OCR_PAYLOAD_MAX_DIMENSION, STAT_PHOTO_STORAGE_MAX_DIMENSION } from '../imageResize';
+
 const mockSaveAsync = jest.fn();
 const mockRenderAsync = jest.fn();
 const mockResize = jest.fn();
@@ -7,8 +9,6 @@ jest.mock('expo-image-manipulator', () => ({
   ImageManipulator: { manipulate: (...args: unknown[]) => mockManipulate(...args) },
   SaveFormat: { JPEG: 'jpeg' },
 }));
-
-import { resizeImage, MEDIA_MAX_DIMENSION, OCR_PAYLOAD_MAX_DIMENSION, STAT_PHOTO_STORAGE_MAX_DIMENSION } from '../imageResize';
 
 describe('resizeImage', () => {
   beforeEach(() => {

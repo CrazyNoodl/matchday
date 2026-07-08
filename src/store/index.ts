@@ -33,7 +33,7 @@ const buildStorage = () => {
   // Falls back to an in-memory store if the native module isn't available
   // (e.g. Jest/Storybook, which have no real native runtime).
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { createMMKV } = require('react-native-mmkv') as typeof import('react-native-mmkv');
     const mmkv = createMMKV({ id: 'matchday-store' });
     return {

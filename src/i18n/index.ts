@@ -4,6 +4,8 @@ import en from './locales/en';
 import uk from './locales/uk';
 import fr from './locales/fr';
 
+// i18next's plugin API is i18n.use(plugin) — not the named `use` export.
+// eslint-disable-next-line import/no-named-as-default-member
 i18n.use(initReactI18next).init({
   lng: 'en',
   fallbackLng: 'en',

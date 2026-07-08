@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/react-native-web-vite';
 import { Text, TouchableOpacity } from 'react-native';
 import { NavHeader } from './NavHeader';
 import { Colors } from '../../theme/colors';

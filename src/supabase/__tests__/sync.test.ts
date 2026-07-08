@@ -5,12 +5,12 @@
 // handling logic had zero test coverage despite being the most destructive
 // code in the app (it can delete cloud rows for a user).
 
+import { getCurrentUserId } from '../auth';
+import { pushState, pullState, deleteAllCloudData, buildSyncPayload, pushAllTables, type SyncPayload } from '../sync';
+
 jest.mock('../auth', () => ({
   getCurrentUserId: jest.fn(),
 }));
-
-import { getCurrentUserId } from '../auth';
-import { pushState, pullState, deleteAllCloudData, buildSyncPayload, pushAllTables, type SyncPayload } from '../sync';
 
 const mockGetCurrentUserId = getCurrentUserId as jest.MockedFunction<typeof getCurrentUserId>;
 
@@ -62,14 +62,12 @@ function buildMockDb(resultsByTable: Record<string, { data?: unknown; error?: un
 
 jest.mock('../client', () => ({
   get supabase() {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return (globalThis as any).__mockSupabaseDb;
   },
   supabaseConfigured: true,
 }));
 
 function setMockDb(db: unknown) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (globalThis as any).__mockSupabaseDb = db;
 }
 

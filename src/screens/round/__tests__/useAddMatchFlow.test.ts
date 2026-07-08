@@ -1,3 +1,11 @@
+import { renderHook, act, waitFor } from '@testing-library/react-native';
+import * as ImagePicker from 'expo-image-picker';
+import { uploadMediaItems } from '@/supabase/storage';
+import { extractStatsFromPhoto } from '@/utils/extractStats';
+import { useAddMatchFlow } from '../useAddMatchFlow';
+import { initAddMatch } from '@/utils/addMatchState';
+import type { Match, Player } from '@/store/types';
+
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
 }));
@@ -23,14 +31,6 @@ jest.mock('@/utils/imageResize', () => ({
   STAT_PHOTO_STORAGE_MAX_DIMENSION: 1200,
   TEAM_LOGO_MAX_DIMENSION: 600,
 }));
-
-import { renderHook, act, waitFor } from '@testing-library/react-native';
-import * as ImagePicker from 'expo-image-picker';
-import { uploadMediaItems } from '@/supabase/storage';
-import { extractStatsFromPhoto } from '@/utils/extractStats';
-import { useAddMatchFlow } from '../useAddMatchFlow';
-import { initAddMatch } from '@/utils/addMatchState';
-import type { Match, Player } from '@/store/types';
 
 const mockUpload = uploadMediaItems as jest.Mock;
 const mockPicker = ImagePicker.launchImageLibraryAsync as jest.Mock;

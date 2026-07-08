@@ -47,6 +47,9 @@
     "@testing-library/react-native": "^14.0.0",
     "@types/jest": "^30.0.0",
     "@types/react": "~19.2.2",
+    "eslint": "^9.0.0",
+    "eslint-config-expo": "~56.0.4",
+    "eslint-plugin-storybook": "^10.4.6",
     "jest-expo": "~56.0.0",
     "storybook": "^10.4.6",
     "test-renderer": "^1.2.0",
@@ -69,7 +72,8 @@
     "e2e:smoke:watch": "SLOWMO=1500 playwright test --grep @smoke --headed --workers=1",
     "e2e:ui": "playwright test --ui",
     "storybook:dev": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "lint": "expo lint"
   },
   "jest": {
     "testEnvironment": "node",

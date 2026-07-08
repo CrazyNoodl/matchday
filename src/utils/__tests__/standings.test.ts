@@ -163,14 +163,6 @@ describe('isTopTied', () => {
     // p1 and p2 both beat p3 and p4 with same scorelines
     // but p1 beat p2 in H2H, p2 beat p1 in other H2H → equal H2H
     // For a real H2H break: only one H2H match, p1 wins
-    const matches = [
-      match('m1', 'p1', 'p3', 1, 0),
-      match('m2', 'p2', 'p4', 1, 0),
-      match('m3', 'p1', 'p2', 1, 0), // p1 wins H2H
-    ];
-    const standings = calculateStandings(matches, ['p1', 'p2', 'p3', 'p4']);
-    // p1 has more pts (6) than p2 (3 from p4 win only) — won't be tied at top
-    // Let's check separately with crafted equal standings
     const equalStandings = [
       { playerId: 'p1', played: 2, wins: 1, draws: 0, losses: 1, gf: 2, ga: 1, gd: 1, pts: 3 },
       { playerId: 'p2', played: 2, wins: 1, draws: 0, losses: 1, gf: 2, ga: 1, gd: 1, pts: 3 },

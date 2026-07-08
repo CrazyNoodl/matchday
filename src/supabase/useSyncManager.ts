@@ -38,7 +38,6 @@ export function useSyncManager() {
 
   useEffect(() => {
     let userId: string | null = null;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let subscription: any = null;
     // Guards the store.subscribe listener below against reacting to
     // persistDirty()'s own setState call — without it, persisting the

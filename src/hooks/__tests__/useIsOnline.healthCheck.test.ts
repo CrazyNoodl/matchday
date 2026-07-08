@@ -8,6 +8,9 @@
 
 import { act, renderHook } from '@testing-library/react-native';
 
+import { pingSupabase } from '@/supabase/health';
+import { useIsOnline, HEALTH_CHECK_INTERVAL_MS } from '../useIsOnline';
+
 type NetInfoListener = (state: { isConnected: boolean | null; isInternetReachable: boolean | null }) => void;
 type AppStateListener = (state: string) => void;
 
@@ -42,9 +45,6 @@ jest.mock('react-native', () => ({
 jest.mock('@/supabase/health', () => ({
   pingSupabase: jest.fn(),
 }));
-
-import { pingSupabase } from '@/supabase/health';
-import { useIsOnline, HEALTH_CHECK_INTERVAL_MS } from '../useIsOnline';
 
 const mockedPing = pingSupabase as jest.Mock;
 

@@ -1,5 +1,5 @@
-import '@/i18n';
-import { Stack } from 'expo-router';
+import i18n from '@/i18n';
+import { Stack, useRouter } from 'expo-router';
 import Head from 'expo-router/head';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -14,7 +14,7 @@ import {
   Sora_600SemiBold,
   Sora_700Bold,
 } from '@expo-google-fonts/sora';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Platform, View, ActivityIndicator, Text, TextInput, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Constants from 'expo-constants';
@@ -22,19 +22,14 @@ import { ErrorBoundary } from 'react-error-boundary';
 import { ThemeProvider, useColors, useEffectiveColorScheme } from '@/theme';
 import { useStore } from '@/store';
 import { bannerStyles, offlineBannerStyles } from '@/screens/layout/layout.styles';
-import i18n from '@/i18n';
 import { useTranslation } from 'react-i18next';
-import { useEffect, useState } from 'react';
-import { useRouter } from 'expo-router';
 import { useSyncManager } from '@/supabase/useSyncManager';
 import { supabase, supabaseConfigured } from '@/supabase/client';
 import { LoginScreen, OfflineScreen, ErrorFallback } from '@/components';
 import { useIsOnline } from '@/hooks/useIsOnline';
 import type { Session } from '@supabase/supabase-js';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 (Text as any).defaultProps = { ...((Text as any).defaultProps ?? {}), allowFontScaling: false };
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 (TextInput as any).defaultProps = { ...((TextInput as any).defaultProps ?? {}), allowFontScaling: false };
 
 const BASE_URL: string = (Constants.expoConfig?.experiments as Record<string, string> | undefined)?.baseUrl ?? '';
