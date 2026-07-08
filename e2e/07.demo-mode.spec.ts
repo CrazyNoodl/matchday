@@ -1,15 +1,14 @@
 import { test, expect, createTeamViaUI, createPlayerViaUI } from './fixtures';
 
-// Settings screen renders 3 switches in a fixed order: showNick, showTeamLogo,
-// then Demo Mode (verified against the live DOM — see e2e/fixtures for the pattern).
-const DEMO_SWITCH_INDEX = 2;
+// Demo Mode is the only switch on the Settings root screen (nicknames/team
+// logos moved to /settings/display) — see e2e/fixtures for the pattern.
 
 test.describe('Demo mode', () => {
   test('toggles demo data on and off, restoring real (empty) state @smoke', async ({ authedPage: page }) => {
     await page.goto('/settings');
     await page.waitForLoadState('networkidle');
 
-    const demoSwitch = page.getByRole('switch').nth(DEMO_SWITCH_INDEX);
+    const demoSwitch = page.getByRole('switch').first();
     await expect(demoSwitch).not.toBeChecked();
 
     // No active tournament — toggling on applies immediately, no confirmation dialog.
@@ -28,7 +27,7 @@ test.describe('Demo mode', () => {
 
     await page.goto('/settings');
     await page.waitForLoadState('networkidle');
-    await expect(page.getByRole('switch').nth(DEMO_SWITCH_INDEX)).not.toBeChecked();
+    await expect(page.getByRole('switch').first()).not.toBeChecked();
   });
 
   test('warns before replacing an active tournament, then restores it on exit', async ({ authedPage: page }) => {
@@ -51,7 +50,7 @@ test.describe('Demo mode', () => {
     // confirmation dialog (never a native Alert — Alert breaks the web file picker).
     await page.goto('/settings');
     await page.waitForLoadState('networkidle');
-    const demoSwitch = page.getByRole('switch').nth(DEMO_SWITCH_INDEX);
+    const demoSwitch = page.getByRole('switch').first();
     await demoSwitch.click();
     // "DEMO MODE" also matches the settings section header above the switch —
     // the dialog title is the topmost instance (Modal content mounts last).

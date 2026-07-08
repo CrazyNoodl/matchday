@@ -11,6 +11,12 @@ import { SettingsRow } from '@/screens/settings/SettingsRow';
 import { SettingsDialogs } from '@/screens/settings/SettingsDialogs';
 import { useSettings } from '@/screens/settings/useSettings';
 
+const THEME_KEYS = {
+  dark: 'settings.display.themeDark',
+  light: 'settings.display.themeLight',
+  auto: 'settings.display.themeAuto',
+} as const;
+
 export default function SettingsScreen() {
   const { t } = useTranslation();
   const colors = useColors();
@@ -19,11 +25,9 @@ export default function SettingsScreen() {
 
   const {
     router,
-    store,
     players,
     teams,
     showNick,
-    showTeamLogo,
     colorScheme,
     hasTournament,
     tournamentName,
@@ -35,6 +39,8 @@ export default function SettingsScreen() {
     devUnlocked,
   } = d;
 
+  const appearanceSummary = `${t(THEME_KEYS[colorScheme])} · ${t(showNick ? 'settings.display.nicknamesOn' : 'settings.display.nicknamesOff')}`;
+
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
       <GlowBackground />
@@ -45,9 +51,22 @@ export default function SettingsScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Tournament */}
+        {/* Account */}
+        {supabaseConfigured && (
+          <View style={styles.accountCard}>
+            <View style={styles.accountAvatar}>
+              <Text style={styles.accountAvatarText}>✉️</Text>
+            </View>
+            <Text style={styles.accountEmail} numberOfLines={1}>{userEmail ?? '—'}</Text>
+            <TouchableOpacity style={styles.signOutBtn} onPress={d.handleSignOut} activeOpacity={0.75}>
+              <Text style={styles.signOutBtnText}>{t('settings.account.signOut')}</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Play */}
         <View style={styles.section}>
-          <Text style={styles.sectionHeader}>{t('settings.tournament.section').toUpperCase()}</Text>
+          <Text style={styles.sectionHeader}>{t('settings.play.section').toUpperCase()}</Text>
           <View style={styles.card}>
             <SettingsRow
               icon="🏆"
@@ -55,13 +74,7 @@ export default function SettingsScreen() {
               sub={hasTournament ? tournamentName : t('settings.tournament.noActive')}
               onPress={() => router.push('/settings/tournaments')}
             />
-          </View>
-        </View>
-
-        {/* Data */}
-        <View style={styles.section}>
-          <Text style={styles.sectionHeader}>{t('settings.data.section').toUpperCase()}</Text>
-          <View style={styles.card}>
+            <View style={styles.divider} />
             <SettingsRow
               icon="👤"
               label={t('settings.data.players')}
@@ -85,98 +98,17 @@ export default function SettingsScreen() {
           </View>
         </View>
 
-        {/* Display */}
+        {/* Personalize */}
         <View style={styles.section}>
-          <Text style={styles.sectionHeader}>{t('settings.display.section').toUpperCase()}</Text>
+          <Text style={styles.sectionHeader}>{t('settings.personalize.section').toUpperCase()}</Text>
           <View style={styles.card}>
-            <View style={styles.themeRow}>
-              <TouchableOpacity
-                style={[styles.themeBtn, colorScheme === 'dark' && styles.themeBtnActive]}
-                onPress={() => store.setColorScheme('dark')}
-                activeOpacity={0.75}
-              >
-                <Text style={styles.themeBtnIcon}>🌙</Text>
-                <Text style={[styles.themeBtnLabel, colorScheme === 'dark' && styles.themeBtnLabelActive]}>
-                  {t('settings.display.themeDark')}
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.themeBtn, colorScheme === 'light' && styles.themeBtnActive]}
-                onPress={() => store.setColorScheme('light')}
-                activeOpacity={0.75}
-              >
-                <Text style={styles.themeBtnIcon}>☀️</Text>
-                <Text style={[styles.themeBtnLabel, colorScheme === 'light' && styles.themeBtnLabelActive]}>
-                  {t('settings.display.themeLight')}
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.themeBtn, colorScheme === 'auto' && styles.themeBtnActive]}
-                onPress={() => store.setColorScheme('auto')}
-                activeOpacity={0.75}
-              >
-                <Text style={styles.themeBtnIcon}>🌓</Text>
-                <Text style={[styles.themeBtnLabel, colorScheme === 'auto' && styles.themeBtnLabelActive]}>
-                  {t('settings.display.themeAuto')}
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <View style={styles.divider} />
-            <SettingsRow
-              icon="🏷"
-              label={t('settings.display.showNicknames')}
-              sub={t('settings.display.showNicknamesDesc')}
-              onPress={() => store.setShowNick(!showNick)}
-              right={
-                <Switch
-                  value={showNick}
-                  onValueChange={store.setShowNick}
-                  trackColor={{ false: colors.bg.elevated, true: colors.accent.green }}
-                  thumbColor={colors.text.primary}
-                />
-              }
-              chevron={false}
-            />
-            <View style={styles.divider} />
             <SettingsRow
               icon="🎨"
-              label={t('settings.display.showTeamLogos')}
-              sub={t('settings.display.showTeamLogosDesc')}
-              onPress={() => store.setShowTeamLogo(!showTeamLogo)}
-              right={
-                <Switch
-                  value={showTeamLogo}
-                  onValueChange={store.setShowTeamLogo}
-                  trackColor={{ false: colors.bg.elevated, true: colors.accent.green }}
-                  thumbColor={colors.text.primary}
-                />
-              }
-              chevron={false}
+              label={t('settings.display.section')}
+              sub={appearanceSummary}
+              onPress={() => router.push('/settings/display')}
             />
-          </View>
-        </View>
-
-        {/* Account */}
-        {supabaseConfigured && (
-          <View style={styles.section}>
-            <Text style={styles.sectionHeader}>{t('settings.account.section').toUpperCase()}</Text>
-            <View style={styles.card}>
-              <SettingsRow icon="✉️" label={userEmail ?? '—'} sub={t('settings.account.signedIn')} chevron={false} />
-              <View style={styles.divider} />
-              <SettingsRow
-                icon="🚪"
-                label={t('settings.account.signOut')}
-                chevron={false}
-                onPress={d.handleSignOut}
-              />
-            </View>
-          </View>
-        )}
-
-        {/* Language */}
-        <View style={styles.section}>
-          <Text style={styles.sectionHeader}>{t('settings.language.section').toUpperCase()}</Text>
-          <View style={styles.card}>
+            <View style={styles.divider} />
             <SettingsRow
               icon={currentLang.flag}
               label={t('settings.language.label')}
@@ -186,9 +118,9 @@ export default function SettingsScreen() {
           </View>
         </View>
 
-        {/* App info */}
+        {/* More */}
         <View style={styles.section}>
-          <Text style={styles.sectionHeader}>{t('settings.about.section').toUpperCase()}</Text>
+          <Text style={styles.sectionHeader}>{t('settings.more.section').toUpperCase()}</Text>
           <View style={styles.card}>
             <SettingsRow
               icon="ℹ️"
@@ -203,28 +135,20 @@ export default function SettingsScreen() {
               onPress={d.handleVersionTap}
               chevron={false}
             />
-          </View>
-        </View>
 
-        {/* Developer (hidden until unlocked) */}
-        {devUnlocked && (
-          <View style={styles.section}>
-            <Text style={[styles.sectionHeader, { color: colors.accent.blue }]}>{t('settings.developer.section').toUpperCase()}</Text>
-            <View style={styles.card}>
-              <SettingsRow
-                icon="⚙️"
-                label={t('settings.developer.menuLabel')}
-                sub={t('settings.developer.menuSub')}
-                onPress={() => router.push('/settings/developer')}
-              />
-            </View>
-          </View>
-        )}
+            {devUnlocked && (
+              <>
+                <View style={styles.divider} />
+                <SettingsRow
+                  icon="⚙️"
+                  label={t('settings.developer.menuLabel')}
+                  sub={t('settings.developer.menuSub')}
+                  onPress={() => router.push('/settings/developer')}
+                />
+              </>
+            )}
 
-        {/* Demo Mode */}
-        <View style={styles.section}>
-          <Text style={styles.sectionHeader}>{t('demo.label').toUpperCase()}</Text>
-          <View style={styles.card}>
+            <View style={styles.divider} />
             <SettingsRow
               icon="✨"
               label={t('demo.label')}
@@ -241,11 +165,7 @@ export default function SettingsScreen() {
               chevron={false}
             />
           </View>
-        </View>
 
-        {/* Danger zone */}
-        <View style={styles.section}>
-          <Text style={styles.sectionHeader}>{t('settings.danger.section').toUpperCase()}</Text>
           <TouchableOpacity
             style={[styles.resetBtn, isDefaultState && styles.resetBtnDisabled]}
             onPress={() => !isDefaultState && d.setShowResetConfirm(true)}

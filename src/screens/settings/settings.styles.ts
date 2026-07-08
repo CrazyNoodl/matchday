@@ -71,6 +71,47 @@ export const makeStyles = (colors: AppColors) => StyleSheet.create({
     color: colors.text.muted,
     lineHeight: 24,
   },
+  accountCard: {
+    alignItems: 'center',
+    backgroundColor: colors.bg.surface,
+    borderRadius: Radius.xl,
+    borderWidth: 1,
+    borderColor: colors.border.default,
+    paddingVertical: Spacing.xl,
+    paddingHorizontal: Spacing.lg,
+    gap: Spacing.sm,
+  },
+  accountAvatar: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: colors.bg.elevated,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  accountAvatarText: {
+    fontSize: 26,
+  },
+  accountEmail: {
+    fontFamily: FontFamily.bodySemiBold,
+    fontSize: FontSize.base,
+    color: colors.text.primary,
+    maxWidth: '100%',
+  },
+  signOutBtn: {
+    marginTop: Spacing.xs,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.xl,
+    borderRadius: Radius.lg,
+    backgroundColor: 'rgba(255,93,90,0.10)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,93,90,0.25)',
+  },
+  signOutBtnText: {
+    fontFamily: FontFamily.bodySemiBold,
+    fontSize: FontSize.sm,
+    color: colors.accent.red,
+  },
   divider: {
     height: 1,
     backgroundColor: colors.border.default,
@@ -171,35 +212,5 @@ export const makeStyles = (colors: AppColors) => StyleSheet.create({
     fontFamily: FontFamily.bodySemiBold,
     fontSize: FontSize.base,
     color: colors.accent.blue,
-  },
-  themeRow: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
-    padding: Spacing.lg,
-  },
-  themeBtn: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: Spacing.lg,
-    borderRadius: Radius.lg,
-    backgroundColor: colors.bg.elevated,
-    borderWidth: 1,
-    borderColor: colors.border.default,
-    gap: 6,
-  },
-  themeBtnActive: {
-    borderColor: colors.accent.green,
-    backgroundColor: colors.accent.greenSubtle,
-  },
-  themeBtnIcon: {
-    fontSize: 22,
-  },
-  themeBtnLabel: {
-    fontFamily: FontFamily.bodySemiBold,
-    fontSize: FontSize.sm,
-    color: colors.text.muted,
-  },
-  themeBtnLabelActive: {
-    color: colors.accent.green,
   },
 });
