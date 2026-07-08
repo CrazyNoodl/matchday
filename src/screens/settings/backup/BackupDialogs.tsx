@@ -12,10 +12,6 @@ interface BackupDialogsProps {
   showImportConfirm: boolean;
   onCloseImportConfirm: () => void;
   onConfirmImport: () => void;
-
-  showPushConfirm: boolean;
-  onClosePushConfirm: () => void;
-  onConfirmPush: () => void;
 }
 
 export function BackupDialogs({
@@ -25,9 +21,6 @@ export function BackupDialogs({
   showImportConfirm,
   onCloseImportConfirm,
   onConfirmImport,
-  showPushConfirm,
-  onClosePushConfirm,
-  onConfirmPush,
 }: BackupDialogsProps) {
   const { t } = useTranslation();
   const colors = useColors();
@@ -77,30 +70,6 @@ export function BackupDialogs({
               </TouchableOpacity>
               <TouchableOpacity style={styles.dialogConfirm} onPress={onConfirmImport} activeOpacity={0.85}>
                 <Text style={styles.dialogConfirmText}>{t('backup.importConfirmBtn')}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Push imported backup to cloud */}
-      <Modal
-        visible={showPushConfirm}
-        transparent
-        animationType="fade"
-        statusBarTranslucent
-        onRequestClose={onClosePushConfirm}
-      >
-        <View style={styles.dialogOverlay}>
-          <View style={styles.dialog}>
-            <Text style={styles.dialogTitle}>{t('backup.pushConfirmTitle').toUpperCase()}</Text>
-            <Text style={styles.dialogDesc}>{t('backup.pushConfirmDesc')}</Text>
-            <View style={styles.dialogActions}>
-              <TouchableOpacity style={styles.dialogCancel} onPress={onClosePushConfirm} activeOpacity={0.75}>
-                <Text style={styles.dialogCancelText}>{t('matchday.dialogs.cancel')}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.dialogConfirm} onPress={onConfirmPush} activeOpacity={0.85}>
-                <Text style={styles.dialogConfirmText}>{t('backup.pushConfirmBtn')}</Text>
               </TouchableOpacity>
             </View>
           </View>

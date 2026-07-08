@@ -10,6 +10,13 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.19',
+    changed: [
+      'Restoring a backup now pushes to the cloud automatically right after the confirmation — no separate "Push to Cloud" step to remember. A full-screen loader covers the restore, and a "Retry Cloud Sync" button appears if the cloud push fails',
+      'Backups no longer include player photos, team logos, or match photos/videos, even as links — those can go stale if cloud data is ever reset',
+    ],
+  },
+  {
     version: '1.9.18',
     fixed: [
       'Add Match: a photo that fails to upload is now flagged for retry (via the existing match-detail retry overlay) instead of silently staying local and never reaching Storage (#68)',

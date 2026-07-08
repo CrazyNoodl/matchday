@@ -54,12 +54,12 @@ export default function BackupScreen() {
 
   const [pickedFile, setPickedFile] = useState<BackupFile | null>(null);
   const [showImportConfirm, setShowImportConfirm] = useState(false);
-  const [showAfterImportPush, setShowAfterImportPush] = useState(false);
-  const [showPushConfirm, setShowPushConfirm] = useState(false);
+  const [syncFailed, setSyncFailed] = useState(false);
+  const [restoring, setRestoring] = useState(false);
   const [pushing, setPushing] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<BackupMeta | null>(null);
 
-  const actionsDisabled = demoMode;
+  const actionsDisabled = demoMode || restoring;
 
   useEffect(() => {
     (async () => {
@@ -129,28 +129,54 @@ export default function BackupScreen() {
     setDeleteTarget(null);
   };
 
-  const handleConfirmImport = () => {
-    if (!pickedFile) return;
-    applyBackupLocally(pickedFile.data);
-    setShowImportConfirm(false);
-    setPickedFile(null);
-    setStatus({ kind: 'ok', text: t('backup.importSuccess') });
-    if (supabaseConfigured) setShowAfterImportPush(true);
-  };
-
-  const handleConfirmPush = async () => {
-    setShowPushConfirm(false);
-    if (!supabaseConfigured || useStore.getState().demoMode) return;
-    setPushing(true);
+  const pushToCloud = async (): Promise<boolean> => {
     try {
       await pushAllTables(buildSyncPayload(useStore.getState()));
       useStore.setState({ pendingSyncTables: [] });
-      setStatus({ kind: 'ok', text: t('backup.pushSuccess') });
-      setShowAfterImportPush(false);
+      return true;
     } catch {
+      return false;
+    }
+  };
+
+  // Local apply and the cloud push both happen behind the same "Replace"
+  // confirmation the user already gave — no second dangerous-action prompt.
+  // The blocking overlay (restoring) covers both steps since a large backup's
+  // network push can take a while, and we don't want the user navigating
+  // away or retapping mid-restore.
+  const handleConfirmImport = async () => {
+    if (!pickedFile) return;
+    const data = pickedFile.data;
+    setShowImportConfirm(false);
+    setPickedFile(null);
+    setStatus(null);
+    setSyncFailed(false);
+    setRestoring(true);
+    applyBackupLocally(data);
+
+    if (supabaseConfigured && !useStore.getState().demoMode) {
+      const ok = await pushToCloud();
+      if (ok) {
+        setStatus({ kind: 'ok', text: t('backup.restoreSyncSuccess') });
+      } else {
+        setStatus({ kind: 'error', text: t('backup.restoreSyncFailed') });
+        setSyncFailed(true);
+      }
+    } else {
+      setStatus({ kind: 'ok', text: t('backup.importSuccess') });
+    }
+    setRestoring(false);
+  };
+
+  const handleRetryPush = async () => {
+    setPushing(true);
+    const ok = await pushToCloud();
+    setPushing(false);
+    if (ok) {
+      setStatus({ kind: 'ok', text: t('backup.pushSuccess') });
+      setSyncFailed(false);
+    } else {
       setStatus({ kind: 'error', text: t('backup.pushFailed') });
-    } finally {
-      setPushing(false);
     }
   };
 
@@ -271,20 +297,20 @@ export default function BackupScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Push to cloud (only after a local import, while Supabase is configured) */}
-        {showAfterImportPush && supabaseConfigured && (
+        {/* Retry cloud sync (only after the automatic post-restore push failed) */}
+        {syncFailed && supabaseConfigured && (
           <View style={styles.section}>
-            <Text style={styles.sectionHeader}>{t('backup.pushSection').toUpperCase()}</Text>
+            <Text style={styles.sectionHeader}>{t('backup.syncRetrySection').toUpperCase()}</Text>
             <TouchableOpacity
               style={styles.pushBtn}
-              onPress={() => setShowPushConfirm(true)}
-              disabled={pushing}
+              onPress={handleRetryPush}
+              disabled={pushing || restoring}
               activeOpacity={0.8}
             >
               {pushing ? (
                 <ActivityIndicator color="#fff" size="small" />
               ) : (
-                <Text style={styles.pushBtnText}>{t('backup.pushToCloudBtn').toUpperCase()}</Text>
+                <Text style={styles.pushBtnText}>{t('backup.retrySyncBtn').toUpperCase()}</Text>
               )}
             </TouchableOpacity>
           </View>
@@ -300,10 +326,18 @@ export default function BackupScreen() {
         showImportConfirm={showImportConfirm}
         onCloseImportConfirm={() => { setShowImportConfirm(false); setPickedFile(null); }}
         onConfirmImport={handleConfirmImport}
-        showPushConfirm={showPushConfirm}
-        onClosePushConfirm={() => setShowPushConfirm(false)}
-        onConfirmPush={handleConfirmPush}
       />
+
+      {/* Blocks all interaction (including the header back button) while a
+          restore is applying locally and pushing to the cloud — a large
+          backup's network push can take a while and shouldn't be interruptible
+          mid-flight. */}
+      {restoring && (
+        <View style={styles.blockingOverlay} pointerEvents="auto">
+          <ActivityIndicator color="#fff" size="large" />
+          <Text style={styles.blockingOverlayText}>{t('backup.restoringOverlay')}</Text>
+        </View>
+      )}
     </SafeAreaView>
   );
 }
