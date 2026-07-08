@@ -1,3 +1,8 @@
+import { renderHook, act } from '@testing-library/react-native';
+import { useMatchDetail } from '../useMatchDetail';
+import { useStore } from '@/store';
+import type { Match, ArchivedRound, ClosedTournament } from '@/store/types';
+
 jest.mock('react-native-mmkv', () => ({
   createMMKV: () => ({ getString: () => null, set: jest.fn(), remove: jest.fn() }),
 }));
@@ -47,11 +52,6 @@ jest.mock('expo-image-picker', () => ({
   launchImageLibraryAsync: jest.fn().mockResolvedValue({ canceled: true }),
   MediaTypeOptions: { All: 'All' },
 }));
-
-import { renderHook, act } from '@testing-library/react-native';
-import { useMatchDetail } from '../useMatchDetail';
-import { useStore } from '@/store';
-import type { Match, ArchivedRound, ClosedTournament } from '@/store/types';
 
 const mockUpload = jest.mocked(require('@/supabase/storage').uploadMediaItem);
 const mockExtractStats = jest.mocked(require('@/utils/extractStats').extractStatsFromPhoto);

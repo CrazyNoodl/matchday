@@ -5,7 +5,6 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
-import { useRouter } from 'expo-router';
 import { useGoBack } from '@/utils/useGoBack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStore } from '@/store';
@@ -20,7 +19,7 @@ import {
 } from '@/utils/statsAggregation';
 import { useColors } from '@/theme';
 import { Radius } from '@/theme/spacing';
-import { Avatar, NavHeader, SectionLabel, GlowBackground, SegmentedControl, PlayerRankCard } from '@/components';
+import { Avatar, SectionLabel, GlowBackground, SegmentedControl, PlayerRankCard } from '@/components';
 import type { Match, Player } from '@/store/types';
 import { useTranslation } from 'react-i18next';
 import { makeStyles } from '@/screens/stats/stats.styles';
@@ -31,7 +30,6 @@ type Tab = 'ranking' | 'h2h';
 // Main screen
 // ---------------------------------------------------------------------------
 export default function StatsScreen() {
-  const router = useRouter();
   const goBack = useGoBack();
   const colors = useColors();
   const styles = makeStyles(colors);

@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
-import { useRouter } from 'expo-router';
 import { useGoBack } from '@/utils/useGoBack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -13,7 +12,6 @@ import { makeStyles } from '@/screens/settings/language/language.styles';
 export default function LanguageScreen() {
   const colors = useColors();
   const styles = makeStyles(colors);
-  const router = useRouter();
   const goBack = useGoBack();
   const { t } = useTranslation();
   const language = useStore((s) => s.language);

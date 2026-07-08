@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, ScrollView, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
-import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useGoBack } from '@/utils/useGoBack';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -15,7 +14,6 @@ const EXAMPLE_CSV = `Руслан,JUV,2,4,Артем,GAL
 Артем,GAL,1,1,Юз,TOT`;
 
 export default function ImportRoundScreen() {
-  const router = useRouter();
   const goBack = useGoBack();
   const players = useStore((s) => s.players);
   const teams = useStore((s) => s.teams);

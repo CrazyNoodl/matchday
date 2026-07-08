@@ -1,3 +1,6 @@
+import { useStore } from '../index';
+import type { Match } from '../types';
+
 jest.mock('react-native-mmkv', () => ({
   createMMKV: () => ({
     getString: () => null,
@@ -9,9 +12,6 @@ jest.mock('react-native-mmkv', () => ({
 jest.mock('react-native', () => ({
   Platform: { OS: 'web' },
 }));
-
-import { useStore } from '../index';
-import type { Match } from '../types';
 
 const makeMatch = (id: string): Match => ({
   id,

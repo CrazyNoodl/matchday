@@ -8,18 +8,6 @@
  * tested vs not).
  */
 
-jest.mock('react-native-mmkv', () => ({
-  createMMKV: () => ({
-    getString: () => null,
-    set: jest.fn(),
-    remove: jest.fn(),
-  }),
-}));
-
-jest.mock('react-native', () => ({
-  Platform: { OS: 'web' },
-}));
-
 import { useStore, syncSuppressionRef } from '@/store';
 import type { Player, Team, Match, ArchivedRound, ClosedTournament } from '@/store/types';
 import {
@@ -35,6 +23,18 @@ import {
   readBackupMeta,
   type BackupData,
 } from '../backup';
+
+jest.mock('react-native-mmkv', () => ({
+  createMMKV: () => ({
+    getString: () => null,
+    set: jest.fn(),
+    remove: jest.fn(),
+  }),
+}));
+
+jest.mock('react-native', () => ({
+  Platform: { OS: 'web' },
+}));
 
 // Minimal in-memory Web Storage polyfill — the Jest "node" test environment
 // has no real localStorage, but backup.ts's web branch calls the same API a

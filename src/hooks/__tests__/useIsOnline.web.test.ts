@@ -7,6 +7,9 @@
  * listens to the window events directly — this file locks that behavior in.
  */
 
+import { act, renderHook } from '@testing-library/react-native';
+import { useIsOnline } from '../useIsOnline';
+
 jest.mock('react-native', () => ({
   Platform: { OS: 'web' },
   AppState: { addEventListener: jest.fn(() => ({ remove: jest.fn() })) },
@@ -21,9 +24,6 @@ jest.mock('@react-native-community/netinfo', () => ({
 jest.mock('@/supabase/health', () => ({
   pingSupabase: jest.fn().mockResolvedValue(true),
 }));
-
-import { act, renderHook } from '@testing-library/react-native';
-import { useIsOnline } from '../useIsOnline';
 
 describe('useIsOnline (web)', () => {
   // Deliberately no afterEach restoring the real window/navigator: @testing-library/react-native

@@ -3,11 +3,10 @@ import { View, Text } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useShallow } from 'zustand/react/shallow';
 import { useStore } from '../../store';
-import { Standing } from '../../utils/standings';
+import { Standing, getFormChips } from '../../utils/standings';
 import { useColors } from '../../theme';
 import { Avatar } from '../Avatar';
 import { FormChip } from '../FormChip';
-import { getFormChips } from '../../utils/standings';
 import { getPlayerDisplayName } from '../../utils/playerDisplay';
 import { makeStyles } from './StandingCard.styles';
 

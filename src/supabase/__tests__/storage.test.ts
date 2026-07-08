@@ -1,3 +1,15 @@
+import {
+  uploadMediaItem,
+  uploadMediaItems,
+  uploadTeamLogo,
+  deleteMediaItem,
+  deleteStorageFolder,
+  buildRoundFolder,
+  buildMatchFolder,
+} from '../storage';
+import { supabase } from '@/supabase/client';
+import { getCurrentUserId } from '@/supabase/auth';
+
 jest.mock('@/supabase/client', () => ({
   supabase: {
     auth: { getSession: jest.fn() },
@@ -15,18 +27,6 @@ jest.mock('@/supabase/client', () => ({
 jest.mock('@/supabase/auth', () => ({
   getCurrentUserId: jest.fn(),
 }));
-
-import {
-  uploadMediaItem,
-  uploadMediaItems,
-  uploadTeamLogo,
-  deleteMediaItem,
-  deleteStorageFolder,
-  buildRoundFolder,
-  buildMatchFolder,
-} from '../storage';
-import { supabase } from '@/supabase/client';
-import { getCurrentUserId } from '@/supabase/auth';
 
 const mockGetSession = supabase.auth.getSession as jest.Mock;
 const mockGetCurrentUserId = getCurrentUserId as jest.Mock;

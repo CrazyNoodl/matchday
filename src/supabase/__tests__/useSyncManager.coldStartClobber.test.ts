@@ -19,6 +19,12 @@
  * chance to clobber them.
  */
 
+import { renderHook, waitFor } from '@testing-library/react-native';
+import { useStore } from '../../store';
+import { pushState, pullState } from '../sync';
+import { useSyncManager } from '../useSyncManager';
+import type { Player } from '../../store/types';
+
 jest.mock('react-native-mmkv', () => ({
   createMMKV: () => ({
     getString: () => null,
@@ -50,12 +56,6 @@ jest.mock('../client', () => ({
   supabaseConfigured: true,
   supabase: {},
 }));
-
-import { renderHook, waitFor } from '@testing-library/react-native';
-import { useStore } from '../../store';
-import { pushState, pullState } from '../sync';
-import { useSyncManager } from '../useSyncManager';
-import type { Player } from '../../store/types';
 
 const mockPushState = pushState as jest.MockedFunction<typeof pushState>;
 const mockPullState = pullState as jest.MockedFunction<typeof pullState>;

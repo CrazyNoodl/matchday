@@ -16,7 +16,7 @@ jest.mock('expo-image', () => ({
 
 const mockUseStore = useStore as unknown as jest.Mock;
 
-function setTeams(teams: Array<{ code: string; short: string; color: string; logo?: string }>) {
+function setTeams(teams: { code: string; short: string; color: string; logo?: string }[]) {
   mockUseStore.mockImplementation((selector: any) => selector({ teams }));
 }
 

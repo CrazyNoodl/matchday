@@ -1,6 +1,9 @@
 // Unit tests for src/supabase/auth.ts
 // Mocks the Supabase client to isolate auth function behavior.
 
+import { getCurrentUserId, signInWithEmail, signUpWithEmail, signOut } from '../auth';
+import { supabase } from '@/supabase/client';
+
 jest.mock('@/supabase/client', () => ({
   supabase: {
     auth: {
@@ -12,9 +15,6 @@ jest.mock('@/supabase/client', () => ({
   },
   supabaseConfigured: true,
 }));
-
-import { getCurrentUserId, signInWithEmail, signUpWithEmail, signOut } from '../auth';
-import { supabase } from '@/supabase/client';
 
 const mockGetSession = supabase.auth.getSession as jest.Mock;
 const mockSignInWithPassword = supabase.auth.signInWithPassword as jest.Mock;

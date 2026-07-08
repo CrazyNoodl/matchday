@@ -1,5 +1,4 @@
-import React from 'react';
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/react-native-web-vite';
 import { userEvent, within } from 'storybook/test';
 import { LoginScreen } from './LoginScreen';
 

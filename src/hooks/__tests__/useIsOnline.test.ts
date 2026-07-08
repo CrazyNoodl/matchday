@@ -1,5 +1,7 @@
 import { act, renderHook } from '@testing-library/react-native';
 
+import { useIsOnline } from '../useIsOnline';
+
 type Listener = (state: { isConnected: boolean | null; isInternetReachable: boolean | null }) => void;
 
 let mockListener: Listener | null = null;
@@ -18,8 +20,6 @@ jest.mock('@react-native-community/netinfo', () => ({
 jest.mock('@/supabase/health', () => ({
   pingSupabase: jest.fn().mockResolvedValue(true),
 }));
-
-import { useIsOnline } from '../useIsOnline';
 
 beforeEach(() => {
   mockListener = null;

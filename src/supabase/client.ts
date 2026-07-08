@@ -16,7 +16,7 @@ export const supabaseConfigured = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
 // (e.g. Jest), same as the main store's storage adapter.
 function buildAuthStorage() {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { createMMKV } = require('react-native-mmkv') as typeof import('react-native-mmkv');
     const mmkv = createMMKV({ id: 'supabase-auth' });
     return {

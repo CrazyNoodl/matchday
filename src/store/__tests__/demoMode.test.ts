@@ -4,6 +4,10 @@
  */
 
 // Mock MMKV so the store can initialise in the node test environment
+import { useStore } from '../index';
+import { DEMO_STATE, DEMO_PLAYERS, DEMO_TEAMS } from '../../demo/data';
+import type { Player, Team } from '../types';
+
 jest.mock('react-native-mmkv', () => ({
   createMMKV: () => ({
     getString: () => null,
@@ -17,10 +21,6 @@ jest.mock('react-native-mmkv', () => ({
 jest.mock('react-native', () => ({
   Platform: { OS: 'web' },
 }));
-
-import { useStore } from '../index';
-import { DEMO_STATE, DEMO_PLAYERS, DEMO_TEAMS } from '../../demo/data';
-import type { Player, Team } from '../types';
 
 // ---------------------------------------------------------------------------
 // Helpers

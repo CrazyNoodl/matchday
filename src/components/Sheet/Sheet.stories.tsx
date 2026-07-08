@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/react-native-web-vite';
 import { View, Text, ScrollView } from 'react-native';
 import { Sheet } from './Sheet';
 import { useColors } from '@/theme';

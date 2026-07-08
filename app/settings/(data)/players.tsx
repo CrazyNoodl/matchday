@@ -1,6 +1,5 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
-import { useRouter } from 'expo-router';
 import { useGoBack } from '@/utils/useGoBack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStore } from '@/store';
@@ -15,7 +14,6 @@ import { PlayerDialogs } from '@/screens/settings/players/PlayerDialogs';
 const PLAYER_COLORS = Colors.player;
 
 export default function PlayersScreen() {
-  const router = useRouter();
   const goBack = useGoBack();
   const { t } = useTranslation();
   const colors = useColors();
