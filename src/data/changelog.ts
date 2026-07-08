@@ -10,6 +10,15 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.20',
+    added: [
+      'Reset All Data confirmation now has a "Backup My Data First" shortcut straight to the backup screen',
+    ],
+    changed: [
+      'Reset All Data confirmation now has a 5-second cooldown before the Reset button becomes tappable, shown as a countdown next to the title',
+    ],
+  },
+  {
     version: '1.9.19',
     changed: [
       'Restoring a backup now pushes to the cloud automatically right after the confirmation — no separate "Push to Cloud" step to remember. A full-screen loader covers the restore, and a "Retry Cloud Sync" button appears if the cloud push fails',

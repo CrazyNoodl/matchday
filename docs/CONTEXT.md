@@ -79,6 +79,7 @@ Supabase Storage (`match-media` bucket) layout for new uploads:
 | Supabase sync (selective, debounced 300ms) | `src/store/`, `src/supabase/useSyncManager.ts` |
 | Persistent auth session (survives app restart) | `src/supabase/client.ts` |
 | Local JSON backup (export/import/restore, auto-pushes to cloud on restore, excludes all media links) | `app/settings/(data)/backup.tsx`, `src/utils/backup.ts` |
+| Reset All Data confirmation: "Backup My Data First" shortcut to backup screen, 5s cooldown (countdown in title) before Reset is tappable, resets on each open | `src/screens/settings/SettingsDialogs.tsx`, `src/screens/settings/useSettings.ts` |
 | Offline handling: boot-time stub/banner, persisted pending-sync + reconnect retry, per-feature upload/delete gating, Supabase reachability health-check | `src/hooks/useIsOnline.ts`, `app/_layout.tsx`, `src/supabase/useSyncManager.ts`, `src/supabase/health.ts` |
 | Team logo offline caching + graceful fallback | `src/components/TeamBadge/`, `src/components/Avatar/`, `ShareRoundModal`'s `CardAvatar` |
 | Demo mode | store flag |
