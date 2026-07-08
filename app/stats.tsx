@@ -209,7 +209,7 @@ function RankingTab({
   const colors = useColors();
   const styles = makeStyles(colors);
 
-  const MEDALS = [
+  const MEDALS = useMemo(() => [
     {
       rank: 1,
       badgeColor: colors.accent.gold,
@@ -228,7 +228,7 @@ function RankingTab({
       badgeBg: 'rgba(205,127,50,0.16)',
       cardBorder: colors.border.default,
     },
-  ];
+  ], [colors]);
 
   const sectionLabel = t('stats.allTime').toUpperCase();
 

@@ -15,12 +15,12 @@ import { makeStyles } from './MatchCard.styles';
 
 interface MatchCardProps {
   match: Match;
-  onPress?: () => void;
+  onPress?: (matchId: string) => void;
   readonly?: boolean;
   style?: StyleProp<ViewStyle>;
 }
 
-export function MatchCard({ match, onPress, readonly = false, style }: MatchCardProps) {
+export const MatchCard = React.memo(function MatchCard({ match, onPress, readonly = false, style }: MatchCardProps) {
   const { t } = useTranslation();
   const colors = useColors();
   const styles = makeStyles(colors);
@@ -38,8 +38,9 @@ export function MatchCard({ match, onPress, readonly = false, style }: MatchCard
   const aScoreColor = aWins ? colors.accent.green : isDraw ? colors.text.secondary : colors.text.ghost;
   const bScoreColor = bWins ? colors.accent.green : isDraw ? colors.text.secondary : colors.text.ghost;
 
-  const Container = onPress && !readonly ? TouchableOpacity : View;
-  const containerProps = onPress && !readonly ? { onPress, activeOpacity: 0.75 } : {};
+  const handlePress = onPress ? () => onPress(match.id) : undefined;
+  const Container = handlePress && !readonly ? TouchableOpacity : View;
+  const containerProps = handlePress && !readonly ? { onPress: handlePress, activeOpacity: 0.75 } : {};
 
   return (
     <Container
@@ -94,4 +95,4 @@ export function MatchCard({ match, onPress, readonly = false, style }: MatchCard
       )}
     </Container>
   );
-}
+});

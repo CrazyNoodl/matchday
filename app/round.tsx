@@ -23,36 +23,41 @@ type StandingsView = 'table' | 'cards';
 
 export default function MatchdayScreen() {
   const router = useRouter();
-  const store = useStore();
   const { t } = useTranslation();
 
-  const {
-    tournamentName,
-    round,
-    roundOpen,
-    tournamentRanked,
-    roundPlayers,
-    matches,
-    modal,
-    players,
-    selectedMatchId,
-    teams,
-  } = store;
+  const tournamentName = useStore((s) => s.tournamentName);
+  const round = useStore((s) => s.round);
+  const roundOpen = useStore((s) => s.roundOpen);
+  const tournamentRanked = useStore((s) => s.tournamentRanked);
+  const roundPlayers = useStore((s) => s.roundPlayers);
+  const matches = useStore((s) => s.matches);
+  const modal = useStore((s) => s.modal);
+  const players = useStore((s) => s.players);
+  const selectedMatchId = useStore((s) => s.selectedMatchId);
+  const teams = useStore((s) => s.teams);
+  const tournamentId = useStore((s) => s.tournamentId);
+  const roundFolder = useStore((s) => s.roundFolder);
+  const setModal = useStore((s) => s.setModal);
+  const addMatch = useStore((s) => s.addMatch);
+  const setSelectedMatch = useStore((s) => s.setSelectedMatch);
+  const finishRound = useStore((s) => s.finishRound);
+  const deleteMatch = useStore((s) => s.deleteMatch);
+  const deleteRound = useStore((s) => s.deleteRound);
 
   const colors = useColors();
-  const styles = makeStyles(colors);
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const roundMenu = useDropdownMenu();
 
   const [standingsView, setStandingsView] = useState<StandingsView>('table');
   const [localWinnerId, setLocalWinnerId] = useState<string | null>(null);
 
-  const closeModal = useCallback(() => store.setModal(null), [store]);
+  const closeModal = useCallback(() => setModal(null), [setModal]);
   const addMatchFlow = useAddMatchFlow({
     tournamentRanked,
-    tournamentId: store.tournamentId,
-    roundFolder: store.roundFolder,
+    tournamentId,
+    roundFolder,
     players,
-    addMatchToStore: store.addMatch,
+    addMatchToStore: addMatch,
     closeModal,
   });
 
@@ -75,39 +80,53 @@ export default function MatchdayScreen() {
 
   const handleFinishPress = useCallback(() => {
     if (matches.length === 0) {
-      store.setModal('needEqual');
+      setModal('needEqual');
       return;
     }
     if (!allPlayedEqual) {
-      store.setModal('needEqual');
+      setModal('needEqual');
       return;
     }
-    store.setModal('end');
-  }, [allPlayedEqual, matches.length, store]);
+    setModal('end');
+  }, [allPlayedEqual, matches.length, setModal]);
 
   const handleConfirmFinish = useCallback(() => {
     const s = calculateStandings(matches, roundPlayers);
     const isTrueDraw = isTopTied(s, matches);
     const winnerId = isTrueDraw || !s[0] ? null : s[0].playerId;
     setLocalWinnerId(winnerId);
-    store.finishRound();
-    store.setModal('winner');
-  }, [matches, roundPlayers, store]);
+    finishRound();
+    setModal('winner');
+  }, [matches, roundPlayers, finishRound, setModal]);
 
   const handleWinnerDone = useCallback(() => {
-    store.setModal(null);
+    setModal(null);
     router.push('/tournament');
-  }, [store, router]);
+  }, [setModal, router]);
 
   const handleConfirmDeleteRound = useCallback(() => {
-    store.deleteRound();
-    store.setModal(null);
+    deleteRound();
+    setModal(null);
     router.replace('/tournament');
-  }, [store, router]);
+  }, [deleteRound, setModal, router]);
 
   const winner = localWinnerId ? players.find((p) => p.id === localWinnerId) : null;
   const leader = standings[0];
   const leaderName = leader ? (players.find((p) => p.id === leader.playerId)?.name ?? '') : '';
+
+  const tours = useMemo(
+    () => groupMatchesByTour(matches, roundPlayers.length).reverse(),
+    [matches, roundPlayers.length],
+  );
+  const showTourLabel = tours.length > 1 || matches.length >= (roundPlayers.length * (roundPlayers.length - 1)) / 2;
+
+  const handleMatchPress = useCallback(
+    (matchId: string) => {
+      setSelectedMatch(matchId);
+      router.push(`/match/${matchId}`);
+    },
+    [setSelectedMatch, router],
+  );
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
@@ -199,12 +218,9 @@ export default function MatchdayScreen() {
               <EmptyState
                 message={t('matchday.noMatches')}
                 ctaText={roundOpen ? t('matchday.noMatchesAction') : undefined}
-                onPress={roundOpen ? () => store.setModal('add') : undefined}
+                onPress={roundOpen ? () => setModal('add') : undefined}
               />
-            ) : (() => {
-              const tours = groupMatchesByTour(matches, roundPlayers.length).reverse();
-              const showTourLabel = tours.length > 1 || matches.length >= (roundPlayers.length * (roundPlayers.length - 1)) / 2;
-              return tours.map((tour) => {
+            ) : tours.map((tour) => {
                 const reversed = [...tour.matches].reverse();
                 return (
                   <View key={tour.tourNumber} style={styles.tourGroup}>
@@ -217,17 +233,13 @@ export default function MatchdayScreen() {
                           key={m.id}
                           match={m}
                           style={idx < reversed.length - 1 ? styles.matchCardInBlock : styles.matchCardInBlockLast}
-                          onPress={() => {
-                            store.setSelectedMatch(m.id);
-                            router.push(`/match/${m.id}`);
-                          }}
+                          onPress={handleMatchPress}
                         />
                       ))}
                     </View>
                   </View>
                 );
-              });
-            })()}
+              })}
           </View>
         </View>
 
@@ -239,7 +251,7 @@ export default function MatchdayScreen() {
         <View style={styles.fab}>
           <TouchableOpacity
             style={styles.fabBtn}
-            onPress={() => store.setModal('add')}
+            onPress={() => setModal('add')}
             activeOpacity={0.85}
           >
             <Text style={styles.fabText}>{t('matchday.addMatch').toUpperCase()}</Text>
@@ -286,8 +298,8 @@ export default function MatchdayScreen() {
           label: t('matchday.dialogs.delete'),
           onPress: () => {
             if (selectedMatchId) {
-              store.deleteMatch(selectedMatchId);
-              store.setSelectedMatch(null);
+              deleteMatch(selectedMatchId);
+              setSelectedMatch(null);
             }
             closeModal();
           },
@@ -341,7 +353,7 @@ export default function MatchdayScreen() {
             destructive: true,
             onPress: () => {
               roundMenu.close();
-              store.setModal('delRound');
+              setModal('delRound');
             },
           },
         ]}

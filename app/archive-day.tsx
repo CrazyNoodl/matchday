@@ -52,7 +52,7 @@ function DayWinnerBanner({ winnerId, matchCount }: DayWinnerBannerProps) {
 
 export default function ArchiveDayScreen() {
   const colors = useColors();
-  const styles = makeStyles(colors);
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const router = useRouter();
   const goBack = useGoBack();
   const { t } = useTranslation();

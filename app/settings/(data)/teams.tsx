@@ -25,8 +25,13 @@ export default function TeamsScreen() {
   const goBack = useGoBack();
   const colors = useColors();
   const styles = makeStyles(colors);
-  const store = useStore();
-  const { teams, matches, archivedRounds, closedTournaments, addTeam, updateTeam, deleteTeam } = store;
+  const teams = useStore((s) => s.teams);
+  const matches = useStore((s) => s.matches);
+  const archivedRounds = useStore((s) => s.archivedRounds);
+  const closedTournaments = useStore((s) => s.closedTournaments);
+  const addTeam = useStore((s) => s.addTeam);
+  const updateTeam = useStore((s) => s.updateTeam);
+  const deleteTeam = useStore((s) => s.deleteTeam);
   const isOffline = !useIsOnline();
 
   const [editingTeam, setEditingTeam] = useState<Team | null>(null);
@@ -126,7 +131,7 @@ export default function TeamsScreen() {
     }
     setPendingDeleteCode(code);
     setShowDeleteConfirm(true);
-  }, [matches, archivedRounds, closedTournaments, store]);
+  }, [matches, archivedRounds, closedTournaments]);
 
   const confirmDelete = useCallback(() => {
     if (pendingDeleteCode) {

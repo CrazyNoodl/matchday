@@ -7,7 +7,7 @@ interface FormChipProps {
   result: MatchResult;
 }
 
-export function FormChip({ result }: FormChipProps) {
+export const FormChip = React.memo(function FormChip({ result }: FormChipProps) {
   const cfg = STYLES[result];
 
   return (
@@ -15,4 +15,4 @@ export function FormChip({ result }: FormChipProps) {
       <Text style={[styles.label, { color: cfg.text }]}>{result}</Text>
     </View>
   );
-}
+});

@@ -17,7 +17,13 @@ const EXAMPLE_CSV = `Руслан,JUV,2,4,Артем,GAL
 export default function ImportRoundScreen() {
   const router = useRouter();
   const goBack = useGoBack();
-  const { players, teams, hasTournament, roundOpen, bulkImportMatches, tournamentName, round } = useStore();
+  const players = useStore((s) => s.players);
+  const teams = useStore((s) => s.teams);
+  const hasTournament = useStore((s) => s.hasTournament);
+  const roundOpen = useStore((s) => s.roundOpen);
+  const bulkImportMatches = useStore((s) => s.bulkImportMatches);
+  const tournamentName = useStore((s) => s.tournamentName);
+  const round = useStore((s) => s.round);
   const colors = useColors();
   const styles = makeStyles(colors);
   const { t } = useTranslation();

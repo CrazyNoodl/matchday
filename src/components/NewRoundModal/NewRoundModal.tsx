@@ -27,16 +27,14 @@ export function NewRoundModal() {
   const styles = makeStyles(colors);
   const router = useRouter();
   const { t } = useTranslation();
-  const store = useStore();
-
-  const {
-    modal,
-    tournamentName,
-    players,
-    tournamentPlayers,
-    tournamentRounds,
-    archivedRounds,
-  } = store;
+  const modal = useStore((s) => s.modal);
+  const tournamentName = useStore((s) => s.tournamentName);
+  const players = useStore((s) => s.players);
+  const tournamentPlayers = useStore((s) => s.tournamentPlayers);
+  const tournamentRounds = useStore((s) => s.tournamentRounds);
+  const archivedRounds = useStore((s) => s.archivedRounds);
+  const setModal = useStore((s) => s.setModal);
+  const startRound = useStore((s) => s.startRound);
 
   const [newRoundRanked, setNewRoundRanked] = useState(true);
   const [newRoundPlayerIds, setNewRoundPlayerIds] = useState<Set<string>>(new Set());
@@ -55,12 +53,12 @@ export function NewRoundModal() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible]);
 
-  const close = () => store.setModal(null);
+  const close = () => setModal(null);
 
   const handleStart = () => {
     if (newRoundPlayerIds.size < 2) return;
-    store.startRound(newRoundRanked, Array.from(newRoundPlayerIds));
-    store.setModal(null);
+    startRound(newRoundRanked, Array.from(newRoundPlayerIds));
+    setModal(null);
     router.push('/round');
   };
 
