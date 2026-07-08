@@ -10,6 +10,29 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.20',
+    added: [
+      'Reset All Data confirmation now has a "Backup My Data First" shortcut straight to the backup screen',
+    ],
+    changed: [
+      'Reset All Data confirmation now has a 5-second cooldown before the Reset button becomes tappable, shown as a countdown next to the title',
+    ],
+  },
+  {
+    version: '1.9.19',
+    changed: [
+      'Restoring a backup now pushes to the cloud automatically right after the confirmation — no separate "Push to Cloud" step to remember. A full-screen loader covers the restore, and a "Retry Cloud Sync" button appears if the cloud push fails',
+      'Backups no longer include player photos, team logos, or match photos/videos, even as links — those can go stale if cloud data is ever reset',
+    ],
+  },
+  {
+    version: '1.9.18',
+    fixed: [
+      'Add Match: a photo that fails to upload is now flagged for retry (via the existing match-detail retry overlay) instead of silently staying local and never reaching Storage (#68)',
+      'Add Match and OCR Lab: adding a new stat photo no longer re-scans every already-scanned photo, and removing a photo no longer wipes its siblings\' already-extracted stats (#71)',
+    ],
+  },
+  {
     version: '1.9.17',
     internal: [
       'What\'s New screen now splits entries into four categories (Added, Changed, Fixed, Internal) instead of three — separates real user-facing improvements from purely internal cleanup, each with its own color',

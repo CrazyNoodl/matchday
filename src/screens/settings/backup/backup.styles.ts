@@ -144,6 +144,25 @@ export const makeStyles = (colors: AppColors) => StyleSheet.create({
     letterSpacing: 1,
   },
 
+  // Blocking overlay shown while a restore (local apply + cloud push) is in flight
+  blockingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.65)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.md,
+    zIndex: 50,
+  },
+  blockingOverlayText: {
+    fontFamily: FontFamily.bodySemiBold,
+    fontSize: FontSize.base,
+    color: '#fff',
+  },
+
   // Backup list
   emptyList: {
     fontFamily: FontFamily.body,

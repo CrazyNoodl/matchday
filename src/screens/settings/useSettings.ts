@@ -12,7 +12,9 @@ export function useSettings() {
   const goBack = useGoBack();
   const store = useStore();
 
+  const RESET_CONFIRM_DELAY_SECONDS = 5;
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [resetCountdown, setResetCountdown] = useState(RESET_CONFIRM_DELAY_SECONDS);
   const [isResetting, setIsResetting] = useState(false);
   const [showSignOutConfirm, setShowSignOutConfirm] = useState(false);
   const [showDemoConfirm, setShowDemoConfirm] = useState(false);
@@ -46,6 +48,20 @@ export function useSettings() {
     showNick === true &&
     showTeamLogo === true &&
     language === 'en';
+
+  useEffect(() => {
+    if (!showResetConfirm) return;
+    setResetCountdown(RESET_CONFIRM_DELAY_SECONDS);
+    const interval = setInterval(() => {
+      setResetCountdown((prev) => (prev <= 1 ? 0 : prev - 1));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [showResetConfirm]);
+
+  const handleGoToBackup = () => {
+    setShowResetConfirm(false);
+    router.push('/settings/backup');
+  };
 
   const handleReset = async () => {
     if (demoMode) store.setDemoMode(false);
@@ -125,12 +141,14 @@ export function useSettings() {
     versionTaps,
     devUnlocked,
     showResetConfirm,
+    resetCountdown,
     isResetting,
     showSignOutConfirm,
     showDemoConfirm,
     setShowResetConfirm,
     setShowSignOutConfirm,
     setShowDemoConfirm,
+    handleGoToBackup,
     handleReset,
     handleVersionTap,
     handleSignOut,

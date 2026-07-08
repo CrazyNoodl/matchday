@@ -247,7 +247,9 @@ export function AddMatchSheet({
             <Text style={sheetStyles.ocrRetryText}>{t('matchday.ocr.retry')}</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={() => setAddMatch((p) => ({ ...p, ocrStatus: 'skipped', pendingStats: null }))}
+            // Only stops retrying the still-failing photo(s) — pendingStats already
+            // reflects whatever other photos succeeded and must not be discarded.
+            onPress={() => setAddMatch((p) => ({ ...p, ocrStatus: 'skipped' }))}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
             <Text style={sheetStyles.ocrSkipText}>{t('matchday.ocr.skip')}</Text>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Image, ActivityIndicator, Modal } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useTranslation } from 'react-i18next';
@@ -8,6 +8,7 @@ import { NavHeader, SectionLabel, StatsRow, GlowBackground } from '@/components'
 import { useColors } from '@/theme';
 import { extractStatsFromPhoto, type ExtractedStat } from '@/utils/extractStats';
 import { resizeImage, OCR_PAYLOAD_MAX_DIMENSION } from '@/utils/imageResize';
+import { mergeStatArrays } from '@/utils/ocrPhotoMerge';
 import { makeStyles } from '@/screens/settings/ocr-lab/ocr-lab.styles';
 import { makeDialogStyles } from '@/screens/round/RoundDialogs.styles';
 
@@ -15,25 +16,9 @@ interface PhotoItem {
   uri: string;
   base64: string;
   mimeType: string;
+  // null until this photo has been scanned successfully — never rescanned once set.
+  stats: ExtractedStat[] | null;
 }
-
-function confidenceRank(c: ExtractedStat['confidence']): number {
-  return c === 'high' ? 3 : c === 'medium' ? 2 : 1;
-}
-
-function mergeStatArrays(all: ExtractedStat[][]): ExtractedStat[] {
-  const map = new Map<string, ExtractedStat>();
-  for (const stats of all) {
-    for (const stat of stats) {
-      const existing = map.get(stat.key);
-      if (!existing || confidenceRank(stat.confidence) > confidenceRank(existing.confidence)) {
-        map.set(stat.key, stat);
-      }
-    }
-  }
-  return Array.from(map.values());
-}
-
 
 function getBgColor(c: ExtractedStat['confidence']): string {
   if (c === 'low') return 'rgba(255,160,50,0.14)';
@@ -57,8 +42,14 @@ export default function OcrLabScreen() {
   const [showMaxPhotosDialog, setShowMaxPhotosDialog] = useState(false);
   const [scanning, setScanning] = useState(false);
   const [scanProgress, setScanProgress] = useState<string | null>(null);
-  const [stats, setStats] = useState<ExtractedStat[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Derived from each photo's own result — adding/removing a photo can never
+  // desync this from `photos`, unlike the old separately-tracked `stats` state.
+  const stats = useMemo(() => {
+    const scanned = photos.filter((p) => p.stats !== null);
+    return scanned.length > 0 ? mergeStatArrays(scanned.map((p) => p.stats!)) : null;
+  }, [photos]);
 
   const addPhotos = async () => {
     if (photos.length >= 4) {
@@ -84,37 +75,41 @@ export default function OcrLabScreen() {
               const resized = await resizeImage(a.uri, a, OCR_PAYLOAD_MAX_DIMENSION, { base64: true });
               if (resized.base64) base64 = resized.base64;
             } catch { /* keep original base64 */ }
-            return { uri: a.uri, base64, mimeType: a.mimeType ?? 'image/jpeg' };
+            return { uri: a.uri, base64, mimeType: a.mimeType ?? 'image/jpeg', stats: null };
           }),
       );
+      // Previously-scanned photos keep their stats — only the new ones need scanning.
       setPhotos((prev) => [...prev, ...newItems].slice(0, 4));
-      setStats(null);
       setError(null);
     }
   };
 
   const removePhoto = (idx: number) => {
+    // Just drops this photo's own contribution — `stats` re-derives from the rest.
     setPhotos((prev) => prev.filter((_, i) => i !== idx));
-    setStats(null);
   };
 
   const scanAll = async () => {
-    if (photos.length === 0) return;
+    const toScan = photos.map((p, i) => ({ p, i })).filter(({ p }) => p.stats === null);
+    if (toScan.length === 0) return;
     setScanning(true);
     setError(null);
-    setStats(null);
+    const updated = [...photos];
     try {
-      const allResults: ExtractedStat[][] = [];
-      for (let i = 0; i < photos.length; i++) {
-        setScanProgress(`Scanning ${i + 1} / ${photos.length}...`);
-        const result = await extractStatsFromPhoto(photos[i].base64, photos[i].mimeType);
-        allResults.push(result);
+      for (let i = 0; i < toScan.length; i++) {
+        setScanProgress(`Scanning ${i + 1} / ${toScan.length}...`);
+        const { p, i: idx } = toScan[i];
+        updated[idx] = { ...p, stats: await extractStatsFromPhoto(p.base64, p.mimeType) };
       }
       setScanProgress(null);
-      setStats(mergeStatArrays(allResults));
+      setPhotos(updated);
     } catch (e: any) {
       setScanProgress(null);
       setError(e.message ?? t('ocrLab.scanFailedFallback'));
+      // Persist whatever succeeded earlier in this same call — consistent with
+      // the production Add Match flow, a later photo's failure must not lose
+      // an earlier photo's already-good result from the same batch.
+      setPhotos(updated);
     } finally {
       setScanning(false);
     }
@@ -209,7 +204,7 @@ export default function OcrLabScreen() {
 
             <View style={styles.statsCard}>
               {stats.map((stat, i) => {
-                const aLeads = stat.home >= stat.away;
+                const aLeads = stat.home === stat.away ? null : stat.home > stat.away;
                 const isLast = i === stats.length - 1;
                 const stripeColor = getStripeColor(stat.confidence);
                 return (
