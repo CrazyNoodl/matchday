@@ -44,7 +44,7 @@ export default function MatchDetailScreen() {
     importStatsStep,
     uploadingMedia,
     retryingMediaUri,
-    statsMenuBtnRef,
+    statsMenu,
   } = d;
 
   const importStatsLabel =
@@ -183,8 +183,8 @@ export default function MatchDetailScreen() {
                     </View>
                   ) : (
                     <TouchableOpacity
-                      ref={statsMenuBtnRef}
-                      onPress={d.openStatsMenu}
+                      ref={statsMenu.anchorRef}
+                      onPress={statsMenu.open}
                       hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                     >
                       <Text style={styles.statsMenuDots}>···</Text>

@@ -2,16 +2,13 @@ import React, { useRef } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   Modal,
-  Pressable,
   TouchableOpacity,
-  ActivityIndicator,
 } from 'react-native';
 import { BottomSheetScrollView, BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { useTranslation } from 'react-i18next';
 import { useColors } from '@/theme';
-import { Sheet, MediaSlider } from '@/components';
+import { Sheet, SheetHeader, SheetFooter, MediaSlider, ConfirmDialog, DropdownMenu } from '@/components';
 import { makeStyles } from '@/screens/match/match.styles';
 import type { MatchDetailHook } from './useMatchDetail';
 
@@ -31,10 +28,10 @@ export function MatchModals({ d }: MatchModalsProps) {
       {/* ── EDIT SCORE MODAL ── */}
       <Sheet visible={modal === 'editScore'} onClose={() => d.store.setModal(null)}>
         <View style={styles.sheet}>
-          <View style={styles.sheetHeader}>
-            <Text style={styles.sheetTitle}>{t('matchDetail.editScore.title').toUpperCase()}</Text>
-            <Text style={styles.sheetSubtitle}>{t('matchDetail.editScore.subtitle')}</Text>
-          </View>
+          <SheetHeader
+            title={t('matchDetail.editScore.title').toUpperCase()}
+            subtitle={t('matchDetail.editScore.subtitle')}
+          />
 
           <View style={styles.scoreEditRow}>
             <View style={styles.scoreEditSide}>
@@ -86,22 +83,12 @@ export function MatchModals({ d }: MatchModalsProps) {
             </View>
           </View>
 
-          <View style={styles.sheetButtons}>
-            <TouchableOpacity
-              style={styles.cancelBtn}
-              onPress={() => d.store.setModal(null)}
-              activeOpacity={0.75}
-            >
-              <Text style={styles.cancelBtnText}>{t('matchday.dialogs.cancel')}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.saveBtn}
-              onPress={d.handleSaveScore}
-              activeOpacity={0.75}
-            >
-              <Text style={styles.saveBtnText}>{t('common.save')}</Text>
-            </TouchableOpacity>
-          </View>
+          <SheetFooter
+            cancelLabel={t('matchday.dialogs.cancel')}
+            onCancel={() => d.store.setModal(null)}
+            confirmLabel={t('common.save')}
+            onConfirm={d.handleSaveScore}
+          />
         </View>
       </Sheet>
 
@@ -125,10 +112,10 @@ export function MatchModals({ d }: MatchModalsProps) {
       {/* ── EDIT STATS MODAL ── */}
       <Sheet visible={modal === 'editStats'} onClose={() => d.store.setModal(null)} snapToMax>
         <View style={styles.sheetFlex}>
-          <View style={styles.sheetHeader}>
-            <Text style={styles.sheetTitle}>{t('matchDetail.editStats.title').toUpperCase()}</Text>
-            <Text style={styles.sheetSubtitle}>{t('matchDetail.editStats.subtitle')}</Text>
-          </View>
+          <SheetHeader
+            title={t('matchDetail.editStats.title').toUpperCase()}
+            subtitle={t('matchDetail.editStats.subtitle')}
+          />
 
           <BottomSheetScrollView
             style={styles.sheetScrollFlex}
@@ -209,32 +196,22 @@ export function MatchModals({ d }: MatchModalsProps) {
             <View style={{ height: 16 }} />
           </BottomSheetScrollView>
 
-          <View style={styles.sheetButtons}>
-            <TouchableOpacity
-              style={styles.cancelBtn}
-              onPress={() => d.store.setModal(null)}
-              activeOpacity={0.75}
-            >
-              <Text style={styles.cancelBtnText}>{t('matchday.dialogs.cancel')}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.saveBtn}
-              onPress={d.handleSaveStats}
-              activeOpacity={0.75}
-            >
-              <Text style={styles.saveBtnText}>{t('common.save')}</Text>
-            </TouchableOpacity>
-          </View>
+          <SheetFooter
+            cancelLabel={t('matchday.dialogs.cancel')}
+            onCancel={() => d.store.setModal(null)}
+            confirmLabel={t('common.save')}
+            onConfirm={d.handleSaveStats}
+          />
         </View>
       </Sheet>
 
       {/* ── EDIT NOTE MODAL ── */}
       <Sheet visible={d.editingNote} onClose={() => d.setEditingNote(false)} avoidKeyboard>
         <View style={styles.sheet}>
-          <View style={styles.sheetHeader}>
-            <Text style={styles.sheetTitle}>{t('matchDetail.commentary').toUpperCase()}</Text>
-            <Text style={styles.sheetSubtitle}>{t('matchDetail.editNote.subtitle')}</Text>
-          </View>
+          <SheetHeader
+            title={t('matchDetail.commentary').toUpperCase()}
+            subtitle={t('matchDetail.editNote.subtitle')}
+          />
           <View style={styles.noteEditBody}>
             <BottomSheetTextInput
               style={styles.noteInput}
@@ -248,232 +225,114 @@ export function MatchModals({ d }: MatchModalsProps) {
             />
             <Text style={styles.noteCharCount}>{d.editNoteValue.length}/500</Text>
           </View>
-          <View style={styles.sheetButtons}>
-            <TouchableOpacity
-              style={styles.cancelBtn}
-              onPress={() => d.setEditingNote(false)}
-              activeOpacity={0.75}
-            >
-              <Text style={styles.cancelBtnText}>{t('matchday.dialogs.cancel')}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.saveBtn}
-              onPress={d.handleSaveNote}
-              activeOpacity={0.75}
-            >
-              <Text style={styles.saveBtnText}>{t('common.save')}</Text>
-            </TouchableOpacity>
-          </View>
+          <SheetFooter
+            cancelLabel={t('matchday.dialogs.cancel')}
+            onCancel={() => d.setEditingNote(false)}
+            confirmLabel={t('common.save')}
+            onConfirm={d.handleSaveNote}
+          />
         </View>
       </Sheet>
 
       {/* ── STATS CONTEXT MENU ── */}
-      <Modal
-        visible={d.showStatsMenu}
-        transparent
-        animationType="none"
-        onRequestClose={() => d.setShowStatsMenu(false)}
-        statusBarTranslucent
+      <DropdownMenu
+        visible={d.statsMenu.visible}
+        onClose={d.statsMenu.close}
+        position={d.statsMenu.position}
         onDismiss={() => {
           if (rescanAfterClose.current) {
             rescanAfterClose.current = false;
             d.handleImportStats();
           }
         }}
-      >
-        <Pressable style={StyleSheet.absoluteFill} onPress={() => d.setShowStatsMenu(false)} />
-        <View
-          style={[
-            styles.statsMenuDropdown,
-            { top: d.statsMenuPos.top, right: d.statsMenuPos.right },
-          ]}
-        >
-          <TouchableOpacity
-            style={styles.statsMenuItem}
-            disabled={d.importingStats}
-            onPress={() => { rescanAfterClose.current = true; d.setShowStatsMenu(false); }}
-          >
-            {d.importingStats
-              ? <ActivityIndicator size="small" color={colors.text.muted} />
-              : <Text style={styles.statsMenuItemText}>{t('matchDetail.statsMenu.rescan')}</Text>
-            }
-          </TouchableOpacity>
-          <View style={styles.statsMenuSep} />
-          <TouchableOpacity
-            style={styles.statsMenuItem}
-            onPress={() => { d.setShowStatsMenu(false); d.openEditStats(); }}
-          >
-            <Text style={styles.statsMenuItemText}>{t('common.edit')}</Text>
-          </TouchableOpacity>
-          <View style={styles.statsMenuSep} />
-          <TouchableOpacity
-            style={styles.statsMenuItem}
-            onPress={() => { d.setShowStatsMenu(false); d.handleClearStats(); }}
-          >
-            <Text style={[styles.statsMenuItemText, { color: colors.accent.red }]}>{t('matchDetail.statsMenu.clear')}</Text>
-          </TouchableOpacity>
-        </View>
-      </Modal>
+        items={[
+          {
+            key: 'rescan',
+            label: t('matchDetail.statsMenu.rescan'),
+            loading: d.importingStats,
+            disabled: d.importingStats,
+            onPress: () => { rescanAfterClose.current = true; d.statsMenu.close(); },
+          },
+          {
+            key: 'edit',
+            label: t('common.edit'),
+            onPress: () => { d.statsMenu.close(); d.openEditStats(); },
+          },
+          {
+            key: 'clear',
+            label: t('matchDetail.statsMenu.clear'),
+            destructive: true,
+            onPress: () => { d.statsMenu.close(); d.handleClearStats(); },
+          },
+        ]}
+      />
 
       {/* ── CLEAR STATS DIALOG ── */}
-      <Modal
+      <ConfirmDialog
         visible={d.showClearStats}
-        transparent
-        animationType="fade"
         onRequestClose={() => d.setShowClearStats(false)}
-        statusBarTranslucent
-      >
-        <View style={styles.dialogOverlay}>
-          <View style={styles.dialog}>
-            <Text style={styles.dialogTitle}>{t('matchDetail.clearStats.title').toUpperCase()}</Text>
-            <Text style={styles.dialogDesc}>{t('matchDetail.clearStats.desc')}</Text>
-            <View style={styles.dialogActions}>
-              <TouchableOpacity
-                style={styles.dialogCancel}
-                onPress={() => d.setShowClearStats(false)}
-                activeOpacity={0.75}
-              >
-                <Text style={styles.dialogCancelText}>{t('matchday.dialogs.cancel')}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.dialogConfirm}
-                onPress={() => {
-                  if (match) d.store.updateMatchStats(match.id, undefined);
-                  d.setShowClearStats(false);
-                }}
-                activeOpacity={0.85}
-              >
-                <Text style={styles.dialogConfirmText}>{t('matchDetail.clearStats.confirm')}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+        variant="destructive"
+        title={t('matchDetail.clearStats.title').toUpperCase()}
+        description={t('matchDetail.clearStats.desc')}
+        cancel={{ label: t('matchday.dialogs.cancel'), onPress: () => d.setShowClearStats(false) }}
+        confirm={{
+          label: t('matchDetail.clearStats.confirm'),
+          onPress: () => {
+            if (match) d.store.updateMatchStats(match.id, undefined);
+            d.setShowClearStats(false);
+          },
+        }}
+      />
 
       {/* ── SWAP SIDES DIALOG ── */}
-      <Modal
+      <ConfirmDialog
         visible={d.showSwapSides}
-        transparent
-        animationType="fade"
         onRequestClose={() => d.setShowSwapSides(false)}
-        statusBarTranslucent
-      >
-        <View style={styles.dialogOverlay}>
-          <View style={styles.dialog}>
-            <Text style={styles.dialogTitle}>{t('matchDetail.swapSidesDialog.title').toUpperCase()}</Text>
-            <Text style={styles.dialogDesc}>
-              {t('matchDetail.swapSidesDialog.desc')}
-            </Text>
-            <View style={styles.dialogActions}>
-              <TouchableOpacity
-                style={styles.dialogCancel}
-                onPress={() => d.setShowSwapSides(false)}
-                activeOpacity={0.75}
-              >
-                <Text style={styles.dialogCancelText}>{t('matchday.dialogs.cancel')}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.dialogConfirm}
-                onPress={() => {
-                  if (match) d.store.swapMatchSides(match.id);
-                  d.setShowSwapSides(false);
-                }}
-                activeOpacity={0.85}
-              >
-                <Text style={styles.dialogConfirmText}>{t('matchDetail.swapSidesDialog.confirm')}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
-
+        variant="destructive"
+        title={t('matchDetail.swapSidesDialog.title').toUpperCase()}
+        description={t('matchDetail.swapSidesDialog.desc')}
+        cancel={{ label: t('matchday.dialogs.cancel'), onPress: () => d.setShowSwapSides(false) }}
+        confirm={{
+          label: t('matchDetail.swapSidesDialog.confirm'),
+          onPress: () => {
+            if (match) d.store.swapMatchSides(match.id);
+            d.setShowSwapSides(false);
+          },
+        }}
+      />
 
       {/* ── OCR FAILED ── */}
-      <Modal
+      <ConfirmDialog
         visible={d.showOcrFailed}
-        transparent
-        animationType="fade"
         onRequestClose={() => d.setShowOcrFailed(false)}
-        statusBarTranslucent
-      >
-        <View style={styles.dialogOverlay}>
-          <View style={styles.dialog}>
-            <Text style={styles.dialogTitle}>{t('matchDetail.ocr.failed')}</Text>
-            <Text style={styles.dialogDesc}>{t('matchDetail.ocr.failedDesc')}</Text>
-            <View style={styles.dialogActions}>
-              <TouchableOpacity
-                style={styles.dialogCancel}
-                onPress={() => d.setShowOcrFailed(false)}
-                activeOpacity={0.75}
-              >
-                <Text style={styles.dialogCancelText}>{t('common.ok')}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+        variant="neutral"
+        title={t('matchDetail.ocr.failed')}
+        description={t('matchDetail.ocr.failedDesc')}
+        confirm={{ label: t('common.ok'), onPress: () => d.setShowOcrFailed(false) }}
+      />
 
       {/* ── OCR INVALID PHOTO (recognized too few params to be a real stats screen) ── */}
-      <Modal
+      <ConfirmDialog
         visible={d.showInvalidStatsPhoto}
-        transparent
-        animationType="fade"
         onRequestClose={() => d.setShowInvalidStatsPhoto(false)}
-        statusBarTranslucent
-      >
-        <View style={styles.dialogOverlay}>
-          <View style={styles.dialog}>
-            <Text style={styles.dialogTitle}>{t('matchDetail.ocr.invalidPhoto')}</Text>
-            <Text style={styles.dialogDesc}>{t('matchDetail.ocr.invalidPhotoDesc')}</Text>
-            <View style={styles.dialogActions}>
-              <TouchableOpacity
-                style={styles.dialogCancel}
-                onPress={() => d.setShowInvalidStatsPhoto(false)}
-                activeOpacity={0.75}
-              >
-                <Text style={styles.dialogCancelText}>{t('common.ok')}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
-
+        variant="neutral"
+        title={t('matchDetail.ocr.invalidPhoto')}
+        description={t('matchDetail.ocr.invalidPhotoDesc')}
+        confirm={{ label: t('common.ok'), onPress: () => d.setShowInvalidStatsPhoto(false) }}
+      />
 
       {/* ── DELETE MATCH MODAL ── */}
-      <Modal
+      <ConfirmDialog
         visible={modal === 'delMatch'}
-        transparent
-        animationType="fade"
         onRequestClose={() => d.store.setModal(null)}
-        statusBarTranslucent
-      >
-        <View style={styles.delOverlay}>
-          <Pressable style={StyleSheet.absoluteFill} onPress={() => d.store.setModal(null)} />
-          <View style={styles.delDialog}>
-            <View style={styles.delIconCircle}>
-              <Text style={styles.delIconEmoji}>🗑</Text>
-            </View>
-            <Text style={styles.delTitle}>{t('matchday.dialogs.deleteTitle').toUpperCase()}</Text>
-            <Text style={styles.delDesc}>{t('matchday.dialogs.deleteDesc')}</Text>
-            <View style={styles.delButtons}>
-              <TouchableOpacity
-                style={styles.delCancelBtn}
-                onPress={() => d.store.setModal(null)}
-                activeOpacity={0.75}
-              >
-                <Text style={styles.delCancelText}>{t('matchday.dialogs.cancel')}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.delConfirmBtn}
-                onPress={d.handleDeleteMatch}
-                activeOpacity={0.75}
-              >
-                <Text style={styles.delConfirmText}>{t('matchday.dialogs.delete')}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+        icon="🗑"
+        iconColor={colors.accent.red}
+        variant="destructive"
+        title={t('matchday.dialogs.deleteTitle').toUpperCase()}
+        description={t('matchday.dialogs.deleteDesc')}
+        cancel={{ label: t('matchday.dialogs.cancel'), onPress: () => d.store.setModal(null) }}
+        confirm={{ label: t('matchday.dialogs.delete'), onPress: d.handleDeleteMatch }}
+      />
     </>
   );
 }

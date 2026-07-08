@@ -6,7 +6,7 @@ import { useStore } from '@/store';
 import { calculateStandings, isTopTied } from '@/utils/standings';
 import { useColors } from '@/theme';
 import { Spacing } from '@/theme/spacing';
-import { MatchCard, StandingCard, StandingsTable, getStandingsTableColumns, SectionLabel, EmptyState, GlowBackground, SegmentedControl, DropdownMenu } from '@/components';
+import { MatchCard, StandingCard, StandingsTable, getStandingsTableColumns, SectionLabel, EmptyState, GlowBackground, SegmentedControl, DropdownMenu, ConfirmDialog } from '@/components';
 import { useDropdownMenu } from '@/hooks/useDropdownMenu';
 import { groupMatchesByTour } from '@/utils/matchTours';
 import { useTranslation } from 'react-i18next';
@@ -16,8 +16,6 @@ import { AddMatchSheet } from '@/screens/round/AddMatchSheet';
 import {
   EndRoundDialog,
   NeedEqualDialog,
-  DeleteMatchDialog,
-  DeleteRoundDialog,
   WinnerCelebrationModal,
 } from '@/screens/round/RoundDialogs';
 
@@ -275,15 +273,24 @@ export default function MatchdayScreen() {
         players={players}
       />
 
-      <DeleteMatchDialog
+      <ConfirmDialog
         visible={modal === 'del'}
-        onClose={closeModal}
-        onConfirm={() => {
-          if (selectedMatchId) {
-            store.deleteMatch(selectedMatchId);
-            store.setSelectedMatch(null);
-          }
-          closeModal();
+        onRequestClose={closeModal}
+        icon="🗑"
+        iconColor={colors.accent.red}
+        variant="destructive"
+        title={t('matchday.dialogs.deleteTitle').toUpperCase()}
+        description={t('matchday.dialogs.deleteDesc')}
+        cancel={{ label: t('matchday.dialogs.cancel'), onPress: closeModal }}
+        confirm={{
+          label: t('matchday.dialogs.delete'),
+          onPress: () => {
+            if (selectedMatchId) {
+              store.deleteMatch(selectedMatchId);
+              store.setSelectedMatch(null);
+            }
+            closeModal();
+          },
         }}
       />
 
@@ -294,10 +301,16 @@ export default function MatchdayScreen() {
         winner={winner}
       />
 
-      <DeleteRoundDialog
+      <ConfirmDialog
         visible={modal === 'delRound'}
-        onClose={closeModal}
-        onConfirm={handleConfirmDeleteRound}
+        onRequestClose={closeModal}
+        icon="🗑"
+        iconColor={colors.accent.red}
+        variant="destructive"
+        title={t('matchday.dialogs.deleteRoundTitle').toUpperCase()}
+        description={t('matchday.dialogs.deleteRoundDesc')}
+        cancel={{ label: t('matchday.dialogs.cancel'), onPress: closeModal }}
+        confirm={{ label: t('matchday.dialogs.deleteRoundConfirm'), onPress: handleConfirmDeleteRound }}
       />
 
       {/* ---- Round Options Dropdown ---- */}
