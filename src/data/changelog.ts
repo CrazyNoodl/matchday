@@ -10,6 +10,16 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.32',
+    fixed: [
+      'Confirm dialogs with a single button (e.g. "Cannot Delete") rendered with an invisible label — the button collapsed to a sliver instead of showing its text',
+      '"Reset All Data" is now disabled while Demo Mode is active, preventing it from wiping real data',
+    ],
+    internal: [
+      'Internal: removed an unused per-player color field',
+    ],
+  },
+  {
     version: '1.9.31',
     internal: [
       'Internal: added Prettier and stricter ESLint rules (type-aware promise checks, banned Alert.alert/react-native-mmkv outside their allowed spots, theme-token/inline-style checks) — no visible change',
