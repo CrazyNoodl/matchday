@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { Dimensions } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useGoBack } from '@/utils/useGoBack';
+import { useDropdownMenu } from '@/hooks/useDropdownMenu';
 import { useStore } from '@/store';
 import { matchMediaFolder } from '@/store/sliceHelpers';
 import type { MediaItem, MediaType, Match, StatConfidence } from '@/store/types';
@@ -87,7 +87,7 @@ export function useMatchDetail() {
   const importingStatsRef = useRef(false);
   const [showClearStats, setShowClearStats] = useState(false);
   const [showSwapSides, setShowSwapSides] = useState(false);
-  const [showStatsMenu, setShowStatsMenu] = useState(false);
+  const statsMenu = useDropdownMenu();
   const [showOcrFailed, setShowOcrFailed] = useState(false);
   // At least one selected photo recognized fewer than MIN_CANONICAL_STATS params —
   // treated as the wrong screenshot / too low quality, distinct from a service error.
@@ -95,8 +95,6 @@ export function useMatchDetail() {
   // gate too, so that scenario is now covered here instead of a separate dialog.
   const [showInvalidStatsPhoto, setShowInvalidStatsPhoto] = useState(false);
   const [retryingMediaUri, setRetryingMediaUri] = useState<string | null>(null);
-  const [statsMenuPos, setStatsMenuPos] = useState({ top: 0, right: 0 });
-  const statsMenuBtnRef = useRef<import('react-native').View>(null);
 
   const hasStatsOverride = !!(match?.statsOverride && Object.keys(match.statsOverride).length > 0);
 
@@ -459,14 +457,6 @@ export function useMatchDetail() {
   const handleClearStats = useCallback(() => setShowClearStats(true), []);
   const handleSwapSides = useCallback(() => setShowSwapSides(true), []);
 
-  const openStatsMenu = useCallback(() => {
-    statsMenuBtnRef.current?.measureInWindow((x, y, _w, h) => {
-      const screenWidth = Dimensions.get('window').width;
-      setStatsMenuPos({ top: y + h + 6, right: screenWidth - x - _w });
-      setShowStatsMenu(true);
-    });
-  }, []);
-
   const handleDeleteMedia = useCallback(async (idx: number) => {
     if (!match) return;
     const item = match.media?.[idx];
@@ -547,9 +537,7 @@ export function useMatchDetail() {
     importStatsStep,
     showClearStats,
     showSwapSides,
-    showStatsMenu,
-    statsMenuPos,
-    statsMenuBtnRef,
+    statsMenu,
     viewingMediaIndex,
     showOcrFailed,
     showInvalidStatsPhoto,
@@ -561,14 +549,12 @@ export function useMatchDetail() {
     setEditNoteValue,
     setEditingNote,
     setViewingMediaIndex,
-    setShowStatsMenu,
     setShowClearStats,
     setShowSwapSides,
     setShowOcrFailed,
     setShowInvalidStatsPhoto,
     openEditScore,
     openEditStats,
-    openStatsMenu,
     handleSaveScore,
     handleSaveStats,
     handleDeleteMatch,

@@ -188,28 +188,6 @@ export const makeStyles = (colors: AppColors) => StyleSheet.create({
     fontSize: FontSize.xs,
     color: colors.accent.blue,
   },
-  statsMenuDropdown: {
-    position: 'absolute',
-    backgroundColor: colors.bg.elevated,
-    borderRadius: Radius.md,
-    borderWidth: 1,
-    borderColor: colors.border.strong,
-    minWidth: 130,
-    overflow: 'hidden',
-  },
-  statsMenuItem: {
-    paddingVertical: 11,
-    paddingHorizontal: Spacing.lg,
-  },
-  statsMenuItemText: {
-    fontFamily: FontFamily.bodySemiBold,
-    fontSize: FontSize.sm,
-    color: colors.text.primary,
-  },
-  statsMenuSep: {
-    height: 1,
-    backgroundColor: colors.border.default,
-  },
   swapBtnText: {
     fontFamily: FontFamily.body,
     fontSize: FontSize.xs,

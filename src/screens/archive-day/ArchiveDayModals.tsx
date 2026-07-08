@@ -1,45 +1,11 @@
 import React from 'react';
-import { View, Text, Modal, Pressable, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text } from 'react-native';
 import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { useTranslation } from 'react-i18next';
 import { useColors } from '@/theme';
 import { Sheet, SheetHeader, SheetFooter } from '@/components';
-import { makeStyles, makeMenuStyles } from './archive-day.styles';
+import { makeStyles } from './archive-day.styles';
 import { makeInputStyles } from '@/screens/tournament/tournament.styles';
-
-// ---------------------------------------------------------------------------
-// Round options dropdown
-// ---------------------------------------------------------------------------
-
-interface RoundOptionsMenuProps {
-  visible: boolean;
-  onClose: () => void;
-  top: number;
-  right: number;
-  onShare: () => void;
-  onDelete: () => void;
-}
-
-export function RoundOptionsMenu({ visible, onClose, top, right, onShare, onDelete }: RoundOptionsMenuProps) {
-  const { t } = useTranslation();
-  const colors = useColors();
-  const menuStyles = makeMenuStyles(colors);
-
-  return (
-    <Modal visible={visible} transparent animationType="none" onRequestClose={onClose} statusBarTranslucent>
-      <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
-      <View style={[menuStyles.dropdown, { top, right }]}>
-        <TouchableOpacity style={menuStyles.item} onPress={onShare}>
-          <Text style={menuStyles.itemText}>{t('common.share')}</Text>
-        </TouchableOpacity>
-        <View style={menuStyles.sep} />
-        <TouchableOpacity style={menuStyles.item} onPress={onDelete}>
-          <Text style={[menuStyles.itemText, { color: colors.accent.red }]}>{t('archive.deleteRoundConfirm')}</Text>
-        </TouchableOpacity>
-      </View>
-    </Modal>
-  );
-}
 
 // ---------------------------------------------------------------------------
 // Edit round date sheet

@@ -1,5 +1,5 @@
-import React, { useMemo, useState, useRef, useCallback } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
+import React, { useMemo, useState, useCallback } from 'react';
+import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useGoBack } from '@/utils/useGoBack';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -8,12 +8,13 @@ import { useStore } from '@/store';
 import { calculateStandings } from '@/utils/standings';
 import { formatShortDate, formatEditableDate, parseEditableDate } from '@/utils/dateFormat';
 import { useColors } from '@/theme';
-import { NavHeader, SectionLabel, MatchCard, ShareRoundModal, CardAvatar, StandingsTable, getStandingsTableColumns, GlowBackground, ConfirmDialog } from '@/components';
+import { NavHeader, SectionLabel, MatchCard, ShareRoundModal, CardAvatar, StandingsTable, getStandingsTableColumns, GlowBackground, ConfirmDialog, DropdownMenu } from '@/components';
+import { useDropdownMenu } from '@/hooks/useDropdownMenu';
 import { groupMatchesByTour } from '@/utils/matchTours';
 import { getRankedRoundOrdinals } from '@/utils/roundOrdinals';
 import { Match } from '@/store/types';
 import { makeStyles } from '@/screens/archive-day/archive-day.styles';
-import { RoundOptionsMenu, EditRoundDateSheet } from '@/screens/archive-day/ArchiveDayModals';
+import { EditRoundDateSheet } from '@/screens/archive-day/ArchiveDayModals';
 
 // ---------------------------------------------------------------------------
 // Day Winner Banner
@@ -86,18 +87,8 @@ export default function ArchiveDayScreen() {
   const [editDateVisible, setEditDateVisible] = useState(false);
   const [dateValue, setDateValue] = useState('');
   const [dateError, setDateError] = useState(false);
-  const [menuVisible, setMenuVisible] = useState(false);
-  const [menuPos, setMenuPos] = useState({ top: 0, right: 0 });
   const [deleteVisible, setDeleteVisible] = useState(false);
-  const dotsBtnRef = useRef<View>(null);
-
-  const openMenu = useCallback(() => {
-    dotsBtnRef.current?.measureInWindow((x, y, w, h) => {
-      const screenWidth = Dimensions.get('window').width;
-      setMenuPos({ top: y + h + 6, right: screenWidth - x - w });
-      setMenuVisible(true);
-    });
-  }, []);
+  const roundMenu = useDropdownMenu();
 
   const handleConfirmDelete = useCallback(() => {
     if (!liveRound) return;
@@ -162,9 +153,9 @@ export default function ArchiveDayScreen() {
         rightElement={
           isEditableRound ? (
             <TouchableOpacity
-              ref={dotsBtnRef}
+              ref={roundMenu.anchorRef}
               style={styles.dotsBtn}
-              onPress={openMenu}
+              onPress={roundMenu.open}
               activeOpacity={0.7}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
@@ -279,13 +270,23 @@ export default function ArchiveDayScreen() {
         />
       )}
 
-      <RoundOptionsMenu
-        visible={menuVisible}
-        onClose={() => setMenuVisible(false)}
-        top={menuPos.top}
-        right={menuPos.right}
-        onShare={() => { setMenuVisible(false); setShareVisible(true); }}
-        onDelete={() => { setMenuVisible(false); setDeleteVisible(true); }}
+      <DropdownMenu
+        visible={roundMenu.visible}
+        onClose={roundMenu.close}
+        position={roundMenu.position}
+        items={[
+          {
+            key: 'share',
+            label: t('common.share'),
+            onPress: () => { roundMenu.close(); setShareVisible(true); },
+          },
+          {
+            key: 'delete',
+            label: t('archive.deleteRoundConfirm'),
+            destructive: true,
+            onPress: () => { roundMenu.close(); setDeleteVisible(true); },
+          },
+        ]}
       />
 
       <ConfirmDialog

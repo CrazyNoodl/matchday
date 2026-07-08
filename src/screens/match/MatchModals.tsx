@@ -2,16 +2,13 @@ import React, { useRef } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   Modal,
-  Pressable,
   TouchableOpacity,
-  ActivityIndicator,
 } from 'react-native';
 import { BottomSheetScrollView, BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { useTranslation } from 'react-i18next';
 import { useColors } from '@/theme';
-import { Sheet, SheetHeader, SheetFooter, MediaSlider, ConfirmDialog } from '@/components';
+import { Sheet, SheetHeader, SheetFooter, MediaSlider, ConfirmDialog, DropdownMenu } from '@/components';
 import { makeStyles } from '@/screens/match/match.styles';
 import type { MatchDetailHook } from './useMatchDetail';
 
@@ -238,52 +235,37 @@ export function MatchModals({ d }: MatchModalsProps) {
       </Sheet>
 
       {/* ── STATS CONTEXT MENU ── */}
-      <Modal
-        visible={d.showStatsMenu}
-        transparent
-        animationType="none"
-        onRequestClose={() => d.setShowStatsMenu(false)}
-        statusBarTranslucent
+      <DropdownMenu
+        visible={d.statsMenu.visible}
+        onClose={d.statsMenu.close}
+        position={d.statsMenu.position}
         onDismiss={() => {
           if (rescanAfterClose.current) {
             rescanAfterClose.current = false;
             d.handleImportStats();
           }
         }}
-      >
-        <Pressable style={StyleSheet.absoluteFill} onPress={() => d.setShowStatsMenu(false)} />
-        <View
-          style={[
-            styles.statsMenuDropdown,
-            { top: d.statsMenuPos.top, right: d.statsMenuPos.right },
-          ]}
-        >
-          <TouchableOpacity
-            style={styles.statsMenuItem}
-            disabled={d.importingStats}
-            onPress={() => { rescanAfterClose.current = true; d.setShowStatsMenu(false); }}
-          >
-            {d.importingStats
-              ? <ActivityIndicator size="small" color={colors.text.muted} />
-              : <Text style={styles.statsMenuItemText}>{t('matchDetail.statsMenu.rescan')}</Text>
-            }
-          </TouchableOpacity>
-          <View style={styles.statsMenuSep} />
-          <TouchableOpacity
-            style={styles.statsMenuItem}
-            onPress={() => { d.setShowStatsMenu(false); d.openEditStats(); }}
-          >
-            <Text style={styles.statsMenuItemText}>{t('common.edit')}</Text>
-          </TouchableOpacity>
-          <View style={styles.statsMenuSep} />
-          <TouchableOpacity
-            style={styles.statsMenuItem}
-            onPress={() => { d.setShowStatsMenu(false); d.handleClearStats(); }}
-          >
-            <Text style={[styles.statsMenuItemText, { color: colors.accent.red }]}>{t('matchDetail.statsMenu.clear')}</Text>
-          </TouchableOpacity>
-        </View>
-      </Modal>
+        items={[
+          {
+            key: 'rescan',
+            label: t('matchDetail.statsMenu.rescan'),
+            loading: d.importingStats,
+            disabled: d.importingStats,
+            onPress: () => { rescanAfterClose.current = true; d.statsMenu.close(); },
+          },
+          {
+            key: 'edit',
+            label: t('common.edit'),
+            onPress: () => { d.statsMenu.close(); d.openEditStats(); },
+          },
+          {
+            key: 'clear',
+            label: t('matchDetail.statsMenu.clear'),
+            destructive: true,
+            onPress: () => { d.statsMenu.close(); d.handleClearStats(); },
+          },
+        ]}
+      />
 
       {/* ── CLEAR STATS DIALOG ── */}
       <ConfirmDialog
