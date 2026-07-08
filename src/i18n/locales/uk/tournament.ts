@@ -11,6 +11,8 @@ const tournament = {
   playedRounds: 'Зіграні раунди · {{count}}',
   noRounds: 'Ще немає завершених раундів',
   roundMatches: '{{count}} матчів',
+  sortNewestFirst: 'Спочатку нові',
+  sortOldestFirst: 'Спочатку старі',
   continueMatchDay: 'Продовжити ігровий день',
   newMatchDay: '+ Новий ігровий день',
   sheet: {
