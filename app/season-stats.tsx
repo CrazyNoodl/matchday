@@ -10,12 +10,18 @@ import { useGoBack } from '@/utils/useGoBack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStore } from '@/store';
 import { calculateStandings } from '@/utils/standings';
+import { sumGoals } from '@/utils/statsAggregation';
+import {
+  filterRoundsByRanked,
+  countChampDaysWon,
+  type IncludeFilter,
+} from '@/utils/seasonStatsAggregation';
 import { formatShortDate, formatYearShort } from '@/utils/dateFormat';
 import { getPlayerDisplayName } from '@/utils/playerDisplay';
 import { getRankedRoundOrdinals } from '@/utils/roundOrdinals';
 import { useColors } from '@/theme';
 import { NavHeader, SectionLabel, Avatar, MatchCard, GlowBackground, PlayerRankCard } from '@/components';
-import type { ArchivedRound, Match } from '@/store/types';
+import type { Match } from '@/store/types';
 import { useTranslation } from 'react-i18next';
 import { makeStyles } from '@/screens/season-stats/season-stats.styles';
 
@@ -23,22 +29,7 @@ import { makeStyles } from '@/screens/season-stats/season-stats.styles';
 // Types
 // ---------------------------------------------------------------------------
 
-type IncludeFilter = 'Rated' | 'Friendly' | 'Both';
 type ParamChip = 'wdl' | 'gd' | 'gfa';
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-
-function filterRounds(
-  rounds: ArchivedRound[],
-  filter: IncludeFilter,
-): ArchivedRound[] {
-  if (filter === 'Rated') return rounds.filter((r) => r.ranked);
-  if (filter === 'Friendly') return rounds.filter((r) => !r.ranked);
-  return rounds;
-}
 
 // ---------------------------------------------------------------------------
 // Screen
@@ -109,7 +100,7 @@ export default function SeasonStatsScreen() {
   }
 
   const filteredRounds = useMemo(
-    () => filterRounds(viewingTournament.rounds, includeFilter),
+    () => filterRoundsByRanked(viewingTournament.rounds, includeFilter),
     [viewingTournament.rounds, includeFilter],
   );
   const roundOrdinals = useMemo(
@@ -129,14 +120,10 @@ export default function SeasonStatsScreen() {
     [allMatches, viewingTournament.players],
   );
 
-  const totalGoals = useMemo(
-    () => allMatches.reduce((acc, m) => acc + m.aScore + m.bScore, 0),
-    [allMatches],
-  );
+  const totalGoals = useMemo(() => sumGoals(allMatches), [allMatches]);
 
   const champDaysWon = useMemo(
-    () =>
-      filteredRounds.filter((r) => r.winner === viewingTournament.champId).length,
+    () => countChampDaysWon(filteredRounds, viewingTournament.champId),
     [filteredRounds, viewingTournament.champId],
   );
 
