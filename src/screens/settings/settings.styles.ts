@@ -157,6 +157,21 @@ export const makeStyles = (colors: AppColors) => StyleSheet.create({
     fontSize: FontSize.base,
     color: '#fff',
   },
+  dialogConfirmBtnDisabled: {
+    opacity: 0.5,
+  },
+  dialogBackupBtn: {
+    paddingVertical: Spacing.md,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: colors.accent.blue,
+    alignItems: 'center',
+  },
+  dialogBackupText: {
+    fontFamily: FontFamily.bodySemiBold,
+    fontSize: FontSize.base,
+    color: colors.accent.blue,
+  },
   themeRow: {
     flexDirection: 'row',
     gap: Spacing.sm,

@@ -95,8 +95,18 @@ export function SettingsDialogs({ d }: SettingsDialogsProps) {
         <View style={styles.dialogOverlay}>
           <Pressable style={styles.dialogBackdrop} onPress={() => d.setShowResetConfirm(false)} />
           <View style={styles.dialog}>
-            <Text style={styles.dialogTitle}>{t('settings.danger.resetTitle')}</Text>
+            <Text style={styles.dialogTitle}>
+              {t('settings.danger.resetTitle')}
+              {d.resetCountdown > 0 ? ` (${d.resetCountdown})` : ''}
+            </Text>
             <Text style={styles.dialogDesc}>{t('settings.danger.resetDesc')}</Text>
+            <TouchableOpacity
+              style={styles.dialogBackupBtn}
+              onPress={d.handleGoToBackup}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.dialogBackupText}>{t('settings.danger.backupFirst')}</Text>
+            </TouchableOpacity>
             <View style={styles.dialogButtons}>
               <TouchableOpacity
                 style={styles.dialogCancelBtn}
@@ -106,10 +116,13 @@ export function SettingsDialogs({ d }: SettingsDialogsProps) {
                 <Text style={styles.dialogCancelText}>{t('settings.danger.cancel')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.dialogConfirmBtn, d.isResetting && { opacity: 0.6 }]}
+                style={[
+                  styles.dialogConfirmBtn,
+                  (d.isResetting || d.resetCountdown > 0) && styles.dialogConfirmBtnDisabled,
+                ]}
                 onPress={d.handleReset}
                 activeOpacity={0.8}
-                disabled={d.isResetting}
+                disabled={d.isResetting || d.resetCountdown > 0}
               >
                 <Text style={styles.dialogConfirmText}>{t('settings.danger.reset')}</Text>
               </TouchableOpacity>
