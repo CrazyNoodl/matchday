@@ -91,6 +91,7 @@ Supabase Storage (`match-media` bucket) layout for new uploads:
 | Storybook: real dark/light theming, full component coverage | `.storybook/`, `src/components/*/*.stories.tsx` |
 | Shared confirm/alert dialog and sheet header/footer — `ConfirmDialog`, `SheetHeader`, `SheetFooter` replace ~10 hand-rolled confirm-dialog implementations and repeated Sheet header/footer markup app-wide | `src/components/ConfirmDialog/`, `src/components/Sheet/SheetHeader.tsx`, `src/components/Sheet/SheetFooter.tsx` |
 | Render-count optimization pass: full-store `useStore()` subscriptions converted to per-field selectors (`app/round.tsx`, `app/tournament.tsx`, all settings screens, `NewRoundModal`), `React.memo` on hot list rows (`Avatar`, `StandingCard`, `MatchCard`, `RoundCard`, `PlayerRankCard`, `FormChip`, `TeamBadge`, `StatusBadge`, `MediaThumbnail`), `useMemo` on `makeStyles`/derived standings/tour grouping, `MatchCard.onPress` contract changed to `(matchId: string) => void`. Measured: opening the Add Match sheet (a `modal`-only store write, unrelated to match data) no longer re-renders any `MatchCard` row — previously re-rendered every row in the round. `StandingCard` uses `useShallow` (`zustand/react/shallow`) on its `matches`-derived form-chips selector — the only place in the codebase using it | `app/round.tsx`, `app/tournament.tsx`, `src/components/StandingCard/`, `src/components/MatchCard/` |
+| ESLint (`npm run lint` → `expo lint`): `eslint-config-expo` flat config + `eslint-plugin-storybook` (`flat/recommended`, scoped to `*.stories.tsx`) + a Node-globals override for `scripts/**/*.js`. `react-hooks/rules-of-hooks` is turned off for `e2e/**/*.ts` — Playwright fixtures take a `use` callback param that the rule otherwise mistakes for the React `use` hook. React Compiler is enabled by default in this project (via `babel-preset-expo`, SDK 56), so `react-hooks/*` findings (`preserve-manual-memoization`, `refs`, `set-state-in-effect`, `immutability`, `rules-of-hooks`) are real compiler-safety signals, not style nits — ~76 pre-existing findings (`teams.tsx`, `ZoomableImage.tsx`, `season-stats.tsx`, plus 16 intentional `require()` warnings for lazy MMKV loading in `src/store/index.ts`/`src/supabase/client.ts`) are left as backlog, not yet fixed | `eslint.config.js` |
 
 ---
 
@@ -119,6 +120,10 @@ Share round (all matches) and share standings exist. Share for one specific matc
 ### 6. FINISH round is not a standalone CTA
 
 Round options (Finish/Stats/Delete) live behind the `···` `DropdownMenu` only. The original ask ([#51](https://github.com/CrazyNoodl/matchday/issues/51)) also wanted FINISH visible as a standalone primary CTA outside the menu — left as-is, flag if still wanted.
+
+### 7. ESLint react-hooks/react-compiler backlog not fixed
+
+`npm run lint` reports ~76 pre-existing findings from `react-hooks/*` rules (`preserve-manual-memoization`, `refs`, `set-state-in-effect`, `immutability`, `rules-of-hooks`) — these are real React Compiler safety signals (Compiler is on by default in this project), not style nits. Worst offenders: `app/settings/(data)/teams.tsx` (mismatched `useCallback` deps skip compiler optimization), `src/components/MediaSlider/ZoomableImage.tsx` (Reanimated shared-value mutation flagged by `immutability` — likely needs a scoped disable rather than a real fix, since imperative `.value` mutation is Reanimated's intended pattern), `app/season-stats.tsx` (conditional hook calls). Each needs individual behavioral review + regression tests before changing, not a bulk fix.
 
 ---
 
