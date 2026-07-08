@@ -10,6 +10,12 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.31',
+    internal: [
+      'Internal: added Prettier and stricter ESLint rules (type-aware promise checks, banned Alert.alert/react-native-mmkv outside their allowed spots, theme-token/inline-style checks) — no visible change',
+    ],
+  },
+  {
     version: '1.9.30',
     fixed: [
       'Fixed a sync bug where matches added while offline could vanish — a second edit landing while an earlier sync push was still mid-flight could race it, and the stale push then deleted the newer match from the cloud, which then got wiped locally too on the next app relaunch',
