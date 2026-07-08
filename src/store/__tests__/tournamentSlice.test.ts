@@ -361,3 +361,32 @@ describe('media storage folder lifecycle (#67)', () => {
     expect(mockDeleteFolder).toHaveBeenCalledTimes(1);
   });
 });
+
+describe('resetStore — device-level display preferences', () => {
+  it('preserves colorScheme, language, showNick and showTeamLogo across a sign-out reset', async () => {
+    useStore.setState({
+      colorScheme: 'light',
+      language: 'uk',
+      showNick: false,
+      showTeamLogo: false,
+    });
+
+    await useStore.getState().resetStore();
+
+    expect(useStore.getState().colorScheme).toBe('light');
+    expect(useStore.getState().language).toBe('uk');
+    expect(useStore.getState().showNick).toBe(false);
+    expect(useStore.getState().showTeamLogo).toBe(false);
+  });
+
+  it('still clears account-scoped data like players and tournaments', async () => {
+    useStore.getState().addPlayer(P1);
+    useStore.getState().addPlayer(P2);
+    useStore.getState().startTournament('Test', ['p1', 'p2'], true);
+
+    await useStore.getState().resetStore();
+
+    expect(useStore.getState().players).toEqual([]);
+    expect(useStore.getState().hasTournament).toBe(false);
+  });
+});
