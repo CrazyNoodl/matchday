@@ -1,6 +1,6 @@
 import React, { createContext, useContext } from 'react';
 import { useColorScheme as useSystemColorScheme } from 'react-native';
-import { AppColors, ColorScheme, colorsByScheme, DarkColors } from './colors';
+import { type AppColors, type ColorScheme, colorsByScheme, DarkColors } from './colors';
 import { useStore } from '@/store';
 
 export const ThemeContext = createContext<AppColors>(DarkColors);

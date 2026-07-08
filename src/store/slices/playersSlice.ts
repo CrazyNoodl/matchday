@@ -1,5 +1,5 @@
-import { StateCreator } from 'zustand';
-import { Player } from '../types';
+import { type StateCreator } from 'zustand';
+import { type Player } from '../types';
 import { collectAllMatches } from '../sliceHelpers';
 import type { RootState } from '../index';
 
@@ -18,8 +18,7 @@ export type PlayersSlice = PlayersState & PlayersActions;
 export const createPlayersSlice: StateCreator<RootState, [], [], PlayersSlice> = (set, get) => ({
   players: [],
 
-  addPlayer: (player) =>
-    set((s) => ({ players: [...s.players, player] })),
+  addPlayer: (player) => set((s) => ({ players: [...s.players, player] })),
 
   updatePlayer: (player) =>
     set((s) => ({

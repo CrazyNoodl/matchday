@@ -18,8 +18,16 @@ const MOCK_PLAYERS = [
 ];
 
 const MEDALS = [
-  { badgeColor: Colors.accent.gold, badgeBg: 'rgba(255,212,94,0.18)', cardBorder: Colors.accent.greenBorder },
-  { badgeColor: Colors.text.secondary, badgeBg: 'rgba(200,205,210,0.16)', cardBorder: Colors.border.default },
+  {
+    badgeColor: Colors.accent.gold,
+    badgeBg: 'rgba(255,212,94,0.18)',
+    cardBorder: Colors.accent.greenBorder,
+  },
+  {
+    badgeColor: Colors.text.secondary,
+    badgeBg: 'rgba(200,205,210,0.16)',
+    cardBorder: Colors.border.default,
+  },
   { badgeColor: '#d08a4a', badgeBg: 'rgba(205,127,50,0.16)', cardBorder: Colors.border.default },
 ];
 
@@ -62,21 +70,61 @@ export const FirstPlace: Story = {
 
 export const SecondPlace: Story = {
   name: '#2 with medal',
-  args: { rank: 2, medal: MEDALS[1], playerId: 'p2', name: 'Oleh Bondar', points: 22, emphasized: false, pointsColor: undefined },
+  args: {
+    rank: 2,
+    medal: MEDALS[1],
+    playerId: 'p2',
+    name: 'Oleh Bondar',
+    points: 22,
+    emphasized: false,
+    pointsColor: undefined,
+  },
 };
 
 export const NoMedal: Story = {
   name: 'No medal (rank > 3)',
-  args: { rank: 5, medal: null, playerId: 'p3', name: 'Vlad Petrenko', points: 9, pointsColor: undefined },
+  args: {
+    rank: 5,
+    medal: null,
+    playerId: 'p3',
+    name: 'Vlad Petrenko',
+    points: 9,
+    pointsColor: undefined,
+  },
 };
 
 export const Showcase: Story = {
   name: 'Showcase – Top 3',
   render: () => (
     <View style={{ gap: 8 }}>
-      <PlayerRankCard rank={1} medal={MEDALS[0]} playerId="p1" name="Artem Rudenko" subText="12P · 8W 2D 2L" points={26} pointsLabel="PTS" emphasized />
-      <PlayerRankCard rank={2} medal={MEDALS[1]} playerId="p2" name="Oleh Bondar" subText="12P · 7W 1D 4L" points={22} pointsLabel="PTS" />
-      <PlayerRankCard rank={3} medal={MEDALS[2]} playerId="p3" name="Vlad Petrenko" subText="12P · 5W 3D 4L" points={18} pointsLabel="PTS" />
+      <PlayerRankCard
+        rank={1}
+        medal={MEDALS[0]}
+        playerId="p1"
+        name="Artem Rudenko"
+        subText="12P · 8W 2D 2L"
+        points={26}
+        pointsLabel="PTS"
+        emphasized
+      />
+      <PlayerRankCard
+        rank={2}
+        medal={MEDALS[1]}
+        playerId="p2"
+        name="Oleh Bondar"
+        subText="12P · 7W 1D 4L"
+        points={22}
+        pointsLabel="PTS"
+      />
+      <PlayerRankCard
+        rank={3}
+        medal={MEDALS[2]}
+        playerId="p3"
+        name="Vlad Petrenko"
+        subText="12P · 5W 3D 4L"
+        points={18}
+        pointsLabel="PTS"
+      />
     </View>
   ),
 };

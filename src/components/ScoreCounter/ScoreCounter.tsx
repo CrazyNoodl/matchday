@@ -1,9 +1,5 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-} from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { Avatar } from '../Avatar';
 import { useStore } from '../../store';
 import { useColors } from '../../theme';
@@ -51,16 +47,10 @@ export function ScoreCounter({
           disabled={score <= 0}
           activeOpacity={0.7}
         >
-          <Text style={[styles.btnText, score <= 0 && styles.btnTextDisabled]}>
-            −
-          </Text>
+          <Text style={[styles.btnText, score <= 0 && styles.btnTextDisabled]}>−</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.btn}
-          onPress={onIncrement}
-          activeOpacity={0.7}
-        >
+        <TouchableOpacity style={styles.btn} onPress={onIncrement} activeOpacity={0.7}>
           <Text style={styles.btnText}>+</Text>
         </TouchableOpacity>
       </View>

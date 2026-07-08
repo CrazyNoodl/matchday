@@ -10,7 +10,7 @@ const settings = {
     devModeOn: '🛠  Mode développeur activé',
     tapsToUnlock: 'Encore {{count}} appuis pour débloquer le menu développeur',
     menuLabel: 'Menu développeur',
-    menuSub: 'Outils d\'import et options internes',
+    menuSub: "Outils d'import et options internes",
   },
   play: {
     section: 'Jouer',
@@ -71,7 +71,8 @@ const settings = {
     section: 'Zone dangereuse',
     resetAll: 'Réinitialiser les données',
     resetTitle: 'Réinitialiser les données ?',
-    resetDesc: 'Cela supprimera définitivement tous les tournois, matchs, tours et réinitialisera les joueurs et équipes par défaut.',
+    resetDesc:
+      'Cela supprimera définitivement tous les tournois, matchs, tours et réinitialisera les joueurs et équipes par défaut.',
     backupFirst: "Sauvegarder d'abord mes données",
     cancel: 'Annuler',
     reset: 'Réinitialiser',

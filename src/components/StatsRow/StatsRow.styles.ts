@@ -3,62 +3,63 @@ import type { AppColors } from '../../theme';
 import { FontFamily, FontSize } from '../../theme/typography';
 import { Spacing } from '../../theme/spacing';
 
-export const makeStyles = (colors: AppColors) => StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-    marginBottom: Spacing.sm,
-  },
-  value: {
-    fontFamily: FontFamily.bodySemiBold,
-    fontSize: FontSize.base,
-    width: 28,
-    textAlign: 'center',
-  },
-  valueNA: {
-    color: colors.text.ghost,
-  },
-  barContainer: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.xs,
-  },
-  barHalf: {
-    flex: 1,
-    height: 6,
-    backgroundColor: colors.bg.elevated,
-    borderRadius: 3,
-    overflow: 'hidden',
-  },
-  barInnerRight: {
-    flex: 1,
-    height: 6,
-    alignItems: 'flex-end',
-    justifyContent: 'center',
-  },
-  bar: {
-    height: 6,
-    borderRadius: 3,
-  },
-  label: {
-    fontFamily: FontFamily.body,
-    fontSize: FontSize.xs,
-    color: colors.text.muted,
-    textAlign: 'center',
-    minWidth: 60,
-  },
-  labelRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 4,
-  },
-  confidenceDot: {
-    width: 5,
-    height: 5,
-    borderRadius: 3,
-    backgroundColor: colors.accent.yellow,
-  },
-});
+export const makeStyles = (colors: AppColors) =>
+  StyleSheet.create({
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: Spacing.sm,
+      marginBottom: Spacing.sm,
+    },
+    value: {
+      fontFamily: FontFamily.bodySemiBold,
+      fontSize: FontSize.base,
+      width: 28,
+      textAlign: 'center',
+    },
+    valueNA: {
+      color: colors.text.ghost,
+    },
+    barContainer: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: Spacing.xs,
+    },
+    barHalf: {
+      flex: 1,
+      height: 6,
+      backgroundColor: colors.bg.elevated,
+      borderRadius: 3,
+      overflow: 'hidden',
+    },
+    barInnerRight: {
+      flex: 1,
+      height: 6,
+      alignItems: 'flex-end',
+      justifyContent: 'center',
+    },
+    bar: {
+      height: 6,
+      borderRadius: 3,
+    },
+    label: {
+      fontFamily: FontFamily.body,
+      fontSize: FontSize.xs,
+      color: colors.text.muted,
+      textAlign: 'center',
+      minWidth: 60,
+    },
+    labelRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 4,
+    },
+    confidenceDot: {
+      width: 5,
+      height: 5,
+      borderRadius: 3,
+      backgroundColor: colors.accent.yellow,
+    },
+  });

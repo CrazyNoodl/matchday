@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
-import { Dimensions, View } from 'react-native';
+import { Dimensions, type View } from 'react-native';
 
 // Measures the trigger button on open and anchors the dropdown just below
 // it, right-aligned to the button's right edge.

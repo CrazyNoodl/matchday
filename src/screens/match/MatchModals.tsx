@@ -1,14 +1,16 @@
 import React, { useRef } from 'react';
-import {
-  View,
-  Text,
-  Modal,
-  TouchableOpacity,
-} from 'react-native';
+import { View, Text, Modal, TouchableOpacity } from 'react-native';
 import { BottomSheetScrollView, BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { useTranslation } from 'react-i18next';
 import { useColors } from '@/theme';
-import { Sheet, SheetHeader, SheetFooter, MediaSlider, ConfirmDialog, DropdownMenu } from '@/components';
+import {
+  Sheet,
+  SheetHeader,
+  SheetFooter,
+  MediaSlider,
+  ConfirmDialog,
+  DropdownMenu,
+} from '@/components';
 import { makeStyles } from '@/screens/match/match.styles';
 import type { MatchDetailHook } from './useMatchDetail';
 
@@ -262,18 +264,27 @@ export function MatchModals({ d }: MatchModalsProps) {
             label: t('matchDetail.statsMenu.rescan'),
             loading: d.importingStats,
             disabled: d.importingStats,
-            onPress: () => { rescanAfterClose.current = true; d.statsMenu.close(); },
+            onPress: () => {
+              rescanAfterClose.current = true;
+              d.statsMenu.close();
+            },
           },
           {
             key: 'edit',
             label: t('common.edit'),
-            onPress: () => { d.statsMenu.close(); d.openEditStats(); },
+            onPress: () => {
+              d.statsMenu.close();
+              d.openEditStats();
+            },
           },
           {
             key: 'clear',
             label: t('matchDetail.statsMenu.clear'),
             destructive: true,
-            onPress: () => { d.statsMenu.close(); d.handleClearStats(); },
+            onPress: () => {
+              d.statsMenu.close();
+              d.handleClearStats();
+            },
           },
         ]}
       />

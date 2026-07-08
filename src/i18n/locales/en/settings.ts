@@ -71,7 +71,8 @@ const settings = {
     section: 'Danger Zone',
     resetAll: 'Reset All Data',
     resetTitle: 'Reset All Data?',
-    resetDesc: 'This will permanently delete all tournaments, matches, rounds, and reset to the default players and teams.',
+    resetDesc:
+      'This will permanently delete all tournaments, matches, rounds, and reset to the default players and teams.',
     backupFirst: 'Backup My Data First',
     cancel: 'Cancel',
     reset: 'Reset',

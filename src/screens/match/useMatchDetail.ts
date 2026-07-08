@@ -7,7 +7,12 @@ import { useStore } from '@/store';
 import { matchMediaFolder } from '@/store/sliceHelpers';
 import type { MediaItem, MediaType, Match, StatConfidence } from '@/store/types';
 import { extractStatsFromPhoto, type ExtractedStat } from '@/utils/extractStats';
-import { resizeImage, MEDIA_MAX_DIMENSION, OCR_PAYLOAD_MAX_DIMENSION, STAT_PHOTO_STORAGE_MAX_DIMENSION } from '@/utils/imageResize';
+import {
+  resizeImage,
+  MEDIA_MAX_DIMENSION,
+  OCR_PAYLOAD_MAX_DIMENSION,
+  STAT_PHOTO_STORAGE_MAX_DIMENSION,
+} from '@/utils/imageResize';
 import { fetchMatchById } from '@/supabase/sync';
 import { uploadMediaItem, deleteMediaItem } from '@/supabase/storage';
 import { buildMergedStats } from '@/utils/mergedStats';
@@ -34,20 +39,21 @@ export function useMatchDetail() {
   // round's folder, archived-round matches use their round's stored folder.
   // Delegates to matchMediaFolder so this stays identical to the path the
   // Add Match flow computes for the same match (see #67).
-  const getMediaFolder = useCallback((m: Match): string => {
-    const roundFolder = matches.some((mm) => mm.id === m.id)
-      ? store.roundFolder
-      : archivedRounds.find((r) => r.matches.some((mm) => mm.id === m.id))?.folder;
-    return matchMediaFolder(roundFolder, m);
-  }, [matches, archivedRounds, store.roundFolder]);
+  const getMediaFolder = useCallback(
+    (m: Match): string => {
+      const roundFolder = matches.some((mm) => mm.id === m.id)
+        ? store.roundFolder
+        : archivedRounds.find((r) => r.matches.some((mm) => mm.id === m.id))?.folder;
+      return matchMediaFolder(roundFolder, m);
+    },
+    [matches, archivedRounds, store.roundFolder],
+  );
 
   const localMatch = useMemo<Match | undefined>(
     () =>
       matches.find((m) => m.id === id) ??
       archivedRounds.flatMap((r) => r.matches).find((m) => m.id === id) ??
-      closedTournaments
-        .flatMap((t) => t.rounds.flatMap((r) => r.matches))
-        .find((m) => m.id === id),
+      closedTournaments.flatMap((t) => t.rounds.flatMap((r) => r.matches)).find((m) => m.id === id),
     [id, matches, archivedRounds, closedTournaments],
   );
 
@@ -81,7 +87,9 @@ export function useMatchDetail() {
   const [editNoteValue, setEditNoteValue] = useState('');
   const [uploadingMedia, setUploadingMedia] = useState(false);
   const [importingStats, setImportingStats] = useState(false);
-  const [importStatsStep, setImportStatsStep] = useState<'preparing' | 'uploading' | 'scanning' | null>(null);
+  const [importStatsStep, setImportStatsStep] = useState<
+    'preparing' | 'uploading' | 'scanning' | null
+  >(null);
   // Refs for concurrency guards — updated synchronously, unlike state
   const uploadingMediaRef = useRef(false);
   const importingStatsRef = useRef(false);
@@ -113,8 +121,8 @@ export function useMatchDetail() {
   const winnerName = aWins
     ? (playerA?.nick ?? playerA?.name ?? 'Player A')
     : bWins
-    ? (playerB?.nick ?? playerB?.name ?? 'Player B')
-    : null;
+      ? (playerB?.nick ?? playerB?.name ?? 'Player B')
+      : null;
 
   // Video playback is broken (#59) — hide video items from display until fixed.
   // Still counted toward the 5-slot cap since they remain in the underlying data.
@@ -193,9 +201,12 @@ export function useMatchDetail() {
     setUploadingMedia(true);
 
     const getMedia = (matchId: string) =>
-      useStore.getState().matches.find((m) => m.id === matchId)?.media
-      ?? useStore.getState().archivedRounds.flatMap((r) => r.matches).find((m) => m.id === matchId)?.media
-      ?? [];
+      useStore.getState().matches.find((m) => m.id === matchId)?.media ??
+      useStore
+        .getState()
+        .archivedRounds.flatMap((r) => r.matches)
+        .find((m) => m.id === matchId)?.media ??
+      [];
 
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
@@ -235,11 +246,20 @@ export function useMatchDetail() {
           if (type === 'image') {
             try {
               localUri = (await resizeImage(originalUri, asset, MEDIA_MAX_DIMENSION)).uri;
-            } catch { /* fall back to the original file if resizing fails */ }
+            } catch {
+              /* fall back to the original file if resizing fails */
+            }
           }
 
           let remoteUrl: string | null;
-          try { remoteUrl = await uploadMediaItem(localUri, type, { tournamentId: store.tournamentId, mediaFolder }); } catch { remoteUrl = null; }
+          try {
+            remoteUrl = await uploadMediaItem(localUri, type, {
+              tournamentId: store.tournamentId,
+              mediaFolder,
+            });
+          } catch {
+            remoteUrl = null;
+          }
 
           // Replace the optimistic item matched by the original local URI + uploading flag
           store.updateMatchMedia(
@@ -310,9 +330,13 @@ export function useMatchDetail() {
             // blocks OCR outright.
             let base64 = asset.base64;
             try {
-              const payload = await resizeImage(asset.uri, asset, OCR_PAYLOAD_MAX_DIMENSION, { base64: true });
+              const payload = await resizeImage(asset.uri, asset, OCR_PAYLOAD_MAX_DIMENSION, {
+                base64: true,
+              });
               if (payload.base64) base64 = payload.base64;
-            } catch { /* keep original base64 */ }
+            } catch {
+              /* keep original base64 */
+            }
             try {
               const stats = await extractStatsFromPhoto(base64, asset.mimeType ?? 'image/jpeg');
               return { asset, stats, ocrFailed: false };
@@ -346,8 +370,12 @@ export function useMatchDetail() {
             // the payload used for OCR above.
             let storageUri = r.asset.uri;
             try {
-              storageUri = (await resizeImage(r.asset.uri, r.asset, STAT_PHOTO_STORAGE_MAX_DIMENSION)).uri;
-            } catch { /* fall back to the original file if resizing fails */ }
+              storageUri = (
+                await resizeImage(r.asset.uri, r.asset, STAT_PHOTO_STORAGE_MAX_DIMENSION)
+              ).uri;
+            } catch {
+              /* fall back to the original file if resizing fails */
+            }
             try {
               const remoteUrl = await uploadMediaItem(storageUri, 'image', {
                 tournamentId: store.tournamentId,
@@ -364,8 +392,11 @@ export function useMatchDetail() {
         // Bug 4 fix: read fresh match.media at write time to avoid clobbering
         // media added by sync while uploads were in-flight.
         const getMedia = () =>
-          useStore.getState().matches.find((m) => m.id === matchId)?.media
-          ?? useStore.getState().archivedRounds.flatMap((r) => r.matches).find((m) => m.id === matchId)?.media;
+          useStore.getState().matches.find((m) => m.id === matchId)?.media ??
+          useStore
+            .getState()
+            .archivedRounds.flatMap((r) => r.matches)
+            .find((m) => m.id === matchId)?.media;
 
         // Invalid photos never join match.media — only ones that either passed
         // validation or hit a genuine service error (not proven bad) do.
@@ -382,7 +413,8 @@ export function useMatchDetail() {
         // Merge stats only from photos that passed validation — a rejected
         // photo's guesses never touch the match's stats, even partially.
         const map = new Map<string, ExtractedStat>();
-        const rank = (c: ExtractedStat['confidence']) => (c === 'high' ? 3 : c === 'medium' ? 2 : 1);
+        const rank = (c: ExtractedStat['confidence']) =>
+          c === 'high' ? 3 : c === 'medium' ? 2 : 1;
         for (const r of uploadResults) {
           if (!r.isValidPhoto) continue;
           for (const stat of r.stats) {
@@ -394,8 +426,13 @@ export function useMatchDetail() {
         }
 
         if (map.size > 0) {
-          const override: Record<string, { a: number; b: number; confidence?: ExtractedStat['confidence'] }> = {};
-          map.forEach((stat) => { override[stat.key] = { a: stat.home, b: stat.away, confidence: stat.confidence }; });
+          const override: Record<
+            string,
+            { a: number; b: number; confidence?: ExtractedStat['confidence'] }
+          > = {};
+          map.forEach((stat) => {
+            override[stat.key] = { a: stat.home, b: stat.away, confidence: stat.confidence };
+          });
           store.updateMatchStats(matchId, override);
         }
 
@@ -408,7 +445,6 @@ export function useMatchDetail() {
         } else if (map.size === 0 && anyPhotoOcrFailed) {
           setShowOcrFailed(true);
         }
-
       } catch {
         setShowOcrFailed(true);
       } finally {
@@ -424,46 +460,63 @@ export function useMatchDetail() {
     }
   }, [match, store, getMediaFolder]);
 
-  const handleRetryUpload = useCallback(async (itemUri: string) => {
-    if (!match || retryingMediaUri !== null) return;
-    const item = match.media?.find((m) => m.uri === itemUri);
-    if (!item?.pendingUpload) return;
+  const handleRetryUpload = useCallback(
+    async (itemUri: string) => {
+      if (!match || retryingMediaUri !== null) return;
+      const item = match.media?.find((m) => m.uri === itemUri);
+      if (!item?.pendingUpload) return;
 
-    setRetryingMediaUri(itemUri);
-    const matchId = match.id;
-    const mediaFolder = getMediaFolder(match);
+      setRetryingMediaUri(itemUri);
+      const matchId = match.id;
+      const mediaFolder = getMediaFolder(match);
 
-    const getFreshMedia = () =>
-      useStore.getState().matches.find((m) => m.id === matchId)?.media
-      ?? useStore.getState().archivedRounds.flatMap((r) => r.matches).find((m) => m.id === matchId)?.media
-      ?? [];
+      const getFreshMedia = () =>
+        useStore.getState().matches.find((m) => m.id === matchId)?.media ??
+        useStore
+          .getState()
+          .archivedRounds.flatMap((r) => r.matches)
+          .find((m) => m.id === matchId)?.media ??
+        [];
 
-    try {
-      let remoteUrl: string | null;
-      try { remoteUrl = await uploadMediaItem(itemUri, item.type, { tournamentId: store.tournamentId, mediaFolder }); } catch { remoteUrl = null; }
+      try {
+        let remoteUrl: string | null;
+        try {
+          remoteUrl = await uploadMediaItem(itemUri, item.type, {
+            tournamentId: store.tournamentId,
+            mediaFolder,
+          });
+        } catch {
+          remoteUrl = null;
+        }
 
-      const freshMedia = getFreshMedia();
-      if (remoteUrl !== null) {
-        store.updateMatchMedia(matchId, freshMedia.map((m) =>
-          m.uri === itemUri ? { uri: remoteUrl!, type: item.type } : m,
-        ));
+        const freshMedia = getFreshMedia();
+        if (remoteUrl !== null) {
+          store.updateMatchMedia(
+            matchId,
+            freshMedia.map((m) => (m.uri === itemUri ? { uri: remoteUrl!, type: item.type } : m)),
+          );
+        }
+        // On failure: keep item with pendingUpload:true so user can retry again
+      } finally {
+        setRetryingMediaUri(null);
       }
-      // On failure: keep item with pendingUpload:true so user can retry again
-    } finally {
-      setRetryingMediaUri(null);
-    }
-  }, [match, store, retryingMediaUri, getMediaFolder]);
+    },
+    [match, store, retryingMediaUri, getMediaFolder],
+  );
 
   const handleClearStats = useCallback(() => setShowClearStats(true), []);
   const handleSwapSides = useCallback(() => setShowSwapSides(true), []);
 
-  const handleDeleteMedia = useCallback(async (idx: number) => {
-    if (!match) return;
-    const item = match.media?.[idx];
-    if (item) await deleteMediaItem(item.uri);
-    const updated = (match.media ?? []).filter((_, i) => i !== idx);
-    store.updateMatchMedia(match.id, updated);
-  }, [match, store]);
+  const handleDeleteMedia = useCallback(
+    async (idx: number) => {
+      if (!match) return;
+      const item = match.media?.[idx];
+      if (item) await deleteMediaItem(item.uri);
+      const updated = (match.media ?? []).filter((_, i) => i !== idx);
+      store.updateMatchMedia(match.id, updated);
+    },
+    [match, store],
+  );
 
   const openEditNote = useCallback(() => {
     setEditNoteValue(match?.note ?? '');
@@ -493,19 +546,22 @@ export function useMatchDetail() {
     });
   }, []);
 
-  const adjustStat = useCallback((key: string, side: 'a' | 'b', delta: number, isPercent: boolean) => {
-    setTouchedStats((prev) => (prev.has(key) ? prev : new Set(prev).add(key)));
-    setEditValues((prev) => {
-      const current = prev[key] ?? { a: 0, b: 0 };
-      let next = current[side] + delta;
-      next = Math.max(0, next);
-      if (isPercent) next = Math.min(100, next);
-      // Round to 1 decimal — covers both integer stats and the 0.1 xG step
-      // without floating point artifacts (e.g. 2 + 0.1 !== 2.1 in raw JS).
-      next = Math.round(next * 10) / 10;
-      return { ...prev, [key]: { ...current, [side]: next } };
-    });
-  }, []);
+  const adjustStat = useCallback(
+    (key: string, side: 'a' | 'b', delta: number, isPercent: boolean) => {
+      setTouchedStats((prev) => (prev.has(key) ? prev : new Set(prev).add(key)));
+      setEditValues((prev) => {
+        const current = prev[key] ?? { a: 0, b: 0 };
+        let next = current[side] + delta;
+        next = Math.max(0, next);
+        if (isPercent) next = Math.min(100, next);
+        // Round to 1 decimal — covers both integer stats and the 0.1 xG step
+        // without floating point artifacts (e.g. 2 + 0.1 !== 2.1 in raw JS).
+        next = Math.round(next * 10) / 10;
+        return { ...prev, [key]: { ...current, [side]: next } };
+      });
+    },
+    [],
+  );
 
   // Confirms an AI-flagged value as correct without nudging it via +/- (#74).
   const confirmStat = useCallback((key: string) => {

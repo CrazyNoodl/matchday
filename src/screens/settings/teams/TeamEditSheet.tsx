@@ -4,7 +4,7 @@ import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { useTranslation } from 'react-i18next';
 import { useColors } from '@/theme';
 import { Sheet } from '@/components';
-import { Team } from '@/store/types';
+import { type Team } from '@/store/types';
 import { makeStyles } from './teams.styles';
 
 interface TeamEditSheetProps {
@@ -56,7 +56,11 @@ export function TeamEditSheet({
           {editingTeam ? t('teams.editTitle').toUpperCase() : t('teams.newTitle').toUpperCase()}
         </Text>
 
-        <BottomSheetScrollView style={{ maxHeight: 360 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+        <BottomSheetScrollView
+          style={{ maxHeight: 360 }}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
           <View style={styles.formGroup}>
             <Text style={styles.formLabel}>{t('teams.form.name').toUpperCase()}</Text>
             <TextInput
@@ -132,11 +136,7 @@ export function TeamEditSheet({
         </BottomSheetScrollView>
 
         <View style={styles.sheetActions}>
-          <TouchableOpacity
-            style={styles.cancelBtn}
-            onPress={onClose}
-            activeOpacity={0.75}
-          >
+          <TouchableOpacity style={styles.cancelBtn} onPress={onClose} activeOpacity={0.75}>
             <Text style={styles.cancelBtnText}>{t('common.cancel').toUpperCase()}</Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -148,7 +148,9 @@ export function TeamEditSheet({
             <Text style={[styles.saveBtnText, !canSave && styles.saveBtnTextDisabled]}>
               {logoUploading
                 ? t('teams.uploading').toUpperCase()
-                : editingTeam ? t('common.save').toUpperCase() : t('teams.addBtn').toUpperCase()}
+                : editingTeam
+                  ? t('common.save').toUpperCase()
+                  : t('teams.addBtn').toUpperCase()}
             </Text>
           </TouchableOpacity>
         </View>

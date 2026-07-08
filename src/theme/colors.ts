@@ -66,15 +66,7 @@ const sharedPalette = {
     '#ffb86b',
     '#7bd389',
   ],
-  team: [
-    '#7bd389',
-    '#e89bd0',
-    '#9b8bff',
-    '#ffb86b',
-    '#5ad6cf',
-    '#ff7b7b',
-    '#d0c24a',
-  ],
+  team: ['#7bd389', '#e89bd0', '#9b8bff', '#ffb86b', '#5ad6cf', '#ff7b7b', '#d0c24a'],
 };
 
 export const DarkColors: AppColors = {

@@ -87,7 +87,9 @@ export function useSyncManager() {
         pulled.hasTournament;
       applyingRef.current = true;
       applyCloudState(pulled);
-      setTimeout(() => { applyingRef.current = false; }, 100);
+      setTimeout(() => {
+        applyingRef.current = false;
+      }, 100);
       return hasCloudData ? 'has-data' : 'empty';
     }
 
@@ -119,7 +121,10 @@ export function useSyncManager() {
     }
 
     async function init() {
-      if (!supabaseConfigured) { setSyncStatus('idle'); return; }
+      if (!supabaseConfigured) {
+        setSyncStatus('idle');
+        return;
+      }
 
       // Migration: ensure tournamentId is set for existing active tournaments
       const currentState = useStore.getState();
@@ -136,7 +141,10 @@ export function useSyncManager() {
       setSyncStatus('syncing');
       try {
         userId = await getCurrentUserId();
-        if (!userId) { setSyncStatus('idle'); return; }
+        if (!userId) {
+          setSyncStatus('idle');
+          return;
+        }
 
         if (dirtyRef.current.size > 0) {
           // Local edits from a previous session never reached the cloud.
@@ -194,7 +202,9 @@ export function useSyncManager() {
           // Coalesce bursts of realtime events (one push can touch 5+ tables)
           // into a single pull instead of one per table write.
           if (pullTimerRef.current) clearTimeout(pullTimerRef.current);
-          pullTimerRef.current = setTimeout(() => { pull(); }, PULL_DEBOUNCE_MS);
+          pullTimerRef.current = setTimeout(() => {
+            pull();
+          }, PULL_DEBOUNCE_MS);
         });
       } catch {
         setSyncStatus('error');
@@ -254,8 +264,10 @@ export function useSyncManager() {
           state.round !== prevState.round ||
           state.roundOpen !== prevState.roundOpen ||
           state.roundPlayers !== prevState.roundPlayers
-        ) dirtyRef.current.add('activeTournament');
-        if (state.closedTournaments !== prevState.closedTournaments) dirtyRef.current.add('closedTournaments');
+        )
+          dirtyRef.current.add('activeTournament');
+        if (state.closedTournaments !== prevState.closedTournaments)
+          dirtyRef.current.add('closedTournaments');
         if (dirtyRef.current.size !== sizeBefore) persistDirty();
       }
 
@@ -309,6 +321,6 @@ export function useSyncManager() {
       if (pullTimerRef.current) clearTimeout(pullTimerRef.current);
       reconnectRef.current = () => {};
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 }

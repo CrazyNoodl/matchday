@@ -1,26 +1,37 @@
 import { calculateStandings, isTopTied, getFormChips } from '../standings';
-import { Match } from '../../store/types';
+import { type Match } from '../../store/types';
 
-const match = (
-  id: string,
-  aId: string,
-  bId: string,
-  aScore: number,
-  bScore: number,
-): Match => ({ id, aId, bId, aScore, bScore, aTeam: 'A', bTeam: 'B' });
+const match = (id: string, aId: string, bId: string, aScore: number, bScore: number): Match => ({
+  id,
+  aId,
+  bId,
+  aScore,
+  bScore,
+  aTeam: 'A',
+  bTeam: 'B',
+});
 
 describe('calculateStandings', () => {
   it('returns zero stats for all players with no matches', () => {
     const result = calculateStandings([], ['p1', 'p2']);
     expect(result).toHaveLength(2);
-    expect(result[0]).toMatchObject({ played: 0, wins: 0, draws: 0, losses: 0, pts: 0, gf: 0, ga: 0, gd: 0 });
+    expect(result[0]).toMatchObject({
+      played: 0,
+      wins: 0,
+      draws: 0,
+      losses: 0,
+      pts: 0,
+      gf: 0,
+      ga: 0,
+      gd: 0,
+    });
   });
 
   it('awards 3 pts to winner, 0 to loser', () => {
     const matches = [match('m1', 'p1', 'p2', 2, 1)];
     const result = calculateStandings(matches, ['p1', 'p2']);
-    const p1 = result.find(s => s.playerId === 'p1')!;
-    const p2 = result.find(s => s.playerId === 'p2')!;
+    const p1 = result.find((s) => s.playerId === 'p1')!;
+    const p2 = result.find((s) => s.playerId === 'p2')!;
     expect(p1.pts).toBe(3);
     expect(p1.wins).toBe(1);
     expect(p2.pts).toBe(0);
@@ -30,8 +41,8 @@ describe('calculateStandings', () => {
   it('awards 1 pt each for a draw', () => {
     const matches = [match('m1', 'p1', 'p2', 1, 1)];
     const result = calculateStandings(matches, ['p1', 'p2']);
-    const p1 = result.find(s => s.playerId === 'p1')!;
-    const p2 = result.find(s => s.playerId === 'p2')!;
+    const p1 = result.find((s) => s.playerId === 'p1')!;
+    const p2 = result.find((s) => s.playerId === 'p2')!;
     expect(p1.pts).toBe(1);
     expect(p1.draws).toBe(1);
     expect(p2.pts).toBe(1);
@@ -39,12 +50,9 @@ describe('calculateStandings', () => {
   });
 
   it('accumulates GF, GA, GD correctly', () => {
-    const matches = [
-      match('m1', 'p1', 'p2', 3, 1),
-      match('m2', 'p1', 'p2', 1, 2),
-    ];
+    const matches = [match('m1', 'p1', 'p2', 3, 1), match('m2', 'p1', 'p2', 1, 2)];
     const result = calculateStandings(matches, ['p1', 'p2']);
-    const p1 = result.find(s => s.playerId === 'p1')!;
+    const p1 = result.find((s) => s.playerId === 'p1')!;
     expect(p1.gf).toBe(4);
     expect(p1.ga).toBe(3);
     expect(p1.gd).toBe(1);
@@ -53,36 +61,27 @@ describe('calculateStandings', () => {
 
   it('sorts by pts descending', () => {
     // p1 wins over p2, p3 beats p4 → p1 and p3 each 3pts, p2 0pts, p4 0pts
-    const matches = [
-      match('m1', 'p1', 'p2', 2, 0),
-      match('m2', 'p3', 'p4', 1, 0),
-    ];
+    const matches = [match('m1', 'p1', 'p2', 2, 0), match('m2', 'p3', 'p4', 1, 0)];
     const result = calculateStandings(matches, ['p1', 'p2', 'p3', 'p4']);
     expect(result[0].pts).toBe(3);
     expect(result[1].pts).toBe(3);
     expect(result[2].pts).toBe(0);
     expect(result[3].pts).toBe(0);
     // 3pt players come before 0pt players
-    const topTwo = result.slice(0, 2).map(s => s.playerId);
+    const topTwo = result.slice(0, 2).map((s) => s.playerId);
     expect(topTwo).toContain('p1');
     expect(topTwo).toContain('p3');
   });
 
   it('sorts by GD when pts are tied', () => {
-    const matches = [
-      match('m1', 'p1', 'p3', 3, 0),
-      match('m2', 'p2', 'p3', 1, 0),
-    ];
+    const matches = [match('m1', 'p1', 'p3', 3, 0), match('m2', 'p2', 'p3', 1, 0)];
     const result = calculateStandings(matches, ['p1', 'p2', 'p3']);
     expect(result[0].playerId).toBe('p1'); // 3pts, GD+3
     expect(result[1].playerId).toBe('p2'); // 3pts, GD+1
   });
 
   it('sorts by GF when pts and GD are tied', () => {
-    const matches = [
-      match('m1', 'p1', 'p3', 2, 1),
-      match('m2', 'p2', 'p3', 3, 2),
-    ];
+    const matches = [match('m1', 'p1', 'p3', 2, 1), match('m2', 'p2', 'p3', 3, 2)];
     const result = calculateStandings(matches, ['p1', 'p2', 'p3']);
     expect(result[0].playerId).toBe('p2'); // 3pts, GD+1, GF=3
     expect(result[1].playerId).toBe('p1'); // 3pts, GD+1, GF=2
@@ -113,26 +112,28 @@ describe('calculateStandings', () => {
       match('m4', 'p3', 'p4', 0, 0), // noise
     ];
     const result = calculateStandings(matches, ['p1', 'p2', 'p3', 'p4']);
-    const p1idx = result.findIndex(s => s.playerId === 'p1');
-    const p2idx = result.findIndex(s => s.playerId === 'p2');
+    const p1idx = result.findIndex((s) => s.playerId === 'p1');
+    const p2idx = result.findIndex((s) => s.playerId === 'p2');
     expect(p1idx).toBeLessThan(p2idx);
   });
 
   it('ignores matches for players not in playerIds', () => {
     const matches = [match('m1', 'p1', 'unknown', 3, 0)];
     const result = calculateStandings(matches, ['p1', 'p2']);
-    const p1 = result.find(s => s.playerId === 'p1')!;
+    const p1 = result.find((s) => s.playerId === 'p1')!;
     // p1 played against unknown — still counts since map has p1
     expect(p1.played).toBe(1);
     expect(p1.pts).toBe(3);
     // unknown not in result
-    expect(result.find(s => s.playerId === 'unknown')).toBeUndefined();
+    expect(result.find((s) => s.playerId === 'unknown')).toBeUndefined();
   });
 });
 
 describe('isTopTied', () => {
   it('returns false when standings has fewer than 2 players', () => {
-    const standings = [{ playerId: 'p1', played: 0, wins: 0, draws: 0, losses: 0, gf: 0, ga: 0, gd: 0, pts: 3 }];
+    const standings = [
+      { playerId: 'p1', played: 0, wins: 0, draws: 0, losses: 0, gf: 0, ga: 0, gd: 0, pts: 3 },
+    ];
     expect(isTopTied(standings, [])).toBe(false);
   });
 
@@ -143,10 +144,7 @@ describe('isTopTied', () => {
   });
 
   it('returns false when top two have same pts but differ in GD', () => {
-    const matches = [
-      match('m1', 'p1', 'p3', 3, 0),
-      match('m2', 'p2', 'p3', 1, 0),
-    ];
+    const matches = [match('m1', 'p1', 'p3', 3, 0), match('m2', 'p2', 'p3', 1, 0)];
     const standings = calculateStandings(matches, ['p1', 'p2', 'p3']);
     expect(isTopTied(standings, matches)).toBe(false);
   });

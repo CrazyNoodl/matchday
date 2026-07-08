@@ -54,7 +54,8 @@ const matchDetail = {
     failed: 'Could Not Read Stats',
     failedDesc: 'Please try again with a clearer image.',
     invalidPhoto: 'Wrong Photo?',
-    invalidPhotoDesc: 'This doesn’t look like a stats screen — please upload a new photo or retake a clearer one.',
+    invalidPhotoDesc:
+      'This doesn’t look like a stats screen — please upload a new photo or retake a clearer one.',
   },
 } as const;
 

@@ -41,7 +41,9 @@ export default function DisplaySettingsScreen() {
               activeOpacity={0.75}
             >
               <Text style={styles.themeBtnIcon}>🌙</Text>
-              <Text style={[styles.themeBtnLabel, colorScheme === 'dark' && styles.themeBtnLabelActive]}>
+              <Text
+                style={[styles.themeBtnLabel, colorScheme === 'dark' && styles.themeBtnLabelActive]}
+              >
                 {t('settings.display.themeDark')}
               </Text>
             </TouchableOpacity>
@@ -51,7 +53,12 @@ export default function DisplaySettingsScreen() {
               activeOpacity={0.75}
             >
               <Text style={styles.themeBtnIcon}>☀️</Text>
-              <Text style={[styles.themeBtnLabel, colorScheme === 'light' && styles.themeBtnLabelActive]}>
+              <Text
+                style={[
+                  styles.themeBtnLabel,
+                  colorScheme === 'light' && styles.themeBtnLabelActive,
+                ]}
+              >
                 {t('settings.display.themeLight')}
               </Text>
             </TouchableOpacity>
@@ -61,7 +68,9 @@ export default function DisplaySettingsScreen() {
               activeOpacity={0.75}
             >
               <Text style={styles.themeBtnIcon}>🌓</Text>
-              <Text style={[styles.themeBtnLabel, colorScheme === 'auto' && styles.themeBtnLabelActive]}>
+              <Text
+                style={[styles.themeBtnLabel, colorScheme === 'auto' && styles.themeBtnLabelActive]}
+              >
                 {t('settings.display.themeAuto')}
               </Text>
             </TouchableOpacity>
@@ -129,4 +138,3 @@ export default function DisplaySettingsScreen() {
     </SafeAreaView>
   );
 }
-

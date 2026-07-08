@@ -1,7 +1,14 @@
 import { Platform } from 'react-native';
 import { useStore, syncSuppressionRef } from '@/store';
 import type { RootState } from '@/store';
-import type { RealDataBackup, Player, Team, Match, ArchivedRound, ClosedTournament } from '@/store/types';
+import type {
+  RealDataBackup,
+  Player,
+  Team,
+  Match,
+  ArchivedRound,
+  ClosedTournament,
+} from '@/store/types';
 import type { ThemePreference } from '@/theme/colors';
 import type { Language } from '@/i18n';
 
@@ -143,7 +150,13 @@ export function serializeBackup(file: BackupFile): string {
 }
 
 const STRING_FIELDS = ['tournamentId', 'tournamentName', 'colorScheme', 'language'] as const;
-const BOOLEAN_FIELDS = ['hasTournament', 'roundOpen', 'tournamentRanked', 'showNick', 'showTeamLogo'] as const;
+const BOOLEAN_FIELDS = [
+  'hasTournament',
+  'roundOpen',
+  'tournamentRanked',
+  'showNick',
+  'showTeamLogo',
+] as const;
 const NUMBER_FIELDS = ['round', 'tournamentRounds'] as const;
 const ARRAY_FIELDS = [
   'tournamentPlayers',
@@ -172,10 +185,14 @@ export function validateBackupFile(raw: unknown): BackupValidationResult {
   }
 
   const data = file.data as Record<string, unknown>;
-  for (const f of STRING_FIELDS) if (typeof data[f] !== 'string') return { valid: false, reason: 'missingFields' };
-  for (const f of BOOLEAN_FIELDS) if (typeof data[f] !== 'boolean') return { valid: false, reason: 'missingFields' };
-  for (const f of NUMBER_FIELDS) if (typeof data[f] !== 'number') return { valid: false, reason: 'missingFields' };
-  for (const f of ARRAY_FIELDS) if (!Array.isArray(data[f])) return { valid: false, reason: 'missingFields' };
+  for (const f of STRING_FIELDS)
+    if (typeof data[f] !== 'string') return { valid: false, reason: 'missingFields' };
+  for (const f of BOOLEAN_FIELDS)
+    if (typeof data[f] !== 'boolean') return { valid: false, reason: 'missingFields' };
+  for (const f of NUMBER_FIELDS)
+    if (typeof data[f] !== 'number') return { valid: false, reason: 'missingFields' };
+  for (const f of ARRAY_FIELDS)
+    if (!Array.isArray(data[f])) return { valid: false, reason: 'missingFields' };
 
   return { valid: true, file: file as unknown as BackupFile };
 }
@@ -215,13 +232,19 @@ export async function createBackup(): Promise<
   try {
     if (Platform.OS === 'web') {
       localStorage.setItem(fileName, json);
-      return { ok: true, meta: { fileName, uri: fileName, exportedAt: file.exportedAt, sizeBytes: json.length } };
+      return {
+        ok: true,
+        meta: { fileName, uri: fileName, exportedAt: file.exportedAt, sizeBytes: json.length },
+      };
     }
     const { File, Directory, Paths } = (await import('expo-file-system')) as FileSystemModule;
     const f = new File(new Directory(Paths.document, 'backups'), fileName);
     f.create({ intermediates: true, overwrite: true });
     f.write(json);
-    return { ok: true, meta: { fileName, uri: f.uri, exportedAt: file.exportedAt, sizeBytes: f.size } };
+    return {
+      ok: true,
+      meta: { fileName, uri: f.uri, exportedAt: file.exportedAt, sizeBytes: f.size },
+    };
   } catch {
     return { ok: false, reason: 'writeFailed' };
   }
@@ -336,7 +359,8 @@ export async function readBackupMeta(
 // document picker (native) or a file input (web). Returns unvalidated JSON
 // so validateBackupFile() stays independently testable.
 export async function pickAndReadBackupFile(): Promise<
-  { ok: true; raw: unknown; fileName: string } | { ok: false; reason: 'canceled' | 'parseError' | 'readError' }
+  | { ok: true; raw: unknown; fileName: string }
+  | { ok: false; reason: 'canceled' | 'parseError' | 'readError' }
 > {
   if (Platform.OS === 'web') {
     return new Promise((resolve) => {
@@ -349,7 +373,10 @@ export async function pickAndReadBackupFile(): Promise<
       input.oncancel = () => resolve({ ok: false, reason: 'canceled' });
       input.onchange = () => {
         const f = input.files?.[0];
-        if (!f) { resolve({ ok: false, reason: 'canceled' }); return; }
+        if (!f) {
+          resolve({ ok: false, reason: 'canceled' });
+          return;
+        }
         const reader = new FileReader();
         reader.onload = () => {
           try {
@@ -368,7 +395,10 @@ export async function pickAndReadBackupFile(): Promise<
   let result: Awaited<ReturnType<DocumentPickerModule['getDocumentAsync']>>;
   try {
     const DocumentPicker = (await import('expo-document-picker')) as DocumentPickerModule;
-    result = await DocumentPicker.getDocumentAsync({ type: 'application/json', copyToCacheDirectory: true });
+    result = await DocumentPicker.getDocumentAsync({
+      type: 'application/json',
+      copyToCacheDirectory: true,
+    });
   } catch {
     return { ok: false, reason: 'readError' };
   }

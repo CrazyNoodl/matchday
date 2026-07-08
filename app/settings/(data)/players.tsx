@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStore } from '@/store';
 import { Colors, useColors } from '@/theme';
 import { NavHeader, Avatar, EmptyState, GlowBackground } from '@/components';
-import { Player } from '@/store/types';
+import { type Player } from '@/store/types';
 import { useTranslation } from 'react-i18next';
 import { makeStyles } from '@/screens/settings/players/players.styles';
 import { PlayerEditSheet } from '@/screens/settings/players/PlayerEditSheet';
@@ -81,19 +81,22 @@ export default function PlayersScreen() {
     setShowEdit(false);
   }, [formName, formNick, formTeam, formColor, editingPlayer, addPlayer, updatePlayer]);
 
-  const handleDelete = useCallback((id: string) => {
-    const allMatches = [
-      ...matches,
-      ...archivedRounds.flatMap((r) => r.matches),
-      ...closedTournaments.flatMap((t) => t.rounds.flatMap((r) => r.matches)),
-    ];
-    if (allMatches.some((m) => m.aId === id || m.bId === id)) {
-      setShowCannotDelete(true);
-      return;
-    }
-    setPendingDeleteId(id);
-    setShowDeleteConfirm(true);
-  }, [matches, archivedRounds, closedTournaments]);
+  const handleDelete = useCallback(
+    (id: string) => {
+      const allMatches = [
+        ...matches,
+        ...archivedRounds.flatMap((r) => r.matches),
+        ...closedTournaments.flatMap((t) => t.rounds.flatMap((r) => r.matches)),
+      ];
+      if (allMatches.some((m) => m.aId === id || m.bId === id)) {
+        setShowCannotDelete(true);
+        return;
+      }
+      setPendingDeleteId(id);
+      setShowDeleteConfirm(true);
+    },
+    [matches, archivedRounds, closedTournaments],
+  );
 
   const confirmDelete = useCallback(() => {
     if (pendingDeleteId) {
@@ -111,11 +114,7 @@ export default function PlayersScreen() {
         subtitle={t('settings.data.playersCount', { count: players.length })}
         onBack={() => goBack()}
         rightElement={
-          <TouchableOpacity
-            style={styles.addBtn}
-            onPress={openCreate}
-            activeOpacity={0.8}
-          >
+          <TouchableOpacity style={styles.addBtn} onPress={openCreate} activeOpacity={0.8}>
             <Text style={styles.addBtnText}>{'+ ' + t('common.add').toUpperCase()}</Text>
           </TouchableOpacity>
         }
@@ -138,9 +137,7 @@ export default function PlayersScreen() {
               <Avatar playerId={player.id} size="md" />
               <View style={styles.playerInfo}>
                 <Text style={styles.playerName}>{player.name}</Text>
-                {player.nick && (
-                  <Text style={styles.playerNick}>@{player.nick}</Text>
-                )}
+                {player.nick && <Text style={styles.playerNick}>@{player.nick}</Text>}
               </View>
               <View style={styles.playerActions}>
                 <TouchableOpacity

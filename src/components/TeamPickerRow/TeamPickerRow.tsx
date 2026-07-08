@@ -1,7 +1,7 @@
 import React from 'react';
 import { ScrollView, Text, TouchableOpacity } from 'react-native';
 import { TeamBadge } from '@/components/TeamBadge';
-import { Team } from '@/store/types';
+import { type Team } from '@/store/types';
 import { makeStyles } from './TeamPickerRow.styles';
 import { useColors } from '@/theme';
 
@@ -30,7 +30,9 @@ export function TeamPickerRow({ teams, selectedCode, onSelect }: TeamPickerRowPr
           activeOpacity={0.8}
         >
           <TeamBadge teamCode={t.code} size="md" />
-          <Text style={styles.name} numberOfLines={1}>{t.short}</Text>
+          <Text style={styles.name} numberOfLines={1}>
+            {t.short}
+          </Text>
         </TouchableOpacity>
       ))}
     </ScrollView>

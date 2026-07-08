@@ -1,5 +1,15 @@
 import React from 'react';
-import { View, Text, Modal, TouchableOpacity, Pressable, StyleSheet, ActivityIndicator, type ViewStyle, type TextStyle } from 'react-native';
+import {
+  View,
+  Text,
+  Modal,
+  TouchableOpacity,
+  Pressable,
+  StyleSheet,
+  ActivityIndicator,
+  type ViewStyle,
+  type TextStyle,
+} from 'react-native';
 import { useColors, type AppColors } from '@/theme';
 import { makeConfirmDialogStyles } from './ConfirmDialog.styles';
 
@@ -30,32 +40,49 @@ type Styles = ReturnType<typeof makeConfirmDialogStyles>;
 
 function variantBtnStyle(styles: Styles, variant: ConfirmDialogVariant): ViewStyle | null {
   switch (variant) {
-    case 'destructive': return styles.confirmBtnDestructive;
-    case 'gold': return styles.confirmBtnGold;
-    case 'neutral': return styles.confirmBtnNeutral;
-    default: return null;
+    case 'destructive':
+      return styles.confirmBtnDestructive;
+    case 'gold':
+      return styles.confirmBtnGold;
+    case 'neutral':
+      return styles.confirmBtnNeutral;
+    default:
+      return null;
   }
 }
 
 function variantTextStyle(styles: Styles, variant: ConfirmDialogVariant): TextStyle | null {
   switch (variant) {
-    case 'destructive': return styles.confirmTextDestructive;
-    case 'gold': return styles.confirmTextGold;
-    case 'neutral': return styles.confirmTextNeutral;
-    default: return null;
+    case 'destructive':
+      return styles.confirmTextDestructive;
+    case 'gold':
+      return styles.confirmTextGold;
+    case 'neutral':
+      return styles.confirmTextNeutral;
+    default:
+      return null;
   }
 }
 
 function variantLoadingColor(colors: AppColors, variant: ConfirmDialogVariant): string {
   switch (variant) {
-    case 'destructive': return '#fff';
-    case 'gold': return '#1a1200';
-    case 'neutral': return colors.text.muted;
-    default: return colors.accent.greenDark;
+    case 'destructive':
+      return '#fff';
+    case 'gold':
+      return '#1a1200';
+    case 'neutral':
+      return colors.text.muted;
+    default:
+      return colors.accent.greenDark;
   }
 }
 
-function ConfirmButton({ action, variant, styles, colors }: {
+function ConfirmButton({
+  action,
+  variant,
+  styles,
+  colors,
+}: {
   action: ConfirmDialogAction;
   variant: ConfirmDialogVariant;
   styles: Styles;
@@ -63,7 +90,11 @@ function ConfirmButton({ action, variant, styles, colors }: {
 }) {
   return (
     <TouchableOpacity
-      style={[styles.confirmBtn, variantBtnStyle(styles, variant), action.disabled && styles.confirmBtnDisabled]}
+      style={[
+        styles.confirmBtn,
+        variantBtnStyle(styles, variant),
+        action.disabled && styles.confirmBtnDisabled,
+      ]}
       onPress={action.onPress}
       disabled={action.disabled || action.loading}
       activeOpacity={0.85}
@@ -94,13 +125,21 @@ export function ConfirmDialog({
   const styles = makeConfirmDialogStyles(colors);
 
   return (
-    <Modal visible={visible} transparent animationType="fade" statusBarTranslucent onRequestClose={onRequestClose}>
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      statusBarTranslucent
+      onRequestClose={onRequestClose}
+    >
       <View style={styles.overlay}>
         {dismissOnBackdropPress && (
           <Pressable style={StyleSheet.absoluteFill} onPress={onRequestClose} />
         )}
         <View style={styles.dialog}>
-          {icon && <Text style={[styles.dialogIcon, iconColor ? { color: iconColor } : null]}>{icon}</Text>}
+          {icon && (
+            <Text style={[styles.dialogIcon, iconColor ? { color: iconColor } : null]}>{icon}</Text>
+          )}
           <Text style={styles.dialogTitle}>{title}</Text>
           {description && <Text style={styles.dialogDesc}>{description}</Text>}
           {children}

@@ -22,14 +22,20 @@ function buildAuthStorage() {
     return {
       getItem: (key: string): string | null => mmkv.getString(key) ?? null,
       setItem: (key: string, value: string): void => mmkv.set(key, value),
-      removeItem: (key: string): void => { mmkv.remove(key); },
+      removeItem: (key: string): void => {
+        mmkv.remove(key);
+      },
     };
   } catch {
     const memory = new Map<string, string>();
     return {
       getItem: (key: string): string | null => memory.get(key) ?? null,
-      setItem: (key: string, value: string): void => { memory.set(key, value); },
-      removeItem: (key: string): void => { memory.delete(key); },
+      setItem: (key: string, value: string): void => {
+        memory.set(key, value);
+      },
+      removeItem: (key: string): void => {
+        memory.delete(key);
+      },
     };
   }
 }

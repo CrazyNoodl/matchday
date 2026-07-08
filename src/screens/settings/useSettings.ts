@@ -28,9 +28,17 @@ export function useSettings() {
   }, []);
 
   const {
-    players, teams, showNick, showTeamLogo, colorScheme,
-    hasTournament, tournamentName, language,
-    archivedRounds, closedTournaments, demoMode,
+    players,
+    teams,
+    showNick,
+    showTeamLogo,
+    colorScheme,
+    hasTournament,
+    tournamentName,
+    language,
+    archivedRounds,
+    closedTournaments,
+    demoMode,
   } = store;
 
   const currentLang = LANGUAGES.find((l) => l.code === language) ?? LANGUAGES[0];
@@ -112,7 +120,10 @@ export function useSettings() {
       return;
     }
     store.setDemoMode(on);
-    if (on) { router.dismissAll(); router.replace('/'); }
+    if (on) {
+      router.dismissAll();
+      router.replace('/');
+    }
   };
 
   const confirmEnableDemo = () => {

@@ -14,7 +14,7 @@ const teams = {
     namePlaceholder: 'напр. Manchester City',
     shortCode: 'Короткий код (3 літери)',
     shortCodePlaceholder: 'напр. MCI',
-    logo: 'Логотип (необов\'язково)',
+    logo: "Логотип (необов'язково)",
   },
 } as const;
 

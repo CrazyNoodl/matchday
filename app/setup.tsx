@@ -14,7 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStore } from '@/store';
 import { Colors, useColors } from '@/theme';
 import { Avatar, TeamBadge, SectionLabel, GlowBackground } from '@/components';
-import { Team } from '@/store/types';
+import { type Team } from '@/store/types';
 import { generateTeamCode } from '@/utils/teamCode';
 import { makeStyles } from '@/screens/setup/setup.styles';
 import { AddPlayerSheet, AssignTeamSheet, ManageTeamsSheet } from '@/screens/setup/SetupModals';
@@ -53,27 +53,30 @@ export default function SetupScreen() {
   const [newPlayerTeam, setNewPlayerTeam] = useState(teams[0]?.code ?? '');
   const [newPlayerColor, setNewPlayerColor] = useState<string>(PLAYER_COLORS[0]);
 
-  const togglePlayer = useCallback((id: string) => {
-    setSelectedPlayers((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-        setPlayerTeams((pm) => {
-          const nm = new Map(pm);
-          nm.delete(id);
-          return nm;
-        });
-      } else {
-        next.add(id);
-        // default to player's own team
-        const player = players.find((p) => p.id === id);
-        if (player?.teamCode) {
-          setPlayerTeams((pm) => new Map(pm).set(id, player.teamCode));
+  const togglePlayer = useCallback(
+    (id: string) => {
+      setSelectedPlayers((prev) => {
+        const next = new Set(prev);
+        if (next.has(id)) {
+          next.delete(id);
+          setPlayerTeams((pm) => {
+            const nm = new Map(pm);
+            nm.delete(id);
+            return nm;
+          });
+        } else {
+          next.add(id);
+          // default to player's own team
+          const player = players.find((p) => p.id === id);
+          if (player?.teamCode) {
+            setPlayerTeams((pm) => new Map(pm).set(id, player.teamCode));
+          }
         }
-      }
-      return next;
-    });
-  }, [players]);
+        return next;
+      });
+    },
+    [players],
+  );
 
   const handleAssignTeam = useCallback((playerId: string, teamCode: string) => {
     setPlayerTeams((prev) => new Map(prev).set(playerId, teamCode));
@@ -112,12 +115,14 @@ export default function SetupScreen() {
     setShowAddPlayer(false);
   }, [newPlayerName, newPlayerNick, newPlayerTeam, newPlayerColor, addPlayer, teams]);
 
-  const handleDeleteTeam = useCallback((code: string) => {
-    deleteTeam(code);
-  }, [deleteTeam]);
+  const handleDeleteTeam = useCallback(
+    (code: string) => {
+      deleteTeam(code);
+    },
+    [deleteTeam],
+  );
 
-  const canStart =
-    tournamentName.trim().length > 0 && selectedPlayers.size >= 2;
+  const canStart = tournamentName.trim().length > 0 && selectedPlayers.size >= 2;
 
   const handleStart = useCallback(() => {
     if (!canStart) return;
@@ -131,7 +136,16 @@ export default function SetupScreen() {
     });
     startTournament(tournamentName.trim(), playerIds, true, roundsTarget);
     router.push('/');
-  }, [canStart, selectedPlayers, playerTeams, players, updatePlayer, startTournament, tournamentName, router]);
+  }, [
+    canStart,
+    selectedPlayers,
+    playerTeams,
+    players,
+    updatePlayer,
+    startTournament,
+    tournamentName,
+    router,
+  ]);
 
   const assignSheetPlayer = assignSheetPlayerId
     ? players.find((p) => p.id === assignSheetPlayerId)
@@ -176,7 +190,10 @@ export default function SetupScreen() {
           showsVerticalScrollIndicator={false}
         >
           {/* Tournament name */}
-          <SectionLabel label={t('setup.tournamentNameLabel').toUpperCase()} style={styles.sectionGap} />
+          <SectionLabel
+            label={t('setup.tournamentNameLabel').toUpperCase()}
+            style={styles.sectionGap}
+          />
           <TextInput
             style={styles.input}
             value={tournamentName}
@@ -200,7 +217,14 @@ export default function SetupScreen() {
                 disabled={roundsTarget === 0}
                 activeOpacity={0.75}
               >
-                <Text style={[styles.stepperBtnText, roundsTarget === 0 && styles.stepperBtnTextDisabled]}>−</Text>
+                <Text
+                  style={[
+                    styles.stepperBtnText,
+                    roundsTarget === 0 && styles.stepperBtnTextDisabled,
+                  ]}
+                >
+                  −
+                </Text>
               </TouchableOpacity>
               <View style={styles.stepperValue}>
                 <Text style={styles.stepperValueText}>
@@ -213,7 +237,14 @@ export default function SetupScreen() {
                 disabled={roundsTarget >= 50}
                 activeOpacity={0.75}
               >
-                <Text style={[styles.stepperBtnText, roundsTarget >= 50 && styles.stepperBtnTextDisabled]}>+</Text>
+                <Text
+                  style={[
+                    styles.stepperBtnText,
+                    roundsTarget >= 50 && styles.stepperBtnTextDisabled,
+                  ]}
+                >
+                  +
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -237,9 +268,7 @@ export default function SetupScreen() {
                   <Avatar playerId={player.id} size="md" />
                   <View style={styles.playerInfo}>
                     <Text style={styles.playerName}>{player.name}</Text>
-                    {player.nick ? (
-                      <Text style={styles.playerNick}>@{player.nick}</Text>
-                    ) : null}
+                    {player.nick ? <Text style={styles.playerNick}>@{player.nick}</Text> : null}
                   </View>
                   {isSelected && (
                     <TouchableOpacity
@@ -250,15 +279,8 @@ export default function SetupScreen() {
                       <TeamBadge teamCode={assignedTeam} size="xs" />
                     </TouchableOpacity>
                   )}
-                  <View
-                    style={[
-                      styles.checkCircle,
-                      isSelected && styles.checkCircleSelected,
-                    ]}
-                  >
-                    {isSelected && (
-                      <Text style={styles.checkMark}>✓</Text>
-                    )}
+                  <View style={[styles.checkCircle, isSelected && styles.checkCircleSelected]}>
+                    {isSelected && <Text style={styles.checkMark}>✓</Text>}
                   </View>
                 </TouchableOpacity>
               );
@@ -305,9 +327,7 @@ export default function SetupScreen() {
           disabled={!canStart}
           activeOpacity={0.85}
         >
-          <Text
-            style={[styles.startBtnText, !canStart && styles.startBtnTextDisabled]}
-          >
+          <Text style={[styles.startBtnText, !canStart && styles.startBtnTextDisabled]}>
             {t('setup.startTournament').toUpperCase()}
           </Text>
         </TouchableOpacity>

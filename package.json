@@ -49,8 +49,11 @@
     "@types/react": "~19.2.2",
     "eslint": "^9.0.0",
     "eslint-config-expo": "~56.0.4",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react-native": "^5.0.0",
     "eslint-plugin-storybook": "^10.4.6",
     "jest-expo": "~56.0.0",
+    "prettier": "^3.9.4",
     "storybook": "^10.4.6",
     "test-renderer": "^1.2.0",
     "typescript": "~6.0.3",
@@ -73,7 +76,9 @@
     "e2e:ui": "playwright test --ui",
     "storybook:dev": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "jest": {
     "testEnvironment": "node",

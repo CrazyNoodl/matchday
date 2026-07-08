@@ -4,7 +4,9 @@ import { test, expect, createTeamViaUI, createPlayerViaUI } from './fixtures';
 // logos moved to /settings/display) — see e2e/fixtures for the pattern.
 
 test.describe('Demo mode', () => {
-  test('toggles demo data on and off, restoring real (empty) state @smoke', async ({ authedPage: page }) => {
+  test('toggles demo data on and off, restoring real (empty) state @smoke', async ({
+    authedPage: page,
+  }) => {
     await page.goto('/settings');
     await page.waitForLoadState('networkidle');
 
@@ -30,7 +32,9 @@ test.describe('Demo mode', () => {
     await expect(page.getByRole('switch').first()).not.toBeChecked();
   });
 
-  test('warns before replacing an active tournament, then restores it on exit', async ({ authedPage: page }) => {
+  test('warns before replacing an active tournament, then restores it on exit', async ({
+    authedPage: page,
+  }) => {
     await createTeamViaUI(page, 'Liverpool', 'LIV');
     await createTeamViaUI(page, 'Arsenal', 'ARS');
     await createPlayerViaUI(page, 'Alice', 'LIV');

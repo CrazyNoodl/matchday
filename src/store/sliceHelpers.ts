@@ -1,4 +1,4 @@
-import { Match, ArchivedRound, ClosedTournament } from './types';
+import { type Match, type ArchivedRound, type ClosedTournament } from './types';
 
 export function initials(name: string): string {
   const parts = name.trim().split(/\s+/);
@@ -36,9 +36,11 @@ export function matchMediaFolder(roundFolder: string | undefined, match: Match):
 }
 
 // Collect every match across current round, archived rounds, and closed tournaments
-export function collectAllMatches(
-  s: { matches: Match[]; archivedRounds: ArchivedRound[]; closedTournaments: ClosedTournament[] },
-): Match[] {
+export function collectAllMatches(s: {
+  matches: Match[];
+  archivedRounds: ArchivedRound[];
+  closedTournaments: ClosedTournament[];
+}): Match[] {
   return [
     ...s.matches,
     ...s.archivedRounds.flatMap((r) => r.matches),

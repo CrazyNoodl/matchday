@@ -57,7 +57,10 @@ function keyFor(table: string, row: Row): string {
 }
 
 function parseInList(raw: string): string[] {
-  return raw.replace(/^\(|\)$/g, '').split(',').filter(Boolean);
+  return raw
+    .replace(/^\(|\)$/g, '')
+    .split(',')
+    .filter(Boolean);
 }
 
 function mockMakeChain(table: string) {
@@ -67,8 +70,16 @@ function mockMakeChain(table: string) {
   let limitN: number | null = null;
 
   const chain: Record<string, unknown> = {
-    select: () => { op = 'select'; rows = Array.from(tables[table].entries()); return chain; },
-    delete: () => { op = 'delete'; rows = Array.from(tables[table].entries()); return chain; },
+    select: () => {
+      op = 'select';
+      rows = Array.from(tables[table].entries());
+      return chain;
+    },
+    delete: () => {
+      op = 'delete';
+      rows = Array.from(tables[table].entries());
+      return chain;
+    },
     upsert: (payload: Row | Row[]) => {
       op = 'upsert';
       upsertRows = Array.isArray(payload) ? payload : [payload];
@@ -96,7 +107,10 @@ function mockMakeChain(table: string) {
       });
       return chain;
     },
-    limit: (n: number) => { limitN = n; return chain; },
+    limit: (n: number) => {
+      limitN = n;
+      return chain;
+    },
     then: (resolve: (v: { data?: unknown; error?: unknown }) => void) => {
       if (!networkUp) {
         resolve({ data: null, error: { message: 'network down' } });
@@ -126,7 +140,9 @@ jest.mock('../client', () => ({
     return {
       from: (table: string) => mockMakeChain(table),
       channel: () => ({
-        on: function (this: unknown) { return this; },
+        on: function (this: unknown) {
+          return this;
+        },
         subscribe: () => ({ unsubscribe: () => {} }),
       }),
     };

@@ -1,10 +1,5 @@
 import React, { useCallback } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-} from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -38,9 +33,7 @@ export default function HomeScreen() {
     { label: t('home.sports.basketball'), active: false, soon: true },
   ];
 
-  const standings = hasTournament
-    ? calculateStandings(matches, tournamentPlayers)
-    : [];
+  const standings = hasTournament ? calculateStandings(matches, tournamentPlayers) : [];
   const hasPlayedGames = standings.some((s) => s.played > 0);
   const leader =
     hasPlayedGames && !isTopTied(standings, matches)
@@ -65,9 +58,8 @@ export default function HomeScreen() {
   );
 
   const rankedCompleted = archivedRounds.filter((r) => r.ranked).length;
-  const progressFraction = tournamentRounds > 0
-    ? Math.min(rankedCompleted / tournamentRounds, 1)
-    : 0;
+  const progressFraction =
+    tournamentRounds > 0 ? Math.min(rankedCompleted / tournamentRounds, 1) : 0;
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
@@ -102,13 +94,8 @@ export default function HomeScreen() {
           contentContainerStyle={styles.chipsContainer}
         >
           {SPORT_CHIPS.map((chip) => (
-            <View
-              key={chip.label}
-              style={[styles.chip, chip.active && styles.chipActive]}
-            >
-              <Text
-                style={[styles.chipText, chip.active && styles.chipTextActive]}
-              >
+            <View key={chip.label} style={[styles.chip, chip.active && styles.chipActive]}>
+              <Text style={[styles.chipText, chip.active && styles.chipTextActive]}>
                 {chip.label}
               </Text>
               {chip.soon && (
@@ -152,7 +139,12 @@ export default function HomeScreen() {
             {tournamentRounds > 0 && (
               <View style={styles.progressBlock}>
                 <View style={styles.progressTrack}>
-                  <View style={[styles.progressFill, { width: `${Math.round(progressFraction * 100)}%` }]} />
+                  <View
+                    style={[
+                      styles.progressFill,
+                      { width: `${Math.round(progressFraction * 100)}%` },
+                    ]}
+                  />
                 </View>
                 <Text style={styles.progressLabel}>
                   {t('home.progressRounds', { done: rankedCompleted, total: tournamentRounds })}
@@ -168,9 +160,7 @@ export default function HomeScreen() {
                     <Text style={styles.leaderLabel}>{t('home.currentLeader').toUpperCase()}</Text>
                     <View style={styles.leaderContent}>
                       <Avatar playerId={leader.id} size="sm" />
-                      <Text style={styles.leaderName}>
-                        {leader.nick ?? leader.name}
-                      </Text>
+                      <Text style={styles.leaderName}>{leader.nick ?? leader.name}</Text>
                       {standings[0] && (
                         <Text style={styles.leaderPts}>
                           {standings[0].pts} {t('common.pts')}
@@ -189,10 +179,10 @@ export default function HomeScreen() {
             <View style={styles.noTournamentPlus}>
               <Text style={styles.noTournamentPlusText}>+</Text>
             </View>
-            <Text style={styles.noTournamentTitle}>{t('home.noActiveTournament').toUpperCase()}</Text>
-            <Text style={styles.noTournamentDesc}>
-              {t('home.noActiveTournamentDesc')}
+            <Text style={styles.noTournamentTitle}>
+              {t('home.noActiveTournament').toUpperCase()}
             </Text>
+            <Text style={styles.noTournamentDesc}>{t('home.noActiveTournamentDesc')}</Text>
             <TouchableOpacity
               style={styles.startTournamentBtn}
               onPress={() => router.push('/setup')}
@@ -213,14 +203,22 @@ export default function HomeScreen() {
           disabled={matchDayDisabled}
         >
           {/* Left icon square */}
-          <View style={[
-            styles.newMatchDayIcon,
-            matchDayDisabled ? styles.newMatchDayIconDisabled : styles.newMatchDayIconActive,
-          ]}>
-            <Text style={[
-              styles.newMatchDayIconText,
-              matchDayDisabled ? styles.newMatchDayIconTextDisabled : styles.newMatchDayIconTextActive,
-            ]}>+</Text>
+          <View
+            style={[
+              styles.newMatchDayIcon,
+              matchDayDisabled ? styles.newMatchDayIconDisabled : styles.newMatchDayIconActive,
+            ]}
+          >
+            <Text
+              style={[
+                styles.newMatchDayIconText,
+                matchDayDisabled
+                  ? styles.newMatchDayIconTextDisabled
+                  : styles.newMatchDayIconTextActive,
+              ]}
+            >
+              +
+            </Text>
           </View>
 
           {/* Right: title + subtitle */}
@@ -231,11 +229,16 @@ export default function HomeScreen() {
                 matchDayDisabled && styles.newMatchDayBtnTextDisabled,
               ]}
             >
-              {roundOpen ? t('home.continueMatchDay').toUpperCase() : t('home.newMatchDay').toUpperCase()}
+              {roundOpen
+                ? t('home.continueMatchDay').toUpperCase()
+                : t('home.newMatchDay').toUpperCase()}
             </Text>
             {hasTournament && (
               <Text style={styles.newMatchDaySubtitle}>
-                {t('home.roundSubtitle', { round: roundOpen ? round : rankedCompleted + 1, name: tournamentName })}
+                {t('home.roundSubtitle', {
+                  round: roundOpen ? round : rankedCompleted + 1,
+                  name: tournamentName,
+                })}
               </Text>
             )}
           </View>
@@ -263,7 +266,10 @@ export default function HomeScreen() {
             <View>
               <Text style={styles.quickCardTitle}>{t('home.archive').toUpperCase()}</Text>
               <Text style={styles.quickCardSub}>
-                {t('home.archiveCount', { tournaments: closedTournaments.length, games: closedGames })}
+                {t('home.archiveCount', {
+                  tournaments: closedTournaments.length,
+                  games: closedGames,
+                })}
               </Text>
             </View>
           </TouchableOpacity>

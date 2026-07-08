@@ -7,7 +7,9 @@ import { test, expect, createTeamViaUI, createPlayerViaUI, addMatchViaUI } from 
 const FIXTURE_IMAGE = path.join(__dirname, '..', 'assets', 'favicon.png');
 
 test.describe('Match media', () => {
-  test('adds a photo to a match, sees the thumbnail, then deletes it', async ({ authedPage: page }) => {
+  test('adds a photo to a match, sees the thumbnail, then deletes it', async ({
+    authedPage: page,
+  }) => {
     await createTeamViaUI(page, 'Liverpool', 'LIV');
     await createTeamViaUI(page, 'Arsenal', 'ARS');
     await createPlayerViaUI(page, 'Alice', 'LIV');

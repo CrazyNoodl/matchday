@@ -1,4 +1,4 @@
-import { ArchivedRound } from '../store/types';
+import { type ArchivedRound } from '../store/types';
 
 // ---------------------------------------------------------------------------
 // Season stats screen (app/season-stats.tsx) aggregation

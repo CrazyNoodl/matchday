@@ -6,7 +6,18 @@ import { useStore } from '@/store';
 import { calculateStandings, isTopTied } from '@/utils/standings';
 import { useColors } from '@/theme';
 import { Spacing } from '@/theme/spacing';
-import { MatchCard, StandingCard, StandingsTable, getStandingsTableColumns, SectionLabel, EmptyState, GlowBackground, SegmentedControl, DropdownMenu, ConfirmDialog } from '@/components';
+import {
+  MatchCard,
+  StandingCard,
+  StandingsTable,
+  getStandingsTableColumns,
+  SectionLabel,
+  EmptyState,
+  GlowBackground,
+  SegmentedControl,
+  DropdownMenu,
+  ConfirmDialog,
+} from '@/components';
 import { useDropdownMenu } from '@/hooks/useDropdownMenu';
 import { groupMatchesByTour } from '@/utils/matchTours';
 import { useTranslation } from 'react-i18next';
@@ -149,9 +160,13 @@ export default function MatchdayScreen() {
           <Text style={styles.backChevron}>‹</Text>
         </TouchableOpacity>
         <View style={styles.headerCenter}>
-          <Text style={styles.headerTitle} numberOfLines={1} ellipsizeMode="tail">{tournamentName}</Text>
+          <Text style={styles.headerTitle} numberOfLines={1} ellipsizeMode="tail">
+            {tournamentName}
+          </Text>
           <Text style={styles.headerSubtitle}>
-            {tournamentRanked ? t('matchday.round', { n: round }) : t('common.friendly').toUpperCase()}
+            {tournamentRanked
+              ? t('matchday.round', { n: round })
+              : t('common.friendly').toUpperCase()}
           </Text>
         </View>
         <View style={styles.headerRight}>
@@ -218,7 +233,9 @@ export default function MatchdayScreen() {
 
         {/* Matches */}
         <View style={styles.matchesSection}>
-          <SectionLabel label={t('matchday.matchesSection', { count: matches.length }).toUpperCase()} />
+          <SectionLabel
+            label={t('matchday.matchesSection', { count: matches.length }).toUpperCase()}
+          />
           <View style={styles.matchesList}>
             {matches.length === 0 ? (
               <EmptyState
@@ -226,26 +243,34 @@ export default function MatchdayScreen() {
                 ctaText={roundOpen ? t('matchday.noMatchesAction') : undefined}
                 onPress={roundOpen ? () => setModal('add') : undefined}
               />
-            ) : tours.map((tour) => {
+            ) : (
+              tours.map((tour) => {
                 const reversed = [...tour.matches].reverse();
                 return (
                   <View key={tour.tourNumber} style={styles.tourGroup}>
                     {showTourLabel && (
-                      <Text style={styles.tourLabel}>{t('matchday.tour', { n: tour.tourNumber }).toUpperCase()}</Text>
+                      <Text style={styles.tourLabel}>
+                        {t('matchday.tour', { n: tour.tourNumber }).toUpperCase()}
+                      </Text>
                     )}
                     <View style={styles.matchBlock}>
                       {reversed.map((m, idx) => (
                         <MatchCard
                           key={m.id}
                           match={m}
-                          style={idx < reversed.length - 1 ? styles.matchCardInBlock : styles.matchCardInBlockLast}
+                          style={
+                            idx < reversed.length - 1
+                              ? styles.matchCardInBlock
+                              : styles.matchCardInBlockLast
+                          }
                           onPress={handleMatchPress}
                         />
                       ))}
                     </View>
                   </View>
                 );
-              })}
+              })
+            )}
           </View>
         </View>
 
@@ -267,7 +292,10 @@ export default function MatchdayScreen() {
 
       <AddMatchSheet
         visible={modal === 'add'}
-        onClose={() => { closeModal(); addMatchFlow.reset(); }}
+        onClose={() => {
+          closeModal();
+          addMatchFlow.reset();
+        }}
         tournamentRanked={tournamentRanked}
         tournamentPlayerList={tournamentPlayerList}
         players={players}
@@ -328,7 +356,10 @@ export default function MatchdayScreen() {
         title={t('matchday.dialogs.deleteRoundTitle').toUpperCase()}
         description={t('matchday.dialogs.deleteRoundDesc')}
         cancel={{ label: t('matchday.dialogs.cancel'), onPress: closeModal }}
-        confirm={{ label: t('matchday.dialogs.deleteRoundConfirm'), onPress: handleConfirmDeleteRound }}
+        confirm={{
+          label: t('matchday.dialogs.deleteRoundConfirm'),
+          onPress: handleConfirmDeleteRound,
+        }}
       />
 
       {/* ---- Round Options Dropdown ---- */}

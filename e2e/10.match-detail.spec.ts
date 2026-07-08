@@ -40,7 +40,9 @@ async function setupMatchDetail(page: Page): Promise<string> {
 }
 
 test.describe('Match detail screen', () => {
-  test('edits the score from the header Edit button, flipping the winner @smoke', async ({ authedPage: page }) => {
+  test('edits the score from the header Edit button, flipping the winner @smoke', async ({
+    authedPage: page,
+  }) => {
     await setupMatchDetail(page);
     await expect(page.getByText('Alice won', { exact: true })).toBeVisible();
 
@@ -71,13 +73,17 @@ test.describe('Match detail screen', () => {
     // behind it, and the sheet's own header title — the header is the last
     // of the two in DOM order.
     await expect(page.getByText('COMMENTARY', { exact: true }).last()).toBeVisible();
-    await page.getByPlaceholder('Write something about this match...').fill('Alice dominated the midfield.');
+    await page
+      .getByPlaceholder('Write something about this match...')
+      .fill('Alice dominated the midfield.');
     await page.getByText('Save', { exact: true }).last().click();
 
     // The sheet's own textarea keeps the same value mounted behind it, so
     // scope to the rendered note card (the first match) rather than the
     // sheet's now-hidden text input.
-    await expect(page.getByText('Alice dominated the midfield.', { exact: true }).first()).toBeVisible();
+    await expect(
+      page.getByText('Alice dominated the midfield.', { exact: true }).first(),
+    ).toBeVisible();
 
     const updated = await page.evaluate((id) => {
       const raw = localStorage.getItem('matchday-store');
@@ -87,7 +93,9 @@ test.describe('Match detail screen', () => {
     expect(updated?.note).toBe('Alice dominated the midfield.');
   });
 
-  test('deletes the match from the current round via the header trash button @smoke', async ({ authedPage: page }) => {
+  test('deletes the match from the current round via the header trash button @smoke', async ({
+    authedPage: page,
+  }) => {
     await setupMatchDetail(page);
 
     await page.getByText('🗑', { exact: true }).click();

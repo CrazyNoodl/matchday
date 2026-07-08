@@ -66,7 +66,12 @@ const tables: Record<string, Map<string, Row>> = {
 
 // FIFO of held 'matches' table calls — each entry can be resolved on demand,
 // out of arrival order, to simulate a stale request finishing late.
-type Deferred = { resolve: () => void; op: 'upsert' | 'delete'; upsertRows: Row[]; deleteIds: string[] };
+type Deferred = {
+  resolve: () => void;
+  op: 'upsert' | 'delete';
+  upsertRows: Row[];
+  deleteIds: string[];
+};
 let heldMatchesCalls: Deferred[] = [];
 let holdMatchesCalls = false;
 
@@ -75,7 +80,10 @@ function keyFor(table: string, row: Row): string {
 }
 
 function parseInList(raw: string): string[] {
-  return raw.replace(/^\(|\)$/g, '').split(',').filter(Boolean);
+  return raw
+    .replace(/^\(|\)$/g, '')
+    .split(',')
+    .filter(Boolean);
 }
 
 function mockMakeChain(table: string) {
@@ -85,8 +93,16 @@ function mockMakeChain(table: string) {
   let limitN: number | null = null;
 
   const chain: Record<string, unknown> = {
-    select: () => { op = 'select'; rows = Array.from(tables[table].entries()); return chain; },
-    delete: () => { op = 'delete'; rows = Array.from(tables[table].entries()); return chain; },
+    select: () => {
+      op = 'select';
+      rows = Array.from(tables[table].entries());
+      return chain;
+    },
+    delete: () => {
+      op = 'delete';
+      rows = Array.from(tables[table].entries());
+      return chain;
+    },
     upsert: (payload: Row | Row[]) => {
       op = 'upsert';
       upsertRows = Array.isArray(payload) ? payload : [payload];
@@ -114,7 +130,10 @@ function mockMakeChain(table: string) {
       });
       return chain;
     },
-    limit: (n: number) => { limitN = n; return chain; },
+    limit: (n: number) => {
+      limitN = n;
+      return chain;
+    },
     then: (resolve: (v: { data?: unknown; error?: unknown }) => void) => {
       const applyUpsert = () => {
         for (const row of upsertRows) tables[table].set(keyFor(table, row), row);
@@ -135,8 +154,14 @@ function mockMakeChain(table: string) {
         return; // never resolves until the test manually flushes it
       }
 
-      if (op === 'upsert') { applyUpsert(); return; }
-      if (op === 'delete') { applyDelete(); return; }
+      if (op === 'upsert') {
+        applyUpsert();
+        return;
+      }
+      if (op === 'delete') {
+        applyDelete();
+        return;
+      }
       // select
       let result = rows;
       if (limitN != null) result = result.slice(0, limitN);
@@ -151,7 +176,9 @@ jest.mock('../client', () => ({
     return {
       from: (table: string) => mockMakeChain(table),
       channel: () => ({
-        on: function (this: unknown) { return this; },
+        on: function (this: unknown) {
+          return this;
+        },
         subscribe: () => ({ unsubscribe: () => {} }),
       }),
     };
@@ -168,26 +195,58 @@ beforeEach(() => {
   mockIsOnline = true;
 
   tables.tournaments.set('tour-1', {
-    id: 'tour-1', user_id: 'test-user-id', name: 'Friday Night', ranked: true,
-    rounds_target: 5, player_ids: ['p1', 'p2'], round: 1, round_open: true,
-    round_players: ['p1', 'p2'], status: 'active', updated_at: new Date(0).toISOString(),
+    id: 'tour-1',
+    user_id: 'test-user-id',
+    name: 'Friday Night',
+    ranked: true,
+    rounds_target: 5,
+    player_ids: ['p1', 'p2'],
+    round: 1,
+    round_open: true,
+    round_players: ['p1', 'p2'],
+    status: 'active',
+    updated_at: new Date(0).toISOString(),
   });
   // Cloud already has the two pre-offline matches.
   tables.matches.set('match-a-preexisting', {
-    id: 'match-a-preexisting', user_id: 'test-user-id', tournament_id: 'tour-1', round_id: null,
-    a_id: 'p1', b_id: 'p2', a_team: 'ARS', b_team: 'JUV', a_score: 1, b_score: 0,
-    media: null, note: null, stats_override: null, updated_at: new Date(0).toISOString(),
+    id: 'match-a-preexisting',
+    user_id: 'test-user-id',
+    tournament_id: 'tour-1',
+    round_id: null,
+    a_id: 'p1',
+    b_id: 'p2',
+    a_team: 'ARS',
+    b_team: 'JUV',
+    a_score: 1,
+    b_score: 0,
+    media: null,
+    note: null,
+    stats_override: null,
+    updated_at: new Date(0).toISOString(),
   });
 });
 
 it('a stale push finishing after a fresher one does not delete the newer match from the cloud', async () => {
   const preexisting: Match = {
-    id: 'match-a-preexisting', aId: 'p1', bId: 'p2', aTeam: 'ARS', bTeam: 'JUV', aScore: 1, bScore: 0,
+    id: 'match-a-preexisting',
+    aId: 'p1',
+    bId: 'p2',
+    aTeam: 'ARS',
+    bTeam: 'JUV',
+    aScore: 1,
+    bScore: 0,
   };
   useStore.setState({
-    hasTournament: true, tournamentId: 'tour-1', tournamentName: 'Friday Night',
-    tournamentRanked: true, tournamentRounds: 5, tournamentPlayers: ['p1', 'p2'],
-    round: 1, roundOpen: true, roundPlayers: ['p1', 'p2'], matches: [preexisting],
+    hasTournament: true,
+    tournamentId: 'tour-1',
+    tournamentName: 'Friday Night',
+    tournamentRanked: true,
+    tournamentRounds: 5,
+    tournamentPlayers: ['p1', 'p2'],
+    round: 1,
+    roundOpen: true,
+    roundPlayers: ['p1', 'p2'],
+    matches: [preexisting],
   });
 
   await renderHook(() => useSyncManager());
@@ -202,8 +261,18 @@ it('a stale push finishing after a fresher one does not delete the newer match f
   // manually decide the completion order.
   holdMatchesCalls = true;
 
-  const matchA: Match = { id: 'match-a', aId: 'p1', bId: 'p2', aTeam: 'ARS', bTeam: 'JUV', aScore: 2, bScore: 0 };
-  act(() => { useStore.getState().addMatch(matchA); });
+  const matchA: Match = {
+    id: 'match-a',
+    aId: 'p1',
+    bId: 'p2',
+    aTeam: 'ARS',
+    bTeam: 'JUV',
+    aScore: 2,
+    bScore: 0,
+  };
+  act(() => {
+    useStore.getState().addMatch(matchA);
+  });
 
   // Wait for the first debounced push to actually issue its 'matches' calls
   // (upsert + delete) and get held.
@@ -214,8 +283,18 @@ it('a stale push finishing after a fresher one does not delete the newer match f
   // Add a second match well after the first push already started (realistic:
   // filling the "add match" form takes several seconds > the 300ms debounce),
   // while the first push is still stuck pending.
-  const matchB: Match = { id: 'match-b', aId: 'p1', bId: 'p2', aTeam: 'ARS', bTeam: 'JUV', aScore: 3, bScore: 1 };
-  act(() => { useStore.getState().addMatch(matchB); });
+  const matchB: Match = {
+    id: 'match-b',
+    aId: 'p1',
+    bId: 'p2',
+    aTeam: 'ARS',
+    bTeam: 'JUV',
+    aScore: 3,
+    bScore: 1,
+  };
+  act(() => {
+    useStore.getState().addMatch(matchB);
+  });
 
   // Match B's own debounce (300ms) settles while push A is still held — with
   // the fix this must NOT start a second overlapping push.
@@ -241,7 +320,8 @@ it('a stale push finishing after a fresher one does not delete the newer match f
   const followUpCalls = [...heldMatchesCalls];
   heldMatchesCalls = [];
 
-  const followUpUpsertIds = followUpCalls.find((c) => c.op === 'upsert')?.upsertRows.map((r) => r.id) ?? [];
+  const followUpUpsertIds =
+    followUpCalls.find((c) => c.op === 'upsert')?.upsertRows.map((r) => r.id) ?? [];
   expect(followUpUpsertIds).toContain('match-a');
   expect(followUpUpsertIds).toContain('match-b');
 

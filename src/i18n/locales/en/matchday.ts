@@ -31,7 +31,7 @@ const matchday = {
   saveMatchError: 'Failed to save match. Please try again.',
   discard: {
     title: 'Discard match?',
-    message: 'Your progress will be lost, including any photos you\'ve added.',
+    message: "Your progress will be lost, including any photos you've added.",
     confirm: 'Discard',
   },
   dialogs: {
@@ -41,7 +41,8 @@ const matchday = {
     keepPlaying: 'Keep playing',
     crownWinner: 'Crown winner',
     evenGamesTitle: 'Even out the games',
-    evenGamesDesc: 'Each player must have the same number of matches before you can finish the round.',
+    evenGamesDesc:
+      'Each player must have the same number of matches before you can finish the round.',
     gotIt: 'Got it',
     deleteTitle: 'Delete match?',
     deleteDesc: 'This match will be permanently removed from the round.',

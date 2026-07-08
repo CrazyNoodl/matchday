@@ -37,7 +37,7 @@ export function useIsOnline(): boolean {
       };
     }
 
-    return NetInfo.addEventListener(state => {
+    return NetInfo.addEventListener((state) => {
       setRawOnline(state.isConnected !== false && state.isInternetReachable !== false);
     });
   }, []);
@@ -68,8 +68,9 @@ export function useIsOnline(): boolean {
     };
 
     verify();
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises -- setInterval ignores the return value, so an async callback is fine
     const interval = setInterval(verify, HEALTH_CHECK_INTERVAL_MS);
-    const subscription = AppState.addEventListener('change', nextState => {
+    const subscription = AppState.addEventListener('change', (nextState) => {
       if (nextState === 'active') verify();
     });
 

@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { useStore } from '@/store';
 import { useColors } from '@/theme';
 import { NavHeader, GlowBackground, RoundCard } from '@/components';
-import { ArchivedRound, ClosedTournament } from '@/store/types';
+import { type ArchivedRound, type ClosedTournament } from '@/store/types';
 import { formatShortDate, formatYearShort } from '@/utils/dateFormat';
 import { getRankedRoundOrdinals } from '@/utils/roundOrdinals';
 import { makeStyles } from '@/screens/archive/archive.styles';
@@ -15,7 +15,6 @@ import { makeStyles } from '@/screens/archive/archive.styles';
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-
 
 // ---------------------------------------------------------------------------
 // Round row inside an expanded tournament card
@@ -64,9 +63,7 @@ function ClosedTournamentCard({
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
 
-  const champDaysWon = tournament.rounds.filter(
-    (r) => r.winner === tournament.champId,
-  ).length;
+  const champDaysWon = tournament.rounds.filter((r) => r.winner === tournament.champId).length;
   const roundOrdinals = getRankedRoundOrdinals(tournament.rounds);
 
   const d = new Date(tournament.date);
@@ -102,12 +99,7 @@ function ClosedTournamentCard({
           {tournament.champId ? (
             <View style={styles.champRow}>
               <Text style={styles.champDiamond}>♦</Text>
-              <View
-                style={[
-                  styles.champAvatarSmall,
-                  { backgroundColor: tournament.champColor },
-                ]}
-              >
+              <View style={[styles.champAvatarSmall, { backgroundColor: tournament.champColor }]}>
                 <Text style={styles.champInitSmall}>{tournament.champInit}</Text>
               </View>
               <Text style={styles.champNameText} numberOfLines={1}>
@@ -129,11 +121,11 @@ function ClosedTournamentCard({
             }}
             activeOpacity={0.7}
           >
-            <Text style={styles.statsBtnText}>{t('stats.title').replace('\n', ' ').toUpperCase()}</Text>
+            <Text style={styles.statsBtnText}>
+              {t('stats.title').replace('\n', ' ').toUpperCase()}
+            </Text>
           </TouchableOpacity>
-          <Text style={[styles.chevron, expanded && styles.chevronExpanded]}>
-            ›
-          </Text>
+          <Text style={[styles.chevron, expanded && styles.chevronExpanded]}>›</Text>
         </View>
       </TouchableOpacity>
 
@@ -145,9 +137,16 @@ function ClosedTournamentCard({
               <Text style={styles.noRoundsText}>{t('tournament.noRounds')}</Text>
             </View>
           ) : (
-            [...tournament.rounds].reverse().map((r) => (
-              <RoundRow key={r.id} round={r} ordinal={roundOrdinals[r.id] ?? 0} onPress={() => onRoundPress(r)} />
-            ))
+            [...tournament.rounds]
+              .reverse()
+              .map((r) => (
+                <RoundRow
+                  key={r.id}
+                  round={r}
+                  ordinal={roundOrdinals[r.id] ?? 0}
+                  onPress={() => onRoundPress(r)}
+                />
+              ))
           )}
         </View>
       )}
@@ -208,10 +207,7 @@ export default function ArchiveScreen() {
     <SafeAreaView style={styles.root} edges={['top']}>
       <GlowBackground />
 
-      <NavHeader
-        title={t('archive.title').toUpperCase()}
-        onBack={() => goBack()}
-      />
+      <NavHeader title={t('archive.title').toUpperCase()} onBack={() => goBack()} />
 
       <ScrollView
         style={styles.scroll}
@@ -242,4 +238,3 @@ export default function ArchiveScreen() {
 // ---------------------------------------------------------------------------
 // Styles
 // ---------------------------------------------------------------------------
-

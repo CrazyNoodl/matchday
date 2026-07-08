@@ -59,8 +59,14 @@ export default function SettingsScreen() {
             <View style={styles.accountAvatar}>
               <Text style={styles.accountAvatarText}>✉️</Text>
             </View>
-            <Text style={styles.accountEmail} numberOfLines={1}>{userEmail ?? '—'}</Text>
-            <TouchableOpacity style={styles.signOutBtn} onPress={d.handleSignOut} activeOpacity={0.75}>
+            <Text style={styles.accountEmail} numberOfLines={1}>
+              {userEmail ?? '—'}
+            </Text>
+            <TouchableOpacity
+              style={styles.signOutBtn}
+              onPress={d.handleSignOut}
+              activeOpacity={0.75}
+            >
               <Text style={styles.signOutBtnText}>{t('settings.account.signOut')}</Text>
             </TouchableOpacity>
           </View>

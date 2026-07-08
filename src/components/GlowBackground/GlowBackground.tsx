@@ -11,9 +11,6 @@ export function GlowBackground({ variant = 'green' }: GlowBackgroundProps) {
   const colors = useColors();
   const styles = makeStyles(colors);
   return (
-    <View
-      style={variant === 'blue' ? styles.glowBlue : styles.glowGreen}
-      pointerEvents="none"
-    />
+    <View style={variant === 'blue' ? styles.glowBlue : styles.glowGreen} pointerEvents="none" />
   );
 }

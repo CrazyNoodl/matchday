@@ -9,7 +9,7 @@ export interface Database {
     Tables: {
       user_profiles: {
         Row: {
-          id: string;              // uuid, references auth.users
+          id: string; // uuid, references auth.users
           created_at: string;
         };
         Insert: { id: string };
@@ -27,7 +27,9 @@ export interface Database {
           photo: string | null;
           updated_at: string;
         };
-        Insert: Omit<Database['public']['Tables']['players']['Row'], 'updated_at'> & { updated_at?: string };
+        Insert: Omit<Database['public']['Tables']['players']['Row'], 'updated_at'> & {
+          updated_at?: string;
+        };
         Update: Partial<Database['public']['Tables']['players']['Insert']>;
         Relationships: [];
       };
@@ -42,7 +44,9 @@ export interface Database {
           logo: string | null;
           updated_at: string;
         };
-        Insert: Omit<Database['public']['Tables']['teams']['Row'], 'updated_at'> & { updated_at?: string };
+        Insert: Omit<Database['public']['Tables']['teams']['Row'], 'updated_at'> & {
+          updated_at?: string;
+        };
         Update: Partial<Database['public']['Tables']['teams']['Insert']>;
         Relationships: [];
       };
@@ -60,7 +64,9 @@ export interface Database {
           status: TournamentSyncStatus;
           updated_at: string;
         };
-        Insert: Omit<Database['public']['Tables']['tournaments']['Row'], 'updated_at'> & { updated_at?: string };
+        Insert: Omit<Database['public']['Tables']['tournaments']['Row'], 'updated_at'> & {
+          updated_at?: string;
+        };
         Update: Partial<Database['public']['Tables']['tournaments']['Insert']>;
         Relationships: [];
       };
@@ -76,12 +82,14 @@ export interface Database {
           b_team: string;
           a_score: number;
           b_score: number;
-          media: string | null;        // JSON
+          media: string | null; // JSON
           note: string | null;
           stats_override: string | null; // JSON
           updated_at: string;
         };
-        Insert: Omit<Database['public']['Tables']['matches']['Row'], 'updated_at'> & { updated_at?: string };
+        Insert: Omit<Database['public']['Tables']['matches']['Row'], 'updated_at'> & {
+          updated_at?: string;
+        };
         Update: Partial<Database['public']['Tables']['matches']['Insert']>;
         Relationships: [];
       };
@@ -100,7 +108,9 @@ export interface Database {
           status: RoundSyncStatus;
           updated_at: string;
         };
-        Insert: Omit<Database['public']['Tables']['rounds']['Row'], 'updated_at'> & { updated_at?: string };
+        Insert: Omit<Database['public']['Tables']['rounds']['Row'], 'updated_at'> & {
+          updated_at?: string;
+        };
         Update: Partial<Database['public']['Tables']['rounds']['Insert']>;
         Relationships: [];
       };
@@ -117,7 +127,9 @@ export interface Database {
           player_ids: string[];
           updated_at: string;
         };
-        Insert: Omit<Database['public']['Tables']['closed_tournaments']['Row'], 'updated_at'> & { updated_at?: string };
+        Insert: Omit<Database['public']['Tables']['closed_tournaments']['Row'], 'updated_at'> & {
+          updated_at?: string;
+        };
         Update: Partial<Database['public']['Tables']['closed_tournaments']['Insert']>;
         Relationships: [];
       };

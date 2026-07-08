@@ -42,10 +42,7 @@ export default function ChangelogScreen() {
       <GlowBackground />
       <NavHeader title={t('settings.changelog.title').toUpperCase()} onBack={() => goBack()} />
 
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {CHANGELOG.length === 0 && (
           <Text style={styles.emptyText}>{t('settings.changelog.empty')}</Text>
         )}
@@ -57,14 +54,29 @@ export default function ChangelogScreen() {
               {entry.date ? <Text style={styles.dateText}>{entry.date}</Text> : null}
             </View>
 
-            <ChangeGroup label={t('settings.changelog.added').toUpperCase()} items={entry.added} color={colors.accent.green} />
-            <ChangeGroup label={t('settings.changelog.changed').toUpperCase()} items={entry.changed} color={colors.accent.blue} />
-            <ChangeGroup label={t('settings.changelog.fixed').toUpperCase()} items={entry.fixed} color={colors.accent.red} />
-            <ChangeGroup label={t('settings.changelog.internal').toUpperCase()} items={entry.internal} color={colors.text.muted} />
+            <ChangeGroup
+              label={t('settings.changelog.added').toUpperCase()}
+              items={entry.added}
+              color={colors.accent.green}
+            />
+            <ChangeGroup
+              label={t('settings.changelog.changed').toUpperCase()}
+              items={entry.changed}
+              color={colors.accent.blue}
+            />
+            <ChangeGroup
+              label={t('settings.changelog.fixed').toUpperCase()}
+              items={entry.fixed}
+              color={colors.accent.red}
+            />
+            <ChangeGroup
+              label={t('settings.changelog.internal').toUpperCase()}
+              items={entry.internal}
+              color={colors.text.muted}
+            />
           </View>
         ))}
       </ScrollView>
     </SafeAreaView>
   );
 }
-

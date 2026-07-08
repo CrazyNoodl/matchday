@@ -1,10 +1,5 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-} from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useGoBack } from '@/utils/useGoBack';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -20,7 +15,14 @@ import { formatShortDate, formatYearShort } from '@/utils/dateFormat';
 import { getPlayerDisplayName } from '@/utils/playerDisplay';
 import { getRankedRoundOrdinals } from '@/utils/roundOrdinals';
 import { useColors } from '@/theme';
-import { NavHeader, SectionLabel, Avatar, MatchCard, GlowBackground, PlayerRankCard } from '@/components';
+import {
+  NavHeader,
+  SectionLabel,
+  Avatar,
+  MatchCard,
+  GlowBackground,
+  PlayerRankCard,
+} from '@/components';
 import type { Match } from '@/store/types';
 import { useTranslation } from 'react-i18next';
 import { makeStyles } from '@/screens/season-stats/season-stats.styles';
@@ -42,23 +44,27 @@ export default function SeasonStatsScreen() {
   const colors = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
 
-  const MEDALS: Record<number, { badgeColor: string; badgeBg: string; cardBorder: string }> = useMemo(() => ({
-    1: {
-      badgeColor: colors.accent.gold,
-      badgeBg: 'rgba(255,212,94,0.18)',
-      cardBorder: colors.accent.goldBorder,
-    },
-    2: {
-      badgeColor: colors.text.secondary,
-      badgeBg: 'rgba(200,205,210,0.16)',
-      cardBorder: colors.border.default,
-    },
-    3: {
-      badgeColor: '#d08a4a',
-      badgeBg: 'rgba(205,127,50,0.16)',
-      cardBorder: colors.border.default,
-    },
-  }), [colors]);
+  const MEDALS: Record<number, { badgeColor: string; badgeBg: string; cardBorder: string }> =
+    useMemo(
+      () => ({
+        1: {
+          badgeColor: colors.accent.gold,
+          badgeBg: 'rgba(255,212,94,0.18)',
+          cardBorder: colors.accent.goldBorder,
+        },
+        2: {
+          badgeColor: colors.text.secondary,
+          badgeBg: 'rgba(200,205,210,0.16)',
+          cardBorder: colors.border.default,
+        },
+        3: {
+          badgeColor: '#d08a4a',
+          badgeBg: 'rgba(205,127,50,0.16)',
+          cardBorder: colors.border.default,
+        },
+      }),
+      [colors],
+    );
 
   const viewingTournament = useStore((s) => s.viewingTournament);
   const players = useStore((s) => s.players);
@@ -177,12 +183,7 @@ export default function SeasonStatsScreen() {
                   onPress={() => setIncludeFilter(f.key)}
                   activeOpacity={0.75}
                 >
-                  <Text
-                    style={[
-                      styles.filterChipText,
-                      active && styles.filterChipTextActive,
-                    ]}
-                  >
+                  <Text style={[styles.filterChipText, active && styles.filterChipTextActive]}>
                     {f.label}
                   </Text>
                 </TouchableOpacity>
@@ -195,11 +196,7 @@ export default function SeasonStatsScreen() {
         <View style={styles.champCard}>
           {/* Avatar with gold ring */}
           <View style={styles.champAvatarWrap}>
-            <Avatar
-              playerId={viewingTournament.champId}
-              size="xl"
-              style={styles.champAvatar}
-            />
+            <Avatar playerId={viewingTournament.champId} size="xl" style={styles.champAvatar} />
           </View>
 
           {/* Middle info */}
@@ -230,15 +227,16 @@ export default function SeasonStatsScreen() {
             <Text style={styles.totalLabel}>{t('seasonStats.matches').toUpperCase()}</Text>
           </View>
           <View style={styles.totalCard}>
-            <Text style={[styles.totalValue, styles.totalValueGreen]}>
-              {totalGoals}
-            </Text>
+            <Text style={[styles.totalValue, styles.totalValueGreen]}>{totalGoals}</Text>
             <Text style={styles.totalLabel}>{t('seasonStats.goals').toUpperCase()}</Text>
           </View>
         </View>
 
         {/* SEASON RANKING section */}
-        <SectionLabel label={t('seasonStats.seasonRanking').toUpperCase()} style={styles.sectionLabel} />
+        <SectionLabel
+          label={t('seasonStats.seasonRanking').toUpperCase()}
+          style={styles.sectionLabel}
+        />
 
         {/* Param chips */}
         <View style={styles.paramChipsRow}>
@@ -251,12 +249,7 @@ export default function SeasonStatsScreen() {
                 onPress={() => setParamChip(key)}
                 activeOpacity={0.75}
               >
-                <Text
-                  style={[
-                    styles.paramChipText,
-                    active && styles.paramChipTextActive,
-                  ]}
-                >
+                <Text style={[styles.paramChipText, active && styles.paramChipTextActive]}>
                   {label}
                 </Text>
               </TouchableOpacity>
@@ -304,7 +297,10 @@ export default function SeasonStatsScreen() {
         )}
 
         {/* ── GAMES section ── */}
-        <SectionLabel label={t('seasonStats.gamesSection').toUpperCase()} style={styles.sectionLabel} />
+        <SectionLabel
+          label={t('seasonStats.gamesSection').toUpperCase()}
+          style={styles.sectionLabel}
+        />
 
         {filteredRounds.length === 0 ? (
           <View style={styles.emptyWrap}>
@@ -316,11 +312,15 @@ export default function SeasonStatsScreen() {
               {/* Round header */}
               <View style={styles.roundHeader}>
                 <View style={styles.roundNumBadge}>
-                  <Text style={styles.roundNumText}>{round.ranked ? (roundOrdinals[round.id] ?? 0) : '–'}</Text>
+                  <Text style={styles.roundNumText}>
+                    {round.ranked ? (roundOrdinals[round.id] ?? 0) : '–'}
+                  </Text>
                 </View>
                 <View style={styles.roundHeaderInfo}>
                   <Text style={styles.roundHeaderTitle}>
-                    {round.ranked ? t('matchday.round', { n: roundOrdinals[round.id] ?? 0 }) : t('common.friendly').toUpperCase()}
+                    {round.ranked
+                      ? t('matchday.round', { n: roundOrdinals[round.id] ?? 0 })
+                      : t('common.friendly').toUpperCase()}
                   </Text>
                   <Text style={styles.roundHeaderDate}>{formatShortDate(round.date)}</Text>
                 </View>
