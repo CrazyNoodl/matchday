@@ -5,11 +5,8 @@ import {
   ScrollView,
   TouchableOpacity,
   TextInput,
-  Modal,
-  Pressable,
   KeyboardAvoidingView,
   Platform,
-  FlatList,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
@@ -20,6 +17,7 @@ import { Avatar, TeamBadge, SectionLabel, GlowBackground } from '@/components';
 import { Team } from '@/store/types';
 import { generateTeamCode } from '@/utils/teamCode';
 import { makeStyles } from '@/screens/setup/setup.styles';
+import { AddPlayerSheet, AssignTeamSheet, ManageTeamsSheet } from '@/screens/setup/SetupModals';
 
 const PLAYER_COLORS = Colors.player;
 
@@ -133,6 +131,12 @@ export default function SetupScreen() {
   const assignSheetPlayer = assignSheetPlayerId
     ? players.find((p) => p.id === assignSheetPlayerId)
     : null;
+
+  const assignSheetCurrentTeamCode = assignSheetPlayerId
+    ? (playerTeams.get(assignSheetPlayerId) ??
+      players.find((p) => p.id === assignSheetPlayerId)?.teamCode ??
+      '')
+    : '';
 
   return (
     <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
@@ -304,255 +308,39 @@ export default function SetupScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Add Player Sheet */}
-      <Modal
+      <AddPlayerSheet
         visible={showAddPlayer}
-        transparent
-        animationType="slide"
-        statusBarTranslucent
-        onRequestClose={() => setShowAddPlayer(false)}
-      >
-        <Pressable style={styles.overlay} onPress={() => setShowAddPlayer(false)} />
-        <View style={[styles.sheet, styles.sheetTall]}>
-          <View style={styles.sheetHandle} />
-          <Text style={styles.sheetTitle}>{t('setup.newPlayer').toUpperCase()}</Text>
-          <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-            <View style={styles.addPlayerFormGroup}>
-              <Text style={styles.addPlayerFormLabel}>{t('setup.form.name').toUpperCase()}</Text>
-              <TextInput
-                style={styles.addPlayerInput}
-                value={newPlayerName}
-                onChangeText={setNewPlayerName}
-                placeholder={t('setup.form.playerNamePlaceholder')}
-                placeholderTextColor={colors.text.placeholder}
-                autoFocus
-                autoCorrect={false}
-              />
-            </View>
-            <View style={styles.addPlayerFormGroup}>
-              <Text style={styles.addPlayerFormLabel}>{t('setup.form.nickname').toUpperCase()}</Text>
-              <TextInput
-                style={styles.addPlayerInput}
-                value={newPlayerNick}
-                onChangeText={setNewPlayerNick}
-                placeholder={t('setup.form.nicknamePlaceholder')}
-                placeholderTextColor={colors.text.placeholder}
-                autoCorrect={false}
-              />
-            </View>
-            <View style={styles.addPlayerFormGroup}>
-              <Text style={styles.addPlayerFormLabel}>{t('setup.form.defaultTeam').toUpperCase()}</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.addPlayerTeamPicker}>
-                {teams.map((t) => (
-                  <TouchableOpacity
-                    key={t.code}
-                    style={[
-                      styles.addPlayerTeamItem,
-                      newPlayerTeam === t.code && {
-                        borderColor: t.color + '88',
-                        backgroundColor: t.color + '22',
-                      },
-                    ]}
-                    onPress={() => setNewPlayerTeam(t.code)}
-                    activeOpacity={0.8}
-                  >
-                    <TeamBadge teamCode={t.code} size="md" />
-                    <Text style={styles.addPlayerTeamName} numberOfLines={1}>{t.short}</Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </View>
-            <View style={styles.addPlayerFormGroup}>
-              <Text style={styles.addPlayerFormLabel}>{t('setup.form.color').toUpperCase()}</Text>
-              <View style={styles.addPlayerColorPicker}>
-                {PLAYER_COLORS.map((c) => (
-                  <TouchableOpacity
-                    key={c}
-                    style={[
-                      styles.addPlayerColorDot,
-                      { backgroundColor: c },
-                      newPlayerColor === c && styles.addPlayerColorDotSelected,
-                    ]}
-                    onPress={() => setNewPlayerColor(c)}
-                    activeOpacity={0.8}
-                  />
-                ))}
-              </View>
-            </View>
-            <View style={{ height: 20 }} />
-          </ScrollView>
-          <View style={styles.addPlayerActions}>
-            <TouchableOpacity
-              style={styles.addPlayerCancelBtn}
-              onPress={() => setShowAddPlayer(false)}
-              activeOpacity={0.75}
-            >
-              <Text style={styles.addPlayerCancelText}>{t('common.cancel').toUpperCase()}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.doneBtn, { flex: 2, marginTop: 0 }, !newPlayerName.trim() && styles.doneBtnDisabled]}
-              onPress={handleAddPlayer}
-              disabled={!newPlayerName.trim()}
-              activeOpacity={0.85}
-            >
-              <Text style={[styles.doneBtnText, !newPlayerName.trim() && styles.doneBtnTextDisabled]}>
-                {t('setup.addPlayerBtn').toUpperCase()}
-              </Text>
-            </TouchableOpacity>
-          </View>
-          {Platform.OS === 'ios' && <View style={{ height: 16 }} />}
-        </View>
-      </Modal>
+        onClose={() => setShowAddPlayer(false)}
+        teams={teams}
+        name={newPlayerName}
+        onChangeName={setNewPlayerName}
+        nick={newPlayerNick}
+        onChangeNick={setNewPlayerNick}
+        teamCode={newPlayerTeam}
+        onChangeTeamCode={setNewPlayerTeam}
+        color={newPlayerColor}
+        onChangeColor={setNewPlayerColor}
+        onSubmit={handleAddPlayer}
+      />
 
-      {/* Assign Team Sheet */}
-      <Modal
+      <AssignTeamSheet
         visible={!!assignSheetPlayerId}
-        transparent
-        animationType="slide"
-        statusBarTranslucent
-        onRequestClose={() => setAssignSheetPlayerId(null)}
-      >
-        <Pressable
-          style={styles.overlay}
-          onPress={() => setAssignSheetPlayerId(null)}
-        />
-        <View style={styles.sheet}>
-          <View style={styles.sheetHandle} />
-          <Text style={styles.sheetTitle}>
-            {t('setup.teamFor', { name: assignSheetPlayer?.name?.toUpperCase() ?? '' })}
-          </Text>
-          <FlatList
-            data={teams}
-            numColumns={2}
-            keyExtractor={(t) => t.code}
-            columnWrapperStyle={styles.teamGrid}
-            style={styles.teamGridList}
-            renderItem={({ item }) => {
-              const currentTeam =
-                assignSheetPlayerId
-                  ? (playerTeams.get(assignSheetPlayerId) ??
-                    players.find((p) => p.id === assignSheetPlayerId)?.teamCode ??
-                    '')
-                  : '';
-              const isActive = item.code === currentTeam;
-              return (
-                <TouchableOpacity
-                  style={[
-                    styles.teamGridItem,
-                    isActive && {
-                      borderColor: item.color + '88',
-                      backgroundColor: item.color + '18',
-                    },
-                  ]}
-                  onPress={() =>
-                    assignSheetPlayerId &&
-                    handleAssignTeam(assignSheetPlayerId, item.code)
-                  }
-                  activeOpacity={0.8}
-                >
-                  <TeamBadge teamCode={item.code} size="lg" />
-                  <Text style={styles.teamGridName} numberOfLines={1}>
-                    {item.name}
-                  </Text>
-                  <Text style={styles.teamGridCode}>{item.short}</Text>
-                </TouchableOpacity>
-              );
-            }}
-          />
-          <TouchableOpacity
-            style={styles.doneBtn}
-            onPress={() => setAssignSheetPlayerId(null)}
-            activeOpacity={0.85}
-          >
-            <Text style={styles.doneBtnText}>{t('common.done').toUpperCase()}</Text>
-          </TouchableOpacity>
-          {Platform.OS === 'ios' && <View style={{ height: 16 }} />}
-        </View>
-      </Modal>
+        onClose={() => setAssignSheetPlayerId(null)}
+        playerName={assignSheetPlayer?.name ?? ''}
+        teams={teams}
+        currentTeamCode={assignSheetCurrentTeamCode}
+        onSelectTeam={(code) => assignSheetPlayerId && handleAssignTeam(assignSheetPlayerId, code)}
+      />
 
-      {/* Manage Teams Sheet */}
-      <Modal
+      <ManageTeamsSheet
         visible={showTeamsModal}
-        transparent
-        animationType="slide"
-        statusBarTranslucent
-        onRequestClose={() => setShowTeamsModal(false)}
-      >
-        <Pressable
-          style={styles.overlay}
-          onPress={() => setShowTeamsModal(false)}
-        />
-        <View style={[styles.sheet, styles.sheetTall]}>
-          <View style={styles.sheetHandle} />
-          <Text style={styles.sheetTitle}>{t('setup.manageTeamsTitle').toUpperCase()}</Text>
-          <ScrollView
-            style={styles.flex}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-          >
-            {teams.map((team) => (
-              <View key={team.code} style={styles.teamListRow}>
-                <TeamBadge teamCode={team.code} size="md" />
-                <View style={styles.flex}>
-                  <Text style={styles.teamListName}>{team.name}</Text>
-                  <Text style={styles.teamListCode}>{team.short}</Text>
-                </View>
-                {team.custom && (
-                  <TouchableOpacity
-                    style={styles.removeTeamBtn}
-                    onPress={() => handleDeleteTeam(team.code)}
-                    activeOpacity={0.8}
-                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                  >
-                    <Text style={styles.removeTeamIcon}>×</Text>
-                  </TouchableOpacity>
-                )}
-              </View>
-            ))}
-
-            {/* Add team input */}
-            <View style={styles.addTeamRow}>
-              <TextInput
-                style={styles.addTeamInput}
-                value={newTeamName}
-                onChangeText={setNewTeamName}
-                placeholder={t('setup.teamNamePlaceholder')}
-                placeholderTextColor={colors.text.placeholder}
-                returnKeyType="done"
-                onSubmitEditing={handleAddTeam}
-                autoCorrect={false}
-              />
-              <TouchableOpacity
-                style={[
-                  styles.addTeamBtn,
-                  !newTeamName.trim() && styles.addTeamBtnDisabled,
-                ]}
-                onPress={handleAddTeam}
-                disabled={!newTeamName.trim()}
-                activeOpacity={0.8}
-              >
-                <Text
-                  style={[
-                    styles.addTeamBtnText,
-                    !newTeamName.trim() && styles.addTeamBtnTextDisabled,
-                  ]}
-                >
-                  {t('common.add').toUpperCase()}
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <View style={{ height: 20 }} />
-          </ScrollView>
-          <TouchableOpacity
-            style={styles.doneBtn}
-            onPress={() => setShowTeamsModal(false)}
-            activeOpacity={0.85}
-          >
-            <Text style={styles.doneBtnText}>{t('common.done').toUpperCase()}</Text>
-          </TouchableOpacity>
-          {Platform.OS === 'ios' && <View style={{ height: 16 }} />}
-        </View>
-      </Modal>
+        onClose={() => setShowTeamsModal(false)}
+        teams={teams}
+        newTeamName={newTeamName}
+        onChangeNewTeamName={setNewTeamName}
+        onAddTeam={handleAddTeam}
+        onDeleteTeam={handleDeleteTeam}
+      />
     </SafeAreaView>
   );
 }

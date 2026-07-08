@@ -4,10 +4,7 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
-  Modal,
-  Platform,
 } from 'react-native';
-import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStore } from '@/store';
@@ -15,9 +12,10 @@ import { calculateStandings } from '@/utils/standings';
 import { formatShortDate } from '@/utils/dateFormat';
 import { getRankedRoundOrdinals } from '@/utils/roundOrdinals';
 import { useColors } from '@/theme';
-import { SectionLabel, GlowBackground, RoundCard, ShareStandingsModal, NewRoundModal, Sheet, StandingsTable, getStandingsTableColumns } from '@/components';
+import { SectionLabel, GlowBackground, RoundCard, ShareStandingsModal, NewRoundModal, StandingsTable, getStandingsTableColumns } from '@/components';
 import { useTranslation } from 'react-i18next';
-import { makeStyles, makeSheetStyles, makeInputStyles, makeDialogStyles } from '@/screens/tournament/tournament.styles';
+import { makeStyles } from '@/screens/tournament/tournament.styles';
+import { TourSettingsSheet, EditTournamentNameSheet, CloseTournamentDialog } from '@/screens/tournament/TournamentModals';
 
 // ---------------------------------------------------------------------------
 // Column definitions (outside component to avoid recreation on every render)
@@ -51,9 +49,6 @@ export default function TournamentScreen() {
 
   const colors = useColors();
   const styles = makeStyles(colors);
-  const sheetStyles = makeSheetStyles(colors);
-  const inputStyles = makeInputStyles(colors);
-  const dialogStyles = makeDialogStyles(colors);
 
   const [renameValue, setRenameValue] = useState('');
   const [shareStandingsVisible, setShareStandingsVisible] = useState(false);
@@ -234,178 +229,44 @@ export default function TournamentScreen() {
           MODALS
           ================================================================ */}
 
-      {/* ---- Tour Settings Sheet ---- */}
-      <Sheet visible={modal === 'tourSettings'} onClose={() => store.setModal(null)}>
-          <View style={sheetStyles.sheet}>
-            {/* Header row */}
-            <View style={sheetStyles.sheetHeaderRow}>
-              <View style={sheetStyles.sheetTitleBlock}>
-                <Text style={sheetStyles.sheetTitle}>{t('tournament.sheet.title').toUpperCase()}</Text>
-                <Text style={sheetStyles.sheetSubtitle} numberOfLines={1}>
-                  {tournamentName}
-                </Text>
-              </View>
-              <TouchableOpacity
-                style={sheetStyles.doneBtn}
-                onPress={() => store.setModal(null)}
-                activeOpacity={0.75}
-              >
-                <Text style={sheetStyles.doneBtnText}>{t('tournament.sheet.done')}</Text>
-              </TouchableOpacity>
-            </View>
+      <TourSettingsSheet
+        visible={modal === 'tourSettings'}
+        onClose={() => store.setModal(null)}
+        tournamentName={tournamentName}
+        onRename={() => {
+          setRenameValue(tournamentName);
+          store.setModal('editTourName');
+        }}
+        onShareStandings={() => {
+          store.setModal(null);
+          setShareStandingsVisible(true);
+        }}
+        onCloseTournament={() => store.setModal('closeTour')}
+      />
 
-            <View style={sheetStyles.rows}>
-              {/* Rename */}
-              <TouchableOpacity
-                style={sheetStyles.row}
-                onPress={() => {
-                  setRenameValue(tournamentName);
-                  store.setModal('editTourName');
-                }}
-                activeOpacity={0.8}
-              >
-                <View style={[sheetStyles.rowIcon, { backgroundColor: colors.accent.blueSubtle }]}>
-                  <Text style={sheetStyles.rowIconText}>✎</Text>
-                </View>
-                <Text style={sheetStyles.rowLabel}>{t('tournament.sheet.rename')}</Text>
-                <Text style={sheetStyles.rowChevron}>›</Text>
-              </TouchableOpacity>
+      <EditTournamentNameSheet
+        visible={modal === 'editTourName'}
+        onClose={() => store.setModal('tourSettings')}
+        value={renameValue}
+        onChangeValue={setRenameValue}
+        onSave={() => {
+          const trimmed = renameValue.trim();
+          if (trimmed) {
+            store.renameTournament(trimmed);
+          }
+          store.setModal(null);
+        }}
+      />
 
-              {/* Share standings */}
-              <TouchableOpacity
-                style={sheetStyles.row}
-                onPress={() => {
-                  store.setModal(null);
-                  setShareStandingsVisible(true);
-                }}
-                activeOpacity={0.8}
-              >
-                <View style={[sheetStyles.rowIcon, { backgroundColor: colors.accent.greenSubtle }]}>
-                  <Text style={[sheetStyles.rowIconText, { color: colors.accent.green }]}>↗</Text>
-                </View>
-                <View style={sheetStyles.rowLabelBlock}>
-                  <Text style={sheetStyles.rowLabel}>{t('tournament.sheet.shareStandings')}</Text>
-                  <Text style={sheetStyles.rowSubtitle}>{t('tournament.sheet.shareStandingsSubtitle')}</Text>
-                </View>
-                <Text style={sheetStyles.rowChevron}>›</Text>
-              </TouchableOpacity>
-
-              {/* Close & archive */}
-              <TouchableOpacity
-                style={sheetStyles.row}
-                onPress={() => store.setModal('closeTour')}
-                activeOpacity={0.8}
-              >
-                <View style={[sheetStyles.rowIcon, { backgroundColor: colors.accent.redSubtle }]}>
-                  <Text style={[sheetStyles.rowIconText, { color: colors.accent.red }]}>🔒</Text>
-                </View>
-                <View style={sheetStyles.rowLabelBlock}>
-                  <Text style={sheetStyles.rowLabel}>{t('tournament.sheet.closeAndArchive')}</Text>
-                  <Text style={sheetStyles.rowSubtitle}>{t('tournament.sheet.closeSubtitle')}</Text>
-                </View>
-                <Text style={sheetStyles.rowChevron}>›</Text>
-              </TouchableOpacity>
-            </View>
-
-            {Platform.OS === 'ios' && <View style={{ height: 16 }} />}
-          </View>
-      </Sheet>
-
-      {/* ---- Edit Tournament Name Sheet ---- */}
-      <Sheet visible={modal === 'editTourName'} onClose={() => store.setModal('tourSettings')} avoidKeyboard>
-          <View style={sheetStyles.sheet}>
-            <Text style={sheetStyles.sheetTitle}>{t('tournament.rename.title').toUpperCase()}</Text>
-            <BottomSheetTextInput
-              style={inputStyles.input}
-              value={renameValue}
-              onChangeText={setRenameValue}
-              placeholder={t('tournament.rename.placeholder')}
-              placeholderTextColor={colors.text.placeholder}
-              autoFocus
-              returnKeyType="done"
-              onSubmitEditing={() => {
-                const trimmed = renameValue.trim();
-                if (trimmed) {
-                  store.renameTournament(trimmed);
-                }
-                store.setModal(null);
-              }}
-            />
-            <View style={inputStyles.actions}>
-              <TouchableOpacity
-                style={inputStyles.cancelBtn}
-                onPress={() => store.setModal('tourSettings')}
-                activeOpacity={0.75}
-              >
-                <Text style={inputStyles.cancelText}>{t('tournament.rename.cancel')}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  inputStyles.saveBtn,
-                  !renameValue.trim() && inputStyles.saveBtnDisabled,
-                ]}
-                onPress={() => {
-                  const trimmed = renameValue.trim();
-                  if (trimmed) {
-                    store.renameTournament(trimmed);
-                  }
-                  store.setModal(null);
-                }}
-                disabled={!renameValue.trim()}
-                activeOpacity={0.85}
-              >
-                <Text
-                  style={[
-                    inputStyles.saveText,
-                    !renameValue.trim() && inputStyles.saveTextDisabled,
-                  ]}
-                >
-                  {t('tournament.rename.save')}
-                </Text>
-              </TouchableOpacity>
-            </View>
-            {Platform.OS === 'ios' && <View style={{ height: 16 }} />}
-          </View>
-      </Sheet>
-
-      {/* ---- Close Tournament Confirmation ---- */}
-      <Modal
+      <CloseTournamentDialog
         visible={modal === 'closeTour'}
-        transparent
-        animationType="fade"
-        statusBarTranslucent
-        onRequestClose={() => store.setModal('tourSettings')}
-      >
-        <View style={dialogStyles.overlay}>
-          <View style={dialogStyles.dialog}>
-            <Text style={dialogStyles.dialogIcon}>🏆</Text>
-            <Text style={dialogStyles.dialogTitle}>{t('tournament.close.title').toUpperCase()}</Text>
-            <Text style={dialogStyles.dialogDesc}>
-              {t('tournament.close.desc')}
-            </Text>
-            <View style={dialogStyles.actions}>
-              <TouchableOpacity
-                style={dialogStyles.cancelBtn}
-                onPress={() => store.setModal('tourSettings')}
-                activeOpacity={0.75}
-              >
-                <Text style={dialogStyles.cancelText}>{t('tournament.close.keepGoing')}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={dialogStyles.archiveBtn}
-                onPress={() => {
-                  store.closeTournament();
-                  store.setModal(null);
-                  router.push('/');
-                }}
-                activeOpacity={0.85}
-              >
-                <Text style={dialogStyles.archiveBtnText}>{t('tournament.close.archive')}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+        onClose={() => store.setModal('tourSettings')}
+        onConfirm={() => {
+          store.closeTournament();
+          store.setModal(null);
+          router.push('/');
+        }}
+      />
 
       {/* ---- New Round Sheet ---- */}
       <NewRoundModal />

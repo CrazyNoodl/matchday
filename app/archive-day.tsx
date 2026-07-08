@@ -1,6 +1,5 @@
 import React, { useMemo, useState, useRef, useCallback } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Modal, Pressable, Dimensions, StyleSheet } from 'react-native';
-import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
+import { View, Text, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useGoBack } from '@/utils/useGoBack';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -9,13 +8,12 @@ import { useStore } from '@/store';
 import { calculateStandings } from '@/utils/standings';
 import { formatShortDate, formatEditableDate, parseEditableDate } from '@/utils/dateFormat';
 import { useColors } from '@/theme';
-import { NavHeader, SectionLabel, MatchCard, ShareRoundModal, CardAvatar, StandingsTable, getStandingsTableColumns, GlowBackground, Sheet } from '@/components';
+import { NavHeader, SectionLabel, MatchCard, ShareRoundModal, CardAvatar, StandingsTable, getStandingsTableColumns, GlowBackground } from '@/components';
 import { groupMatchesByTour } from '@/utils/matchTours';
 import { getRankedRoundOrdinals } from '@/utils/roundOrdinals';
 import { Match } from '@/store/types';
-import { makeStyles, makeMenuStyles } from '@/screens/archive-day/archive-day.styles';
-import { makeInputStyles } from '@/screens/tournament/tournament.styles';
-import { makeDialogStyles } from '@/screens/round/RoundDialogs.styles';
+import { makeStyles } from '@/screens/archive-day/archive-day.styles';
+import { RoundOptionsMenu, DeleteRoundDialog, EditRoundDateSheet } from '@/screens/archive-day/ArchiveDayModals';
 
 // ---------------------------------------------------------------------------
 // Day Winner Banner
@@ -92,9 +90,6 @@ export default function ArchiveDayScreen() {
   const [menuPos, setMenuPos] = useState({ top: 0, right: 0 });
   const [deleteVisible, setDeleteVisible] = useState(false);
   const dotsBtnRef = useRef<View>(null);
-  const inputStyles = makeInputStyles(colors);
-  const menuStyles = makeMenuStyles(colors);
-  const dialogStyles = makeDialogStyles(colors);
 
   const openMenu = useCallback(() => {
     dotsBtnRef.current?.measureInWindow((x, y, w, h) => {
@@ -284,105 +279,33 @@ export default function ArchiveDayScreen() {
         />
       )}
 
-      {/* ── ROUND OPTIONS DROPDOWN ── */}
-      <Modal
+      <RoundOptionsMenu
         visible={menuVisible}
-        transparent
-        animationType="none"
-        onRequestClose={() => setMenuVisible(false)}
-        statusBarTranslucent
-      >
-        <Pressable style={StyleSheet.absoluteFill} onPress={() => setMenuVisible(false)} />
-        <View style={[menuStyles.dropdown, { top: menuPos.top, right: menuPos.right }]}>
-          <TouchableOpacity
-            style={menuStyles.item}
-            onPress={() => { setMenuVisible(false); setShareVisible(true); }}
-          >
-            <Text style={menuStyles.itemText}>{t('common.share')}</Text>
-          </TouchableOpacity>
-          <View style={menuStyles.sep} />
-          <TouchableOpacity
-            style={menuStyles.item}
-            onPress={() => { setMenuVisible(false); setDeleteVisible(true); }}
-          >
-            <Text style={[menuStyles.itemText, { color: colors.accent.red }]}>{t('archive.deleteRoundConfirm')}</Text>
-          </TouchableOpacity>
-        </View>
-      </Modal>
+        onClose={() => setMenuVisible(false)}
+        top={menuPos.top}
+        right={menuPos.right}
+        onShare={() => { setMenuVisible(false); setShareVisible(true); }}
+        onDelete={() => { setMenuVisible(false); setDeleteVisible(true); }}
+      />
 
-      {/* ── DELETE ROUND CONFIRMATION ── */}
-      <Modal
+      <DeleteRoundDialog
         visible={deleteVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setDeleteVisible(false)}
-        statusBarTranslucent
-      >
-        <View style={dialogStyles.overlay}>
-          <View style={dialogStyles.dialog}>
-            <Text style={[dialogStyles.dialogIcon, { color: colors.accent.red }]}>🗑</Text>
-            <Text style={dialogStyles.dialogTitle}>{t('archive.deleteRoundTitle').toUpperCase()}</Text>
-            <Text style={dialogStyles.dialogDesc}>{t('archive.deleteRoundDesc')}</Text>
-            <View style={dialogStyles.actions}>
-              <TouchableOpacity style={dialogStyles.cancelBtn} onPress={() => setDeleteVisible(false)} activeOpacity={0.75}>
-                <Text style={dialogStyles.cancelText}>{t('matchday.dialogs.cancel')}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[dialogStyles.confirmBtn, { backgroundColor: colors.accent.red }]}
-                onPress={handleConfirmDelete}
-                activeOpacity={0.85}
-              >
-                <Text style={[dialogStyles.confirmText, { color: '#fff' }]}>{t('archive.deleteRoundConfirm')}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+        onClose={() => setDeleteVisible(false)}
+        onConfirm={handleConfirmDelete}
+      />
 
-      {/* Edit round date sheet */}
-      <Sheet visible={editDateVisible} onClose={() => setEditDateVisible(false)} avoidKeyboard>
-        <View style={styles.dateSheet}>
-          <Text style={styles.dateSheetTitle}>{t('archive.editDate.title').toUpperCase()}</Text>
-          <BottomSheetTextInput
-            style={[inputStyles.input, dateError && styles.dateInputError]}
-            value={dateValue}
-            onChangeText={(text) => {
-              setDateValue(text);
-              setDateError(false);
-            }}
-            placeholder={t('archive.editDate.placeholder')}
-            placeholderTextColor={colors.text.placeholder}
-            autoFocus
-            keyboardType="numbers-and-punctuation"
-            returnKeyType="done"
-            onSubmitEditing={saveDate}
-          />
-          {dateError ? (
-            <Text style={styles.dateErrorText}>{t('archive.editDate.invalid')}</Text>
-          ) : null}
-          <View style={inputStyles.actions}>
-            <TouchableOpacity
-              style={inputStyles.cancelBtn}
-              onPress={() => setEditDateVisible(false)}
-              activeOpacity={0.75}
-            >
-              <Text style={inputStyles.cancelText}>{t('archive.editDate.cancel')}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={inputStyles.saveBtn}
-              onPress={saveDate}
-              activeOpacity={0.85}
-            >
-              <Text style={inputStyles.saveText}>{t('archive.editDate.save')}</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Sheet>
+      <EditRoundDateSheet
+        visible={editDateVisible}
+        onClose={() => setEditDateVisible(false)}
+        value={dateValue}
+        onChangeValue={(text) => {
+          setDateValue(text);
+          setDateError(false);
+        }}
+        error={dateError}
+        onSave={saveDate}
+      />
     </SafeAreaView>
   );
 }
-
-// ---------------------------------------------------------------------------
-// Styles
-// ---------------------------------------------------------------------------
 
