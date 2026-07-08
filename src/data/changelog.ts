@@ -10,6 +10,13 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.22',
+    internal: [
+      'Internal: replaced ~10 hand-rolled confirm/alert dialog implementations and repeated bottom-sheet header/footer markup with shared ConfirmDialog/SheetHeader/SheetFooter components, and consolidated two duplicate context-menu implementations onto the existing DropdownMenu — no visible change',
+      'Fixed a latent bug where the tournament rename/close dialogs had two competing implementations (Tournament screen and Settings → Tournament) that could both react to the same state at once',
+    ],
+  },
+  {
     version: '1.9.21',
     changed: [
       'Settings screen redesigned: account card up top (email + Sign Out), tournament/players/teams/backup grouped under "Play," display/language under "Personalize," and about/demo mode/developer tools under a plain "More" list',
