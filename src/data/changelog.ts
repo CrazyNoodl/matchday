@@ -10,6 +10,12 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.25',
+    internal: [
+      'Internal: added ESLint (eslint-config-expo + eslint-plugin-storybook) and cleaned up dead imports/vars, redundant Storybook story names, and stale eslint-disable comments — no visible change',
+    ],
+  },
+  {
     version: '1.9.24',
     changed: [
       'Home screen: removed the "Round X / Y · Today" line from the live tournament card — it duplicated the progress bar below it and always said "Today" regardless of the actual date',
