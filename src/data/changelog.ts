@@ -10,6 +10,15 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.24',
+    changed: [
+      'Home screen: removed the "Round X / Y · Today" line from the live tournament card — it duplicated the progress bar below it and always said "Today" regardless of the actual date',
+    ],
+    fixed: [
+      'Fixed "NEW MATCH DAY" button subtitle showing the wrong next round number when the most recently played round was a friendly one',
+    ],
+  },
+  {
     version: '1.9.23',
     changed: [
       'Settings screen reordered: Personalize now comes first, Backup & Restore moved under More (after Demo Mode, before the version row), and Reset All Data moved into its own red "Danger Zone" card with a compact button instead of a full-width one',

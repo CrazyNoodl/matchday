@@ -67,10 +67,6 @@ export default function HomeScreen() {
     0,
   );
 
-  // Total rounds = archived + current open round (if any)
-  const totalRounds = archivedRounds.length + (roundOpen ? 1 : 0);
-  const displayTotalRounds = archivedRounds.length + 1;
-
   const rankedCompleted = archivedRounds.filter((r) => r.ranked).length;
   const progressFraction = tournamentRounds > 0
     ? Math.min(rankedCompleted / tournamentRounds, 1)
@@ -141,9 +137,6 @@ export default function HomeScreen() {
                   <View style={styles.livePillDot} />
                   <Text style={styles.livePillText}>{t('home.liveTournament').toUpperCase()}</Text>
                 </View>
-                <Text style={styles.tournamentRoundText}>
-                  {t('home.roundInfo', { round, total: displayTotalRounds })}
-                </Text>
               </View>
               <TouchableOpacity
                 style={styles.playButton}
@@ -245,7 +238,7 @@ export default function HomeScreen() {
             </Text>
             {hasTournament && (
               <Text style={styles.newMatchDaySubtitle}>
-                {t('home.roundSubtitle', { round: round + (roundOpen ? 0 : 1), name: tournamentName })}
+                {t('home.roundSubtitle', { round: roundOpen ? round : rankedCompleted + 1, name: tournamentName })}
               </Text>
             )}
           </View>

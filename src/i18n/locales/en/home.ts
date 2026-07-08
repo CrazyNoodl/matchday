@@ -5,7 +5,6 @@ const home = {
     basketball: 'Basketball',
   },
   liveTournament: 'Live tournament',
-  roundInfo: 'Round {{round}} / {{total}} · Today',
   progressRounds: '{{done}} / {{total}} ranked rounds',
   currentLeader: 'Current leader',
   noLeaderTie: 'No leader — tie',
