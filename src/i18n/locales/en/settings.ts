@@ -1,7 +1,6 @@
 const settings = {
   title: 'Settings',
   account: {
-    section: 'Account',
     signedIn: 'Signed in',
     signOut: 'Sign Out',
     signOutDesc: 'You will be signed out on this device.',
@@ -13,13 +12,20 @@ const settings = {
     menuLabel: 'Developer Menu',
     menuSub: 'Import tools and internal options',
   },
+  play: {
+    section: 'Play',
+  },
+  personalize: {
+    section: 'Personalize',
+  },
+  more: {
+    section: 'More',
+  },
   tournament: {
-    section: 'Tournament',
     label: 'Tournaments',
     noActive: 'No active tournament',
   },
   data: {
-    section: 'Data',
     players: 'Players',
     playersCount: '{{count}} players',
     teams: 'Teams',
@@ -37,13 +43,16 @@ const settings = {
     showNicknamesDesc: 'Display player nicknames instead of full names',
     showTeamLogos: 'Show team logos',
     showTeamLogosDesc: 'Display team badges on match cards',
+    nicknamesOn: 'Nicknames on',
+    nicknamesOff: 'Nicknames off',
+    upcoming: 'Coming soon',
+    inDevelopment: 'In development',
   },
   language: {
     section: 'Language',
     label: 'Language',
   },
   about: {
-    section: 'About',
     appName: 'Matchday',
     version: 'Version {{version}}',
   },
@@ -56,7 +65,6 @@ const settings = {
     empty: 'No changelog entries yet.',
   },
   danger: {
-    section: 'Danger zone',
     resetAll: 'Reset All Data',
     resetTitle: 'Reset All Data?',
     resetDesc: 'This will permanently delete all tournaments, matches, rounds, and reset to the default players and teams.',

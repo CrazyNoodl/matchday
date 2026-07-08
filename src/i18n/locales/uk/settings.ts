@@ -1,7 +1,6 @@
 const settings = {
   title: 'Налаштування',
   account: {
-    section: 'Акаунт',
     signedIn: 'Ви увійшли',
     signOut: 'Вийти',
     signOutDesc: 'Ви вийдете з акаунту на цьому пристрої.',
@@ -13,13 +12,20 @@ const settings = {
     menuLabel: 'Меню розробника',
     menuSub: 'Інструменти імпорту та внутрішні опції',
   },
+  play: {
+    section: 'Гра',
+  },
+  personalize: {
+    section: 'Персоналізація',
+  },
+  more: {
+    section: 'Ще',
+  },
   tournament: {
-    section: 'Турнір',
     label: 'Турніри',
     noActive: 'Немає активного турніру',
   },
   data: {
-    section: 'Дані',
     players: 'Гравці',
     playersCount: '{{count}} гравців',
     teams: 'Команди',
@@ -37,13 +43,16 @@ const settings = {
     showNicknamesDesc: 'Відображати нікнейми замість повних імен',
     showTeamLogos: 'Показувати логотипи команд',
     showTeamLogosDesc: 'Відображати емблеми команд на картках матчів',
+    nicknamesOn: 'Нікнейми увімкнено',
+    nicknamesOff: 'Нікнейми вимкнено',
+    upcoming: 'Скоро',
+    inDevelopment: 'У розробці',
   },
   language: {
     section: 'Мова',
     label: 'Мова',
   },
   about: {
-    section: 'Про додаток',
     appName: 'Matchday',
     version: 'Версія {{version}}',
   },
@@ -56,7 +65,6 @@ const settings = {
     empty: 'Записів поки немає.',
   },
   danger: {
-    section: 'Небезпечна зона',
     resetAll: 'Скинути всі дані',
     resetTitle: 'Скинути всі дані?',
     resetDesc: 'Це назавжди видалить усі турніри, матчі, раунди та поверне стандартних гравців і команди.',

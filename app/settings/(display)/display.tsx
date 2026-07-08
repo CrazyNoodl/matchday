@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, Text, ScrollView, Switch, TouchableOpacity } from 'react-native';
-import { useRouter } from 'expo-router';
 import { useGoBack } from '@/utils/useGoBack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -10,7 +9,6 @@ import { NavHeader, GlowBackground } from '@/components';
 import { makeStyles } from '@/screens/settings/display/display.styles';
 
 export default function DisplaySettingsScreen() {
-  const router = useRouter();
   const goBack = useGoBack();
   const { t } = useTranslation();
   const store = useStore();
@@ -66,17 +64,24 @@ export default function DisplaySettingsScreen() {
           </View>
         </View>
 
-        {/* Display options */}
+        {/* Upcoming options */}
         <View style={styles.card}>
+          <View style={styles.sectionTitleRow}>
+            <Text style={styles.sectionTitleRowText}>{t('settings.display.upcoming')}</Text>
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>{t('settings.display.inDevelopment')}</Text>
+            </View>
+          </View>
+
           {/* Show nicknames */}
-          <View style={styles.row}>
+          <View style={[styles.row, styles.rowDisabled]}>
             <View style={styles.rowLeft}>
               <Text style={styles.rowLabel}>{t('settings.display.showNicknames')}</Text>
               <Text style={styles.rowDesc}>{t('settings.display.showNicknamesDesc')}</Text>
             </View>
             <Switch
               value={showNick}
-              onValueChange={store.setShowNick}
+              disabled
               trackColor={{ false: colors.bg.elevated, true: colors.accent.green }}
               thumbColor="#ffffff"
             />
@@ -85,14 +90,14 @@ export default function DisplaySettingsScreen() {
           <View style={styles.divider} />
 
           {/* Show team logos */}
-          <View style={styles.row}>
+          <View style={[styles.row, styles.rowDisabled]}>
             <View style={styles.rowLeft}>
               <Text style={styles.rowLabel}>{t('settings.display.showTeamLogos')}</Text>
               <Text style={styles.rowDesc}>{t('settings.display.showTeamLogosDesc')}</Text>
             </View>
             <Switch
               value={showTeamLogo}
-              onValueChange={store.setShowTeamLogo}
+              disabled
               trackColor={{ false: colors.bg.elevated, true: colors.accent.green }}
               thumbColor="#ffffff"
             />
