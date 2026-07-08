@@ -132,7 +132,9 @@ export function MatchModals({ d }: MatchModalsProps) {
                 // Muted until touched this session — signals "placeholder, not confirmed"
                 // for a param the AI never recognized, without a separate N/A state.
                 const isPlaceholder = stat.isNA && !d.touchedStats.has(stat.key);
-                const lowConfidence = stat.confidence === 'low' || stat.confidence === 'medium';
+                const lowConfidence =
+                  (stat.confidence === 'low' || stat.confidence === 'medium') &&
+                  !d.touchedStats.has(stat.key);
                 return (
                   <View key={stat.key} style={styles.editStatRow}>
                     <View style={styles.editSideControls}>
@@ -155,10 +157,19 @@ export function MatchModals({ d }: MatchModalsProps) {
                       </TouchableOpacity>
                     </View>
 
-                    <View style={styles.editStatLabelRow}>
+                    <TouchableOpacity
+                      style={styles.editStatLabelRow}
+                      activeOpacity={lowConfidence ? 0.6 : 1}
+                      disabled={!lowConfidence}
+                      onPress={() => d.confirmStat(stat.key)}
+                      hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
+                      accessibilityLabel={
+                        lowConfidence ? t('matchDetail.editStats.confirmValue') : undefined
+                      }
+                    >
                       {lowConfidence && <View style={styles.editConfidenceDot} />}
                       <Text style={styles.editStatLabel}>{label}</Text>
-                    </View>
+                    </TouchableOpacity>
 
                     <View style={styles.editSideControls}>
                       <TouchableOpacity

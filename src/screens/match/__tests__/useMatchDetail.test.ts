@@ -324,6 +324,38 @@ describe('adjustStat', () => {
   });
 });
 
+// ── confirmStat (#74) ────────────────────────────────────────────────────────
+
+describe('confirmStat', () => {
+  it('marks the key touched without changing its value', async () => {
+    const match = { ...MATCH, statsOverride: { shots: { a: 7, b: 3, confidence: 'low' as const } } };
+    useStore.setState({ matches: [match] });
+    const { result } = await renderHook(() => useMatchDetail());
+    await act(async () => { result.current.openEditStats(); });
+    await act(async () => { result.current.confirmStat('shots'); });
+    expect(result.current.editValues['shots']).toEqual({ a: 7, b: 3 });
+    expect(result.current.touchedStats.has('shots')).toBe(true);
+  });
+
+  it('is a no-op if the key is already touched', async () => {
+    useStore.setState({ matches: [MATCH] });
+    const { result } = await renderHook(() => useMatchDetail());
+    await act(async () => { result.current.adjustStat('fouls', 'a', 2, false); });
+    await act(async () => { result.current.confirmStat('fouls'); });
+    expect(result.current.editValues['fouls']?.a).toBe(2);
+  });
+
+  it('drops confidence on save once confirmed, with the value unchanged', async () => {
+    const match = { ...MATCH, statsOverride: { shots: { a: 7, b: 3, confidence: 'low' as const } } };
+    useStore.setState({ matches: [match] });
+    const { result } = await renderHook(() => useMatchDetail());
+    await act(async () => { result.current.openEditStats(); });
+    await act(async () => { result.current.confirmStat('shots'); });
+    await act(async () => { result.current.handleSaveStats(); });
+    expect(useStore.getState().matches[0].statsOverride?.shots).toEqual({ a: 7, b: 3, confidence: undefined });
+  });
+});
+
 // ── openEditStats / handleSaveStats (#63) ─────────────────────────────────────
 
 describe('openEditStats / handleSaveStats', () => {

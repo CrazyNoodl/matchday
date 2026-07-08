@@ -18,6 +18,7 @@ const matchDetail = {
   editStats: {
     title: 'Modifier les stats',
     subtitle: 'Corriger les valeurs lues par l\'IA',
+    confirmValue: 'Confirmer que la valeur est correcte',
   },
   editNote: {
     subtitle: 'Ajouter des notes sur le match',
