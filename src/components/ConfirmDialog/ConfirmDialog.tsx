@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Modal, TouchableOpacity, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, Modal, TouchableOpacity, Pressable, StyleSheet, ActivityIndicator, type ViewStyle, type TextStyle } from 'react-native';
 import { useColors, type AppColors } from '@/theme';
 import { makeConfirmDialogStyles } from './ConfirmDialog.styles';
 
@@ -10,6 +10,8 @@ export interface ConfirmDialogAction {
   disabled?: boolean;
 }
 
+export type ConfirmDialogVariant = 'default' | 'destructive' | 'gold';
+
 export interface ConfirmDialogProps {
   visible: boolean;
   onRequestClose: () => void;
@@ -19,30 +21,54 @@ export interface ConfirmDialogProps {
   title: string;
   description?: string;
   children?: React.ReactNode;
-  variant?: 'default' | 'destructive';
+  variant?: ConfirmDialogVariant;
   cancel?: ConfirmDialogAction;
   confirm: ConfirmDialogAction;
 }
 
 type Styles = ReturnType<typeof makeConfirmDialogStyles>;
 
-function ConfirmButton({ action, destructive, styles, colors }: {
+function variantBtnStyle(styles: Styles, variant: ConfirmDialogVariant): ViewStyle | null {
+  switch (variant) {
+    case 'destructive': return styles.confirmBtnDestructive;
+    case 'gold': return styles.confirmBtnGold;
+    default: return null;
+  }
+}
+
+function variantTextStyle(styles: Styles, variant: ConfirmDialogVariant): TextStyle | null {
+  switch (variant) {
+    case 'destructive': return styles.confirmTextDestructive;
+    case 'gold': return styles.confirmTextGold;
+    default: return null;
+  }
+}
+
+function variantLoadingColor(colors: AppColors, variant: ConfirmDialogVariant): string {
+  switch (variant) {
+    case 'destructive': return '#fff';
+    case 'gold': return '#1a1200';
+    default: return colors.accent.greenDark;
+  }
+}
+
+function ConfirmButton({ action, variant, styles, colors }: {
   action: ConfirmDialogAction;
-  destructive: boolean;
+  variant: ConfirmDialogVariant;
   styles: Styles;
   colors: AppColors;
 }) {
   return (
     <TouchableOpacity
-      style={[styles.confirmBtn, destructive && styles.confirmBtnDestructive, action.disabled && styles.confirmBtnDisabled]}
+      style={[styles.confirmBtn, variantBtnStyle(styles, variant), action.disabled && styles.confirmBtnDisabled]}
       onPress={action.onPress}
       disabled={action.disabled || action.loading}
       activeOpacity={0.85}
     >
       {action.loading ? (
-        <ActivityIndicator size="small" color={destructive ? '#fff' : colors.accent.greenDark} />
+        <ActivityIndicator size="small" color={variantLoadingColor(colors, variant)} />
       ) : (
-        <Text style={[styles.confirmText, destructive && styles.confirmTextDestructive]}>{action.label}</Text>
+        <Text style={[styles.confirmText, variantTextStyle(styles, variant)]}>{action.label}</Text>
       )}
     </TouchableOpacity>
   );
@@ -63,7 +89,6 @@ export function ConfirmDialog({
 }: ConfirmDialogProps) {
   const colors = useColors();
   const styles = makeConfirmDialogStyles(colors);
-  const destructive = variant === 'destructive';
 
   return (
     <Modal visible={visible} transparent animationType="fade" statusBarTranslucent onRequestClose={onRequestClose}>
@@ -87,10 +112,10 @@ export function ConfirmDialog({
               >
                 <Text style={styles.cancelText}>{cancel.label}</Text>
               </TouchableOpacity>
-              <ConfirmButton action={confirm} destructive={destructive} styles={styles} colors={colors} />
+              <ConfirmButton action={confirm} variant={variant} styles={styles} colors={colors} />
             </View>
           ) : (
-            <ConfirmButton action={confirm} destructive={destructive} styles={styles} colors={colors} />
+            <ConfirmButton action={confirm} variant={variant} styles={styles} colors={colors} />
           )}
         </View>
       </View>

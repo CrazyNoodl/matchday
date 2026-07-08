@@ -68,6 +68,9 @@ export const makeConfirmDialogStyles = (colors: AppColors) => StyleSheet.create(
   confirmBtnDestructive: {
     backgroundColor: colors.accent.red,
   },
+  confirmBtnGold: {
+    backgroundColor: colors.accent.gold,
+  },
   confirmBtnDisabled: {
     opacity: 0.5,
   },
@@ -79,5 +82,8 @@ export const makeConfirmDialogStyles = (colors: AppColors) => StyleSheet.create(
   },
   confirmTextDestructive: {
     color: '#fff',
+  },
+  confirmTextGold: {
+    color: '#1a1200',
   },
 });

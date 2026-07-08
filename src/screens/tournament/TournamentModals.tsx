@@ -1,10 +1,10 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Modal, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, Platform } from 'react-native';
 import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { useTranslation } from 'react-i18next';
 import { useColors } from '@/theme';
-import { Sheet } from '@/components';
-import { makeSheetStyles, makeInputStyles, makeDialogStyles } from './tournament.styles';
+import { Sheet, ConfirmDialog } from '@/components';
+import { makeSheetStyles, makeInputStyles } from './tournament.styles';
 
 // ---------------------------------------------------------------------------
 // Tour settings sheet
@@ -159,26 +159,17 @@ interface CloseTournamentDialogProps {
 
 export function CloseTournamentDialog({ visible, onClose, onConfirm }: CloseTournamentDialogProps) {
   const { t } = useTranslation();
-  const colors = useColors();
-  const dialogStyles = makeDialogStyles(colors);
 
   return (
-    <Modal visible={visible} transparent animationType="fade" statusBarTranslucent onRequestClose={onClose}>
-      <View style={dialogStyles.overlay}>
-        <View style={dialogStyles.dialog}>
-          <Text style={dialogStyles.dialogIcon}>🏆</Text>
-          <Text style={dialogStyles.dialogTitle}>{t('tournament.close.title').toUpperCase()}</Text>
-          <Text style={dialogStyles.dialogDesc}>{t('tournament.close.desc')}</Text>
-          <View style={dialogStyles.actions}>
-            <TouchableOpacity style={dialogStyles.cancelBtn} onPress={onClose} activeOpacity={0.75}>
-              <Text style={dialogStyles.cancelText}>{t('tournament.close.keepGoing')}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={dialogStyles.archiveBtn} onPress={onConfirm} activeOpacity={0.85}>
-              <Text style={dialogStyles.archiveBtnText}>{t('tournament.close.archive')}</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
-    </Modal>
+    <ConfirmDialog
+      visible={visible}
+      onRequestClose={onClose}
+      icon="🏆"
+      variant="gold"
+      title={t('tournament.close.title').toUpperCase()}
+      description={t('tournament.close.desc')}
+      cancel={{ label: t('tournament.close.keepGoing'), onPress: onClose }}
+      confirm={{ label: t('tournament.close.archive'), onPress: onConfirm }}
+    />
   );
 }

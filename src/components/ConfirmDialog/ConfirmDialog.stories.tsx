@@ -40,6 +40,17 @@ export const SingleButton: Story = {
   },
 };
 
+export const Gold: Story = {
+  name: 'Cancel + gold confirm (high-emphasis positive action)',
+  args: {
+    icon: '🏁',
+    variant: 'gold',
+    title: 'CLOSE TOURNAMENT?',
+    description: 'This archives the tournament and crowns a champion.',
+    confirm: { label: 'Archive', onPress: () => {} },
+  },
+};
+
 export const Loading: Story = {
   name: 'Confirm loading',
   args: { confirm: { label: 'Delete', onPress: () => {}, loading: true } },
