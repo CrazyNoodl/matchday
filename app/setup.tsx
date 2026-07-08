@@ -23,10 +23,15 @@ const PLAYER_COLORS = Colors.player;
 
 export default function SetupScreen() {
   const router = useRouter();
-  const store = useStore();
   const colors = useColors();
   const styles = makeStyles(colors);
-  const { players, teams, addTeam, deleteTeam, addPlayer } = store;
+  const players = useStore((s) => s.players);
+  const teams = useStore((s) => s.teams);
+  const addTeam = useStore((s) => s.addTeam);
+  const deleteTeam = useStore((s) => s.deleteTeam);
+  const addPlayer = useStore((s) => s.addPlayer);
+  const updatePlayer = useStore((s) => s.updatePlayer);
+  const startTournament = useStore((s) => s.startTournament);
   const { t } = useTranslation();
 
   const [tournamentName, setTournamentName] = useState('');
@@ -121,12 +126,12 @@ export default function SetupScreen() {
     playerTeams.forEach((teamCode, playerId) => {
       const player = players.find((p) => p.id === playerId);
       if (player && player.teamCode !== teamCode) {
-        store.updatePlayer({ ...player, teamCode });
+        updatePlayer({ ...player, teamCode });
       }
     });
-    store.startTournament(tournamentName.trim(), playerIds, true, roundsTarget);
+    startTournament(tournamentName.trim(), playerIds, true, roundsTarget);
     router.push('/');
-  }, [canStart, selectedPlayers, playerTeams, players, store, tournamentName, router]);
+  }, [canStart, selectedPlayers, playerTeams, players, updatePlayer, startTournament, tournamentName, router]);
 
   const assignSheetPlayer = assignSheetPlayerId
     ? players.find((p) => p.id === assignSheetPlayerId)

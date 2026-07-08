@@ -16,40 +16,40 @@ export default function TournamentsScreen() {
   const router = useRouter();
   const goBack = useGoBack();
   const { t } = useTranslation();
-  const store = useStore();
-
-  const {
-    hasTournament,
-    tournamentName,
-    round,
-    archivedRounds,
-    closedTournaments,
-    players,
-    tournamentPlayers,
-    modal,
-  } = store;
+  const hasTournament = useStore((s) => s.hasTournament);
+  const tournamentName = useStore((s) => s.tournamentName);
+  const round = useStore((s) => s.round);
+  const archivedRounds = useStore((s) => s.archivedRounds);
+  const closedTournaments = useStore((s) => s.closedTournaments);
+  const players = useStore((s) => s.players);
+  const tournamentPlayers = useStore((s) => s.tournamentPlayers);
+  const modal = useStore((s) => s.modal);
+  const setModal = useStore((s) => s.setModal);
+  const renameTournament = useStore((s) => s.renameTournament);
+  const closeTournament = useStore((s) => s.closeTournament);
+  const setViewingTournament = useStore((s) => s.setViewingTournament);
 
   const [renameText, setRenameText] = React.useState('');
 
   const handleOpenRename = () => {
     setRenameText(tournamentName);
-    store.setModal('editTourName');
+    setModal('editTourName');
   };
 
   const handleRename = () => {
     if (renameText.trim()) {
-      store.renameTournament(renameText.trim());
+      renameTournament(renameText.trim());
     }
-    store.setModal(null);
+    setModal(null);
   };
 
   const handleCloseTournament = () => {
-    store.setModal('closeTour');
+    setModal('closeTour');
   };
 
   const handleConfirmClose = () => {
-    store.closeTournament();
-    store.setModal(null);
+    closeTournament();
+    setModal(null);
     router.push('/');
   };
 
@@ -127,7 +127,7 @@ export default function TournamentsScreen() {
                 key={tour.id}
                 style={styles.pastRow}
                 onPress={() => {
-                  store.setViewingTournament(tour);
+                  setViewingTournament(tour);
                   router.push('/season-stats');
                 }}
                 activeOpacity={0.8}
@@ -153,7 +153,7 @@ export default function TournamentsScreen() {
 
       <EditTournamentNameSheet
         visible={modal === 'editTourName'}
-        onClose={() => store.setModal(null)}
+        onClose={() => setModal(null)}
         value={renameText}
         onChangeValue={setRenameText}
         onSave={handleRename}
@@ -161,7 +161,7 @@ export default function TournamentsScreen() {
 
       <CloseTournamentDialog
         visible={modal === 'closeTour'}
-        onClose={() => store.setModal(null)}
+        onClose={() => setModal(null)}
         onConfirm={handleConfirmClose}
       />
     </SafeAreaView>

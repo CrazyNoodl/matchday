@@ -16,7 +16,8 @@ export default function LanguageScreen() {
   const router = useRouter();
   const goBack = useGoBack();
   const { t } = useTranslation();
-  const { language, setLanguage } = useStore();
+  const language = useStore((s) => s.language);
+  const setLanguage = useStore((s) => s.setLanguage);
 
   const handleSelect = (code: Language) => {
     setLanguage(code);

@@ -11,9 +11,11 @@ import { makeStyles } from '@/screens/settings/display/display.styles';
 export default function DisplaySettingsScreen() {
   const goBack = useGoBack();
   const { t } = useTranslation();
-  const store = useStore();
+  const showNick = useStore((s) => s.showNick);
+  const showTeamLogo = useStore((s) => s.showTeamLogo);
+  const colorScheme = useStore((s) => s.colorScheme);
+  const setColorScheme = useStore((s) => s.setColorScheme);
   const colors = useColors();
-  const { showNick, showTeamLogo, colorScheme } = store;
 
   const styles = makeStyles(colors);
 
@@ -33,7 +35,7 @@ export default function DisplaySettingsScreen() {
           <View style={styles.themeRow}>
             <TouchableOpacity
               style={[styles.themeBtn, colorScheme === 'dark' && styles.themeBtnActive]}
-              onPress={() => store.setColorScheme('dark')}
+              onPress={() => setColorScheme('dark')}
               activeOpacity={0.75}
             >
               <Text style={styles.themeBtnIcon}>🌙</Text>
@@ -43,7 +45,7 @@ export default function DisplaySettingsScreen() {
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.themeBtn, colorScheme === 'light' && styles.themeBtnActive]}
-              onPress={() => store.setColorScheme('light')}
+              onPress={() => setColorScheme('light')}
               activeOpacity={0.75}
             >
               <Text style={styles.themeBtnIcon}>☀️</Text>
@@ -53,7 +55,7 @@ export default function DisplaySettingsScreen() {
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.themeBtn, colorScheme === 'auto' && styles.themeBtnActive]}
-              onPress={() => store.setColorScheme('auto')}
+              onPress={() => setColorScheme('auto')}
               activeOpacity={0.75}
             >
               <Text style={styles.themeBtnIcon}>🌓</Text>

@@ -19,20 +19,17 @@ export default function HomeScreen() {
   const styles = makeStyles(colors);
   const router = useRouter();
   const { t } = useTranslation();
-  const store = useStore();
-
-  const {
-    hasTournament,
-    tournamentName,
-    round,
-    roundOpen,
-    matches,
-    players,
-    tournamentPlayers,
-    tournamentRounds,
-    archivedRounds,
-    closedTournaments,
-  } = store;
+  const hasTournament = useStore((s) => s.hasTournament);
+  const tournamentName = useStore((s) => s.tournamentName);
+  const round = useStore((s) => s.round);
+  const roundOpen = useStore((s) => s.roundOpen);
+  const matches = useStore((s) => s.matches);
+  const players = useStore((s) => s.players);
+  const tournamentPlayers = useStore((s) => s.tournamentPlayers);
+  const tournamentRounds = useStore((s) => s.tournamentRounds);
+  const archivedRounds = useStore((s) => s.archivedRounds);
+  const closedTournaments = useStore((s) => s.closedTournaments);
+  const setModal = useStore((s) => s.setModal);
 
   const SPORT_CHIPS = [
     { label: 'FC / FIFA', active: true, soon: false },
@@ -55,9 +52,9 @@ export default function HomeScreen() {
     if (roundOpen) {
       router.push('/round');
     } else {
-      store.setModal('newRound');
+      setModal('newRound');
     }
-  }, [hasTournament, roundOpen, router, store]);
+  }, [hasTournament, roundOpen, router, setModal]);
 
   const matchDayDisabled = !hasTournament;
 

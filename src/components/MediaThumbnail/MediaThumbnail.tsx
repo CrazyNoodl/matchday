@@ -26,7 +26,7 @@ interface MediaThumbnailProps {
   imageStyle?: ImageStyle;
 }
 
-export function MediaThumbnail({
+export const MediaThumbnail = React.memo(function MediaThumbnail({
   uri,
   type,
   onRemove,
@@ -93,7 +93,7 @@ export function MediaThumbnail({
       ) : null}
     </View>
   );
-}
+});
 
 // Simple hatched background using diagonal lines via nested views
 function HatchPattern({ hatchLineStyle }: { hatchLineStyle: object }) {

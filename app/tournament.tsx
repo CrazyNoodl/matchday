@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -16,6 +16,7 @@ import { SectionLabel, GlowBackground, RoundCard, ShareStandingsModal, NewRoundM
 import { useTranslation } from 'react-i18next';
 import { makeStyles } from '@/screens/tournament/tournament.styles';
 import { TourSettingsSheet, EditTournamentNameSheet, CloseTournamentDialog } from '@/screens/tournament/TournamentModals';
+import type { ArchivedRound } from '@/store/types';
 
 // ---------------------------------------------------------------------------
 // Column definitions (outside component to avoid recreation on every render)
@@ -32,20 +33,20 @@ import { TourSettingsSheet, EditTournamentNameSheet, CloseTournamentDialog } fro
 
 export default function TournamentScreen() {
   const router = useRouter();
-  const store = useStore();
-
-  const {
-    tournamentName,
-    round,
-    roundOpen,
-    tournamentRanked,
-    tournamentRounds,
-    tournamentPlayers,
-    matches,
-    archivedRounds,
-    players,
-    modal,
-  } = store;
+  const tournamentName = useStore((s) => s.tournamentName);
+  const round = useStore((s) => s.round);
+  const roundOpen = useStore((s) => s.roundOpen);
+  const tournamentRanked = useStore((s) => s.tournamentRanked);
+  const tournamentRounds = useStore((s) => s.tournamentRounds);
+  const tournamentPlayers = useStore((s) => s.tournamentPlayers);
+  const matches = useStore((s) => s.matches);
+  const archivedRounds = useStore((s) => s.archivedRounds);
+  const players = useStore((s) => s.players);
+  const modal = useStore((s) => s.modal);
+  const setModal = useStore((s) => s.setModal);
+  const setViewingRound = useStore((s) => s.setViewingRound);
+  const renameTournament = useStore((s) => s.renameTournament);
+  const closeTournament = useStore((s) => s.closeTournament);
 
   const colors = useColors();
   const styles = makeStyles(colors);
@@ -55,12 +56,18 @@ export default function TournamentScreen() {
   const { t } = useTranslation();
 
   // All ranked matches across all archived rounds + current open round (if ranked)
-  const allRankedMatches = [
-    ...archivedRounds.filter((r) => r.ranked).flatMap((r) => r.matches),
-    ...(tournamentRanked && roundOpen ? matches : []),
-  ];
+  const allRankedMatches = useMemo(
+    () => [
+      ...archivedRounds.filter((r) => r.ranked).flatMap((r) => r.matches),
+      ...(tournamentRanked && roundOpen ? matches : []),
+    ],
+    [archivedRounds, tournamentRanked, roundOpen, matches],
+  );
 
-  const standings = calculateStandings(allRankedMatches, tournamentPlayers);
+  const standings = useMemo(
+    () => calculateStandings(allRankedMatches, tournamentPlayers),
+    [allRankedMatches, tournamentPlayers],
+  );
   const leader = standings[0]
     ? players.find((p) => p.id === standings[0].playerId)
     : null;
@@ -77,6 +84,15 @@ export default function TournamentScreen() {
     date: formatShortDate(new Date().toISOString()),
   });
   const shareRoundLabel = t('tournament.shareStandings.roundLabel', { round: rankedTotal, total: roundsTarget });
+  const reversedArchivedRounds = useMemo(() => [...archivedRounds].reverse(), [archivedRounds]);
+
+  const handleRoundPress = useCallback(
+    (r: ArchivedRound) => {
+      setViewingRound(r);
+      router.push('/archive-day');
+    },
+    [setViewingRound, router],
+  );
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
@@ -104,7 +120,7 @@ export default function TournamentScreen() {
 
         <TouchableOpacity
           style={styles.dotsBtn}
-          onPress={() => store.setModal('tourSettings')}
+          onPress={() => setModal('tourSettings')}
           activeOpacity={0.75}
         >
           <Text style={styles.dotsIcon}>···</Text>
@@ -181,7 +197,7 @@ export default function TournamentScreen() {
             <Text style={styles.emptyRoundsText}>{t('tournament.noRounds')}</Text>
           </View>
         ) : (
-          [...archivedRounds].reverse().map((r) => {
+          reversedArchivedRounds.map((r) => {
             const roundWinner = players.find((p) => p.id === r.winner);
             return (
               <RoundCard
@@ -192,10 +208,7 @@ export default function TournamentScreen() {
                 matchCountText={t('tournament.roundMatches', { count: r.games })}
                 winnerId={roundWinner?.id}
                 winnerName={roundWinner ? (roundWinner.nick ?? roundWinner.name) : '—'}
-                onPress={() => {
-                  store.setViewingRound(r);
-                  router.push('/archive-day');
-                }}
+                onPress={() => handleRoundPress(r)}
               />
             );
           })
@@ -217,7 +230,7 @@ export default function TournamentScreen() {
         ) : (
           <TouchableOpacity
             style={styles.ctaBtn}
-            onPress={() => store.setModal('newRound')}
+            onPress={() => setModal('newRound')}
             activeOpacity={0.85}
           >
             <Text style={styles.ctaBtnText}>{t('tournament.newMatchDay')}</Text>
@@ -231,39 +244,39 @@ export default function TournamentScreen() {
 
       <TourSettingsSheet
         visible={modal === 'tourSettings'}
-        onClose={() => store.setModal(null)}
+        onClose={() => setModal(null)}
         tournamentName={tournamentName}
         onRename={() => {
           setRenameValue(tournamentName);
-          store.setModal('editTourName');
+          setModal('editTourName');
         }}
         onShareStandings={() => {
-          store.setModal(null);
+          setModal(null);
           setShareStandingsVisible(true);
         }}
-        onCloseTournament={() => store.setModal('closeTour')}
+        onCloseTournament={() => setModal('closeTour')}
       />
 
       <EditTournamentNameSheet
         visible={modal === 'editTourName'}
-        onClose={() => store.setModal('tourSettings')}
+        onClose={() => setModal('tourSettings')}
         value={renameValue}
         onChangeValue={setRenameValue}
         onSave={() => {
           const trimmed = renameValue.trim();
           if (trimmed) {
-            store.renameTournament(trimmed);
+            renameTournament(trimmed);
           }
-          store.setModal(null);
+          setModal(null);
         }}
       />
 
       <CloseTournamentDialog
         visible={modal === 'closeTour'}
-        onClose={() => store.setModal('tourSettings')}
+        onClose={() => setModal('tourSettings')}
         onConfirm={() => {
-          store.closeTournament();
-          store.setModal(null);
+          closeTournament();
+          setModal(null);
           router.push('/');
         }}
       />

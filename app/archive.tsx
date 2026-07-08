@@ -182,13 +182,9 @@ export default function ArchiveScreen() {
   const router = useRouter();
   const goBack = useGoBack();
   const { t } = useTranslation();
-  const store = useStore();
-
-  const {
-    closedTournaments,
-    setViewingRound,
-    setViewingTournament,
-  } = store;
+  const closedTournaments = useStore((s) => s.closedTournaments);
+  const setViewingRound = useStore((s) => s.setViewingRound);
+  const setViewingTournament = useStore((s) => s.setViewingTournament);
 
   const handleRoundPress = useCallback(
     (round: ArchivedRound) => {

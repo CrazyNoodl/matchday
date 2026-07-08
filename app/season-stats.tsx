@@ -49,9 +49,9 @@ export default function SeasonStatsScreen() {
   const goBack = useGoBack();
   const { t } = useTranslation();
   const colors = useColors();
-  const styles = makeStyles(colors);
+  const styles = useMemo(() => makeStyles(colors), [colors]);
 
-  const MEDALS: Record<number, { badgeColor: string; badgeBg: string; cardBorder: string }> = {
+  const MEDALS: Record<number, { badgeColor: string; badgeBg: string; cardBorder: string }> = useMemo(() => ({
     1: {
       badgeColor: colors.accent.gold,
       badgeBg: 'rgba(255,212,94,0.18)',
@@ -67,7 +67,7 @@ export default function SeasonStatsScreen() {
       badgeBg: 'rgba(205,127,50,0.16)',
       cardBorder: colors.border.default,
     },
-  };
+  }), [colors]);
 
   const viewingTournament = useStore((s) => s.viewingTournament);
   const players = useStore((s) => s.players);
@@ -116,6 +116,8 @@ export default function SeasonStatsScreen() {
     () => getRankedRoundOrdinals(viewingTournament.rounds),
     [viewingTournament.rounds],
   );
+
+  const reversedFilteredRounds = useMemo(() => [...filteredRounds].reverse(), [filteredRounds]);
 
   const allMatches = useMemo<Match[]>(
     () => filteredRounds.flatMap((r) => r.matches),
@@ -322,7 +324,7 @@ export default function SeasonStatsScreen() {
             <Text style={styles.emptyText}>{t('seasonStats.noMatchesFilter')}</Text>
           </View>
         ) : (
-          [...filteredRounds].reverse().map((round) => (
+          reversedFilteredRounds.map((round) => (
             <View key={round.id} style={styles.roundBlock}>
               {/* Round header */}
               <View style={styles.roundHeader}>

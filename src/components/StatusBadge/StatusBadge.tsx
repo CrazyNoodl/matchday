@@ -29,7 +29,7 @@ const LABEL_KEYS: Record<BadgeType, string> = {
   ranked: 'common.ranked',
 };
 
-export function StatusBadge({ type }: StatusBadgeProps) {
+export const StatusBadge = React.memo(function StatusBadge({ type }: StatusBadgeProps) {
   const { t } = useTranslation();
   const colors = useColors();
   const cfg = makeConfig(colors)[type];
@@ -49,4 +49,4 @@ export function StatusBadge({ type }: StatusBadgeProps) {
       </Text>
     </View>
   );
-}
+});

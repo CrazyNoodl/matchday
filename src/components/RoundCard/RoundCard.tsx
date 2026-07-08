@@ -19,7 +19,7 @@ interface RoundCardProps {
   variant?: 'card' | 'row';
 }
 
-export function RoundCard({
+export const RoundCard = React.memo(function RoundCard({
   n,
   ranked,
   dateText,
@@ -70,4 +70,4 @@ export function RoundCard({
       <Text style={isRow ? styles.chevronRow : styles.chevronCard}>›</Text>
     </TouchableOpacity>
   );
-}
+});
