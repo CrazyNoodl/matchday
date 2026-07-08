@@ -27,8 +27,29 @@ beforeEach(() => {
 });
 
 describe('useIsOnline', () => {
-  it('defaults to online before any event fires', async () => {
+  it('reports online once the initial reachability ping resolves', async () => {
     const { result } = await renderHook(() => useIsOnline());
+    expect(result.current).toBe(true);
+  });
+
+  it('does not report online before the first reachability ping has resolved', async () => {
+    const { pingSupabase } = jest.requireMock('@/supabase/health');
+    let resolvePing: (value: boolean) => void = () => {};
+    (pingSupabase as jest.Mock).mockReturnValueOnce(
+      new Promise<boolean>(resolve => {
+        resolvePing = resolve;
+      })
+    );
+
+    const { result } = await renderHook(() => useIsOnline());
+    // NetInfo says the interface is up, but the corroborating ping hasn't settled yet —
+    // this is exactly the "wifi connected, no real internet" window that used to report
+    // a false "online" for the ~2.5s the ping takes to time out.
+    expect(result.current).toBe(false);
+
+    await act(async () => {
+      resolvePing(true);
+    });
     expect(result.current).toBe(true);
   });
 
