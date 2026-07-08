@@ -65,6 +65,7 @@ Supabase Storage (`match-media` bucket) layout for new uploads:
 | Round management (add match, finish, archive, delete) | `app/round.tsx`, `app/archive-day.tsx` |
 | No-repeat pairings within a round tour (already-played opponent disabled in Add Match) | `src/utils/matchTours.ts` (`getCurrentTourMatches`, `getPlayedPartnerIds`), `src/screens/round/AddMatchSheet.tsx` |
 | Match detail + 23-type stat entry | `app/match/[id].tsx` |
+| Edit-stats sheet: tap a low-confidence stat's label/dot to confirm it as correct in place — clears the dot immediately without nudging the value via +/- (previously the only way to clear it) (#74) | `src/screens/match/MatchModals.tsx`, `useMatchDetail.ts` (`confirmStat`) |
 | Standings with H2H tiebreaker | `src/utils/standings.ts` |
 | Form chips W/D/L (last 3) | `standings.ts → getFormChips` |
 | Share Round / Share Standings as image | `src/components/ShareRoundModal/`, `src/components/ShareStandingsModal/` |
