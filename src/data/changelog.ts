@@ -10,6 +10,12 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.29',
+    added: [
+      'Display settings: "Group matches by tours" switch (default on) — turn it off to see a round\'s matches as one flat list instead of TOUR N blocks',
+    ],
+  },
+  {
     version: '1.9.28',
     added: [
       'Tournament screen: a sort toggle next to "Played rounds" switches the list between newest-first (default) and oldest-first',
