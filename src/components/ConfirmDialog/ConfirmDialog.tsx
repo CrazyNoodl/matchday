@@ -144,8 +144,8 @@ export function ConfirmDialog({
           {description && <Text style={styles.dialogDesc}>{description}</Text>}
           {children}
 
-          {cancel ? (
-            <View style={styles.actions}>
+          <View style={styles.actions}>
+            {cancel && (
               <TouchableOpacity
                 style={styles.cancelBtn}
                 onPress={cancel.onPress}
@@ -154,11 +154,9 @@ export function ConfirmDialog({
               >
                 <Text style={styles.cancelText}>{cancel.label}</Text>
               </TouchableOpacity>
-              <ConfirmButton action={confirm} variant={variant} styles={styles} colors={colors} />
-            </View>
-          ) : (
+            )}
             <ConfirmButton action={confirm} variant={variant} styles={styles} colors={colors} />
-          )}
+          </View>
         </View>
       </View>
     </Modal>
