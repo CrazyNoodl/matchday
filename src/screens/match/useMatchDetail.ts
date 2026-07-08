@@ -507,6 +507,11 @@ export function useMatchDetail() {
     });
   }, []);
 
+  // Confirms an AI-flagged value as correct without nudging it via +/- (#74).
+  const confirmStat = useCallback((key: string) => {
+    setTouchedStats((prev) => (prev.has(key) ? prev : new Set(prev).add(key)));
+  }, []);
+
   return {
     id,
     match,
@@ -567,6 +572,7 @@ export function useMatchDetail() {
     openEditNote,
     handleSaveNote,
     adjustStat,
+    confirmStat,
     deleteStat,
   };
 }

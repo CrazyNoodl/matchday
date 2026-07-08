@@ -18,6 +18,7 @@ const matchDetail = {
   editStats: {
     title: 'Редагувати статистику',
     subtitle: 'Виправити значення, зчитані ШІ',
+    confirmValue: 'Підтвердити правильне значення',
   },
   editNote: {
     subtitle: 'Додати нотатки до матчу',

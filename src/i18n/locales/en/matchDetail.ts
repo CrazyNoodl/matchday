@@ -18,6 +18,7 @@ const matchDetail = {
   editStats: {
     title: 'Edit stats',
     subtitle: 'Correct AI-read values',
+    confirmValue: 'Confirm value is correct',
   },
   editNote: {
     subtitle: 'Add match notes',
