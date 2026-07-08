@@ -146,42 +146,6 @@ export function NeedEqualDialog({ visible, onClose, standings, players }: NeedEq
   );
 }
 
-interface DeleteMatchDialogProps {
-  visible: boolean;
-  onClose: () => void;
-  onConfirm: () => void;
-}
-
-export function DeleteMatchDialog({ visible, onClose, onConfirm }: DeleteMatchDialogProps) {
-  const { t } = useTranslation();
-  const colors = useColors();
-  const dialogStyles = makeDialogStyles(colors);
-
-  return (
-    <Modal visible={visible} transparent animationType="fade" statusBarTranslucent onRequestClose={onClose}>
-      <View style={dialogStyles.overlay}>
-        <View style={dialogStyles.dialog}>
-          <Text style={[dialogStyles.dialogIcon, { color: colors.accent.red }]}>🗑</Text>
-          <Text style={dialogStyles.dialogTitle}>{t('matchday.dialogs.deleteTitle').toUpperCase()}</Text>
-          <Text style={dialogStyles.dialogDesc}>{t('matchday.dialogs.deleteDesc')}</Text>
-          <View style={dialogStyles.actions}>
-            <TouchableOpacity style={dialogStyles.cancelBtn} onPress={onClose} activeOpacity={0.75}>
-              <Text style={dialogStyles.cancelText}>{t('matchday.dialogs.cancel')}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[dialogStyles.confirmBtn, { backgroundColor: colors.accent.red }]}
-              onPress={onConfirm}
-              activeOpacity={0.85}
-            >
-              <Text style={[dialogStyles.confirmText, { color: '#fff' }]}>{t('matchday.dialogs.delete')}</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
-    </Modal>
-  );
-}
-
 interface DeleteRoundDialogProps {
   visible: boolean;
   onClose: () => void;

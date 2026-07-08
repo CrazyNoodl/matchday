@@ -11,7 +11,7 @@ import {
 import { BottomSheetScrollView, BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { useTranslation } from 'react-i18next';
 import { useColors } from '@/theme';
-import { Sheet, MediaSlider } from '@/components';
+import { Sheet, MediaSlider, ConfirmDialog } from '@/components';
 import { makeStyles } from '@/screens/match/match.styles';
 import type { MatchDetailHook } from './useMatchDetail';
 
@@ -440,40 +440,17 @@ export function MatchModals({ d }: MatchModalsProps) {
 
 
       {/* ── DELETE MATCH MODAL ── */}
-      <Modal
+      <ConfirmDialog
         visible={modal === 'delMatch'}
-        transparent
-        animationType="fade"
         onRequestClose={() => d.store.setModal(null)}
-        statusBarTranslucent
-      >
-        <View style={styles.delOverlay}>
-          <Pressable style={StyleSheet.absoluteFill} onPress={() => d.store.setModal(null)} />
-          <View style={styles.delDialog}>
-            <View style={styles.delIconCircle}>
-              <Text style={styles.delIconEmoji}>🗑</Text>
-            </View>
-            <Text style={styles.delTitle}>{t('matchday.dialogs.deleteTitle').toUpperCase()}</Text>
-            <Text style={styles.delDesc}>{t('matchday.dialogs.deleteDesc')}</Text>
-            <View style={styles.delButtons}>
-              <TouchableOpacity
-                style={styles.delCancelBtn}
-                onPress={() => d.store.setModal(null)}
-                activeOpacity={0.75}
-              >
-                <Text style={styles.delCancelText}>{t('matchday.dialogs.cancel')}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.delConfirmBtn}
-                onPress={d.handleDeleteMatch}
-                activeOpacity={0.75}
-              >
-                <Text style={styles.delConfirmText}>{t('matchday.dialogs.delete')}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+        icon="🗑"
+        iconColor={colors.accent.red}
+        variant="destructive"
+        title={t('matchday.dialogs.deleteTitle').toUpperCase()}
+        description={t('matchday.dialogs.deleteDesc')}
+        cancel={{ label: t('matchday.dialogs.cancel'), onPress: () => d.store.setModal(null) }}
+        confirm={{ label: t('matchday.dialogs.delete'), onPress: d.handleDeleteMatch }}
+      />
     </>
   );
 }
