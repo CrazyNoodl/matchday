@@ -10,6 +10,12 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.27',
+    fixed: [
+      'Match detail → Edit stats: a low-confidence (AI-flagged) stat can now be confirmed correct by tapping its label — previously the only way to clear the flag was nudging the value with +/-, even when it was already right',
+    ],
+  },
+  {
     version: '1.9.26',
     internal: [
       'Internal: added e2e coverage for match detail editing, the Reset All Data safety cooldown, and local backup/restore; e2e fixtures now block all real Supabase network calls (Metro was inlining the live project URL/key into the test bundle regardless of playwright.config.ts overrides) — no visible change',
