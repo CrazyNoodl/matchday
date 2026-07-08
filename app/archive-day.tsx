@@ -8,12 +8,12 @@ import { useStore } from '@/store';
 import { calculateStandings } from '@/utils/standings';
 import { formatShortDate, formatEditableDate, parseEditableDate } from '@/utils/dateFormat';
 import { useColors } from '@/theme';
-import { NavHeader, SectionLabel, MatchCard, ShareRoundModal, CardAvatar, StandingsTable, getStandingsTableColumns, GlowBackground } from '@/components';
+import { NavHeader, SectionLabel, MatchCard, ShareRoundModal, CardAvatar, StandingsTable, getStandingsTableColumns, GlowBackground, ConfirmDialog } from '@/components';
 import { groupMatchesByTour } from '@/utils/matchTours';
 import { getRankedRoundOrdinals } from '@/utils/roundOrdinals';
 import { Match } from '@/store/types';
 import { makeStyles } from '@/screens/archive-day/archive-day.styles';
-import { RoundOptionsMenu, DeleteRoundDialog, EditRoundDateSheet } from '@/screens/archive-day/ArchiveDayModals';
+import { RoundOptionsMenu, EditRoundDateSheet } from '@/screens/archive-day/ArchiveDayModals';
 
 // ---------------------------------------------------------------------------
 // Day Winner Banner
@@ -288,10 +288,16 @@ export default function ArchiveDayScreen() {
         onDelete={() => { setMenuVisible(false); setDeleteVisible(true); }}
       />
 
-      <DeleteRoundDialog
+      <ConfirmDialog
         visible={deleteVisible}
-        onClose={() => setDeleteVisible(false)}
-        onConfirm={handleConfirmDelete}
+        onRequestClose={() => setDeleteVisible(false)}
+        icon="🗑"
+        iconColor={colors.accent.red}
+        variant="destructive"
+        title={t('archive.deleteRoundTitle').toUpperCase()}
+        description={t('archive.deleteRoundDesc')}
+        cancel={{ label: t('matchday.dialogs.cancel'), onPress: () => setDeleteVisible(false) }}
+        confirm={{ label: t('archive.deleteRoundConfirm'), onPress: handleConfirmDelete }}
       />
 
       <EditRoundDateSheet

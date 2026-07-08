@@ -16,7 +16,6 @@ import { AddMatchSheet } from '@/screens/round/AddMatchSheet';
 import {
   EndRoundDialog,
   NeedEqualDialog,
-  DeleteRoundDialog,
   WinnerCelebrationModal,
 } from '@/screens/round/RoundDialogs';
 
@@ -302,10 +301,16 @@ export default function MatchdayScreen() {
         winner={winner}
       />
 
-      <DeleteRoundDialog
+      <ConfirmDialog
         visible={modal === 'delRound'}
-        onClose={closeModal}
-        onConfirm={handleConfirmDeleteRound}
+        onRequestClose={closeModal}
+        icon="🗑"
+        iconColor={colors.accent.red}
+        variant="destructive"
+        title={t('matchday.dialogs.deleteRoundTitle').toUpperCase()}
+        description={t('matchday.dialogs.deleteRoundDesc')}
+        cancel={{ label: t('matchday.dialogs.cancel'), onPress: closeModal }}
+        confirm={{ label: t('matchday.dialogs.deleteRoundConfirm'), onPress: handleConfirmDeleteRound }}
       />
 
       {/* ---- Round Options Dropdown ---- */}

@@ -6,7 +6,6 @@ import { useColors } from '@/theme';
 import { Sheet } from '@/components';
 import { makeStyles, makeMenuStyles } from './archive-day.styles';
 import { makeInputStyles } from '@/screens/tournament/tournament.styles';
-import { makeDialogStyles } from '@/screens/round/RoundDialogs.styles';
 
 // ---------------------------------------------------------------------------
 // Round options dropdown
@@ -37,46 +36,6 @@ export function RoundOptionsMenu({ visible, onClose, top, right, onShare, onDele
         <TouchableOpacity style={menuStyles.item} onPress={onDelete}>
           <Text style={[menuStyles.itemText, { color: colors.accent.red }]}>{t('archive.deleteRoundConfirm')}</Text>
         </TouchableOpacity>
-      </View>
-    </Modal>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Delete round confirmation
-// ---------------------------------------------------------------------------
-
-interface DeleteRoundDialogProps {
-  visible: boolean;
-  onClose: () => void;
-  onConfirm: () => void;
-}
-
-export function DeleteRoundDialog({ visible, onClose, onConfirm }: DeleteRoundDialogProps) {
-  const { t } = useTranslation();
-  const colors = useColors();
-  const dialogStyles = makeDialogStyles(colors);
-
-  return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose} statusBarTranslucent>
-      <View style={dialogStyles.overlay}>
-        <View style={dialogStyles.dialog}>
-          <Text style={[dialogStyles.dialogIcon, { color: colors.accent.red }]}>🗑</Text>
-          <Text style={dialogStyles.dialogTitle}>{t('archive.deleteRoundTitle').toUpperCase()}</Text>
-          <Text style={dialogStyles.dialogDesc}>{t('archive.deleteRoundDesc')}</Text>
-          <View style={dialogStyles.actions}>
-            <TouchableOpacity style={dialogStyles.cancelBtn} onPress={onClose} activeOpacity={0.75}>
-              <Text style={dialogStyles.cancelText}>{t('matchday.dialogs.cancel')}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[dialogStyles.confirmBtn, { backgroundColor: colors.accent.red }]}
-              onPress={onConfirm}
-              activeOpacity={0.85}
-            >
-              <Text style={[dialogStyles.confirmText, { color: '#fff' }]}>{t('archive.deleteRoundConfirm')}</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
       </View>
     </Modal>
   );
