@@ -37,6 +37,7 @@ export default function MatchdayScreen() {
   const teams = useStore((s) => s.teams);
   const tournamentId = useStore((s) => s.tournamentId);
   const roundFolder = useStore((s) => s.roundFolder);
+  const groupByTours = useStore((s) => s.groupByTours);
   const setModal = useStore((s) => s.setModal);
   const addMatch = useStore((s) => s.addMatch);
   const setSelectedMatch = useStore((s) => s.setSelectedMatch);
@@ -115,10 +116,15 @@ export default function MatchdayScreen() {
   const leaderName = leader ? (players.find((p) => p.id === leader.playerId)?.name ?? '') : '';
 
   const tours = useMemo(
-    () => groupMatchesByTour(matches, roundPlayers.length).reverse(),
-    [matches, roundPlayers.length],
+    () =>
+      groupByTours
+        ? groupMatchesByTour(matches, roundPlayers.length).reverse()
+        : [{ tourNumber: 1, matches }],
+    [matches, roundPlayers.length, groupByTours],
   );
-  const showTourLabel = tours.length > 1 || matches.length >= (roundPlayers.length * (roundPlayers.length - 1)) / 2;
+  const showTourLabel =
+    groupByTours &&
+    (tours.length > 1 || matches.length >= (roundPlayers.length * (roundPlayers.length - 1)) / 2);
 
   const handleMatchPress = useCallback(
     (matchId: string) => {

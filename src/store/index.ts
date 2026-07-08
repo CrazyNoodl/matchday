@@ -222,6 +222,7 @@ export const useStore = create<RootState>()(
         pendingSyncTables: state.pendingSyncTables,
         showNick: state.showNick,
         showTeamLogo: state.showTeamLogo,
+        groupByTours: state.groupByTours,
         colorScheme: state.colorScheme,
         language: state.language,
         demoMode: state.demoMode,

@@ -8,6 +8,7 @@ import type { RootState } from '../index';
 export interface SettingsState {
   showNick: boolean;
   showTeamLogo: boolean;
+  groupByTours: boolean;
   colorScheme: ThemePreference;
   language: Language;
   demoMode: boolean;
@@ -17,6 +18,7 @@ export interface SettingsState {
 export interface SettingsActions {
   setShowNick: (v: boolean) => void;
   setShowTeamLogo: (v: boolean) => void;
+  setGroupByTours: (v: boolean) => void;
   setColorScheme: (scheme: ThemePreference) => void;
   setLanguage: (lang: Language) => void;
   setDemoMode: (on: boolean) => void;
@@ -27,6 +29,7 @@ export type SettingsSlice = SettingsState & SettingsActions;
 export const createSettingsSlice: StateCreator<RootState, [], [], SettingsSlice> = (set, get) => ({
   showNick: true,
   showTeamLogo: true,
+  groupByTours: true,
   colorScheme: 'dark',
   language: 'en',
   demoMode: false,
@@ -34,6 +37,7 @@ export const createSettingsSlice: StateCreator<RootState, [], [], SettingsSlice>
 
   setShowNick: (v) => set({ showNick: v }),
   setShowTeamLogo: (v) => set({ showTeamLogo: v }),
+  setGroupByTours: (v) => set({ groupByTours: v }),
   setColorScheme: (scheme) => set({ colorScheme: scheme }),
   setLanguage: (lang) => set({ language: lang }),
 

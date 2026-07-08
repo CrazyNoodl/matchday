@@ -73,6 +73,7 @@ export default function ArchiveDayScreen() {
     hasTournament && !!viewingRound && s.archivedRounds.some((r) => r.id === viewingRound.id),
   );
   const deleteArchivedRound = useStore((s) => s.deleteArchivedRound);
+  const groupByTours = useStore((s) => s.groupByTours);
   const roundsForOrdinal = useStore((s) =>
     viewingRound && s.archivedRounds.some((r) => r.id === viewingRound.id)
       ? s.archivedRounds
@@ -227,9 +228,11 @@ export default function ArchiveDayScreen() {
             <Text style={styles.emptyMatchesText}>{t('archive.noMatchesRecorded')}</Text>
           </View>
         ) : (() => {
-          const tours = groupMatchesByTour(matches, playerIds.length).reverse();
+          const tours = groupByTours
+            ? groupMatchesByTour(matches, playerIds.length).reverse()
+            : [{ tourNumber: 1, matches }];
           const tourSize = playerIds.length > 1 ? (playerIds.length * (playerIds.length - 1)) / 2 : 0;
-          const showTourLabel = tours.length > 1 || matches.length >= tourSize;
+          const showTourLabel = groupByTours && (tours.length > 1 || matches.length >= tourSize);
           return tours.map((tour) => {
             const reversed = [...tour.matches].reverse();
             return (
