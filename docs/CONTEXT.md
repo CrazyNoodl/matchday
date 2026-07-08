@@ -78,7 +78,7 @@ Supabase Storage (`match-media` bucket) layout for new uploads:
 | Player/team management | `app/settings/(data)/` |
 | Supabase sync (selective, debounced 300ms) | `src/store/`, `src/supabase/useSyncManager.ts` |
 | Persistent auth session (survives app restart) | `src/supabase/client.ts` |
-| Local JSON backup (export/import/restore), independent of cloud sync | `app/settings/(data)/backup.tsx`, `src/utils/backup.ts` |
+| Local JSON backup (export/import/restore, auto-pushes to cloud on restore, excludes all media links) | `app/settings/(data)/backup.tsx`, `src/utils/backup.ts` |
 | Offline handling: boot-time stub/banner, persisted pending-sync + reconnect retry, per-feature upload/delete gating, Supabase reachability health-check | `src/hooks/useIsOnline.ts`, `app/_layout.tsx`, `src/supabase/useSyncManager.ts`, `src/supabase/health.ts` |
 | Team logo offline caching + graceful fallback | `src/components/TeamBadge/`, `src/components/Avatar/`, `ShareRoundModal`'s `CardAvatar` |
 | Demo mode | store flag |
@@ -135,7 +135,7 @@ Status drifts too fast to keep a manual table in sync — run `gh issue list --r
 - **Per-feature offline gating**: media upload/delete, OCR import, and team logo picker are all disabled while offline (`!useIsOnline()`) rather than letting the user hit a confusing failure later. Deliberately **not** gated: login/sign-out (blocking them would remove the only recovery path), and dev-only screens.
 - Web's `useIsOnline` deliberately bypasses NetInfo and listens to `window`'s `online`/`offline` events directly — NetInfo prefers the Network Information API on web when available, and that event does not reliably fire on a real connectivity drop in Chromium.
 - Not-logged-in + offline → full-screen `OfflineScreen` replaces `LoginScreen` (no local-first path without a session). Logged-in + offline → a small non-blocking `OfflineBanner` (`pointerEvents="none"`, since a purely informational banner must never intercept taps underneath it) — the app stays fully usable with local data. Offline boot deliberately does **not** clear the store or force sign-out.
-- Local JSON backup (`/settings/backup`) has an explicit **"Push to Cloud"** button, shown only when Supabase is configured and only after a local import — a separately-clicked action, never an automatic side effect of import (same "destructive/irreversible action needs its own explicit function" rule as `deleteAllCloudData()` above). Disabled during Demo Mode.
+- Local JSON backup (`/settings/backup`) auto-pushes to Supabase immediately after the single "Replace all local data?" confirmation — there is no separate "Push to Cloud" button/second modal anymore; that confirmation's copy now explicitly covers the cloud overwrite too, so one explicit tap authorizes both the local and cloud replace (still consistent with the "destructive/irreversible action needs its own explicit function" rule — restoring a backup is that one function, `handleConfirmImport` in `backup.tsx`, not a generic dirty-diff push). A full-screen blocking overlay covers the local-apply + cloud-push window (relevant for large backups over a slow connection). If the cloud push fails, the local restore is **not** rolled back — the failure only surfaces a "Retry Cloud Sync" button (no confirmation needed to retry, since intent was already established). Disabled during Demo Mode.
 
 ### Native modules & build
 
@@ -191,7 +191,7 @@ Status drifts too fast to keep a manual table in sync — run `gh issue list --r
 
 **Structural risk still open:** this project uses a single Supabase project for both local development and real user data (every worktree gets the same `.env` copied in) — a dev-time mistake hits real data directly, as happened here. Worth a separate dev/staging Supabase project.
 
-This incident is also why the [local JSON backup](#what-is-fully-implemented) feature exists — a second, independent safety net entirely separate from Supabase (`src/utils/backup.ts`, `/settings/backup`). Its `applyBackupLocally()` is bracketed with the same `syncSuppressionRef`. Known limitation: media (photos/videos/logos) are stored as Storage URLs by reference, not bytes — a restore only breaks if the media was mid-upload at backup time, the storage object was since deleted, or you're restoring under a different Supabase account.
+This incident is also why the [local JSON backup](#what-is-fully-implemented) feature exists — a second, independent safety net entirely separate from Supabase (`src/utils/backup.ts`, `/settings/backup`). Its `applyBackupLocally()` is bracketed with the same `syncSuppressionRef`. Backups deliberately exclude **all** media links (player photos, team logos, match photos/videos — `buildBackupPayload()`'s `stripPlayerMedia`/`stripTeamMedia`/`stripMatchMedia`/`stripRoundMedia`/`stripClosedTournamentMedia`): those are Supabase Storage URLs, a backup can be restored long after it was made, and a "Reset All Data" in between would leave any embedded URL pointing at nothing. Restoring a backup never reintroduces a broken media reference — the tradeoff is that photos/logos/match media are never restored either and must be re-added manually.
 
 ---
 
