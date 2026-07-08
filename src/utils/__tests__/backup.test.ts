@@ -21,7 +21,7 @@ jest.mock('react-native', () => ({
 }));
 
 import { useStore, syncSuppressionRef } from '@/store';
-import type { Player, Team } from '@/store/types';
+import type { Player, Team, Match, ArchivedRound, ClosedTournament } from '@/store/types';
 import {
   BACKUP_SCHEMA_VERSION,
   backupFileName,
@@ -91,6 +91,58 @@ describe('buildBackupPayload', () => {
     expect(file.data).not.toHaveProperty('pendingSyncTables');
     expect(file.data).not.toHaveProperty('demoMode');
     expect(file.data).not.toHaveProperty('realDataBackup');
+  });
+
+  it('strips player photos, team logos, and match media — those are cloud-storage links that can go stale', () => {
+    const playerWithPhoto: Player = { ...REAL_PLAYER, photo: 'https://cloud.example/p1.jpg' };
+    const teamWithLogo: Team = { ...REAL_TEAM, logo: 'https://cloud.example/juv.png' };
+    const matchWithMedia: Match = {
+      id: 'm1',
+      aId: 'p1',
+      bId: 'other',
+      aTeam: 'JUV',
+      bTeam: 'GAL',
+      aScore: 1,
+      bScore: 0,
+      media: [{ uri: 'https://cloud.example/m1.jpg', type: 'image' }],
+    };
+    const archivedRound: ArchivedRound = {
+      id: 'r1',
+      n: 1,
+      date: '2026-01-01T00:00:00.000Z',
+      winner: 'p1',
+      games: 1,
+      ranked: true,
+      matches: [matchWithMedia],
+      name: 'Round 1',
+    };
+    const closedTournament: ClosedTournament = {
+      id: 't1',
+      name: 'Tournament 1',
+      date: '2026-01-01T00:00:00.000Z',
+      rounds: [archivedRound],
+      champId: 'p1',
+      champName: 'Player One',
+      champColor: '#ff0000',
+      champInit: 'P',
+      players: ['p1'],
+    };
+
+    useStore.setState({
+      players: [playerWithPhoto],
+      teams: [teamWithLogo],
+      matches: [matchWithMedia],
+      archivedRounds: [archivedRound],
+      closedTournaments: [closedTournament],
+    });
+
+    const file = buildBackupPayload(useStore.getState());
+
+    expect(file.data.players[0]).not.toHaveProperty('photo');
+    expect(file.data.teams[0]).not.toHaveProperty('logo');
+    expect(file.data.matches[0]).not.toHaveProperty('media');
+    expect(file.data.archivedRounds[0].matches[0]).not.toHaveProperty('media');
+    expect(file.data.closedTournaments[0].rounds[0].matches[0]).not.toHaveProperty('media');
   });
 });
 

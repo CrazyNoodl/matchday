@@ -1,7 +1,7 @@
 import { Platform } from 'react-native';
 import { useStore, syncSuppressionRef } from '@/store';
 import type { RootState } from '@/store';
-import type { RealDataBackup } from '@/store/types';
+import type { RealDataBackup, Player, Team, Match, ArchivedRound, ClosedTournament } from '@/store/types';
 import type { ThemePreference } from '@/theme/colors';
 import type { Language } from '@/i18n';
 
@@ -75,6 +75,38 @@ function parseExportedAtFromFileName(fileName: string): string | null {
 }
 
 // ---------------------------------------------------------------------------
+// Strip media links — player photos, team logos, and match photos/videos are
+// cloud-storage URLs. A backup can be restored long after it was created, by
+// which point a "Reset All Data" may have wiped the cloud project those URLs
+// pointed at, leaving dead links baked into the file. Backups deliberately
+// carry none of these fields at all, so a restore never reintroduces a
+// broken image/video reference.
+// ---------------------------------------------------------------------------
+
+function stripPlayerMedia(player: Player): Player {
+  const { photo: _photo, ...rest } = player;
+  return rest;
+}
+
+function stripTeamMedia(team: Team): Team {
+  const { logo: _logo, ...rest } = team;
+  return rest;
+}
+
+function stripMatchMedia(match: Match): Match {
+  const { media: _media, ...rest } = match;
+  return rest;
+}
+
+function stripRoundMedia(round: ArchivedRound): ArchivedRound {
+  return { ...round, matches: round.matches.map(stripMatchMedia) };
+}
+
+function stripClosedTournamentMedia(tournament: ClosedTournament): ClosedTournament {
+  return { ...tournament, rounds: tournament.rounds.map(stripRoundMedia) };
+}
+
+// ---------------------------------------------------------------------------
 // Build / serialize / validate — pure
 // ---------------------------------------------------------------------------
 
@@ -89,11 +121,11 @@ export function buildBackupPayload(state: RootState): BackupFile {
     tournamentRounds: state.tournamentRounds,
     tournamentPlayers: state.tournamentPlayers,
     roundPlayers: state.roundPlayers,
-    matches: state.matches,
-    archivedRounds: state.archivedRounds,
-    closedTournaments: state.closedTournaments,
-    players: state.players,
-    teams: state.teams,
+    matches: state.matches.map(stripMatchMedia),
+    archivedRounds: state.archivedRounds.map(stripRoundMedia),
+    closedTournaments: state.closedTournaments.map(stripClosedTournamentMedia),
+    players: state.players.map(stripPlayerMedia),
+    teams: state.teams.map(stripTeamMedia),
     showNick: state.showNick,
     showTeamLogo: state.showTeamLogo,
     colorScheme: state.colorScheme,
