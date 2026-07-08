@@ -10,6 +10,14 @@ import { useGoBack } from '@/utils/useGoBack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStore } from '@/store';
 import { calculateStandings } from '@/utils/standings';
+import {
+  collectAllMatches,
+  collectPlayerIds,
+  buildH2HPairs,
+  sumGoals,
+  countMatchDaysPlayed,
+  type H2HPair,
+} from '@/utils/statsAggregation';
 import { useColors } from '@/theme';
 import { Radius } from '@/theme/spacing';
 import { Avatar, NavHeader, SectionLabel, GlowBackground, SegmentedControl, PlayerRankCard } from '@/components';
@@ -18,20 +26,6 @@ import { useTranslation } from 'react-i18next';
 import { makeStyles } from '@/screens/stats/stats.styles';
 
 type Tab = 'ranking' | 'h2h';
-
-// ---------------------------------------------------------------------------
-// H2H pair type
-// ---------------------------------------------------------------------------
-interface H2HPair {
-  playerA: Player;
-  playerB: Player;
-  aWins: number;
-  bWins: number;
-  draws: number;
-  aGoals: number;
-  bGoals: number;
-  games: number;
-}
 
 // ---------------------------------------------------------------------------
 // Main screen
@@ -51,88 +45,33 @@ export default function StatsScreen() {
   const players = useStore((s) => s.players);
 
   // Combine all matches: closed tournaments + current tournament archived rounds + current round
-  const allMatches = useMemo<Match[]>(() => {
-    const fromClosed = closedTournaments.flatMap((t) => t.rounds.flatMap((r) => r.matches));
-    const fromArchived = archivedRounds.flatMap((r) => r.matches);
-    return [...fromClosed, ...fromArchived, ...currentMatches];
-  }, [closedTournaments, archivedRounds, currentMatches]);
+  const allMatches = useMemo<Match[]>(
+    () => collectAllMatches(closedTournaments, archivedRounds, currentMatches),
+    [closedTournaments, archivedRounds, currentMatches],
+  );
 
   // Player IDs — union of current tournament + all closed tournaments
-  const playerIds = useMemo<string[]>(() => {
-    const ids = new Set<string>();
-    for (const id of tournamentPlayers) ids.add(id);
-    for (const t of closedTournaments) {
-      for (const id of t.players) ids.add(id);
-    }
-    for (const m of allMatches) {
-      ids.add(m.aId);
-      ids.add(m.bId);
-    }
-    return Array.from(ids);
-  }, [tournamentPlayers, closedTournaments, allMatches]);
+  const playerIds = useMemo<string[]>(
+    () => collectPlayerIds(tournamentPlayers, closedTournaments, allMatches),
+    [tournamentPlayers, closedTournaments, allMatches],
+  );
 
   const standings = useMemo(
     () => calculateStandings(allMatches, playerIds),
     [allMatches, playerIds],
   );
 
-  const totalGoals = useMemo(
-    () => allMatches.reduce((acc, m) => acc + m.aScore + m.bScore, 0),
-    [allMatches],
-  );
+  const totalGoals = useMemo(() => sumGoals(allMatches), [allMatches]);
   const matchDaysPlayed = useMemo(
-    () =>
-      archivedRounds.length +
-      closedTournaments.reduce((acc, t) => acc + t.rounds.length, 0),
+    () => countMatchDaysPlayed(archivedRounds, closedTournaments),
     [archivedRounds, closedTournaments],
   );
 
   // H2H pairs — all combinations of player IDs
-  const h2hPairs = useMemo<H2HPair[]>(() => {
-    const result: H2HPair[] = [];
-    for (let i = 0; i < playerIds.length; i++) {
-      for (let j = i + 1; j < playerIds.length; j++) {
-        const idA = playerIds[i];
-        const idB = playerIds[j];
-        const playerA = players.find((p) => p.id === idA);
-        const playerB = players.find((p) => p.id === idB);
-        if (!playerA || !playerB) continue;
-
-        let aWins = 0;
-        let bWins = 0;
-        let draws = 0;
-        let aGoals = 0;
-        let bGoals = 0;
-
-        for (const m of allMatches) {
-          const isAB = m.aId === idA && m.bId === idB;
-          const isBA = m.aId === idB && m.bId === idA;
-          if (!isAB && !isBA) continue;
-
-          if (isAB) {
-            aGoals += m.aScore;
-            bGoals += m.bScore;
-            if (m.aScore > m.bScore) aWins++;
-            else if (m.aScore < m.bScore) bWins++;
-            else draws++;
-          } else {
-            // isBA: flip perspective so A = playerA
-            aGoals += m.bScore;
-            bGoals += m.aScore;
-            if (m.bScore > m.aScore) aWins++;
-            else if (m.bScore < m.aScore) bWins++;
-            else draws++;
-          }
-        }
-
-        const games = aWins + bWins + draws;
-        if (games === 0) continue;
-
-        result.push({ playerA, playerB, aWins, bWins, draws, aGoals, bGoals, games });
-      }
-    }
-    return result.sort((a, b) => b.games - a.games);
-  }, [playerIds, players, allMatches]);
+  const h2hPairs = useMemo<H2HPair[]>(
+    () => buildH2HPairs(playerIds, players, allMatches),
+    [playerIds, players, allMatches],
+  );
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
