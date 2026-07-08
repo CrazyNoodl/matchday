@@ -28,7 +28,6 @@ jest.mock('react-native', () => ({
 const REAL_PLAYER: Player = {
   id: 'real-p1',
   name: 'Real Player',
-  color: '#ff0000',
   teamCode: 'JUV',
 };
 
@@ -140,7 +139,7 @@ describe('demo mode — store isolation', () => {
     useStore.getState().setDemoMode(true);
 
     useStore.getState().applyCloudState({
-      players: [{ id: 'cloud-p1', name: 'Cloud', color: '#ccc', teamCode: 'JUV' }],
+      players: [{ id: 'cloud-p1', name: 'Cloud', teamCode: 'JUV' }],
       teams: [],
       matches: [],
       archivedRounds: [],
@@ -166,7 +165,7 @@ describe('demo mode — store isolation', () => {
     useStore.getState().setDemoMode(true);
     useStore.getState().setDemoMode(false);
 
-    const cloudPlayer: Player = { id: 'cloud-p1', name: 'Cloud', color: '#ccc', teamCode: 'JUV' };
+    const cloudPlayer: Player = { id: 'cloud-p1', name: 'Cloud', teamCode: 'JUV' };
     useStore.getState().applyCloudState({
       players: [cloudPlayer],
       teams: [],

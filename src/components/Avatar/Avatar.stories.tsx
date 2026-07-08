@@ -18,9 +18,9 @@ const MOCK_TEAMS = [
 ];
 
 const MOCK_PLAYERS = [
-  { id: 'p1', name: 'Artem Rudenko', nick: 'Atom', color: Colors.player[0], teamCode: 'MCI' },
-  { id: 'p2', name: 'Oleh Bondar', color: Colors.player[1], teamCode: 'BAR' },
-  { id: 'p3', name: 'Logo Player', color: Colors.player[2], teamCode: 'LOGO' },
+  { id: 'p1', name: 'Artem Rudenko', nick: 'Atom', teamCode: 'MCI' },
+  { id: 'p2', name: 'Oleh Bondar', teamCode: 'BAR' },
+  { id: 'p3', name: 'Logo Player', teamCode: 'LOGO' },
 ];
 
 const withMockData: Decorator = (Story) => {

@@ -38,8 +38,8 @@ const mockExtractStats = extractStatsFromPhoto as jest.Mock;
 const mockResizeImage = require('@/utils/imageResize').resizeImage as jest.Mock;
 
 const PLAYERS: Player[] = [
-  { id: 'p1', name: 'Alice', color: '#f00', teamCode: 'JUV' },
-  { id: 'p2', name: 'Bob', color: '#00f', teamCode: 'BAR' },
+  { id: 'p1', name: 'Alice', teamCode: 'JUV' },
+  { id: 'p2', name: 'Bob', teamCode: 'BAR' },
 ];
 
 async function makeHook(overrides: Partial<Parameters<typeof useAddMatchFlow>[0]> = {}) {

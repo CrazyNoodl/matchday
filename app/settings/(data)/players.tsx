@@ -3,15 +3,13 @@ import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { useGoBack } from '@/utils/useGoBack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStore } from '@/store';
-import { Colors, useColors } from '@/theme';
+import { useColors } from '@/theme';
 import { NavHeader, Avatar, EmptyState, GlowBackground } from '@/components';
 import { type Player } from '@/store/types';
 import { useTranslation } from 'react-i18next';
 import { makeStyles } from '@/screens/settings/players/players.styles';
 import { PlayerEditSheet } from '@/screens/settings/players/PlayerEditSheet';
 import { PlayerDialogs } from '@/screens/settings/players/PlayerDialogs';
-
-const PLAYER_COLORS = Colors.player;
 
 export default function PlayersScreen() {
   const goBack = useGoBack();
@@ -37,23 +35,20 @@ export default function PlayersScreen() {
   const [formName, setFormName] = useState('');
   const [formNick, setFormNick] = useState('');
   const [formTeam, setFormTeam] = useState('');
-  const [formColor, setFormColor] = useState<string>(PLAYER_COLORS[0]);
 
   const openCreate = useCallback(() => {
     setEditingPlayer(null);
     setFormName('');
     setFormNick('');
     setFormTeam(teams[0]?.code ?? '');
-    setFormColor(PLAYER_COLORS[players.length % PLAYER_COLORS.length]);
     setShowEdit(true);
-  }, [teams, players.length]);
+  }, [teams]);
 
   const openEdit = useCallback((player: Player) => {
     setEditingPlayer(player);
     setFormName(player.name);
     setFormNick(player.nick ?? '');
     setFormTeam(player.teamCode);
-    setFormColor(player.color);
     setShowEdit(true);
   }, []);
 
@@ -67,7 +62,6 @@ export default function PlayersScreen() {
         name,
         nick: formNick.trim() || undefined,
         teamCode: formTeam,
-        color: formColor,
       });
     } else {
       addPlayer({
@@ -75,11 +69,10 @@ export default function PlayersScreen() {
         name,
         nick: formNick.trim() || undefined,
         teamCode: formTeam,
-        color: formColor,
       });
     }
     setShowEdit(false);
-  }, [formName, formNick, formTeam, formColor, editingPlayer, addPlayer, updatePlayer]);
+  }, [formName, formNick, formTeam, editingPlayer, addPlayer, updatePlayer]);
 
   const handleDelete = useCallback(
     (id: string) => {
@@ -168,15 +161,12 @@ export default function PlayersScreen() {
         onClose={() => setShowEdit(false)}
         editingPlayer={editingPlayer}
         teams={teams}
-        playerColors={PLAYER_COLORS}
         formName={formName}
         onChangeName={setFormName}
         formNick={formNick}
         onChangeNick={setFormNick}
         formTeam={formTeam}
         onChangeTeam={setFormTeam}
-        formColor={formColor}
-        onChangeColor={setFormColor}
         onSave={handleSave}
       />
 

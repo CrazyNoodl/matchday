@@ -85,7 +85,7 @@ it('flushes edits made while offline as soon as connectivity returns, with no fu
   await rerender(undefined);
 
   mockPushState.mockRejectedValueOnce(new Error('network down'));
-  const localPlayer: Player = { id: 'local-1', name: 'Local', color: '#f00', teamCode: 'JUV' };
+  const localPlayer: Player = { id: 'local-1', name: 'Local', teamCode: 'JUV' };
   useStore.getState().addPlayer(localPlayer);
 
   await waitFor(() => {

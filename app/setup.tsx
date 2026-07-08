@@ -19,8 +19,6 @@ import { generateTeamCode } from '@/utils/teamCode';
 import { makeStyles } from '@/screens/setup/setup.styles';
 import { AddPlayerSheet, AssignTeamSheet, ManageTeamsSheet } from '@/screens/setup/SetupModals';
 
-const PLAYER_COLORS = Colors.player;
-
 export default function SetupScreen() {
   const router = useRouter();
   const colors = useColors();
@@ -51,7 +49,6 @@ export default function SetupScreen() {
   const [newPlayerName, setNewPlayerName] = useState('');
   const [newPlayerNick, setNewPlayerNick] = useState('');
   const [newPlayerTeam, setNewPlayerTeam] = useState(teams[0]?.code ?? '');
-  const [newPlayerColor, setNewPlayerColor] = useState<string>(PLAYER_COLORS[0]);
 
   const togglePlayer = useCallback(
     (id: string) => {
@@ -108,12 +105,11 @@ export default function SetupScreen() {
       name,
       nick: newPlayerNick.trim() || undefined,
       teamCode: newPlayerTeam || teams[0]?.code || '',
-      color: newPlayerColor,
     });
     setNewPlayerName('');
     setNewPlayerNick('');
     setShowAddPlayer(false);
-  }, [newPlayerName, newPlayerNick, newPlayerTeam, newPlayerColor, addPlayer, teams]);
+  }, [newPlayerName, newPlayerNick, newPlayerTeam, addPlayer, teams]);
 
   const handleDeleteTeam = useCallback(
     (code: string) => {
@@ -293,7 +289,6 @@ export default function SetupScreen() {
                 setNewPlayerName('');
                 setNewPlayerNick('');
                 setNewPlayerTeam(teams[0]?.code ?? '');
-                setNewPlayerColor(PLAYER_COLORS[players.length % PLAYER_COLORS.length]);
                 setShowAddPlayer(true);
               }}
               activeOpacity={0.75}
@@ -343,8 +338,6 @@ export default function SetupScreen() {
         onChangeNick={setNewPlayerNick}
         teamCode={newPlayerTeam}
         onChangeTeamCode={setNewPlayerTeam}
-        color={newPlayerColor}
-        onChangeColor={setNewPlayerColor}
         onSubmit={handleAddPlayer}
       />
 

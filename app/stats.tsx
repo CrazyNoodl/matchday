@@ -235,6 +235,9 @@ function H2HTab({ pairs }: H2HTabProps) {
   const { t } = useTranslation();
   const colors = useColors();
   const styles = makeStyles(colors);
+  const teams = useStore((s) => s.teams);
+  const teamColorFor = (player: Player) =>
+    teams.find((team) => team.code === player.teamCode)?.color ?? colors.text.secondary;
   return (
     <View style={styles.tabContent}>
       <SectionLabel label={t('stats.rivalries').toUpperCase()} style={styles.sectionLabel} />
@@ -271,9 +274,9 @@ function H2HTab({ pairs }: H2HTabProps) {
 
             {/* Wins counts + draws label */}
             <View style={styles.h2hScoreRow}>
-              <Text style={[styles.h2hWinsCount, { color: playerA.color }]}>{aWins}</Text>
+              <Text style={[styles.h2hWinsCount, { color: teamColorFor(playerA) }]}>{aWins}</Text>
               <Text style={styles.h2hDrawsLabel}>{t('stats.h2hDraws', { count: draws })}</Text>
-              <Text style={[styles.h2hWinsCount, { color: playerB.color }]}>{bWins}</Text>
+              <Text style={[styles.h2hWinsCount, { color: teamColorFor(playerB) }]}>{bWins}</Text>
             </View>
 
             {/* Progress bar */}
@@ -296,7 +299,7 @@ function H2HTab({ pairs }: H2HTabProps) {
                       styles.h2hBarSegment,
                       {
                         flex: aBarFlex,
-                        backgroundColor: playerA.color,
+                        backgroundColor: teamColorFor(playerA),
                         borderTopLeftRadius: Radius.full,
                         borderBottomLeftRadius: Radius.full,
                         borderTopRightRadius: bWins === 0 ? Radius.full : 0,
@@ -310,7 +313,7 @@ function H2HTab({ pairs }: H2HTabProps) {
                       styles.h2hBarSegment,
                       {
                         flex: bBarFlex,
-                        backgroundColor: playerB.color,
+                        backgroundColor: teamColorFor(playerB),
                         borderTopRightRadius: Radius.full,
                         borderBottomRightRadius: Radius.full,
                         borderTopLeftRadius: aWins === 0 ? Radius.full : 0,

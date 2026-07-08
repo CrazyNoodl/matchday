@@ -11,12 +11,10 @@ import {
   Platform,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { Colors, useColors } from '@/theme';
+import { useColors } from '@/theme';
 import { TeamBadge } from '@/components';
 import { type Team } from '@/store/types';
 import { makeStyles } from './setup.styles';
-
-const PLAYER_COLORS = Colors.player;
 
 // ---------------------------------------------------------------------------
 // Add player sheet
@@ -32,8 +30,6 @@ interface AddPlayerSheetProps {
   onChangeNick: (v: string) => void;
   teamCode: string;
   onChangeTeamCode: (v: string) => void;
-  color: string;
-  onChangeColor: (v: string) => void;
   onSubmit: () => void;
 }
 
@@ -47,8 +43,6 @@ export function AddPlayerSheet({
   onChangeNick,
   teamCode,
   onChangeTeamCode,
-  color,
-  onChangeColor,
   onSubmit,
 }: AddPlayerSheetProps) {
   const { t } = useTranslation();
@@ -120,23 +114,6 @@ export function AddPlayerSheet({
                 </TouchableOpacity>
               ))}
             </ScrollView>
-          </View>
-          <View style={styles.addPlayerFormGroup}>
-            <Text style={styles.addPlayerFormLabel}>{t('setup.form.color').toUpperCase()}</Text>
-            <View style={styles.addPlayerColorPicker}>
-              {PLAYER_COLORS.map((c) => (
-                <TouchableOpacity
-                  key={c}
-                  style={[
-                    styles.addPlayerColorDot,
-                    { backgroundColor: c },
-                    color === c && styles.addPlayerColorDotSelected,
-                  ]}
-                  onPress={() => onChangeColor(c)}
-                  activeOpacity={0.8}
-                />
-              ))}
-            </View>
           </View>
           <View style={{ height: 20 }} />
         </ScrollView>
