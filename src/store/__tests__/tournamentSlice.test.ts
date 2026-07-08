@@ -363,12 +363,13 @@ describe('media storage folder lifecycle (#67)', () => {
 });
 
 describe('resetStore — device-level display preferences', () => {
-  it('preserves colorScheme, language, showNick and showTeamLogo across a sign-out reset', async () => {
+  it('preserves colorScheme, language, showNick, showTeamLogo and groupByTours across a sign-out reset', async () => {
     useStore.setState({
       colorScheme: 'light',
       language: 'uk',
       showNick: false,
       showTeamLogo: false,
+      groupByTours: false,
     });
 
     await useStore.getState().resetStore();
@@ -377,6 +378,7 @@ describe('resetStore — device-level display preferences', () => {
     expect(useStore.getState().language).toBe('uk');
     expect(useStore.getState().showNick).toBe(false);
     expect(useStore.getState().showTeamLogo).toBe(false);
+    expect(useStore.getState().groupByTours).toBe(false);
   });
 
   it('still clears account-scoped data like players and tournaments', async () => {

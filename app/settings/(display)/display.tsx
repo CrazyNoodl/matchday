@@ -13,6 +13,8 @@ export default function DisplaySettingsScreen() {
   const { t } = useTranslation();
   const showNick = useStore((s) => s.showNick);
   const showTeamLogo = useStore((s) => s.showTeamLogo);
+  const groupByTours = useStore((s) => s.groupByTours);
+  const setGroupByTours = useStore((s) => s.setGroupByTours);
   const colorScheme = useStore((s) => s.colorScheme);
   const setColorScheme = useStore((s) => s.setColorScheme);
   const colors = useColors();
@@ -63,6 +65,24 @@ export default function DisplaySettingsScreen() {
                 {t('settings.display.themeAuto')}
               </Text>
             </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Matches */}
+        <View style={styles.card}>
+          <Text style={styles.sectionTitle}>{t('settings.display.matches')}</Text>
+
+          <View style={styles.row}>
+            <View style={styles.rowLeft}>
+              <Text style={styles.rowLabel}>{t('settings.display.groupByTours')}</Text>
+              <Text style={styles.rowDesc}>{t('settings.display.groupByToursDesc')}</Text>
+            </View>
+            <Switch
+              value={groupByTours}
+              onValueChange={setGroupByTours}
+              trackColor={{ false: colors.bg.elevated, true: colors.accent.green }}
+              thumbColor="#ffffff"
+            />
           </View>
         </View>
 
