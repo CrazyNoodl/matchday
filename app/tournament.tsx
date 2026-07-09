@@ -54,6 +54,7 @@ export default function TournamentScreen() {
   const setViewingRound = useStore((s) => s.setViewingRound);
   const renameTournament = useStore((s) => s.renameTournament);
   const closeTournament = useStore((s) => s.closeTournament);
+  const showAvgGoals = useStore((s) => s.showAvgGoals);
 
   const colors = useColors();
   const styles = makeStyles(colors);
@@ -152,7 +153,7 @@ export default function TournamentScreen() {
           players={players}
           playerLabel={t('table.player').toUpperCase()}
           emptyLabel={t('tournament.noMatches')}
-          columns={getStandingsTableColumns(t)}
+          columns={getStandingsTableColumns(t, showAvgGoals)}
         />
 
         {/* ---- CURRENT MATCH DAY (only if roundOpen) ---- */}

@@ -10,6 +10,15 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.39',
+    added: [
+      'Display settings now has a "Show average goals columns" toggle to show/hide the GF/G and GA/G columns in standings tables',
+    ],
+    internal: [
+      'Internal: added analytics events for the "Group matches by tours" and "Show average goals columns" toggles in Display settings',
+    ],
+  },
+  {
     version: '1.9.38',
     added: [
       'Developer settings now shows a confirmation dialog after sending a test error or test event, instead of no feedback at all',

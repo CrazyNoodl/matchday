@@ -88,6 +88,7 @@ export default function ArchiveDayScreen() {
   );
   const deleteArchivedRound = useStore((s) => s.deleteArchivedRound);
   const groupByTours = useStore((s) => s.groupByTours);
+  const showAvgGoals = useStore((s) => s.showAvgGoals);
   const roundsForOrdinal = useStore((s) =>
     viewingRound && s.archivedRounds.some((r) => r.id === viewingRound.id)
       ? s.archivedRounds
@@ -220,7 +221,7 @@ export default function ArchiveDayScreen() {
               standings={standings}
               players={players}
               playerLabel={t('table.player').toUpperCase()}
-              columns={getStandingsTableColumns(t)}
+              columns={getStandingsTableColumns(t, showAvgGoals)}
             />
           </>
         )}

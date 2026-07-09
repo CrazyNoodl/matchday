@@ -248,6 +248,7 @@ export const useStore = create<RootState>()(
         showNick: state.showNick,
         showTeamLogo: state.showTeamLogo,
         groupByTours: state.groupByTours,
+        showAvgGoals: state.showAvgGoals,
         colorScheme: state.colorScheme,
         language: state.language,
         demoMode: state.demoMode,

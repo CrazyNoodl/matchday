@@ -54,6 +54,8 @@ const settings = {
     matches: 'Matches',
     groupByTours: 'Group matches by tours',
     groupByToursDesc: 'Split round matches into blocks by round-robin cycle',
+    showAvgGoals: 'Show average goals columns',
+    showAvgGoalsDesc: 'Show GF/G and GA/G columns in standings tables',
     upcoming: 'Coming soon',
     inDevelopment: 'In development',
   },
