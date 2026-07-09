@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
+import * as Sentry from '@sentry/react-native';
 import { useGoBack } from '@/utils/useGoBack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NavHeader } from '@/components';
@@ -102,6 +103,22 @@ export default function DeveloperScreen() {
               label={t('developer.imagePipeline.resizeLab')}
               sub={t('developer.imagePipeline.resizeLabSub')}
               onPress={() => router.push('/settings/resize-lab')}
+            />
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionHeader}>
+            {t('developer.errorTracking.section').toUpperCase()}
+          </Text>
+          <View style={styles.card}>
+            <DevRow
+              icon="🐞"
+              label={t('developer.errorTracking.sendTestError')}
+              sub={t('developer.errorTracking.sendTestErrorSub')}
+              onPress={() =>
+                Sentry.captureException(new Error('Matchday: test error from Developer Tools'))
+              }
             />
           </View>
         </View>

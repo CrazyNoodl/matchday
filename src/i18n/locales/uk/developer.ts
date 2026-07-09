@@ -16,6 +16,11 @@ const developer = {
     resizeLab: 'Лабораторія зменшення',
     resizeLabSub: 'Порівняння розміру до/після для кожного пресету стиснення (#62)',
   },
+  errorTracking: {
+    section: 'Логування помилок',
+    sendTestError: 'Надіслати тестову помилку',
+    sendTestErrorSub: 'Кидає тестову помилку, щоб перевірити підключення Sentry',
+  },
 } as const;
 
 export default developer;

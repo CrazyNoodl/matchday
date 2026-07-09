@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import * as Sentry from '@sentry/react-native';
 import { useStore, syncSuppressionRef } from '@/store';
 import { getCurrentUserId } from './auth';
 import { pushState, pullState, subscribeToChanges, buildSyncPayload, ALL_DIRTY } from './sync';
@@ -63,10 +64,12 @@ export function useSyncManager() {
     // 'empty': query succeeded and the cloud genuinely has nothing for this user.
     // 'has-data': query succeeded and applyCloudState() was applied.
     async function pull(): Promise<'failed' | 'empty' | 'has-data'> {
+      Sentry.addBreadcrumb({ category: 'sync', message: 'pull start' });
       let pulled: Awaited<ReturnType<typeof pullState>>;
       try {
         pulled = await pullState();
-      } catch {
+      } catch (err) {
+        Sentry.captureException(err, { tags: { syncOp: 'pull' } });
         setSyncStatus('error');
         return 'failed';
       }
@@ -104,9 +107,11 @@ export function useSyncManager() {
         persistDirty();
       }
       pushingRef.current = true;
+      Sentry.addBreadcrumb({ category: 'sync', message: 'push start', data: { dirty: [...dirty] } });
       try {
         await pushState(buildSyncPayload(useStore.getState()), dirty);
-      } catch {
+      } catch (err) {
+        Sentry.captureException(err, { tags: { syncOp: 'push' }, extra: { dirty: [...dirty] } });
         setSyncStatus('error');
         if (!forceDirty) {
           dirty.forEach((t) => dirtyRef.current.add(t));
@@ -149,6 +154,7 @@ export function useSyncManager() {
           setSyncStatus('idle');
           return;
         }
+        Sentry.setUser({ id: userId });
 
         if (dirtyRef.current.size > 0) {
           // Local edits from a previous session never reached the cloud.
@@ -210,7 +216,8 @@ export function useSyncManager() {
             pull();
           }, PULL_DEBOUNCE_MS);
         });
-      } catch {
+      } catch (err) {
+        Sentry.captureException(err, { tags: { syncOp: 'init' } });
         setSyncStatus('error');
       }
     }
@@ -219,6 +226,7 @@ export function useSyncManager() {
 
     reconnectRef.current = () => {
       if (!userId || useStore.getState().demoMode) return;
+      Sentry.addBreadcrumb({ category: 'sync', message: 'reconnect' });
       // A push is already mid-flight (its dirty tables were claimed
       // synchronously when it started, so dirtyRef may look empty right
       // now even though that push hasn't landed or failed yet). Pulling
@@ -251,6 +259,7 @@ export function useSyncManager() {
       if (syncSuppressionRef.current) return;
 
       const demoModeChanged = state.demoMode !== prevState.demoMode;
+      if (demoModeChanged) Sentry.setTag('demoMode', String(state.demoMode));
 
       // Entering/exiting demo mode swaps players/teams/matches/tournament
       // wholesale (DEMO_STATE <-> realDataBackup) in one set() call. That

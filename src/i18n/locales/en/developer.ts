@@ -16,6 +16,11 @@ const developer = {
     resizeLab: 'Resize Lab',
     resizeLabSub: 'See before/after size for each upload resize preset (#62)',
   },
+  errorTracking: {
+    section: 'Error tracking',
+    sendTestError: 'Send test error',
+    sendTestErrorSub: 'Throws a test error to verify Sentry is wired up',
+  },
 } as const;
 
 export default developer;
