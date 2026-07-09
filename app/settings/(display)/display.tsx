@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '@/store';
 import { useColors } from '@/theme';
-import { NavHeader, GlowBackground } from '@/components';
+import { NavHeader, GlowBackground, SegmentedControl } from '@/components';
 import { makeStyles } from '@/screens/settings/display/display.styles';
 import { trackEvent } from '@/analytics';
 
@@ -18,6 +18,8 @@ export default function DisplaySettingsScreen() {
   const setGroupByTours = useStore((s) => s.setGroupByTours);
   const showAvgGoals = useStore((s) => s.showAvgGoals);
   const setShowAvgGoals = useStore((s) => s.setShowAvgGoals);
+  const standingsViewMode = useStore((s) => s.standingsViewMode);
+  const setStandingsViewMode = useStore((s) => s.setStandingsViewMode);
   const colorScheme = useStore((s) => s.colorScheme);
   const setColorScheme = useStore((s) => s.setColorScheme);
   const colors = useColors();
@@ -115,6 +117,26 @@ export default function DisplaySettingsScreen() {
               }}
               trackColor={{ false: colors.bg.elevated, true: colors.accent.green }}
               thumbColor="#ffffff"
+            />
+          </View>
+
+          <View style={styles.divider} />
+
+          <View style={styles.row}>
+            <View style={styles.rowLeft}>
+              <Text style={styles.rowLabel}>{t('settings.display.standingsView')}</Text>
+              <Text style={styles.rowDesc}>{t('settings.display.standingsViewDesc')}</Text>
+            </View>
+            <SegmentedControl
+              value={standingsViewMode}
+              onChange={(value) => {
+                setStandingsViewMode(value);
+                trackEvent('standings_view_mode_changed', { mode: value });
+              }}
+              options={[
+                { value: 'table', label: t('matchday.table') },
+                { value: 'cards', label: t('matchday.cards') },
+              ]}
             />
           </View>
         </View>

@@ -56,6 +56,8 @@ const settings = {
     groupByToursDesc: 'Розбивати матчі раунду на блоки по колу гри',
     showAvgGoals: 'Показувати колонки середніх голів',
     showAvgGoalsDesc: 'Показувати колонки ГЗ/і та ГП/і у турнірних таблицях',
+    standingsView: 'Вигляд таблиці',
+    standingsViewDesc: 'Оберіть, як відображати турнірну таблицю на екрані туру',
     upcoming: 'Скоро',
     inDevelopment: 'У розробці',
   },

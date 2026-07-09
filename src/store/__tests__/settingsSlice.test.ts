@@ -39,3 +39,17 @@ describe('showAvgGoals', () => {
     expect(useStore.getState().showAvgGoals).toBe(true);
   });
 });
+
+describe('standingsViewMode', () => {
+  it('defaults to table', () => {
+    expect(useStore.getState().standingsViewMode).toBe('table');
+  });
+
+  it('setStandingsViewMode switches to cards and back', () => {
+    useStore.getState().setStandingsViewMode('cards');
+    expect(useStore.getState().standingsViewMode).toBe('cards');
+
+    useStore.getState().setStandingsViewMode('table');
+    expect(useStore.getState().standingsViewMode).toBe('table');
+  });
+});

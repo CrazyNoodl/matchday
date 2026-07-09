@@ -56,6 +56,8 @@ const settings = {
     groupByToursDesc: 'Split round matches into blocks by round-robin cycle',
     showAvgGoals: 'Show average goals columns',
     showAvgGoalsDesc: 'Show GF/G and GA/G columns in standings tables',
+    standingsView: 'Standings view',
+    standingsViewDesc: 'Choose how standings are displayed on the matchday screen',
     upcoming: 'Coming soon',
     inDevelopment: 'In development',
   },
