@@ -36,6 +36,7 @@ export default function SettingsScreen() {
     demoMode,
     currentLang,
     isDefaultState,
+    isOffline,
     userEmail,
     versionTaps,
     devUnlocked,
@@ -157,10 +158,14 @@ export default function SettingsScreen() {
           title={t('settings.danger.section')}
           label={t('settings.danger.resetAll')}
           description={
-            demoMode ? t('settings.danger.resetDisabledDemo') : t('settings.danger.resetDesc')
+            demoMode
+              ? t('settings.danger.resetDisabledDemo')
+              : isOffline
+                ? t('settings.danger.resetDisabledOffline')
+                : t('settings.danger.resetDesc')
           }
           buttonLabel={t('settings.danger.reset')}
-          disabled={isDefaultState || demoMode}
+          disabled={isDefaultState || demoMode || isOffline}
           onPress={() => d.setShowResetConfirm(true)}
         />
 

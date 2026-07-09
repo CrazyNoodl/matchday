@@ -74,6 +74,7 @@ const settings = {
     resetDesc:
       'This will permanently delete all tournaments, matches, rounds, and reset to the default players and teams.',
     resetDisabledDemo: 'Turn off Demo Mode to reset your data.',
+    resetDisabledOffline: 'You need to be online to reset your data.',
     backupFirst: 'Backup My Data First',
     cancel: 'Cancel',
     reset: 'Reset',
