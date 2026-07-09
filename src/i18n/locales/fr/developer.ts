@@ -16,6 +16,11 @@ const developer = {
     resizeLab: 'Labo redimensionnement',
     resizeLabSub: 'Comparer la taille avant/après pour chaque préréglage de compression (#62)',
   },
+  errorTracking: {
+    section: 'Suivi des erreurs',
+    sendTestError: 'Envoyer une erreur test',
+    sendTestErrorSub: 'Déclenche une erreur test pour vérifier que Sentry est bien connecté',
+  },
 } as const;
 
 export default developer;

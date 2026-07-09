@@ -53,6 +53,10 @@ module.exports = {
           isAccessMediaLocationEnabled: true,
         },
       ],
+      // Org/project/auth token come from SENTRY_ORG/SENTRY_PROJECT/SENTRY_AUTH_TOKEN
+      // env vars (plugin falls back to them automatically) — keeps them out of
+      // this committed file.
+      '@sentry/react-native/expo',
     ],
     experiments: {
       typedRoutes: true,

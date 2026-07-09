@@ -19,6 +19,7 @@ import { Platform, View, ActivityIndicator, Text, TextInput, TouchableOpacity } 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Constants from 'expo-constants';
 import { ErrorBoundary } from 'react-error-boundary';
+import * as Sentry from '@sentry/react-native';
 import { ThemeProvider, useColors, useEffectiveColorScheme } from '@/theme';
 import { useStore } from '@/store';
 import { bannerStyles, offlineBannerStyles } from '@/screens/layout/layout.styles';
@@ -27,7 +28,10 @@ import { useSyncManager } from '@/supabase/useSyncManager';
 import { supabase, supabaseConfigured } from '@/supabase/client';
 import { LoginScreen, OfflineScreen, ErrorFallback } from '@/components';
 import { useIsOnline } from '@/hooks/useIsOnline';
+import { initSentry } from '@/sentry';
 import type { Session } from '@supabase/supabase-js';
+
+initSentry();
 
 (Text as any).defaultProps = { ...((Text as any).defaultProps ?? {}), allowFontScaling: false };
 (TextInput as any).defaultProps = {
@@ -41,7 +45,10 @@ const BASE_URL: string =
 function AppErrorBoundary({ children }: { children: React.ReactNode }) {
   return (
     <ErrorBoundary
-      onError={(error) => console.error('[AppErrorBoundary]', error)}
+      onError={(error) => {
+        console.error('[AppErrorBoundary]', error);
+        Sentry.captureException(error);
+      }}
       fallbackRender={({ resetErrorBoundary }) => <ErrorFallback onRetry={resetErrorBoundary} />}
     >
       {children}

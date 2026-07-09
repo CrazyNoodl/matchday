@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/react-native';
 import { supabase } from './client';
 import { getCurrentUserId } from './auth';
 import type { MediaItem, MediaType } from '../store/types';
@@ -32,6 +33,7 @@ export async function uploadMediaItem(
     return data?.publicUrl ?? null;
   } catch (e) {
     console.warn('[storage] upload error:', e);
+    Sentry.captureException(e, { tags: { storageOp: 'uploadMediaItem' } });
     return null;
   }
 }
@@ -54,6 +56,7 @@ export async function uploadTeamLogo(localUri: string): Promise<string | null> {
     return data?.publicUrl ?? null;
   } catch (e) {
     console.warn('[storage] team logo upload error:', e);
+    Sentry.captureException(e, { tags: { storageOp: 'uploadTeamLogo' } });
     return null;
   }
 }
@@ -91,6 +94,7 @@ export async function deleteMediaItem(publicUrl: string): Promise<void> {
     await supabase.storage.from(BUCKET).remove([path]);
   } catch (e) {
     console.warn('[storage] delete error:', e);
+    Sentry.captureException(e, { tags: { storageOp: 'deleteMediaItem' } });
   }
 }
 
@@ -115,6 +119,7 @@ export async function deleteStorageFolder(prefix: string): Promise<void> {
     }
   } catch (e) {
     console.warn('[storage] delete folder error:', e);
+    Sentry.captureException(e, { tags: { storageOp: 'deleteStorageFolder' } });
   }
 }
 
@@ -200,6 +205,10 @@ async function uploadViaFetch(localUri: string, path: string, mimeType: string):
   if (!response.ok) {
     const text = await response.text();
     console.warn('[storage] upload failed:', text);
+    Sentry.captureMessage('storage: upload failed', {
+      level: 'warning',
+      extra: { status: response.status, body: text.slice(0, 200) },
+    });
   }
   return response.ok;
 }

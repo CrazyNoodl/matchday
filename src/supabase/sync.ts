@@ -7,6 +7,7 @@
  *  - Conflict: last_write_wins via updated_at timestamp
  */
 
+import * as Sentry from '@sentry/react-native';
 import { supabase, supabaseConfigured } from './client';
 import { getCurrentUserId } from './auth';
 import type { Player, Team, Match, ArchivedRound, ClosedTournament } from '../store/types';
@@ -707,6 +708,10 @@ function tryParseJson<T>(raw: string): T | undefined {
     return JSON.parse(raw) as T;
   } catch {
     console.warn('[sync] malformed JSON, skipping field:', raw.slice(0, 80));
+    Sentry.captureMessage('sync: malformed JSON field', {
+      level: 'warning',
+      extra: { raw: raw.slice(0, 200) },
+    });
     return undefined;
   }
 }
