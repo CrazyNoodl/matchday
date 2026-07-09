@@ -4,7 +4,7 @@ import Constants from 'expo-constants';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useColors } from '@/theme';
-import { NavHeader, GlowBackground } from '@/components';
+import { NavHeader, GlowBackground, SyncStatusIndicator, useSyncStatus } from '@/components';
 import { supabaseConfigured } from '@/supabase/client';
 import { makeStyles } from '@/screens/settings/settings.styles';
 import { SettingsRow } from '@/screens/settings/SettingsRow';
@@ -24,6 +24,7 @@ export default function SettingsScreen() {
   const colors = useColors();
   const styles = makeStyles(colors);
   const d = useSettings();
+  const syncStatus = useSyncStatus();
 
   const {
     router,
@@ -36,6 +37,7 @@ export default function SettingsScreen() {
     demoMode,
     currentLang,
     isDefaultState,
+    isOffline,
     userEmail,
     versionTaps,
     devUnlocked,
@@ -59,8 +61,14 @@ export default function SettingsScreen() {
             <View style={styles.accountAvatar}>
               <Text style={styles.accountAvatarText}>✉️</Text>
             </View>
-            <Text style={styles.accountEmail} numberOfLines={1}>{userEmail ?? '—'}</Text>
-            <TouchableOpacity style={styles.signOutBtn} onPress={d.handleSignOut} activeOpacity={0.75}>
+            <Text style={styles.accountEmail} numberOfLines={1}>
+              {userEmail ?? '—'}
+            </Text>
+            <TouchableOpacity
+              style={styles.signOutBtn}
+              onPress={d.handleSignOut}
+              activeOpacity={0.75}
+            >
               <Text style={styles.signOutBtnText}>{t('settings.account.signOut')}</Text>
             </TouchableOpacity>
           </View>
@@ -124,6 +132,7 @@ export default function SettingsScreen() {
             sub={t('settings.data.backupSub')}
             onPress={() => router.push('/settings/backup')}
           />
+          {syncStatus.visible && <SyncStatusIndicator />}
           <SettingsRow
             icon="ℹ️"
             label={t('settings.about.appName')}
@@ -137,7 +146,7 @@ export default function SettingsScreen() {
             onPress={d.handleVersionTap}
             chevron={false}
           />
-          {devUnlocked && (
+          {devUnlocked && !demoMode && (
             <SettingsRow
               icon="⚙️"
               label={t('settings.developer.menuLabel')}
@@ -150,9 +159,15 @@ export default function SettingsScreen() {
         <DangerZoneCard
           title={t('settings.danger.section')}
           label={t('settings.danger.resetAll')}
-          description={t('settings.danger.resetDesc')}
+          description={
+            demoMode
+              ? t('settings.danger.resetDisabledDemo')
+              : isOffline
+                ? t('settings.danger.resetDisabledOffline')
+                : t('settings.danger.resetDesc')
+          }
           buttonLabel={t('settings.danger.reset')}
-          disabled={isDefaultState}
+          disabled={isDefaultState || demoMode || isOffline}
           onPress={() => d.setShowResetConfirm(true)}
         />
 

@@ -5,6 +5,7 @@
 `src/i18n/locales/{en,uk,fr}/` each hold one file per top-level group (`common.ts`, `home.ts`, ...) merged by that locale's `index.ts`. Plain JS objects exported `as const` — TypeScript does **not** error on duplicate object keys, the second definition silently overwrites the first at runtime, with no warning. This once caused `stats.*` screen strings (title, ranking, h2hGames, etc.) to disappear entirely because a second `stats:` block for match-stat labels was added further down the (then-monolithic) file.
 
 **Now enforced by `src/i18n/__tests__/noDuplicateKeys.test.ts`**, which fails the build on either:
+
 - a duplicate key at any nesting depth in any single group file (parsed via the TS AST, not a regex — catches it regardless of indentation), or
 - en/uk/fr key sets drifting apart (a key added to one locale but not the others).
 
@@ -19,6 +20,7 @@ grep -rn "<key>:" src/i18n/locales/en/ src/i18n/locales/uk/ src/i18n/locales/fr/
 ### Bottom sheets: scrollable content requires `snapToMax`
 
 `Sheet` has two modes:
+
 - **Dynamic height** (default): wraps children in `BottomSheetView` + `onLayout`, snaps to measured content height. Use for short, fixed-height content (score editor, confirmation). Do **not** use with a `ScrollView` — the sheet will size to full content height until it hits `MAX_HEIGHT`, then clip instead of scroll.
 - **Full-height** (`snapToMax` prop): snaps to 85% of screen height, children rendered directly. Use whenever the sheet contains a list that could be long (stats editor, import results, player pickers).
 

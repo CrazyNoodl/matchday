@@ -2,7 +2,6 @@ import type { Meta, StoryObj } from '@storybook/react-native-web-vite';
 import { StandingsTable, type StandingsColumn } from './StandingsTable';
 import type { Standing } from '@/utils/standings';
 import type { Player } from '@/store/types';
-import { Colors } from '@/theme/colors';
 
 const COLUMNS: StandingsColumn[] = [
   { key: 'played', label: 'P' },
@@ -16,9 +15,14 @@ const COLUMNS: StandingsColumn[] = [
 ];
 
 const PLAYERS: Player[] = [
-  { id: 'p1', name: 'Artem Rudenko', nick: 'Atom', color: Colors.player[0], teamCode: 'MCI' },
-  { id: 'p2', name: 'Oleh Bondar', color: Colors.player[1], teamCode: 'BAR' },
-  { id: 'p3', name: 'A Player With A Really Long Name', nick: 'Longname', color: Colors.player[2], teamCode: 'RMA' },
+  { id: 'p1', name: 'Artem Rudenko', nick: 'Atom', teamCode: 'MCI' },
+  { id: 'p2', name: 'Oleh Bondar', teamCode: 'BAR' },
+  {
+    id: 'p3',
+    name: 'A Player With A Really Long Name',
+    nick: 'Longname',
+    teamCode: 'RMA',
+  },
 ];
 
 const STANDINGS: Standing[] = [

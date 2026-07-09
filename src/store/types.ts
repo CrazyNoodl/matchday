@@ -2,7 +2,6 @@ export interface Player {
   id: string;
   name: string;
   nick?: string;
-  color: string;
   teamCode: string;
   photo?: string;
 }

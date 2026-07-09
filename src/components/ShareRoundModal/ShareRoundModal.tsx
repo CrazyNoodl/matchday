@@ -12,15 +12,15 @@ import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '@/store';
-import { ArchivedRound } from '@/store/types';
-import { calculateStandings, Standing } from '@/utils/standings';
+import { type ArchivedRound } from '@/store/types';
+import { calculateStandings, type Standing } from '@/utils/standings';
 import { useColors } from '@/theme';
 import { Toggle } from '@/components/Toggle';
 import { FontFamily } from '@/theme/typography';
 import { STANDINGS_NUM_COLS, formatShareCardDate } from '@/utils/shareCard';
 import { makeWinnerStyles, makeModalStyles } from './ShareRoundModal.styles';
 // Native-only modules loaded dynamically so web build doesn't crash
-type CaptureRef = typeof import('react-native-view-shot')['captureRef'];
+type CaptureRef = (typeof import('react-native-view-shot'))['captureRef'];
 type MediaLibraryModule = typeof import('expo-media-library/legacy');
 type SharingModule = typeof import('expo-sharing');
 type Html2Canvas = typeof import('html2canvas').default;
@@ -54,7 +54,12 @@ export function CardAvatar({ teamCode, size }: { teamCode?: string; size: number
   }, [logoUrl]);
 
   const radius = Math.round(size * 0.3);
-  const baseStyle = { width: size, height: size, borderRadius: radius, overflow: 'hidden' as const };
+  const baseStyle = {
+    width: size,
+    height: size,
+    borderRadius: radius,
+    overflow: 'hidden' as const,
+  };
 
   if (!team) {
     return <View style={[baseStyle, { backgroundColor: colors.bg.elevated }]} />;
@@ -76,8 +81,21 @@ export function CardAvatar({ teamCode, size }: { teamCode?: string; size: number
 
   const label = team.short.slice(0, 3).toUpperCase();
   return (
-    <View style={[baseStyle, { backgroundColor: team.color + '28', alignItems: 'center', justifyContent: 'center' }]}>
-      <Text style={{ fontFamily: FontFamily.bodySemiBold, fontSize: size * 0.28, color: team.color, textAlign: 'center', lineHeight: size - 4 }}>
+    <View
+      style={[
+        baseStyle,
+        { backgroundColor: team.color + '28', alignItems: 'center', justifyContent: 'center' },
+      ]}
+    >
+      <Text
+        style={{
+          fontFamily: FontFamily.bodySemiBold,
+          fontSize: size * 0.28,
+          color: team.color,
+          textAlign: 'center',
+          lineHeight: size - 4,
+        }}
+      >
         {label}
       </Text>
     </View>
@@ -155,7 +173,10 @@ function MatchRow({ match, isLast }: { match: ArchivedRound['matches'][number]; 
     <View style={[winnerStyles.matchRow, !isLast && winnerStyles.matchRowBorder]}>
       <View style={winnerStyles.matchSide}>
         <CardAvatar teamCode={playerA?.teamCode} size={22} />
-        <Text style={[winnerStyles.matchName, aWins && winnerStyles.matchNameWin]} numberOfLines={1}>
+        <Text
+          style={[winnerStyles.matchName, aWins && winnerStyles.matchNameWin]}
+          numberOfLines={1}
+        >
           {playerA?.name ?? t('common.unknown')}
         </Text>
       </View>
@@ -165,7 +186,14 @@ function MatchRow({ match, isLast }: { match: ArchivedRound['matches'][number]; 
         <Text style={bWins && winnerStyles.matchScoreWin}>{match.bScore}</Text>
       </Text>
       <View style={[winnerStyles.matchSide, winnerStyles.matchSideRight]}>
-        <Text style={[winnerStyles.matchName, winnerStyles.matchNameRight, bWins && winnerStyles.matchNameWin]} numberOfLines={1}>
+        <Text
+          style={[
+            winnerStyles.matchName,
+            winnerStyles.matchNameRight,
+            bWins && winnerStyles.matchNameWin,
+          ]}
+          numberOfLines={1}
+        >
           {playerB?.name ?? t('common.unknown')}
         </Text>
         <CardAvatar teamCode={playerB?.teamCode} size={22} />
@@ -174,15 +202,25 @@ function MatchRow({ match, isLast }: { match: ArchivedRound['matches'][number]; 
   );
 }
 
-function WinnerCard({ round, roundNumber, tournamentName, includeMatches = false, includeStandings = false }: WinnerCardProps) {
+function WinnerCard({
+  round,
+  roundNumber,
+  tournamentName,
+  includeMatches = false,
+  includeStandings = false,
+}: WinnerCardProps) {
   const players = useStore((s) => s.players);
+  const teams = useStore((s) => s.teams);
   const colors = useColors();
   const winnerStyles = makeWinnerStyles(colors);
   const { t } = useTranslation();
 
   const playerIds = useMemo(() => {
     const ids = new Set<string>();
-    round.matches.forEach((m) => { ids.add(m.aId); ids.add(m.bId); });
+    round.matches.forEach((m) => {
+      ids.add(m.aId);
+      ids.add(m.bId);
+    });
     return Array.from(ids);
   }, [round.matches]);
 
@@ -192,10 +230,11 @@ function WinnerCard({ round, roundNumber, tournamentName, includeMatches = false
   );
 
   const winner = players.find((p) => p.id === round.winner);
+  const winnerTeam = teams.find((team) => team.code === winner?.teamCode);
   const winnerStats = standings.find((s) => s.playerId === round.winner);
   const isDraw = !round.winner;
 
-  const glowColor = winner?.color ?? colors.accent.green;
+  const glowColor = winnerTeam?.color ?? colors.accent.green;
   const dateStr = formatShareCardDate(round.date);
 
   return (
@@ -216,7 +255,9 @@ function WinnerCard({ round, roundNumber, tournamentName, includeMatches = false
       <View style={winnerStyles.hero}>
         {/* Diamond label */}
         <Text style={winnerStyles.heroLabel}>
-          {isDraw ? t('shareRound.matchDayResult').toUpperCase() : t('shareRound.roundWinner').toUpperCase()}
+          {isDraw
+            ? t('shareRound.matchDayResult').toUpperCase()
+            : t('shareRound.roundWinner').toUpperCase()}
         </Text>
         <Text style={winnerStyles.heroMatchCount}>
           {(round.matches.length === 1
@@ -245,7 +286,9 @@ function WinnerCard({ round, roundNumber, tournamentName, includeMatches = false
         {winnerStats && (
           <View style={winnerStyles.statsRow}>
             <View style={winnerStyles.statItem}>
-              <Text style={[winnerStyles.statValue, { color: colors.accent.green }]}>{winnerStats.wins}</Text>
+              <Text style={[winnerStyles.statValue, { color: colors.accent.green }]}>
+                {winnerStats.wins}
+              </Text>
               <Text style={winnerStyles.statLabel}>{t('table.wins')}</Text>
             </View>
             <View style={winnerStyles.statDot} />
@@ -255,17 +298,24 @@ function WinnerCard({ round, roundNumber, tournamentName, includeMatches = false
             </View>
             <View style={winnerStyles.statDot} />
             <View style={winnerStyles.statItem}>
-              <Text style={[winnerStyles.statValue, { color: colors.accent.red }]}>{winnerStats.losses}</Text>
+              <Text style={[winnerStyles.statValue, { color: colors.accent.red }]}>
+                {winnerStats.losses}
+              </Text>
               <Text style={winnerStyles.statLabel}>{t('table.losses')}</Text>
             </View>
             <View style={winnerStyles.statSep} />
             <View style={winnerStyles.statItem}>
-              <Text style={winnerStyles.statValue}>{winnerStats.gf}<Text style={winnerStyles.statGA}>:{winnerStats.ga}</Text></Text>
+              <Text style={winnerStyles.statValue}>
+                {winnerStats.gf}
+                <Text style={winnerStyles.statGA}>:{winnerStats.ga}</Text>
+              </Text>
               <Text style={winnerStyles.statLabel}>{t('shareRound.goals')}</Text>
             </View>
             <View style={winnerStyles.statDot} />
             <View style={winnerStyles.statItem}>
-              <Text style={[winnerStyles.statValue, { color: colors.accent.gold }]}>{winnerStats.pts}</Text>
+              <Text style={[winnerStyles.statValue, { color: colors.accent.gold }]}>
+                {winnerStats.pts}
+              </Text>
               <Text style={winnerStyles.statLabel}>{t('common.pts')}</Text>
             </View>
           </View>
@@ -282,12 +332,19 @@ function WinnerCard({ round, roundNumber, tournamentName, includeMatches = false
                 {t('table.player').toUpperCase()}
               </Text>
               {STANDINGS_NUM_COLS.map((col) => (
-                <Text key={col.key} style={[winnerStyles.standingsHeaderCell, winnerStyles.standingsNumCol]}>
+                <Text
+                  key={col.key}
+                  style={[winnerStyles.standingsHeaderCell, winnerStyles.standingsNumCol]}
+                >
                   {col.label}
                 </Text>
               ))}
-              <Text style={[winnerStyles.standingsHeaderCell, winnerStyles.standingsNumCol]}>{t('table.gd')}</Text>
-              <Text style={[winnerStyles.standingsHeaderCell, winnerStyles.standingsNumCol]}>{t('common.pts')}</Text>
+              <Text style={[winnerStyles.standingsHeaderCell, winnerStyles.standingsNumCol]}>
+                {t('table.gd')}
+              </Text>
+              <Text style={[winnerStyles.standingsHeaderCell, winnerStyles.standingsNumCol]}>
+                {t('common.pts')}
+              </Text>
             </View>
             {standings.map((s, idx) => (
               <StandingsTableRow
@@ -306,7 +363,9 @@ function WinnerCard({ round, roundNumber, tournamentName, includeMatches = false
         <>
           <View style={winnerStyles.divider} />
           <View style={winnerStyles.matchesSection}>
-            <Text style={winnerStyles.matchesTitle}>{t('shareRound.allMatches').toUpperCase()}</Text>
+            <Text style={winnerStyles.matchesTitle}>
+              {t('shareRound.allMatches').toUpperCase()}
+            </Text>
             {round.matches.map((m, idx) => (
               <MatchRow key={m.id} match={m} isLast={idx === round.matches.length - 1} />
             ))}
@@ -317,8 +376,12 @@ function WinnerCard({ round, roundNumber, tournamentName, includeMatches = false
       {/* Footer */}
       <View style={winnerStyles.divider} />
       <View style={winnerStyles.footer}>
-        <Text style={winnerStyles.footerTour} numberOfLines={1}>{tournamentName.toUpperCase()}</Text>
-        <Text style={winnerStyles.footerRound}>{t('shareRound.footer', { round: roundNumber, count: round.matches.length })}</Text>
+        <Text style={winnerStyles.footerTour} numberOfLines={1}>
+          {tournamentName.toUpperCase()}
+        </Text>
+        <Text style={winnerStyles.footerRound}>
+          {t('shareRound.footer', { round: roundNumber, count: round.matches.length })}
+        </Text>
       </View>
     </View>
   );
@@ -328,7 +391,13 @@ function WinnerCard({ round, roundNumber, tournamentName, includeMatches = false
 // Main Modal
 // ---------------------------------------------------------------------------
 
-export function ShareRoundModal({ visible, onClose, round, roundNumber, tournamentName }: ShareRoundModalProps) {
+export function ShareRoundModal({
+  visible,
+  onClose,
+  round,
+  roundNumber,
+  tournamentName,
+}: ShareRoundModalProps) {
   const [loading, setLoading] = useState(false);
   const [includeMatches, setIncludeMatches] = useState(false);
   const [includeStandings, setIncludeStandings] = useState(false);
@@ -340,12 +409,15 @@ export function ShareRoundModal({ visible, onClose, round, roundNumber, tourname
   const cardRef = useRef<View>(null);
 
   useEffect(() => {
-    if (!visible) { setLoading(false); setSaveMessage(null); }
+    if (!visible) {
+      setLoading(false);
+      setSaveMessage(null);
+    }
   }, [visible]);
 
   const captureNative = async (): Promise<string | null> => {
     try {
-      const { captureRef } = await import('react-native-view-shot') as { captureRef: CaptureRef };
+      const { captureRef } = (await import('react-native-view-shot')) as { captureRef: CaptureRef };
       return await captureRef(cardRef, { format: 'png', quality: 1.0, result: 'tmpfile' });
     } catch {
       setSaveMessage({ ok: false, text: t('share.captureError') });
@@ -388,7 +460,7 @@ export function ShareRoundModal({ visible, onClose, round, roundNumber, tourname
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
       } else {
-        const MediaLibrary = await import('expo-media-library/legacy') as MediaLibraryModule;
+        const MediaLibrary = (await import('expo-media-library/legacy')) as MediaLibraryModule;
         const { status } = await MediaLibrary.requestPermissionsAsync(true);
         if (status !== 'granted') {
           setSaveMessage({ ok: false, text: t('share.photosPermission') });
@@ -414,20 +486,29 @@ export function ShareRoundModal({ visible, onClose, round, roundNumber, tourname
         if (!blob) return;
         const file = new File([blob], `matchday-round-${roundNumber}.png`, { type: 'image/png' });
         if (navigator.canShare?.({ files: [file] })) {
-          await navigator.share({ files: [file], title: t('shareRound.nativeShareTitle', { round: roundNumber, name: tournamentName }) });
+          await navigator.share({
+            files: [file],
+            title: t('shareRound.nativeShareTitle', { round: roundNumber, name: tournamentName }),
+          });
         } else if (navigator.share) {
-          await navigator.share({ title: t('shareRound.nativeShareTitle', { round: roundNumber, name: tournamentName }), text: t('shareRound.nativeShareText') });
+          await navigator.share({
+            title: t('shareRound.nativeShareTitle', { round: roundNumber, name: tournamentName }),
+            text: t('shareRound.nativeShareText'),
+          });
         }
       } else {
         const uri = await captureNative();
         if (!uri) return;
-        const Sharing = await import('expo-sharing') as SharingModule;
+        const Sharing = (await import('expo-sharing')) as SharingModule;
         const canShare = await Sharing.isAvailableAsync();
         if (!canShare) {
           setSaveMessage({ ok: false, text: t('share.notAvailable') });
           return;
         }
-        await Sharing.shareAsync(uri, { mimeType: 'image/png', dialogTitle: t('shareRound.dialogTitle') });
+        await Sharing.shareAsync(uri, {
+          mimeType: 'image/png',
+          dialogTitle: t('shareRound.dialogTitle'),
+        });
       }
     } catch {
       // user cancelled share dialog
@@ -437,11 +518,7 @@ export function ShareRoundModal({ visible, onClose, round, roundNumber, tourname
   };
 
   return (
-    <Modal
-      visible={visible}
-      presentationStyle="pageSheet"
-      onRequestClose={onClose}
-    >
+    <Modal visible={visible} presentationStyle="pageSheet" onRequestClose={onClose}>
       <SafeAreaView style={modalStyles.root} edges={['top', 'bottom']}>
         {/* Header */}
         <View style={modalStyles.header}>
@@ -471,13 +548,26 @@ export function ShareRoundModal({ visible, onClose, round, roundNumber, tourname
 
         {/* Options */}
         <View style={modalStyles.optionsWrap}>
-          <Toggle label={t('share.includeStandings')} value={includeStandings} onValueChange={setIncludeStandings} />
-          <Toggle label={t('share.includeAllMatches')} value={includeMatches} onValueChange={setIncludeMatches} />
+          <Toggle
+            label={t('share.includeStandings')}
+            value={includeStandings}
+            onValueChange={setIncludeStandings}
+          />
+          <Toggle
+            label={t('share.includeAllMatches')}
+            value={includeMatches}
+            onValueChange={setIncludeMatches}
+          />
         </View>
 
         {/* Action buttons */}
         {saveMessage && (
-          <Text style={[modalStyles.saveMsg, saveMessage.ok ? modalStyles.saveMsgOk : modalStyles.saveMsgErr]}>
+          <Text
+            style={[
+              modalStyles.saveMsg,
+              saveMessage.ok ? modalStyles.saveMsgOk : modalStyles.saveMsgErr,
+            ]}
+          >
             {saveMessage.text}
           </Text>
         )}
@@ -492,8 +582,8 @@ export function ShareRoundModal({ visible, onClose, round, roundNumber, tourname
               <ActivityIndicator color={colors.text.primary} size="small" />
             ) : (
               <Text style={modalStyles.actionText}>
-              {Platform.OS === 'web' ? t('share.download') : t('share.saveToPhotos')}
-            </Text>
+                {Platform.OS === 'web' ? t('share.download') : t('share.saveToPhotos')}
+              </Text>
             )}
           </TouchableOpacity>
           <TouchableOpacity
@@ -505,7 +595,9 @@ export function ShareRoundModal({ visible, onClose, round, roundNumber, tourname
             {loading ? (
               <ActivityIndicator color={colors.bg.base} size="small" />
             ) : (
-              <Text style={[modalStyles.actionText, { color: colors.bg.base }]}>{t('share.share')}</Text>
+              <Text style={[modalStyles.actionText, { color: colors.bg.base }]}>
+                {t('share.share')}
+              </Text>
             )}
           </TouchableOpacity>
         </View>

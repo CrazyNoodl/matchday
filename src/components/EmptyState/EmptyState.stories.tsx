@@ -61,7 +61,8 @@ export const WithCTARed: Story = {
 export const LongMessage: Story = {
   name: 'Long message',
   args: {
-    message: "You haven't added any matches to this round yet. Tap below to record your first result.",
+    message:
+      "You haven't added any matches to this round yet. Tap below to record your first result.",
     ctaText: 'Add match',
   },
 };

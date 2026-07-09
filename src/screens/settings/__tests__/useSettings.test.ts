@@ -12,7 +12,7 @@ jest.mock('react-native-mmkv', () => ({
 // @/i18n initialises i18next on import (calls native modules); mock to data only.
 jest.mock('@/i18n', () => ({
   LANGUAGES: [
-    { code: 'en', nativeName: 'English',    flag: '🇬🇧' },
+    { code: 'en', nativeName: 'English', flag: '🇬🇧' },
     { code: 'uk', nativeName: 'Українська', flag: '🇺🇦' },
   ],
 }));
@@ -36,20 +36,27 @@ jest.mock('@/supabase/client', () => ({
   supabaseConfigured: false,
 }));
 
-jest.mock('@/supabase/sync', () => ({ deleteAllCloudData: jest.fn().mockResolvedValue(undefined) }));
+jest.mock('@/supabase/sync', () => ({
+  deleteAllCloudData: jest.fn().mockResolvedValue(undefined),
+}));
+
+let mockIsOnline = true;
+jest.mock('@/hooks/useIsOnline', () => ({
+  useIsOnline: () => mockIsOnline,
+}));
 
 const mockSignOut = signOut as jest.Mock;
 const mockDeleteAllCloudData = deleteAllCloudData as jest.Mock;
 
 const SEED_PLAYERS: Player[] = [
-  { id: 'player-1', name: 'Alice', color: '#f00', teamCode: 'JUV' },
-  { id: 'player-2', name: 'Bob',   color: '#00f', teamCode: 'TOT' },
-  { id: 'player-3', name: 'Carol', color: '#0f0', teamCode: 'GAL' },
+  { id: 'player-1', name: 'Alice', teamCode: 'JUV' },
+  { id: 'player-2', name: 'Bob', teamCode: 'TOT' },
+  { id: 'player-3', name: 'Carol', teamCode: 'GAL' },
 ];
 
 const SEED_TEAMS: Team[] = [
-  { code: 'JUV', name: 'Juventus',    short: 'JUV', color: '#000', custom: false },
-  { code: 'TOT', name: 'Tottenham',   short: 'TOT', color: '#fff', custom: false },
+  { code: 'JUV', name: 'Juventus', short: 'JUV', color: '#000', custom: false },
+  { code: 'TOT', name: 'Tottenham', short: 'TOT', color: '#fff', custom: false },
   { code: 'GAL', name: 'Galatasaray', short: 'GAL', color: '#f90', custom: false },
 ];
 
@@ -69,7 +76,23 @@ function setSeedState() {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockIsOnline = true;
   useStore.getState().resetStore();
+});
+
+// ── isOffline ─────────────────────────────────────────────────────────────────
+
+describe('isOffline', () => {
+  it('is false while online', async () => {
+    const { result } = await renderHook(() => useSettings());
+    expect(result.current.isOffline).toBe(false);
+  });
+
+  it('is true while offline', async () => {
+    mockIsOnline = false;
+    const { result } = await renderHook(() => useSettings());
+    expect(result.current.isOffline).toBe(true);
+  });
 });
 
 // ── isDefaultState ────────────────────────────────────────────────────────────
@@ -83,7 +106,7 @@ describe('isDefaultState', () => {
 
   it('is false when an extra player is added', async () => {
     setSeedState();
-    useStore.getState().addPlayer({ id: 'extra', name: 'Dave', color: '#0ff', teamCode: 'JUV' });
+    useStore.getState().addPlayer({ id: 'extra', name: 'Dave', teamCode: 'JUV' });
     const { result } = await renderHook(() => useSettings());
     expect(result.current.isDefaultState).toBe(false);
   });
@@ -98,9 +121,18 @@ describe('isDefaultState', () => {
   it('is false when archived rounds exist', async () => {
     setSeedState();
     useStore.setState({
-      archivedRounds: [{
-        id: 'r1', n: 1, date: '', winner: '', games: 1, ranked: true, name: 'R1', matches: [],
-      }],
+      archivedRounds: [
+        {
+          id: 'r1',
+          n: 1,
+          date: '',
+          winner: '',
+          games: 1,
+          ranked: true,
+          name: 'R1',
+          matches: [],
+        },
+      ],
     });
     const { result } = await renderHook(() => useSettings());
     expect(result.current.isDefaultState).toBe(false);
@@ -129,7 +161,9 @@ describe('handleVersionTap', () => {
   // Each tap needs its own await act() so React commits the state before the next call.
   async function tapN(result: { current: ReturnType<typeof useSettings> }, n: number) {
     for (let i = 0; i < n; i++) {
-      await act(async () => { result.current.handleVersionTap(); });
+      await act(async () => {
+        result.current.handleVersionTap();
+      });
     }
   }
 
@@ -155,7 +189,9 @@ describe('handleVersionTap', () => {
     const { result } = await renderHook(() => useSettings());
     await tapN(result, 10);
     expect(result.current.devUnlocked).toBe(true);
-    await act(async () => { result.current.handleVersionTap(); });
+    await act(async () => {
+      result.current.handleVersionTap();
+    });
     // Only the tap-3 changelog push should have fired (tap 10 unlocks, not navigates)
     expect(mockPush).toHaveBeenCalledTimes(1);
   });
@@ -167,7 +203,9 @@ describe('handleDemoToggle', () => {
   it('enables demo mode directly when no tournament is active', async () => {
     useStore.setState({ hasTournament: false, demoMode: false });
     const { result } = await renderHook(() => useSettings());
-    await act(async () => { result.current.handleDemoToggle(true); });
+    await act(async () => {
+      result.current.handleDemoToggle(true);
+    });
     expect(useStore.getState().demoMode).toBe(true);
     expect(result.current.showDemoConfirm).toBe(false);
   });
@@ -175,7 +213,9 @@ describe('handleDemoToggle', () => {
   it('shows confirm dialog instead of enabling when tournament is active', async () => {
     useStore.setState({ hasTournament: true, demoMode: false });
     const { result } = await renderHook(() => useSettings());
-    await act(async () => { result.current.handleDemoToggle(true); });
+    await act(async () => {
+      result.current.handleDemoToggle(true);
+    });
     expect(result.current.showDemoConfirm).toBe(true);
     expect(useStore.getState().demoMode).toBe(false);
   });
@@ -183,7 +223,9 @@ describe('handleDemoToggle', () => {
   it('disables demo mode without confirmation', async () => {
     useStore.setState({ demoMode: true });
     const { result } = await renderHook(() => useSettings());
-    await act(async () => { result.current.handleDemoToggle(false); });
+    await act(async () => {
+      result.current.handleDemoToggle(false);
+    });
     expect(useStore.getState().demoMode).toBe(false);
     expect(result.current.showDemoConfirm).toBe(false);
   });
@@ -195,9 +237,13 @@ describe('confirmEnableDemo', () => {
   it('enables demo mode, closes dialog, and navigates to home', async () => {
     useStore.setState({ hasTournament: true, demoMode: false });
     const { result } = await renderHook(() => useSettings());
-    await act(async () => { result.current.handleDemoToggle(true); });
+    await act(async () => {
+      result.current.handleDemoToggle(true);
+    });
     expect(result.current.showDemoConfirm).toBe(true);
-    await act(async () => { result.current.confirmEnableDemo(); });
+    await act(async () => {
+      result.current.confirmEnableDemo();
+    });
     expect(useStore.getState().demoMode).toBe(true);
     expect(result.current.showDemoConfirm).toBe(false);
     expect(mockReplace).toHaveBeenCalledWith('/');
@@ -209,7 +255,9 @@ describe('confirmEnableDemo', () => {
 describe('handleSignOut', () => {
   it('shows the sign-out confirmation dialog', async () => {
     const { result } = await renderHook(() => useSettings());
-    await act(async () => { result.current.handleSignOut(); });
+    await act(async () => {
+      result.current.handleSignOut();
+    });
     expect(result.current.showSignOutConfirm).toBe(true);
   });
 });
@@ -217,8 +265,12 @@ describe('handleSignOut', () => {
 describe('confirmSignOut', () => {
   it('calls signOut and closes the dialog', async () => {
     const { result } = await renderHook(() => useSettings());
-    await act(async () => { result.current.handleSignOut(); });
-    await act(async () => { await result.current.confirmSignOut(); });
+    await act(async () => {
+      result.current.handleSignOut();
+    });
+    await act(async () => {
+      await result.current.confirmSignOut();
+    });
     expect(mockSignOut).toHaveBeenCalledTimes(1);
     expect(result.current.showSignOutConfirm).toBe(false);
   });
@@ -226,7 +278,9 @@ describe('confirmSignOut', () => {
   it('clears locally cached players/teams so the next account on this device starts empty', async () => {
     setSeedState();
     const { result } = await renderHook(() => useSettings());
-    await act(async () => { await result.current.confirmSignOut(); });
+    await act(async () => {
+      await result.current.confirmSignOut();
+    });
     expect(useStore.getState().players).toHaveLength(0);
     expect(useStore.getState().teams).toHaveLength(0);
   });
@@ -235,7 +289,9 @@ describe('confirmSignOut', () => {
     setSeedState();
     mockSignOut.mockRejectedValueOnce(new Error('network down'));
     const { result } = await renderHook(() => useSettings());
-    await act(async () => { await result.current.confirmSignOut(); });
+    await act(async () => {
+      await result.current.confirmSignOut();
+    });
     expect(useStore.getState().players).toHaveLength(0);
   });
 });
@@ -244,10 +300,12 @@ describe('confirmSignOut', () => {
 
 describe('handleReset', () => {
   it('resets store and navigates to home', async () => {
-    useStore.getState().addPlayer({ id: 'extra', name: 'Dave', color: '#fff', teamCode: 'JUV' });
+    useStore.getState().addPlayer({ id: 'extra', name: 'Dave', teamCode: 'JUV' });
     const countBefore = useStore.getState().players.length;
     const { result } = await renderHook(() => useSettings());
-    await act(async () => { await result.current.handleReset(); });
+    await act(async () => {
+      await result.current.handleReset();
+    });
     expect(result.current.showResetConfirm).toBe(false);
     expect(useStore.getState().players.length).toBeLessThan(countBefore);
     expect(mockReplace).toHaveBeenCalledWith('/');
@@ -259,15 +317,19 @@ describe('handleReset', () => {
     // deleteAllCloudData() call rather than relying on the generic sync
     // dirty-diff mechanism (which is deliberately local-only, see resetStore).
     const { result } = await renderHook(() => useSettings());
-    await act(async () => { await result.current.handleReset(); });
+    await act(async () => {
+      await result.current.handleReset();
+    });
     expect(mockDeleteAllCloudData).toHaveBeenCalledTimes(1);
   });
 
   it('still resets the local store when the cloud wipe fails', async () => {
     mockDeleteAllCloudData.mockRejectedValueOnce(new Error('network down'));
-    useStore.getState().addPlayer({ id: 'extra', name: 'Dave', color: '#fff', teamCode: 'JUV' });
+    useStore.getState().addPlayer({ id: 'extra', name: 'Dave', teamCode: 'JUV' });
     const { result } = await renderHook(() => useSettings());
-    await act(async () => { await result.current.handleReset(); });
+    await act(async () => {
+      await result.current.handleReset();
+    });
     expect(useStore.getState().players.find((p) => p.id === 'extra')).toBeUndefined();
   });
 });

@@ -64,7 +64,9 @@ export function TourSettingsSheet({
             </View>
             <View style={sheetStyles.rowLabelBlock}>
               <Text style={sheetStyles.rowLabel}>{t('tournament.sheet.shareStandings')}</Text>
-              <Text style={sheetStyles.rowSubtitle}>{t('tournament.sheet.shareStandingsSubtitle')}</Text>
+              <Text style={sheetStyles.rowSubtitle}>
+                {t('tournament.sheet.shareStandingsSubtitle')}
+              </Text>
             </View>
             <Text style={sheetStyles.rowChevron}>›</Text>
           </TouchableOpacity>

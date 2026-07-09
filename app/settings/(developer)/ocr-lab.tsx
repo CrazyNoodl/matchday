@@ -70,9 +70,13 @@ export default function OcrLabScreen() {
           .map(async (a) => {
             let base64 = a.base64!;
             try {
-              const resized = await resizeImage(a.uri, a, OCR_PAYLOAD_MAX_DIMENSION, { base64: true });
+              const resized = await resizeImage(a.uri, a, OCR_PAYLOAD_MAX_DIMENSION, {
+                base64: true,
+              });
               if (resized.base64) base64 = resized.base64;
-            } catch { /* keep original base64 */ }
+            } catch {
+              /* keep original base64 */
+            }
             return { uri: a.uri, base64, mimeType: a.mimeType ?? 'image/jpeg', stats: null };
           }),
       );
@@ -172,7 +176,9 @@ export default function OcrLabScreen() {
             </View>
           ) : (
             <Text style={styles.scanBtnText}>
-              {photos.length > 1 ? t('ocrLab.scanWithCount', { count: photos.length }) : t('ocrLab.scanGeneric')}
+              {photos.length > 1
+                ? t('ocrLab.scanWithCount', { count: photos.length })
+                : t('ocrLab.scanGeneric')}
             </Text>
           )}
         </TouchableOpacity>
@@ -191,10 +197,14 @@ export default function OcrLabScreen() {
             <View style={styles.resultHeader}>
               <SectionLabel label={t('ocrLab.extractedStats').toUpperCase()} />
               <View style={styles.resultMeta}>
-                <Text style={styles.resultMetaText}>{t('ocrLab.found', { count: stats.length })}</Text>
+                <Text style={styles.resultMetaText}>
+                  {t('ocrLab.found', { count: stats.length })}
+                </Text>
                 {lowCount > 0 && (
                   <View style={styles.metaBadgeLow}>
-                    <Text style={styles.metaBadgeLowText}>{t('ocrLab.uncertain', { count: lowCount })}</Text>
+                    <Text style={styles.metaBadgeLowText}>
+                      {t('ocrLab.uncertain', { count: lowCount })}
+                    </Text>
                   </View>
                 )}
               </View>
@@ -258,5 +268,3 @@ export default function OcrLabScreen() {
     </SafeAreaView>
   );
 }
-
-

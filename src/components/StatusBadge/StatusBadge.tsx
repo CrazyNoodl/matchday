@@ -5,14 +5,7 @@ import { useColors } from '../../theme';
 import { makeConfig, styles } from './StatusBadge.styles';
 
 export type BadgeType =
-  | 'live'
-  | 'soon'
-  | 'leader'
-  | 'editing'
-  | 'archived'
-  | 'friendly'
-  | 'auto'
-  | 'ranked';
+  'live' | 'soon' | 'leader' | 'editing' | 'archived' | 'friendly' | 'auto' | 'ranked';
 
 interface StatusBadgeProps {
   type: BadgeType;

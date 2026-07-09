@@ -21,8 +21,6 @@
     "players": [
       { "id": "imported-player-1", "name": "Zed", "color": "#654321", "teamCode": "ZZZ" }
     ],
-    "teams": [
-      { "code": "ZZZ", "name": "Zenith", "short": "ZZZ", "color": "#123456" }
-    ]
+    "teams": [{ "code": "ZZZ", "name": "Zenith", "short": "ZZZ", "color": "#123456" }]
   }
 }

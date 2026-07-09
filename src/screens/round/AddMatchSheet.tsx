@@ -1,16 +1,23 @@
 import React, { useMemo } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Platform } from 'react-native';
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  ActivityIndicator,
+  Platform,
+} from 'react-native';
 import { BottomSheetScrollView, BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { useTranslation } from 'react-i18next';
 import { useColors } from '@/theme';
 import { useIsOnline } from '@/hooks/useIsOnline';
 import { Spacing } from '@/theme/spacing';
 import { Avatar, ScoreCounter, MediaThumbnail, Sheet, TeamPickerRow } from '@/components';
-import { Player, Team, Match } from '@/store/types';
+import { type Player, type Team, type Match } from '@/store/types';
 import { getAddMatchStepLabel, canAddMatchGoNext, isAddMatchDirty } from '@/utils/addMatchState';
 import { getCurrentTourMatches, getPlayedPartnerIds } from '@/utils/matchTours';
 import { makeSheetStyles } from './AddMatchSheet.styles';
-import { useAddMatchFlow } from './useAddMatchFlow';
+import { type useAddMatchFlow } from './useAddMatchFlow';
 import { DiscardMatchDialog, SaveMatchErrorDialog } from './RoundDialogs';
 
 interface AddMatchSheetProps {
@@ -98,10 +105,7 @@ export function AddMatchSheet({
             >
               <Avatar playerId={p.id} size="md" />
               <Text
-                style={[
-                  sheetStyles.playerChipName,
-                  isUsed && { color: colors.text.primary },
-                ]}
+                style={[sheetStyles.playerChipName, isUsed && { color: colors.text.primary }]}
                 numberOfLines={1}
               >
                 {p.nick ?? p.name}
@@ -151,19 +155,20 @@ export function AddMatchSheet({
   };
 
   const renderStepScore = () => {
-    const hTeam = addMatch.homeTeam ||
-      players.find((p) => p.id === addMatch.homeId)?.teamCode || 'UNK';
-    const aTeam = addMatch.awayTeam ||
-      players.find((p) => p.id === addMatch.awayId)?.teamCode || 'UNK';
+    const hTeam =
+      addMatch.homeTeam || players.find((p) => p.id === addMatch.homeId)?.teamCode || 'UNK';
+    const aTeam =
+      addMatch.awayTeam || players.find((p) => p.id === addMatch.awayId)?.teamCode || 'UNK';
 
     const hScore = addMatch.homeScore;
     const aScore = addMatch.awayScore;
     const resultLabel =
-      hScore > aScore ? t('matchday.homeWin').toUpperCase()
-      : aScore > hScore ? t('matchday.awayWin').toUpperCase()
-      : t('matchday.draw').toUpperCase();
-    const resultColor =
-      hScore === aScore ? colors.text.muted : colors.accent.green;
+      hScore > aScore
+        ? t('matchday.homeWin').toUpperCase()
+        : aScore > hScore
+          ? t('matchday.awayWin').toUpperCase()
+          : t('matchday.draw').toUpperCase();
+    const resultColor = hScore === aScore ? colors.text.muted : colors.accent.green;
 
     return (
       <View style={sheetStyles.stepContent}>
@@ -173,14 +178,14 @@ export function AddMatchSheet({
             teamCode={hTeam}
             score={hScore}
             onIncrement={() => setAddMatch((p) => ({ ...p, homeScore: p.homeScore + 1 }))}
-            onDecrement={() => setAddMatch((p) => ({ ...p, homeScore: Math.max(0, p.homeScore - 1) }))}
+            onDecrement={() =>
+              setAddMatch((p) => ({ ...p, homeScore: Math.max(0, p.homeScore - 1) }))
+            }
           />
           <View style={sheetStyles.scoreDivider}>
             <Text style={sheetStyles.scoreDividerText}>VS</Text>
             <View style={sheetStyles.resultPill}>
-              <Text style={[sheetStyles.resultLabel, { color: resultColor }]}>
-                {resultLabel}
-              </Text>
+              <Text style={[sheetStyles.resultLabel, { color: resultColor }]}>{resultLabel}</Text>
             </View>
           </View>
           <ScoreCounter
@@ -188,7 +193,9 @@ export function AddMatchSheet({
             teamCode={aTeam}
             score={aScore}
             onIncrement={() => setAddMatch((p) => ({ ...p, awayScore: p.awayScore + 1 }))}
-            onDecrement={() => setAddMatch((p) => ({ ...p, awayScore: Math.max(0, p.awayScore - 1) }))}
+            onDecrement={() =>
+              setAddMatch((p) => ({ ...p, awayScore: Math.max(0, p.awayScore - 1) }))
+            }
           />
         </View>
       </View>
@@ -204,7 +211,9 @@ export function AddMatchSheet({
             <MediaThumbnail
               key={idx}
               uri={item.uri}
-              onRemove={addMatch.ocrStatus === 'scanning' ? undefined : () => handleRemoveMedia(idx)}
+              onRemove={
+                addMatch.ocrStatus === 'scanning' ? undefined : () => handleRemoveMedia(idx)
+              }
             />
           ))}
           {addMatch.media.length < 7 && (
@@ -218,7 +227,9 @@ export function AddMatchSheet({
               activeOpacity={0.75}
             >
               <Text style={sheetStyles.addMediaIcon}>+</Text>
-              <Text style={sheetStyles.addMediaText}>{t('matchday.addMediaBtn').toUpperCase()}</Text>
+              <Text style={sheetStyles.addMediaText}>
+                {t('matchday.addMediaBtn').toUpperCase()}
+              </Text>
             </TouchableOpacity>
           )}
         </View>
@@ -286,131 +297,148 @@ export function AddMatchSheet({
 
     if (tournamentRanked) {
       switch (step) {
-        case 1: return renderStepPlayers();
-        case 2: return renderStepScore();
-        case 3: return renderStepMedia();
-        case 4: return renderStepCommentary();
-        default: return null;
+        case 1:
+          return renderStepPlayers();
+        case 2:
+          return renderStepScore();
+        case 3:
+          return renderStepMedia();
+        case 4:
+          return renderStepCommentary();
+        default:
+          return null;
       }
     } else {
       switch (step) {
-        case 1: return renderStepPlayers();
-        case 2: return renderStepTeams();
-        case 3: return renderStepScore();
-        case 4: return renderStepMedia();
-        case 5: return renderStepCommentary();
-        default: return null;
+        case 1:
+          return renderStepPlayers();
+        case 2:
+          return renderStepTeams();
+        case 3:
+          return renderStepScore();
+        case 4:
+          return renderStepMedia();
+        case 5:
+          return renderStepCommentary();
+        default:
+          return null;
       }
     }
   };
 
   return (
     <>
-    <Sheet
-      visible={visible}
-      onClose={onClose}
-      disableClose={addMatch.ocrStatus === 'scanning' || isAddMatchDirty(addMatch)}
-      avoidKeyboard
-    >
-      <View style={sheetStyles.sheet}>
-        {/* Progress bar */}
-        <View style={sheetStyles.progressBar}>
-          {Array.from({ length: totalSteps }).map((_, i) => (
-            <View
-              key={i}
-              style={[
-                sheetStyles.progressSegment,
-                i < addMatch.step && sheetStyles.progressSegmentFilled,
-              ]}
-            />
-          ))}
-        </View>
+      <Sheet
+        visible={visible}
+        onClose={onClose}
+        disableClose={addMatch.ocrStatus === 'scanning' || isAddMatchDirty(addMatch)}
+        avoidKeyboard
+      >
+        <View style={sheetStyles.sheet}>
+          {/* Progress bar */}
+          <View style={sheetStyles.progressBar}>
+            {Array.from({ length: totalSteps }).map((_, i) => (
+              <View
+                key={i}
+                style={[
+                  sheetStyles.progressSegment,
+                  i < addMatch.step && sheetStyles.progressSegmentFilled,
+                ]}
+              />
+            ))}
+          </View>
 
-        <View style={sheetStyles.stepTitleRow}>
-          <Text style={sheetStyles.stepTitle}>
-            {getAddMatchStepLabel(addMatch.step, tournamentRanked, t)}
-          </Text>
-          <Text style={sheetStyles.stepIndicator}>
-            {t('matchday.step', { current: addMatch.step, total: totalSteps }).toUpperCase()}
-          </Text>
-        </View>
-
-        <BottomSheetScrollView
-          style={sheetStyles.contentScroll}
-          contentContainerStyle={sheetStyles.contentScrollPad}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-        >
-          {renderStepContent()}
-        </BottomSheetScrollView>
-
-        {/* Actions */}
-        <View style={sheetStyles.actions}>
-          <TouchableOpacity
-            style={[
-              sheetStyles.backActionBtn,
-              (addMatch.ocrStatus === 'scanning' || isSavingMatch) && sheetStyles.nextBtnDisabled,
-            ]}
-            onPress={handleBack}
-            disabled={addMatch.ocrStatus === 'scanning' || isSavingMatch}
-            activeOpacity={0.75}
-          >
-            <Text
-              style={[
-                sheetStyles.backActionText,
-                (addMatch.ocrStatus === 'scanning' || isSavingMatch) && sheetStyles.nextBtnTextDisabled,
-              ]}
-            >
-              {addMatch.step === 1 ? t('common.cancel').toUpperCase() : t('common.back').toUpperCase()}
+          <View style={sheetStyles.stepTitleRow}>
+            <Text style={sheetStyles.stepTitle}>
+              {getAddMatchStepLabel(addMatch.step, tournamentRanked, t)}
             </Text>
-          </TouchableOpacity>
-          {addMatch.step < totalSteps ? (
+            <Text style={sheetStyles.stepIndicator}>
+              {t('matchday.step', { current: addMatch.step, total: totalSteps }).toUpperCase()}
+            </Text>
+          </View>
+
+          <BottomSheetScrollView
+            style={sheetStyles.contentScroll}
+            contentContainerStyle={sheetStyles.contentScrollPad}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            {renderStepContent()}
+          </BottomSheetScrollView>
+
+          {/* Actions */}
+          <View style={sheetStyles.actions}>
             <TouchableOpacity
               style={[
-                sheetStyles.nextBtn,
-                !canAddMatchGoNext(addMatch, tournamentRanked) && sheetStyles.nextBtnDisabled,
+                sheetStyles.backActionBtn,
+                (addMatch.ocrStatus === 'scanning' || isSavingMatch) && sheetStyles.nextBtnDisabled,
               ]}
-              onPress={handleNext}
-              disabled={!canAddMatchGoNext(addMatch, tournamentRanked)}
-              activeOpacity={0.85}
+              onPress={handleBack}
+              disabled={addMatch.ocrStatus === 'scanning' || isSavingMatch}
+              activeOpacity={0.75}
             >
               <Text
                 style={[
-                  sheetStyles.nextBtnText,
-                  !canAddMatchGoNext(addMatch, tournamentRanked) && sheetStyles.nextBtnTextDisabled,
+                  sheetStyles.backActionText,
+                  (addMatch.ocrStatus === 'scanning' || isSavingMatch) &&
+                    sheetStyles.nextBtnTextDisabled,
                 ]}
               >
-                {t('common.next').toUpperCase()}
+                {addMatch.step === 1
+                  ? t('common.cancel').toUpperCase()
+                  : t('common.back').toUpperCase()}
               </Text>
             </TouchableOpacity>
-          ) : (
-            <TouchableOpacity
-              style={[sheetStyles.nextBtn, isSavingMatch && sheetStyles.nextBtnDisabled]}
-              onPress={handleSaveMatch}
-              disabled={isSavingMatch}
-              activeOpacity={0.85}
-            >
-              {isSavingMatch ? (
-                <ActivityIndicator size="small" color={colors.accent.greenDark} />
-              ) : (
-                <Text style={sheetStyles.nextBtnText}>{t('matchday.saveMatch').toUpperCase()}</Text>
-              )}
-            </TouchableOpacity>
-          )}
+            {addMatch.step < totalSteps ? (
+              <TouchableOpacity
+                style={[
+                  sheetStyles.nextBtn,
+                  !canAddMatchGoNext(addMatch, tournamentRanked) && sheetStyles.nextBtnDisabled,
+                ]}
+                onPress={handleNext}
+                disabled={!canAddMatchGoNext(addMatch, tournamentRanked)}
+                activeOpacity={0.85}
+              >
+                <Text
+                  style={[
+                    sheetStyles.nextBtnText,
+                    !canAddMatchGoNext(addMatch, tournamentRanked) &&
+                      sheetStyles.nextBtnTextDisabled,
+                  ]}
+                >
+                  {t('common.next').toUpperCase()}
+                </Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                style={[sheetStyles.nextBtn, isSavingMatch && sheetStyles.nextBtnDisabled]}
+                onPress={handleSaveMatch}
+                disabled={isSavingMatch}
+                activeOpacity={0.85}
+              >
+                {isSavingMatch ? (
+                  <ActivityIndicator size="small" color={colors.accent.greenDark} />
+                ) : (
+                  <Text style={sheetStyles.nextBtnText}>
+                    {t('matchday.saveMatch').toUpperCase()}
+                  </Text>
+                )}
+              </TouchableOpacity>
+            )}
+          </View>
+          <View style={{ height: Platform.OS === 'ios' ? 32 : 20 }} />
         </View>
-        <View style={{ height: Platform.OS === 'ios' ? 32 : 20 }} />
-      </View>
-    </Sheet>
+      </Sheet>
 
-    <DiscardMatchDialog
-      visible={flow.showDiscardDialog}
-      onCancel={() => flow.setShowDiscardDialog(false)}
-      onConfirm={flow.handleConfirmDiscard}
-    />
-    <SaveMatchErrorDialog
-      visible={flow.showSaveError}
-      onClose={() => flow.setShowSaveError(false)}
-    />
+      <DiscardMatchDialog
+        visible={flow.showDiscardDialog}
+        onCancel={() => flow.setShowDiscardDialog(false)}
+        onConfirm={flow.handleConfirmDiscard}
+      />
+      <SaveMatchErrorDialog
+        visible={flow.showSaveError}
+        onClose={() => flow.setShowSaveError(false)}
+      />
     </>
   );
 }

@@ -102,7 +102,9 @@ describe('signUpWithEmail', () => {
   });
 
   it('returns error message for weak password', async () => {
-    mockSignUp.mockResolvedValue({ error: { message: 'Password should be at least 6 characters' } });
+    mockSignUp.mockResolvedValue({
+      error: { message: 'Password should be at least 6 characters' },
+    });
     const result = await signUpWithEmail('new@example.com', '12');
     expect(result).toEqual({ error: 'Password should be at least 6 characters' });
   });

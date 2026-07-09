@@ -11,13 +11,13 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '@/store';
-import { Standing } from '@/utils/standings';
+import { type Standing } from '@/utils/standings';
 import { useColors } from '@/theme';
 import { CardAvatar } from '@/components/ShareRoundModal';
 import { STANDINGS_NUM_COLS, formatShareCardDate } from '@/utils/shareCard';
 import { makeCardStyles, makeModalStyles } from './ShareStandingsModal.styles';
 // Native-only modules loaded dynamically so web build doesn't crash
-type CaptureRef = typeof import('react-native-view-shot')['captureRef'];
+type CaptureRef = (typeof import('react-native-view-shot'))['captureRef'];
 type MediaLibraryModule = typeof import('expo-media-library/legacy');
 type SharingModule = typeof import('expo-sharing');
 type Html2Canvas = typeof import('html2canvas').default;
@@ -38,7 +38,15 @@ interface ShareStandingsModalProps {
 // Standings Card
 // ---------------------------------------------------------------------------
 
-function StandingsRow({ standing, isLeader, isLast }: { standing: Standing; isLeader: boolean; isLast: boolean }) {
+function StandingsRow({
+  standing,
+  isLeader,
+  isLast,
+}: {
+  standing: Standing;
+  isLeader: boolean;
+  isLast: boolean;
+}) {
   const player = useStore((s) => s.players.find((p) => p.id === standing.playerId));
   const colors = useColors();
   const cardStyles = makeCardStyles(colors);
@@ -48,7 +56,9 @@ function StandingsRow({ standing, isLeader, isLast }: { standing: Standing; isLe
     standing.gd > 0 ? colors.accent.green : standing.gd < 0 ? colors.accent.red : colors.text.muted;
 
   return (
-    <View style={[cardStyles.row, !isLast && cardStyles.rowBorder, isLeader && cardStyles.rowLeader]}>
+    <View
+      style={[cardStyles.row, !isLast && cardStyles.rowBorder, isLeader && cardStyles.rowLeader]}
+    >
       <View style={cardStyles.playerCol}>
         <CardAvatar teamCode={player?.teamCode} size={26} />
         <View style={cardStyles.playerNames}>
@@ -90,7 +100,10 @@ function StandingsCard({ tournamentName, subtitle, standings }: StandingsCardPro
   return (
     <View style={cardStyles.card} collapsable={false}>
       {/* Glow */}
-      <View style={[cardStyles.glow, { backgroundColor: colors.accent.green }]} pointerEvents="none" />
+      <View
+        style={[cardStyles.glow, { backgroundColor: colors.accent.green }]}
+        pointerEvents="none"
+      />
 
       {/* Top bar */}
       <View style={cardStyles.topBar}>
@@ -115,7 +128,9 @@ function StandingsCard({ tournamentName, subtitle, standings }: StandingsCardPro
       {/* Standings table */}
       <View style={cardStyles.section}>
         <View style={cardStyles.headerRow}>
-          <Text style={[cardStyles.headerCell, cardStyles.playerCol]}>{t('table.player').toUpperCase()}</Text>
+          <Text style={[cardStyles.headerCell, cardStyles.playerCol]}>
+            {t('table.player').toUpperCase()}
+          </Text>
           {STANDINGS_NUM_COLS.map((col) => (
             <Text key={col.key} style={[cardStyles.headerCell, cardStyles.numCol]}>
               {col.label}
@@ -125,7 +140,12 @@ function StandingsCard({ tournamentName, subtitle, standings }: StandingsCardPro
           <Text style={[cardStyles.headerCell, cardStyles.numCol]}>{t('common.pts')}</Text>
         </View>
         {standings.map((s, idx) => (
-          <StandingsRow key={s.playerId} standing={s} isLeader={idx === 0} isLast={idx === standings.length - 1} />
+          <StandingsRow
+            key={s.playerId}
+            standing={s}
+            isLeader={idx === 0}
+            isLast={idx === standings.length - 1}
+          />
         ))}
       </View>
     </View>
@@ -136,7 +156,13 @@ function StandingsCard({ tournamentName, subtitle, standings }: StandingsCardPro
 // Main Modal
 // ---------------------------------------------------------------------------
 
-export function ShareStandingsModal({ visible, onClose, tournamentName, subtitle, standings }: ShareStandingsModalProps) {
+export function ShareStandingsModal({
+  visible,
+  onClose,
+  tournamentName,
+  subtitle,
+  standings,
+}: ShareStandingsModalProps) {
   const [loading, setLoading] = useState(false);
   const [saveMessage, setSaveMessage] = useState<{ ok: boolean; text: string } | null>(null);
   const cardRef = useRef<View>(null);
@@ -145,12 +171,15 @@ export function ShareStandingsModal({ visible, onClose, tournamentName, subtitle
   const { t } = useTranslation();
 
   useEffect(() => {
-    if (!visible) { setLoading(false); setSaveMessage(null); }
+    if (!visible) {
+      setLoading(false);
+      setSaveMessage(null);
+    }
   }, [visible]);
 
   const captureNative = async (): Promise<string | null> => {
     try {
-      const { captureRef } = await import('react-native-view-shot') as { captureRef: CaptureRef };
+      const { captureRef } = (await import('react-native-view-shot')) as { captureRef: CaptureRef };
       return await captureRef(cardRef, { format: 'png', quality: 1.0, result: 'tmpfile' });
     } catch {
       setSaveMessage({ ok: false, text: t('share.captureError') });
@@ -193,7 +222,7 @@ export function ShareStandingsModal({ visible, onClose, tournamentName, subtitle
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
       } else {
-        const MediaLibrary = await import('expo-media-library/legacy') as MediaLibraryModule;
+        const MediaLibrary = (await import('expo-media-library/legacy')) as MediaLibraryModule;
         const { status } = await MediaLibrary.requestPermissionsAsync(true);
         if (status !== 'granted') {
           setSaveMessage({ ok: false, text: t('share.photosPermission') });
@@ -221,18 +250,24 @@ export function ShareStandingsModal({ visible, onClose, tournamentName, subtitle
         if (navigator.canShare?.({ files: [file] })) {
           await navigator.share({ files: [file], title: tournamentName });
         } else if (navigator.share) {
-          await navigator.share({ title: tournamentName, text: t('tournament.shareStandings.nativeShareText') });
+          await navigator.share({
+            title: tournamentName,
+            text: t('tournament.shareStandings.nativeShareText'),
+          });
         }
       } else {
         const uri = await captureNative();
         if (!uri) return;
-        const Sharing = await import('expo-sharing') as SharingModule;
+        const Sharing = (await import('expo-sharing')) as SharingModule;
         const canShare = await Sharing.isAvailableAsync();
         if (!canShare) {
           setSaveMessage({ ok: false, text: t('share.notAvailable') });
           return;
         }
-        await Sharing.shareAsync(uri, { mimeType: 'image/png', dialogTitle: t('tournament.shareStandings.dialogTitle') });
+        await Sharing.shareAsync(uri, {
+          mimeType: 'image/png',
+          dialogTitle: t('tournament.shareStandings.dialogTitle'),
+        });
       }
     } catch {
       // user cancelled share dialog
@@ -246,24 +281,38 @@ export function ShareStandingsModal({ visible, onClose, tournamentName, subtitle
       <SafeAreaView style={modalStyles.root} edges={['top', 'bottom']}>
         {/* Header */}
         <View style={modalStyles.header}>
-          <Text style={modalStyles.title}>{t('tournament.shareStandings.title').toUpperCase()}</Text>
+          <Text style={modalStyles.title}>
+            {t('tournament.shareStandings.title').toUpperCase()}
+          </Text>
           <TouchableOpacity onPress={onClose} style={modalStyles.closeBtn} activeOpacity={0.7}>
             <Text style={modalStyles.closeText}>✕</Text>
           </TouchableOpacity>
         </View>
 
         {/* Card preview */}
-        <ScrollView contentContainerStyle={modalStyles.previewScroll} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          contentContainerStyle={modalStyles.previewScroll}
+          showsVerticalScrollIndicator={false}
+        >
           <View collapsable={false} style={modalStyles.cardWrap}>
             <View ref={cardRef} collapsable={false}>
-              <StandingsCard tournamentName={tournamentName} subtitle={subtitle} standings={standings} />
+              <StandingsCard
+                tournamentName={tournamentName}
+                subtitle={subtitle}
+                standings={standings}
+              />
             </View>
           </View>
         </ScrollView>
 
         {/* Action buttons */}
         {saveMessage && (
-          <Text style={[modalStyles.saveMsg, saveMessage.ok ? modalStyles.saveMsgOk : modalStyles.saveMsgErr]}>
+          <Text
+            style={[
+              modalStyles.saveMsg,
+              saveMessage.ok ? modalStyles.saveMsgOk : modalStyles.saveMsgErr,
+            ]}
+          >
             {saveMessage.text}
           </Text>
         )}
@@ -291,7 +340,9 @@ export function ShareStandingsModal({ visible, onClose, tournamentName, subtitle
             {loading ? (
               <ActivityIndicator color={colors.bg.base} size="small" />
             ) : (
-              <Text style={[modalStyles.actionText, { color: colors.bg.base }]}>{t('share.share')}</Text>
+              <Text style={[modalStyles.actionText, { color: colors.bg.base }]}>
+                {t('share.share')}
+              </Text>
             )}
           </TouchableOpacity>
         </View>

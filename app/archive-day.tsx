@@ -8,11 +8,22 @@ import { useStore } from '@/store';
 import { calculateStandings } from '@/utils/standings';
 import { formatShortDate, formatEditableDate, parseEditableDate } from '@/utils/dateFormat';
 import { useColors } from '@/theme';
-import { NavHeader, SectionLabel, MatchCard, ShareRoundModal, CardAvatar, StandingsTable, getStandingsTableColumns, GlowBackground, ConfirmDialog, DropdownMenu } from '@/components';
+import {
+  NavHeader,
+  SectionLabel,
+  MatchCard,
+  ShareRoundModal,
+  CardAvatar,
+  StandingsTable,
+  getStandingsTableColumns,
+  GlowBackground,
+  ConfirmDialog,
+  DropdownMenu,
+} from '@/components';
 import { useDropdownMenu } from '@/hooks/useDropdownMenu';
 import { groupMatchesByTour } from '@/utils/matchTours';
 import { getRankedRoundOrdinals } from '@/utils/roundOrdinals';
-import { Match } from '@/store/types';
+import { type Match } from '@/store/types';
 import { makeStyles } from '@/screens/archive-day/archive-day.styles';
 import { EditRoundDateSheet } from '@/screens/archive-day/ArchiveDayModals';
 
@@ -35,7 +46,9 @@ function DayWinnerBanner({ winnerId, matchCount }: DayWinnerBannerProps) {
   return (
     <View style={styles.winnerCard}>
       <Text style={styles.winnerLabel}>♦ {t('archive.dayWinner').toUpperCase()} ♦</Text>
-      <Text style={styles.winnerMatchCount}>{t('archive.matchCount', { count: matchCount }).toUpperCase()}</Text>
+      <Text style={styles.winnerMatchCount}>
+        {t('archive.matchCount', { count: matchCount }).toUpperCase()}
+      </Text>
       <View style={styles.winnerLogoWrap}>
         <CardAvatar teamCode={player?.teamCode} size={56} />
       </View>
@@ -60,7 +73,7 @@ export default function ArchiveDayScreen() {
   // Re-derive from live archivedRounds so edits (swap, stats) reflect immediately.
   // Falls back to the snapshot for closed-tournament rounds (not in archivedRounds).
   const liveRound = useStore((s) =>
-    viewingRound ? s.archivedRounds.find((r) => r.id === viewingRound.id) ?? viewingRound : null,
+    viewingRound ? (s.archivedRounds.find((r) => r.id === viewingRound.id) ?? viewingRound) : null,
   );
   const tournamentName = useStore((s) => s.viewingTournament?.name ?? s.tournamentName ?? '');
   const players = useStore((s) => s.players);
@@ -69,10 +82,12 @@ export default function ArchiveDayScreen() {
   // Editable only while the round still lives in the open tournament's
   // archivedRounds — once closeTournament() runs it moves to closedTournaments
   // and becomes read-only, same rule as match editing (see CLAUDE.md).
-  const isEditableRound = useStore((s) =>
-    hasTournament && !!viewingRound && s.archivedRounds.some((r) => r.id === viewingRound.id),
+  const isEditableRound = useStore(
+    (s) =>
+      hasTournament && !!viewingRound && s.archivedRounds.some((r) => r.id === viewingRound.id),
   );
   const deleteArchivedRound = useStore((s) => s.deleteArchivedRound);
+  const groupByTours = useStore((s) => s.groupByTours);
   const roundsForOrdinal = useStore((s) =>
     viewingRound && s.archivedRounds.some((r) => r.id === viewingRound.id)
       ? s.archivedRounds
@@ -182,11 +197,7 @@ export default function ArchiveDayScreen() {
         {/* Round date */}
         <View style={styles.dateRow}>
           {isEditableRound ? (
-            <TouchableOpacity
-              style={styles.datePill}
-              onPress={openDateEditor}
-              activeOpacity={0.7}
-            >
+            <TouchableOpacity style={styles.datePill} onPress={openDateEditor} activeOpacity={0.7}>
               <Text style={styles.datePillText}>{formatShortDate(date)}</Text>
               <Text style={styles.datePillIcon}>✎</Text>
             </TouchableOpacity>
@@ -196,9 +207,7 @@ export default function ArchiveDayScreen() {
         </View>
 
         {/* Day Winner Banner */}
-        {winner ? (
-          <DayWinnerBanner winnerId={winner} matchCount={matches.length} />
-        ) : null}
+        {winner ? <DayWinnerBanner winnerId={winner} matchCount={matches.length} /> : null}
 
         {/* Round standings table */}
         {standings.length > 0 && (
@@ -226,36 +235,47 @@ export default function ArchiveDayScreen() {
           <View style={styles.emptyMatches}>
             <Text style={styles.emptyMatchesText}>{t('archive.noMatchesRecorded')}</Text>
           </View>
-        ) : (() => {
-          const tours = groupMatchesByTour(matches, playerIds.length).reverse();
-          const tourSize = playerIds.length > 1 ? (playerIds.length * (playerIds.length - 1)) / 2 : 0;
-          const showTourLabel = tours.length > 1 || matches.length >= tourSize;
-          return tours.map((tour) => {
-            const reversed = [...tour.matches].reverse();
-            return (
-              <View key={tour.tourNumber} style={styles.tourGroup}>
-                {showTourLabel && (
-                  <Text style={styles.tourLabel}>{t('matchday.tour', { n: tour.tourNumber }).toUpperCase()}</Text>
-                )}
-                <View style={styles.matchBlock}>
-                  {reversed.map((m: Match, idx) => (
-                    <TouchableOpacity
-                      key={m.id}
-                      activeOpacity={0.75}
-                      onPress={() => router.push(`/match/${m.id}`)}
-                    >
-                      <MatchCard
-                        match={m}
-                        readonly
-                        style={idx < reversed.length - 1 ? styles.matchCardInBlock : styles.matchCardInBlockLast}
-                      />
-                    </TouchableOpacity>
-                  ))}
+        ) : (
+          (() => {
+            const tours = groupByTours
+              ? groupMatchesByTour(matches, playerIds.length).reverse()
+              : [{ tourNumber: 1, matches }];
+            const tourSize =
+              playerIds.length > 1 ? (playerIds.length * (playerIds.length - 1)) / 2 : 0;
+            const showTourLabel = groupByTours && (tours.length > 1 || matches.length >= tourSize);
+            return tours.map((tour) => {
+              const reversed = [...tour.matches].reverse();
+              return (
+                <View key={tour.tourNumber} style={styles.tourGroup}>
+                  {showTourLabel && (
+                    <Text style={styles.tourLabel}>
+                      {t('matchday.tour', { n: tour.tourNumber }).toUpperCase()}
+                    </Text>
+                  )}
+                  <View style={styles.matchBlock}>
+                    {reversed.map((m: Match, idx) => (
+                      <TouchableOpacity
+                        key={m.id}
+                        activeOpacity={0.75}
+                        onPress={() => router.push(`/match/${m.id}`)}
+                      >
+                        <MatchCard
+                          match={m}
+                          readonly
+                          style={
+                            idx < reversed.length - 1
+                              ? styles.matchCardInBlock
+                              : styles.matchCardInBlockLast
+                          }
+                        />
+                      </TouchableOpacity>
+                    ))}
+                  </View>
                 </View>
-              </View>
-            );
-          });
-        })()}
+              );
+            });
+          })()
+        )}
 
         <View style={{ height: 48 }} />
       </ScrollView>
@@ -278,13 +298,19 @@ export default function ArchiveDayScreen() {
           {
             key: 'share',
             label: t('common.share'),
-            onPress: () => { roundMenu.close(); setShareVisible(true); },
+            onPress: () => {
+              roundMenu.close();
+              setShareVisible(true);
+            },
           },
           {
             key: 'delete',
             label: t('archive.deleteRoundConfirm'),
             destructive: true,
-            onPress: () => { roundMenu.close(); setDeleteVisible(true); },
+            onPress: () => {
+              roundMenu.close();
+              setDeleteVisible(true);
+            },
           },
         ]}
       />
@@ -315,4 +341,3 @@ export default function ArchiveDayScreen() {
     </SafeAreaView>
   );
 }
-

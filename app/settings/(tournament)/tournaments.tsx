@@ -7,7 +7,10 @@ import { useTranslation } from 'react-i18next';
 import { useStore } from '@/store';
 import { useColors } from '@/theme';
 import { NavHeader, Avatar, GlowBackground } from '@/components';
-import { EditTournamentNameSheet, CloseTournamentDialog } from '@/screens/tournament/TournamentModals';
+import {
+  EditTournamentNameSheet,
+  CloseTournamentDialog,
+} from '@/screens/tournament/TournamentModals';
 import { makeStyles } from '@/screens/settings/tournaments/tournaments.styles';
 
 export default function TournamentsScreen() {
@@ -133,12 +136,11 @@ export default function TournamentsScreen() {
                 <View style={styles.pastInfo}>
                   <Text style={styles.pastName}>{tour.name}</Text>
                   <Text style={styles.pastDate}>
-                    {new Date(tour.date).toLocaleDateString()} · {t('tournament.roundMatches', { count: tour.rounds.length })}
+                    {new Date(tour.date).toLocaleDateString()} ·{' '}
+                    {t('tournament.roundMatches', { count: tour.rounds.length })}
                   </Text>
                 </View>
-                <View
-                  style={[styles.champDot, { backgroundColor: tour.champColor }]}
-                />
+                <View style={[styles.champDot, { backgroundColor: tour.champColor }]} />
                 <Text style={styles.champName}>{tour.champName}</Text>
                 <Text style={styles.pastChevron}>›</Text>
               </TouchableOpacity>
@@ -165,4 +167,3 @@ export default function TournamentsScreen() {
     </SafeAreaView>
   );
 }
-

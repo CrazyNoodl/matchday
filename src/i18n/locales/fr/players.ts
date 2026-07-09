@@ -1,6 +1,6 @@
 const players = {
   title: 'Joueurs',
-  noResults: 'Aucun joueur pour l\'instant. Ajoutez votre premier joueur pour commencer.',
+  noResults: "Aucun joueur pour l'instant. Ajoutez votre premier joueur pour commencer.",
   noResultsAction: 'Ajouter un joueur',
   editTitle: 'Modifier le joueur',
   deleteConfirm: 'Supprimer le joueur ?',

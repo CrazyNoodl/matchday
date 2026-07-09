@@ -10,6 +10,13 @@ export const HEALTH_CHECK_INTERVAL_MS = 60_000;
 export function useIsOnline(): boolean {
   const [rawOnline, setRawOnline] = useState(true);
   const [verifiedUnreachable, setVerifiedUnreachable] = useState(false);
+  // True once the ping-based check has resolved at least once for the current
+  // `rawOnline` signal. Until then we can't tell "connected interface, real
+  // internet" apart from "connected interface, no real internet" (e.g. wifi
+  // with no WAN) — reporting online here would let a user tap a network
+  // action that's actually doomed to fail for the ~1-2.5s the first ping
+  // takes to resolve.
+  const [hasVerifiedOnce, setHasVerifiedOnce] = useState(false);
 
   useEffect(() => {
     // Web: NetInfo prefers the Network Information API (`navigator.connection`) when the
@@ -30,7 +37,7 @@ export function useIsOnline(): boolean {
       };
     }
 
-    return NetInfo.addEventListener(state => {
+    return NetInfo.addEventListener((state) => {
       setRawOnline(state.isConnected !== false && state.isInternetReachable !== false);
     });
   }, []);
@@ -46,18 +53,24 @@ export function useIsOnline(): boolean {
   useEffect(() => {
     if (!rawOnline) {
       setVerifiedUnreachable(false);
+      setHasVerifiedOnce(true);
       return;
     }
 
     let cancelled = false;
+    setHasVerifiedOnce(false);
     const verify = async () => {
       const reachable = await pingSupabase();
-      if (!cancelled) setVerifiedUnreachable(!reachable);
+      if (!cancelled) {
+        setVerifiedUnreachable(!reachable);
+        setHasVerifiedOnce(true);
+      }
     };
 
     verify();
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises -- setInterval ignores the return value, so an async callback is fine
     const interval = setInterval(verify, HEALTH_CHECK_INTERVAL_MS);
-    const subscription = AppState.addEventListener('change', nextState => {
+    const subscription = AppState.addEventListener('change', (nextState) => {
       if (nextState === 'active') verify();
     });
 
@@ -68,5 +81,9 @@ export function useIsOnline(): boolean {
     };
   }, [rawOnline]);
 
-  return rawOnline && !verifiedUnreachable;
+  // Before the first verification settles, don't report "online" — a raw
+  // signal of "connected" can't yet be distinguished from "connected, no
+  // real internet". This is what previously let network-action buttons show
+  // briefly enabled while actually offline.
+  return rawOnline && hasVerifiedOnce && !verifiedUnreachable;
 }

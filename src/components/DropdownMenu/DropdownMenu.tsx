@@ -1,5 +1,13 @@
 import React, { Fragment } from 'react';
-import { Modal, Pressable, StyleSheet, View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
+import {
+  Modal,
+  Pressable,
+  StyleSheet,
+  View,
+  Text,
+  TouchableOpacity,
+  ActivityIndicator,
+} from 'react-native';
 import { useColors } from '@/theme';
 import { makeDropdownMenuStyles } from './DropdownMenu.styles';
 
@@ -32,12 +40,21 @@ export function DropdownMenu({ visible, onClose, position, items, onDismiss }: D
   const styles = makeDropdownMenuStyles(colors);
 
   return (
-    <Modal visible={visible} transparent animationType="none" onRequestClose={onClose} statusBarTranslucent onDismiss={onDismiss}>
+    <Modal
+      visible={visible}
+      transparent
+      animationType="none"
+      onRequestClose={onClose}
+      statusBarTranslucent
+      onDismiss={onDismiss}
+    >
       <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
       <View
         style={[
           styles.dropdown,
-          position.left !== undefined ? { top: position.top, left: position.left } : { top: position.top, right: position.right },
+          position.left !== undefined
+            ? { top: position.top, left: position.left }
+            : { top: position.top, right: position.right },
         ]}
       >
         {items.map((item, idx) => (

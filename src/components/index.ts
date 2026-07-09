@@ -26,6 +26,7 @@ export * from './StandingCard';
 export * from './StandingsTable';
 export * from './StatsRow';
 export * from './StatusBadge';
+export * from './SyncStatusIndicator';
 export * from './TeamBadge';
 export * from './TeamPickerRow';
 export * from './Toggle';

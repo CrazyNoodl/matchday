@@ -6,11 +6,13 @@ import { LANGUAGES } from '@/i18n';
 import { signOut } from '@/supabase/auth';
 import { supabase, supabaseConfigured } from '@/supabase/client';
 import { deleteAllCloudData } from '@/supabase/sync';
+import { useIsOnline } from '@/hooks/useIsOnline';
 
 export function useSettings() {
   const router = useRouter();
   const goBack = useGoBack();
   const store = useStore();
+  const isOffline = !useIsOnline();
 
   const RESET_CONFIRM_DELAY_SECONDS = 5;
   const [showResetConfirm, setShowResetConfirm] = useState(false);
@@ -28,9 +30,17 @@ export function useSettings() {
   }, []);
 
   const {
-    players, teams, showNick, showTeamLogo, colorScheme,
-    hasTournament, tournamentName, language,
-    archivedRounds, closedTournaments, demoMode,
+    players,
+    teams,
+    showNick,
+    showTeamLogo,
+    colorScheme,
+    hasTournament,
+    tournamentName,
+    language,
+    archivedRounds,
+    closedTournaments,
+    demoMode,
   } = store;
 
   const currentLang = LANGUAGES.find((l) => l.code === language) ?? LANGUAGES[0];
@@ -71,7 +81,7 @@ export function useSettings() {
     } catch (e) {
       console.warn('[handleReset] cloud wipe failed', e);
     }
-    await store.resetStore();
+    await store.resetStore({ deleteCloudMedia: true });
     setIsResetting(false);
     setShowResetConfirm(false);
     router.dismissAll();
@@ -112,7 +122,10 @@ export function useSettings() {
       return;
     }
     store.setDemoMode(on);
-    if (on) { router.dismissAll(); router.replace('/'); }
+    if (on) {
+      router.dismissAll();
+      router.replace('/');
+    }
   };
 
   const confirmEnableDemo = () => {
@@ -137,6 +150,7 @@ export function useSettings() {
     demoMode,
     currentLang,
     isDefaultState,
+    isOffline,
     userEmail,
     versionTaps,
     devUnlocked,

@@ -68,7 +68,7 @@ it('never pushes after resetStore() wipes local state, even though it has real c
   await waitFor(() => expect(mockPullState).toHaveBeenCalledTimes(1));
 
   // A real edit — this is the baseline: it SHOULD push.
-  const localPlayer: Player = { id: 'local-1', name: 'Local', color: '#f00', teamCode: 'JUV' };
+  const localPlayer: Player = { id: 'local-1', name: 'Local', teamCode: 'JUV' };
   useStore.getState().addPlayer(localPlayer);
   await waitFor(() => expect(mockPushState).toHaveBeenCalledTimes(1));
 

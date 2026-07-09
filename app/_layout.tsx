@@ -1,5 +1,5 @@
 import i18n from '@/i18n';
-import { Stack, useRouter } from 'expo-router';
+import { Stack, useRouter, usePathname } from 'expo-router';
 import Head from 'expo-router/head';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -19,25 +19,40 @@ import { Platform, View, ActivityIndicator, Text, TextInput, TouchableOpacity } 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Constants from 'expo-constants';
 import { ErrorBoundary } from 'react-error-boundary';
+import * as Sentry from '@sentry/react-native';
 import { ThemeProvider, useColors, useEffectiveColorScheme } from '@/theme';
 import { useStore } from '@/store';
 import { bannerStyles, offlineBannerStyles } from '@/screens/layout/layout.styles';
 import { useTranslation } from 'react-i18next';
 import { useSyncManager } from '@/supabase/useSyncManager';
+import { useMediaRetryManager } from '@/hooks/useMediaRetryManager';
+import { resolveOfflineBannerVariant } from '@/utils/offlineBanner';
 import { supabase, supabaseConfigured } from '@/supabase/client';
 import { LoginScreen, OfflineScreen, ErrorFallback } from '@/components';
 import { useIsOnline } from '@/hooks/useIsOnline';
+import { initSentry } from '@/sentry';
+import { initAnalytics, trackEvent } from '@/analytics';
 import type { Session } from '@supabase/supabase-js';
 
-(Text as any).defaultProps = { ...((Text as any).defaultProps ?? {}), allowFontScaling: false };
-(TextInput as any).defaultProps = { ...((TextInput as any).defaultProps ?? {}), allowFontScaling: false };
+initSentry();
+initAnalytics();
 
-const BASE_URL: string = (Constants.expoConfig?.experiments as Record<string, string> | undefined)?.baseUrl ?? '';
+(Text as any).defaultProps = { ...((Text as any).defaultProps ?? {}), allowFontScaling: false };
+(TextInput as any).defaultProps = {
+  ...((TextInput as any).defaultProps ?? {}),
+  allowFontScaling: false,
+};
+
+const BASE_URL: string =
+  (Constants.expoConfig?.experiments as Record<string, string> | undefined)?.baseUrl ?? '';
 
 function AppErrorBoundary({ children }: { children: React.ReactNode }) {
   return (
     <ErrorBoundary
-      onError={(error) => console.error('[AppErrorBoundary]', error)}
+      onError={(error) => {
+        console.error('[AppErrorBoundary]', error);
+        Sentry.captureException(error);
+      }}
       fallbackRender={({ resetErrorBoundary }) => <ErrorFallback onRetry={resetErrorBoundary} />}
     >
       {children}
@@ -47,6 +62,19 @@ function AppErrorBoundary({ children }: { children: React.ReactNode }) {
 
 function SyncManager() {
   useSyncManager();
+  return null;
+}
+
+function MediaRetryManager({ isOnline }: { isOnline: boolean }) {
+  useMediaRetryManager(isOnline);
+  return null;
+}
+
+function ScreenViewTracker() {
+  const pathname = usePathname();
+  useEffect(() => {
+    trackEvent('screen_view', { path: pathname });
+  }, [pathname]);
   return null;
 }
 
@@ -62,11 +90,15 @@ function LanguageSync() {
 
 function OfflineBanner({ isOnline }: { isOnline: boolean }) {
   const demoMode = useStore((s) => s.demoMode);
+  const syncStatus = useStore((s) => s.syncStatus);
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
 
   // Demo mode's own banner already occupies the bottom-anchored slot.
-  if (isOnline || demoMode) return null;
+  if (demoMode) return null;
+
+  const variant = resolveOfflineBannerVariant(isOnline, syncStatus);
+  if (!variant) return null;
 
   return (
     <View
@@ -76,8 +108,8 @@ function OfflineBanner({ isOnline }: { isOnline: boolean }) {
         { paddingBottom: 12 + (insets.bottom > 0 ? insets.bottom : 8) },
       ]}
     >
-      <Text style={offlineBannerStyles.title}>{t('offline.bannerTitle').toUpperCase()}</Text>
-      <Text style={offlineBannerStyles.sub}>{t('offline.bannerSub')}</Text>
+      <Text style={offlineBannerStyles.title}>{t(variant.titleKey).toUpperCase()}</Text>
+      <Text style={offlineBannerStyles.sub}>{t(variant.subKey)}</Text>
     </View>
   );
 }
@@ -125,7 +157,14 @@ function AppContent({
 
   if (!fontsLoaded || session === undefined) {
     return (
-      <View style={{ flex: 1, backgroundColor: colors.bg.base, alignItems: 'center', justifyContent: 'center' }}>
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: colors.bg.base,
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
         <ActivityIndicator color={colors.accent.green} size="large" />
       </View>
     );
@@ -143,7 +182,11 @@ function AppContent({
     }
     return (
       <AppErrorBoundary>
-        <LoginScreen onSuccess={() => {/* session update via onAuthStateChange */}} />
+        <LoginScreen
+          onSuccess={() => {
+            /* session update via onAuthStateChange */
+          }}
+        />
       </AppErrorBoundary>
     );
   }
@@ -157,11 +200,16 @@ function AppContent({
             <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
             <meta name="apple-mobile-web-app-title" content="Matchday" />
             <link rel="apple-touch-icon" href={`${BASE_URL}/apple-touch-icon.png`} />
-            <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+            <meta
+              name="viewport"
+              content="width=device-width, initial-scale=1, viewport-fit=cover"
+            />
           </Head>
         )}
         <SyncManager />
+        <MediaRetryManager isOnline={isOnline} />
         <LanguageSync />
+        <ScreenViewTracker />
         <StatusBar style={colorScheme === 'light' ? 'dark' : 'light'} />
         {/* flex:1 wrapper reserves the banners their own row below instead of
             letting them float on top of screen content — see layout.styles.ts */}
@@ -220,7 +268,9 @@ export default function RootLayout() {
   useEffect(() => {
     if (!supabaseConfigured) return;
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => setSession(s));
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, s) => setSession(s));
     return () => subscription.unsubscribe();
   }, []);
 

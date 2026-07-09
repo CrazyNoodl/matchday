@@ -1,4 +1,4 @@
-import { Standing } from '@/utils/standings';
+import { type Standing } from '@/utils/standings';
 
 /** Column order/labels shared by the share-round and share-standings card tables. */
 export const STANDINGS_NUM_COLS: { key: keyof Standing; label: string }[] = [

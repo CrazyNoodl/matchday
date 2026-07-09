@@ -6,13 +6,25 @@ import { useStore } from '@/store';
 import { calculateStandings, isTopTied } from '@/utils/standings';
 import { useColors } from '@/theme';
 import { Spacing } from '@/theme/spacing';
-import { MatchCard, StandingCard, StandingsTable, getStandingsTableColumns, SectionLabel, EmptyState, GlowBackground, SegmentedControl, DropdownMenu, ConfirmDialog } from '@/components';
+import {
+  MatchCard,
+  StandingCard,
+  StandingsTable,
+  getStandingsTableColumns,
+  SectionLabel,
+  EmptyState,
+  GlowBackground,
+  SegmentedControl,
+  DropdownMenu,
+  ConfirmDialog,
+} from '@/components';
 import { useDropdownMenu } from '@/hooks/useDropdownMenu';
 import { groupMatchesByTour } from '@/utils/matchTours';
 import { useTranslation } from 'react-i18next';
 import { makeStyles } from '@/screens/round/round.styles';
 import { useAddMatchFlow } from '@/screens/round/useAddMatchFlow';
 import { AddMatchSheet } from '@/screens/round/AddMatchSheet';
+import { trackEvent } from '@/analytics';
 import {
   EndRoundDialog,
   NeedEqualDialog,
@@ -37,6 +49,7 @@ export default function MatchdayScreen() {
   const teams = useStore((s) => s.teams);
   const tournamentId = useStore((s) => s.tournamentId);
   const roundFolder = useStore((s) => s.roundFolder);
+  const groupByTours = useStore((s) => s.groupByTours);
   const setModal = useStore((s) => s.setModal);
   const addMatch = useStore((s) => s.addMatch);
   const setSelectedMatch = useStore((s) => s.setSelectedMatch);
@@ -78,6 +91,11 @@ export default function MatchdayScreen() {
     return counts.every((c) => c === counts[0]);
   }, [standings]);
 
+  const handleOpenAddMatch = useCallback(() => {
+    trackEvent('add_match_tapped');
+    setModal('add');
+  }, [setModal]);
+
   const handleFinishPress = useCallback(() => {
     if (matches.length === 0) {
       setModal('needEqual');
@@ -96,6 +114,7 @@ export default function MatchdayScreen() {
     const winnerId = isTrueDraw || !s[0] ? null : s[0].playerId;
     setLocalWinnerId(winnerId);
     finishRound();
+    trackEvent('round_finished', { matchCount: matches.length });
     setModal('winner');
   }, [matches, roundPlayers, finishRound, setModal]);
 
@@ -115,10 +134,15 @@ export default function MatchdayScreen() {
   const leaderName = leader ? (players.find((p) => p.id === leader.playerId)?.name ?? '') : '';
 
   const tours = useMemo(
-    () => groupMatchesByTour(matches, roundPlayers.length).reverse(),
-    [matches, roundPlayers.length],
+    () =>
+      groupByTours
+        ? groupMatchesByTour(matches, roundPlayers.length).reverse()
+        : [{ tourNumber: 1, matches }],
+    [matches, roundPlayers.length, groupByTours],
   );
-  const showTourLabel = tours.length > 1 || matches.length >= (roundPlayers.length * (roundPlayers.length - 1)) / 2;
+  const showTourLabel =
+    groupByTours &&
+    (tours.length > 1 || matches.length >= (roundPlayers.length * (roundPlayers.length - 1)) / 2);
 
   const handleMatchPress = useCallback(
     (matchId: string) => {
@@ -143,9 +167,13 @@ export default function MatchdayScreen() {
           <Text style={styles.backChevron}>‹</Text>
         </TouchableOpacity>
         <View style={styles.headerCenter}>
-          <Text style={styles.headerTitle} numberOfLines={1} ellipsizeMode="tail">{tournamentName}</Text>
+          <Text style={styles.headerTitle} numberOfLines={1} ellipsizeMode="tail">
+            {tournamentName}
+          </Text>
           <Text style={styles.headerSubtitle}>
-            {tournamentRanked ? t('matchday.round', { n: round }) : t('common.friendly').toUpperCase()}
+            {tournamentRanked
+              ? t('matchday.round', { n: round })
+              : t('common.friendly').toUpperCase()}
           </Text>
         </View>
         <View style={styles.headerRight}>
@@ -212,34 +240,44 @@ export default function MatchdayScreen() {
 
         {/* Matches */}
         <View style={styles.matchesSection}>
-          <SectionLabel label={t('matchday.matchesSection', { count: matches.length }).toUpperCase()} />
+          <SectionLabel
+            label={t('matchday.matchesSection', { count: matches.length }).toUpperCase()}
+          />
           <View style={styles.matchesList}>
             {matches.length === 0 ? (
               <EmptyState
                 message={t('matchday.noMatches')}
                 ctaText={roundOpen ? t('matchday.noMatchesAction') : undefined}
-                onPress={roundOpen ? () => setModal('add') : undefined}
+                onPress={roundOpen ? handleOpenAddMatch : undefined}
               />
-            ) : tours.map((tour) => {
+            ) : (
+              tours.map((tour) => {
                 const reversed = [...tour.matches].reverse();
                 return (
                   <View key={tour.tourNumber} style={styles.tourGroup}>
                     {showTourLabel && (
-                      <Text style={styles.tourLabel}>{t('matchday.tour', { n: tour.tourNumber }).toUpperCase()}</Text>
+                      <Text style={styles.tourLabel}>
+                        {t('matchday.tour', { n: tour.tourNumber }).toUpperCase()}
+                      </Text>
                     )}
                     <View style={styles.matchBlock}>
                       {reversed.map((m, idx) => (
                         <MatchCard
                           key={m.id}
                           match={m}
-                          style={idx < reversed.length - 1 ? styles.matchCardInBlock : styles.matchCardInBlockLast}
+                          style={
+                            idx < reversed.length - 1
+                              ? styles.matchCardInBlock
+                              : styles.matchCardInBlockLast
+                          }
                           onPress={handleMatchPress}
                         />
                       ))}
                     </View>
                   </View>
                 );
-              })}
+              })
+            )}
           </View>
         </View>
 
@@ -251,7 +289,7 @@ export default function MatchdayScreen() {
         <View style={styles.fab}>
           <TouchableOpacity
             style={styles.fabBtn}
-            onPress={() => setModal('add')}
+            onPress={handleOpenAddMatch}
             activeOpacity={0.85}
           >
             <Text style={styles.fabText}>{t('matchday.addMatch').toUpperCase()}</Text>
@@ -261,7 +299,10 @@ export default function MatchdayScreen() {
 
       <AddMatchSheet
         visible={modal === 'add'}
-        onClose={() => { closeModal(); addMatchFlow.reset(); }}
+        onClose={() => {
+          closeModal();
+          addMatchFlow.reset();
+        }}
         tournamentRanked={tournamentRanked}
         tournamentPlayerList={tournamentPlayerList}
         players={players}
@@ -322,7 +363,10 @@ export default function MatchdayScreen() {
         title={t('matchday.dialogs.deleteRoundTitle').toUpperCase()}
         description={t('matchday.dialogs.deleteRoundDesc')}
         cancel={{ label: t('matchday.dialogs.cancel'), onPress: closeModal }}
-        confirm={{ label: t('matchday.dialogs.deleteRoundConfirm'), onPress: handleConfirmDeleteRound }}
+        confirm={{
+          label: t('matchday.dialogs.deleteRoundConfirm'),
+          onPress: handleConfirmDeleteRound,
+        }}
       />
 
       {/* ---- Round Options Dropdown ---- */}

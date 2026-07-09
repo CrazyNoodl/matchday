@@ -1,5 +1,5 @@
-import { StateCreator } from 'zustand';
-import { Modal, ArchivedRound, ClosedTournament } from '../types';
+import { type StateCreator } from 'zustand';
+import { type Modal, type ArchivedRound, type ClosedTournament } from '../types';
 import type { RootState } from '../index';
 
 export interface UiState {

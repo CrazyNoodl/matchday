@@ -1,7 +1,9 @@
 import { test, expect } from './fixtures';
 
 test.describe('Offline handling', () => {
-  test('shows the offline banner without blocking the app, and clears it when back online @smoke', async ({ authedPage: page }) => {
+  test('shows the offline banner without blocking the app, and clears it when back online @smoke', async ({
+    authedPage: page,
+  }) => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
     await expect(page.getByText('NO INTERNET CONNECTION')).not.toBeVisible();

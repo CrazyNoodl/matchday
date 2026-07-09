@@ -56,11 +56,7 @@ export function MediaSlider({ items, initialIndex = 0, onClose }: MediaSliderPro
         renderItem={({ item, index }) =>
           item.type === 'video' ? (
             <Pressable style={styles.slide} onPress={onClose}>
-              <Image
-                source={{ uri: item.uri }}
-                style={styles.slideImage}
-                resizeMode="contain"
-              />
+              <Image source={{ uri: item.uri }} style={styles.slideImage} resizeMode="contain" />
               <View style={styles.videoOverlay}>
                 <Text style={styles.videoPlayIcon}>▶</Text>
               </View>

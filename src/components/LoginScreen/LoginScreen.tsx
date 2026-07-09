@@ -40,11 +40,17 @@ export function LoginScreen({ onSuccess }: Props) {
     try {
       if (mode === 'signin') {
         const { error: err } = await signInWithEmail(email.trim(), password);
-        if (err) { setError(err); return; }
+        if (err) {
+          setError(err);
+          return;
+        }
         onSuccess();
       } else {
         const { error: err } = await signUpWithEmail(email.trim(), password);
-        if (err) { setError(err); return; }
+        if (err) {
+          setError(err);
+          return;
+        }
         setSuccessMsg(t('auth.signUpSuccess'));
         setMode('signin');
       }
@@ -58,10 +64,7 @@ export function LoginScreen({ onSuccess }: Props) {
       style={styles.root}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <ScrollView
-        contentContainerStyle={styles.scroll}
-        keyboardShouldPersistTaps="handled"
-      >
+      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         <View style={styles.header}>
           <Text style={styles.logo}>⚽</Text>
           <Text style={styles.title}>MATCHDAY</Text>
@@ -113,20 +116,24 @@ export function LoginScreen({ onSuccess }: Props) {
               <ActivityIndicator color={colors.bg.base} size="small" />
             ) : (
               <Text style={styles.btnText}>
-                {mode === 'signin' ? t('auth.signIn').toUpperCase() : t('auth.createAccount').toUpperCase()}
+                {mode === 'signin'
+                  ? t('auth.signIn').toUpperCase()
+                  : t('auth.createAccount').toUpperCase()}
               </Text>
             )}
           </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.toggleBtn}
-            onPress={() => { setMode(mode === 'signin' ? 'signup' : 'signin'); setError(null); setSuccessMsg(null); }}
+            onPress={() => {
+              setMode(mode === 'signin' ? 'signup' : 'signin');
+              setError(null);
+              setSuccessMsg(null);
+            }}
             activeOpacity={0.7}
           >
             <Text style={styles.toggleText}>
-              {mode === 'signin'
-                ? t('auth.noAccountPrompt')
-                : t('auth.hasAccountPrompt')}
+              {mode === 'signin' ? t('auth.noAccountPrompt') : t('auth.hasAccountPrompt')}
             </Text>
           </TouchableOpacity>
         </View>

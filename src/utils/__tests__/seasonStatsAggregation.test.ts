@@ -1,5 +1,5 @@
 import { filterRoundsByRanked, countChampDaysWon } from '../seasonStatsAggregation';
-import { ArchivedRound } from '../../store/types';
+import { type ArchivedRound } from '../../store/types';
 
 const round = (id: string, ranked: boolean, winner = ''): ArchivedRound => ({
   id,

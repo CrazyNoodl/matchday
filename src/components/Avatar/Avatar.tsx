@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ViewStyle } from 'react-native';
+import { View, Text, type ViewStyle } from 'react-native';
 import { Image } from 'expo-image';
 import { useStore } from '../../store';
 import { useColors } from '../../theme';
@@ -28,11 +28,7 @@ export const Avatar = React.memo(function Avatar({ playerId, size = 'md', style 
   const radius = RADII[size];
   const fontSize = FONT_SIZES[size];
 
-  const baseStyle = [
-    styles.base,
-    { width: dim, height: dim, borderRadius: radius },
-    style,
-  ];
+  const baseStyle = [styles.base, { width: dim, height: dim, borderRadius: radius }, style];
 
   if (!team) {
     return <View style={[...baseStyle, { backgroundColor: colors.bg.elevated }]} />;
@@ -58,10 +54,7 @@ export const Avatar = React.memo(function Avatar({ playerId, size = 'md', style 
 
   return (
     <View style={[...baseStyle, { backgroundColor: color + '28' }]}>
-      <Text
-        style={[styles.text, { color, fontSize, lineHeight: dim - 4 }]}
-        numberOfLines={1}
-      >
+      <Text style={[styles.text, { color, fontSize, lineHeight: dim - 4 }]} numberOfLines={1}>
         {label}
       </Text>
     </View>

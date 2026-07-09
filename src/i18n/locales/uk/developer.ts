@@ -16,6 +16,20 @@ const developer = {
     resizeLab: 'Лабораторія зменшення',
     resizeLabSub: 'Порівняння розміру до/після для кожного пресету стиснення (#62)',
   },
+  errorTracking: {
+    section: 'Логування помилок',
+    sendTestError: 'Надіслати тестову помилку',
+    sendTestErrorSub: 'Кидає тестову помилку, щоб перевірити підключення Sentry',
+    testErrorSentTitle: 'Тестову помилку надіслано',
+    testErrorSentDesc: 'Перевірте дашборд Sentry, щоб підтвердити отримання.',
+  },
+  analytics: {
+    section: 'Аналітика',
+    sendTestEvent: 'Надіслати тестову подію',
+    sendTestEventSub: 'Надсилає тестову подію, щоб перевірити підключення Aptabase',
+    testEventSentTitle: 'Тестову подію надіслано',
+    testEventSentDesc: 'Перевірте дашборд Aptabase, щоб підтвердити отримання.',
+  },
 } as const;
 
 export default developer;

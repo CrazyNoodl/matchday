@@ -10,6 +10,88 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.38',
+    added: [
+      'Developer settings now shows a confirmation dialog after sending a test error or test event, instead of no feedback at all',
+    ],
+  },
+  {
+    version: '1.9.37',
+    fixed: [
+      '`@aptabase/react-native` was declared as a dependency but never installed, breaking the web bundle entirely',
+    ],
+    internal: [
+      'Internal: analytics events (`initAnalytics`/`trackEvent`) now also gate on `__DEV__`, so only production builds send events — never local dev servers or test runs',
+    ],
+  },
+  {
+    version: '1.9.36',
+    internal: [
+      'Internal: added product-analytics event tracking (Aptabase) for screen views, key button taps, option selections (ranked/friendly), and tournament/round/match creation counts',
+    ],
+  },
+  {
+    version: '1.9.35',
+    added: [
+      'Settings now shows a persistent sync-status row (syncing/pending/error), and the offline banner distinguishes "no network" from "reachable but sync is failing" (#73)',
+    ],
+    fixed: [
+      'Reconnecting after being offline now retries every pending photo/video upload across all matches, not just whichever match happened to be open',
+    ],
+  },
+  {
+    version: '1.9.34',
+    internal: [
+      'Internal: wired Sentry error tracking into the root error boundary and the sync/storage layer (previously-silent catches now report with breadcrumbs), plus a "Send test error" row in Developer settings to verify the pipeline — no visible change',
+    ],
+  },
+  {
+    version: '1.9.33',
+    fixed: [
+      '"Reset All Data" is now disabled while offline, since it would wipe local data without being able to also wipe the cloud copy',
+    ],
+  },
+  {
+    version: '1.9.32',
+    fixed: [
+      'Confirm dialogs with a single button (e.g. "Cannot Delete") rendered with an invisible label — the button collapsed to a sliver instead of showing its text',
+      '"Reset All Data" is now disabled while Demo Mode is active, preventing it from wiping real data',
+    ],
+    internal: [
+      'Internal: removed an unused per-player color field',
+    ],
+  },
+  {
+    version: '1.9.31',
+    internal: [
+      'Internal: added Prettier and stricter ESLint rules (type-aware promise checks, banned Alert.alert/react-native-mmkv outside their allowed spots, theme-token/inline-style checks) — no visible change',
+    ],
+  },
+  {
+    version: '1.9.30',
+    fixed: [
+      'Fixed a sync bug where matches added while offline could vanish — a second edit landing while an earlier sync push was still mid-flight could race it, and the stale push then deleted the newer match from the cloud, which then got wiped locally too on the next app relaunch',
+    ],
+  },
+  {
+    version: '1.9.29',
+    added: [
+      'Display settings: "Group matches by tours" switch (default on) — turn it off to see a round\'s matches as one flat list instead of TOUR N blocks',
+    ],
+  },
+  {
+    version: '1.9.28',
+    added: [
+      'Tournament screen: a sort toggle next to "Played rounds" switches the list between newest-first (default) and oldest-first',
+    ],
+  },
+  {
+    version: '1.9.27',
+    fixed: [
+      'Match detail → Edit stats: a low-confidence (AI-flagged) stat can now be confirmed correct by tapping its label — previously the only way to clear the flag was nudging the value with +/-, even when it was already right',
+    ],
+  },
+  {
     version: '1.9.26',
     internal: [
       'Internal: added e2e coverage for match detail editing, the Reset All Data safety cooldown, and local backup/restore; e2e fixtures now block all real Supabase network calls (Metro was inlining the live project URL/key into the test bundle regardless of playwright.config.ts overrides) — no visible change',
@@ -74,19 +156,19 @@ export const CHANGELOG: ChangelogEntry[] = [
     version: '1.9.18',
     fixed: [
       'Add Match: a photo that fails to upload is now flagged for retry (via the existing match-detail retry overlay) instead of silently staying local and never reaching Storage (#68)',
-      'Add Match and OCR Lab: adding a new stat photo no longer re-scans every already-scanned photo, and removing a photo no longer wipes its siblings\' already-extracted stats (#71)',
+      "Add Match and OCR Lab: adding a new stat photo no longer re-scans every already-scanned photo, and removing a photo no longer wipes its siblings' already-extracted stats (#71)",
     ],
   },
   {
     version: '1.9.17',
     internal: [
-      'What\'s New screen now splits entries into four categories (Added, Changed, Fixed, Internal) instead of three — separates real user-facing improvements from purely internal cleanup, each with its own color',
+      "What's New screen now splits entries into four categories (Added, Changed, Fixed, Internal) instead of three — separates real user-facing improvements from purely internal cleanup, each with its own color",
     ],
   },
   {
     version: '1.9.16',
     added: [
-      'Add Match now dims and disables any opponent who already played the picked player this round-robin tour, so the same pairing can\'t repeat until a full tour completes',
+      "Add Match now dims and disables any opponent who already played the picked player this round-robin tour, so the same pairing can't repeat until a full tour completes",
     ],
   },
   {
@@ -111,14 +193,14 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '1.9.12',
     fixed: [
-      'Team logos now load instantly offline once seen before, and fall back to the colored initials badge instead of a blank box when a logo can\'t load',
+      "Team logos now load instantly offline once seen before, and fall back to the colored initials badge instead of a blank box when a logo can't load",
       'AI stat scan no longer surfaces a "goals" row that just duplicates the match score; any other stray stat outside the normal 23 can now be deleted individually (#72)',
     ],
   },
   {
     version: '1.9.11',
     added: [
-      'Offline handling, phase 1: a banner appears when you lose connection, and any action that needs the network (adding photos, importing stats, team logos) is disabled until you\'re back online instead of failing silently (#73)',
+      "Offline handling, phase 1: a banner appears when you lose connection, and any action that needs the network (adding photos, importing stats, team logos) is disabled until you're back online instead of failing silently (#73)",
     ],
     fixed: [
       'Local changes made right before the app is killed or crashes could be lost instead of syncing on next launch — pending changes are now saved and retried automatically on reconnect',
@@ -167,9 +249,9 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '1.9.5',
     added: [
-      'Match stats edit screen now always shows all 23 tracked params in a fixed order — ones the AI didn\'t recognize show as a muted placeholder instead of being hidden, and a small dot marks values the AI wasn\'t fully confident about (#63)',
+      "Match stats edit screen now always shows all 23 tracked params in a fixed order — ones the AI didn't recognize show as a muted placeholder instead of being hidden, and a small dot marks values the AI wasn't fully confident about (#63)",
       'Expected Goals (xG) now steps by 0.1 in the stats editor instead of whole numbers; percentage stats (possession, dribbles, accuracy) are capped at 100 on each side (#63)',
-      'Stat photos that don\'t look like a real stats screen are now rejected automatically during import/re-scan — they\'re no longer added to the match or applied as stats, and you\'re asked to upload a clearer photo instead (#63)',
+      "Stat photos that don't look like a real stats screen are now rejected automatically during import/re-scan — they're no longer added to the match or applied as stats, and you're asked to upload a clearer photo instead (#63)",
     ],
     fixed: [
       'Re-scanning stats or adding new photos now shows a visible loading indicator for the entire upload + AI-read duration, including the wait for photos not yet downloaded from iCloud — previously the app could look frozen with no feedback (#65)',
@@ -303,9 +385,7 @@ export const CHANGELOG: ChangelogEntry[] = [
   },
   {
     version: '1.6.6',
-    added: [
-      'Light theme — toggle between dark and light appearance in Settings → Display',
-    ],
+    added: ['Light theme — toggle between dark and light appearance in Settings → Display'],
     fixed: [
       'Stats screen showed raw translation keys instead of text due to a duplicate locale block (#27)',
       'Edit stats sheet now scrolls fully instead of clipping the stat list at the bottom (#32)',
@@ -355,9 +435,7 @@ export const CHANGELOG: ChangelogEntry[] = [
   },
   {
     version: '1.6.0',
-    added: [
-      "A 'What's New' screen — tap the app version 3 times in Settings to see it",
-    ],
+    added: ["A 'What's New' screen — tap the app version 3 times in Settings to see it"],
     internal: [
       'Internal cleanup: deduplicated store logic, memoized standings calculations, and moved every component into its own folder with tests/stories alongside it',
     ],

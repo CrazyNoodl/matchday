@@ -8,7 +8,9 @@ import { test, expect, createTeamViaUI, createPlayerViaUI } from './fixtures';
 // shortcut — are exactly the behavior that must not regress.
 
 test.describe('Reset All Data', () => {
-  test('confirm button is disabled during the 5s cooldown and does nothing if clicked', async ({ authedPage: page }) => {
+  test('confirm button is disabled during the 5s cooldown and does nothing if clicked', async ({
+    authedPage: page,
+  }) => {
     await page.goto('/settings');
     await page.waitForLoadState('networkidle');
 
@@ -22,7 +24,46 @@ test.describe('Reset All Data', () => {
     await expect(page.getByText(/Reset All Data\? \(\d\)/)).toBeVisible();
   });
 
-  test('"Backup My Data First" closes the dialog and navigates to Backup & Restore', async ({ authedPage: page }) => {
+  test('is disabled while Demo Mode is on, since it would wipe the real cloud account', async ({
+    authedPage: page,
+  }) => {
+    await page.goto('/settings');
+    await page.waitForLoadState('networkidle');
+
+    await page.getByRole('switch').first().click();
+    await expect(page).toHaveURL('/');
+
+    await page.goto('/settings');
+    await page.waitForLoadState('networkidle');
+    await expect(page.getByText('Turn off Demo Mode to reset your data.')).toBeVisible();
+
+    // Disabled TouchableOpacity must not open the confirm dialog.
+    await page.getByText('Reset', { exact: true }).first().click();
+    await expect(page.getByText(/Reset All Data\? \(\d\)/)).not.toBeVisible();
+    await expect(page).toHaveURL(/.*settings/);
+  });
+
+  test('is disabled while offline, since the cloud wipe would silently fail to reach it', async ({
+    authedPage: page,
+  }) => {
+    await page.goto('/settings');
+    await page.waitForLoadState('networkidle');
+
+    await page.context().setOffline(true);
+    await expect(page.getByText('You need to be online to reset your data.')).toBeVisible();
+
+    // Disabled TouchableOpacity must not open the confirm dialog.
+    await page.getByText('Reset', { exact: true }).first().click();
+    await expect(page.getByText(/Reset All Data\? \(\d\)/)).not.toBeVisible();
+    await expect(page).toHaveURL(/.*settings/);
+
+    await page.context().setOffline(false);
+    await expect(page.getByText('This will permanently delete')).toBeVisible();
+  });
+
+  test('"Backup My Data First" closes the dialog and navigates to Backup & Restore', async ({
+    authedPage: page,
+  }) => {
     await page.goto('/settings');
     await page.waitForLoadState('networkidle');
 
@@ -35,7 +76,9 @@ test.describe('Reset All Data', () => {
     await expect(page.getByText(/Reset All Data\? \(\d\)/)).not.toBeVisible();
   });
 
-  test('confirming after the cooldown wipes local tournament data and returns home', async ({ authedPage: page }) => {
+  test('confirming after the cooldown wipes local tournament data and returns home', async ({
+    authedPage: page,
+  }) => {
     await createTeamViaUI(page, 'Liverpool', 'LIV');
     await createPlayerViaUI(page, 'Alice', 'LIV');
 

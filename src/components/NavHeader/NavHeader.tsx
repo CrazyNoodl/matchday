@@ -1,9 +1,5 @@
-import React, { ReactNode } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-} from 'react-native';
+import React, { type ReactNode } from 'react';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { useColors } from '../../theme';
 import { makeStyles } from './NavHeader.styles';
 
@@ -14,12 +10,7 @@ interface NavHeaderProps {
   rightElement?: ReactNode;
 }
 
-export function NavHeader({
-  title,
-  subtitle,
-  onBack,
-  rightElement,
-}: NavHeaderProps) {
+export function NavHeader({ title, subtitle, onBack, rightElement }: NavHeaderProps) {
   const colors = useColors();
   const styles = makeStyles(colors);
   return (

@@ -1,5 +1,5 @@
 // Legacy default (dark) — used where dynamic theming isn't needed
-import { AppColors, DarkColors } from './colors';
+import { type AppColors, DarkColors } from './colors';
 
 export { Colors, DarkColors, LightColors, colorsByScheme } from './colors';
 export type { ColorScheme, ThemePreference, AppColors } from './colors';

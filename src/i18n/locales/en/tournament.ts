@@ -11,6 +11,8 @@ const tournament = {
   playedRounds: 'Played rounds · {{count}}',
   noRounds: 'No completed rounds yet',
   roundMatches: '{{count}} matches',
+  sortNewestFirst: 'Newest first',
+  sortOldestFirst: 'Oldest first',
   continueMatchDay: 'Continue match day',
   newMatchDay: '+ New match day',
   sheet: {

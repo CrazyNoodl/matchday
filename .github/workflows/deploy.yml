@@ -29,6 +29,7 @@ jobs:
 
       - run: npx expo export --platform web
         env:
+          EXPO_WEB_BUILD: 'true'
           EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           EXPO_PUBLIC_ANTHROPIC_PROXY_URL: ${{ secrets.ANTHROPIC_PROXY_URL }}

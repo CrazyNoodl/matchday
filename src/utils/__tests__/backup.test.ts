@@ -58,7 +58,7 @@ class MemoryLocalStorage {
   }
 }
 
-const REAL_PLAYER: Player = { id: 'p1', name: 'Player One', color: '#ff0000', teamCode: 'JUV' };
+const REAL_PLAYER: Player = { id: 'p1', name: 'Player One', teamCode: 'JUV' };
 const REAL_TEAM: Team = { code: 'JUV', name: 'Juventus', short: 'JUV', color: '#000000' };
 
 function freshStore() {
@@ -68,7 +68,8 @@ function freshStore() {
 }
 
 beforeEach(() => {
-  (global as unknown as { localStorage: Storage }).localStorage = new MemoryLocalStorage() as unknown as Storage;
+  (global as unknown as { localStorage: Storage }).localStorage =
+    new MemoryLocalStorage() as unknown as Storage;
   freshStore();
 });
 
@@ -176,27 +177,37 @@ describe('validateBackupFile', () => {
   });
 
   it('rejects an unknown schemaVersion as unsupportedVersion', () => {
-    expect(validateBackupFile({ ...validFile(), schemaVersion: 999 }))
-      .toEqual({ valid: false, reason: 'unsupportedVersion' });
+    expect(validateBackupFile({ ...validFile(), schemaVersion: 999 })).toEqual({
+      valid: false,
+      reason: 'unsupportedVersion',
+    });
   });
 
   it('rejects a missing array field as missingFields', () => {
     const file = validFile();
     const { players: _players, ...restData } = file.data;
-    expect(validateBackupFile({ ...file, data: restData })).toEqual({ valid: false, reason: 'missingFields' });
+    expect(validateBackupFile({ ...file, data: restData })).toEqual({
+      valid: false,
+      reason: 'missingFields',
+    });
   });
 
   it('rejects a wrong-typed scalar field as missingFields', () => {
     const file = validFile();
-    expect(validateBackupFile({ ...file, data: { ...file.data, hasTournament: 'yes' } }))
-      .toEqual({ valid: false, reason: 'missingFields' });
+    expect(validateBackupFile({ ...file, data: { ...file.data, hasTournament: 'yes' } })).toEqual({
+      valid: false,
+      reason: 'missingFields',
+    });
   });
 });
 
 describe('applyBackupLocally', () => {
   it('brackets the mutation with syncSuppressionRef and fully replaces state', () => {
-    const otherPlayer: Player = { id: 'other', name: 'Other', color: '#00ff00', teamCode: 'GAL' };
-    const backupData: BackupData = { ...buildBackupPayload(useStore.getState()).data, players: [otherPlayer] };
+    const otherPlayer: Player = { id: 'other', name: 'Other', teamCode: 'GAL' };
+    const backupData: BackupData = {
+      ...buildBackupPayload(useStore.getState()).data,
+      players: [otherPlayer],
+    };
 
     let suppressedDuringMutation = false;
     const unsubscribe = useStore.subscribe(() => {

@@ -17,7 +17,8 @@ const matchDetail = {
   },
   editStats: {
     title: 'Modifier les stats',
-    subtitle: 'Corriger les valeurs lues par l\'IA',
+    subtitle: "Corriger les valeurs lues par l'IA",
+    confirmValue: 'Confirmer que la valeur est correcte',
   },
   editNote: {
     subtitle: 'Ajouter des notes sur le match',
@@ -34,7 +35,7 @@ const matchDetail = {
   },
   swapSidesDialog: {
     title: 'Inverser les côtés',
-    desc: 'Inverser qui a joué à domicile et à l\'extérieur ? Les stats seront inversées.',
+    desc: "Inverser qui a joué à domicile et à l'extérieur ? Les stats seront inversées.",
     confirm: 'Inverser',
   },
   importStats: {
@@ -53,7 +54,8 @@ const matchDetail = {
     failed: 'Impossible de lire les stats',
     failedDesc: 'Veuillez réessayer avec une image plus nette.',
     invalidPhoto: 'Mauvaise photo ?',
-    invalidPhotoDesc: 'Cela ne ressemble pas à un écran de statistiques — importez une nouvelle photo ou reprenez-en une plus nette.',
+    invalidPhotoDesc:
+      'Cela ne ressemble pas à un écran de statistiques — importez une nouvelle photo ou reprenez-en une plus nette.',
   },
 } as const;
 

@@ -12,9 +12,9 @@ const MOCK_TEAMS = [
 ];
 
 const MOCK_PLAYERS = [
-  { id: 'p1', name: 'Artem Rudenko', nick: 'Atom', color: Colors.player[0], teamCode: 'MCI' },
-  { id: 'p2', name: 'Oleh Bondar', color: Colors.player[1], teamCode: 'BAR' },
-  { id: 'p3', name: 'Ivan Petrenko', color: Colors.player[2], teamCode: 'RMA' },
+  { id: 'p1', name: 'Artem Rudenko', nick: 'Atom', teamCode: 'MCI' },
+  { id: 'p2', name: 'Oleh Bondar', teamCode: 'BAR' },
+  { id: 'p3', name: 'Ivan Petrenko', teamCode: 'RMA' },
 ];
 
 const MOCK_ARCHIVED_ROUND: ArchivedRound = {
@@ -68,9 +68,9 @@ export const ManyPlayers: Story = {
     withMockData({
       players: [
         ...MOCK_PLAYERS,
-        { id: 'p4', name: 'Denys Melnyk', color: Colors.player[3], teamCode: 'MCI' },
-        { id: 'p5', name: 'Yuri Kovalenko', color: Colors.player[4], teamCode: 'BAR' },
-        { id: 'p6', name: 'Serhii Tkachenko', color: Colors.player[5], teamCode: 'RMA' },
+        { id: 'p4', name: 'Denys Melnyk', teamCode: 'MCI' },
+        { id: 'p5', name: 'Yuri Kovalenko', teamCode: 'BAR' },
+        { id: 'p6', name: 'Serhii Tkachenko', teamCode: 'RMA' },
       ],
     }),
   ],

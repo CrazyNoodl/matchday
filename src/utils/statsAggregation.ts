@@ -1,4 +1,4 @@
-import { ArchivedRound, ClosedTournament, Match, Player } from '../store/types';
+import { type ArchivedRound, type ClosedTournament, type Match, type Player } from '../store/types';
 
 // ---------------------------------------------------------------------------
 // All-time stats screen (app/stats.tsx) aggregation
@@ -63,10 +63,7 @@ export function countMatchDaysPlayed(
   archivedRounds: ArchivedRound[],
   closedTournaments: ClosedTournament[],
 ): number {
-  return (
-    archivedRounds.length +
-    closedTournaments.reduce((acc, t) => acc + t.rounds.length, 0)
-  );
+  return archivedRounds.length + closedTournaments.reduce((acc, t) => acc + t.rounds.length, 0);
 }
 
 /** All-pairs head-to-head aggregation across every player who has faced another at least once. */
