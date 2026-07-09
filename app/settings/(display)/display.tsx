@@ -7,6 +7,7 @@ import { useStore } from '@/store';
 import { useColors } from '@/theme';
 import { NavHeader, GlowBackground } from '@/components';
 import { makeStyles } from '@/screens/settings/display/display.styles';
+import { trackEvent } from '@/analytics';
 
 export default function DisplaySettingsScreen() {
   const goBack = useGoBack();
@@ -15,6 +16,8 @@ export default function DisplaySettingsScreen() {
   const showTeamLogo = useStore((s) => s.showTeamLogo);
   const groupByTours = useStore((s) => s.groupByTours);
   const setGroupByTours = useStore((s) => s.setGroupByTours);
+  const showAvgGoals = useStore((s) => s.showAvgGoals);
+  const setShowAvgGoals = useStore((s) => s.setShowAvgGoals);
   const colorScheme = useStore((s) => s.colorScheme);
   const setColorScheme = useStore((s) => s.setColorScheme);
   const colors = useColors();
@@ -88,7 +91,28 @@ export default function DisplaySettingsScreen() {
             </View>
             <Switch
               value={groupByTours}
-              onValueChange={setGroupByTours}
+              onValueChange={(value) => {
+                setGroupByTours(value);
+                trackEvent('group_by_tours_toggle_changed', { enabled: value ? 'true' : 'false' });
+              }}
+              trackColor={{ false: colors.bg.elevated, true: colors.accent.green }}
+              thumbColor="#ffffff"
+            />
+          </View>
+
+          <View style={styles.divider} />
+
+          <View style={styles.row}>
+            <View style={styles.rowLeft}>
+              <Text style={styles.rowLabel}>{t('settings.display.showAvgGoals')}</Text>
+              <Text style={styles.rowDesc}>{t('settings.display.showAvgGoalsDesc')}</Text>
+            </View>
+            <Switch
+              value={showAvgGoals}
+              onValueChange={(value) => {
+                setShowAvgGoals(value);
+                trackEvent('show_avg_goals_toggle_changed', { enabled: value ? 'true' : 'false' });
+              }}
               trackColor={{ false: colors.bg.elevated, true: colors.accent.green }}
               thumbColor="#ffffff"
             />

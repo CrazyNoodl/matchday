@@ -54,6 +54,8 @@ const settings = {
     matches: 'Матчі',
     groupByTours: 'Групувати матчі по турам',
     groupByToursDesc: 'Розбивати матчі раунду на блоки по колу гри',
+    showAvgGoals: 'Показувати колонки середніх голів',
+    showAvgGoalsDesc: 'Показувати колонки ГЗ/і та ГП/і у турнірних таблицях',
     upcoming: 'Скоро',
     inDevelopment: 'У розробці',
   },

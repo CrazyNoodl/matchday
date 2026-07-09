@@ -54,6 +54,8 @@ const settings = {
     matches: 'Matchs',
     groupByTours: 'Grouper les matchs par tours',
     groupByToursDesc: 'Répartir les matchs du round en blocs par cycle de tour',
+    showAvgGoals: 'Afficher les colonnes de moyenne de buts',
+    showAvgGoalsDesc: 'Afficher les colonnes BP/M et BC/M dans les tableaux de classement',
     upcoming: 'Bientôt disponible',
     inDevelopment: 'En développement',
   },

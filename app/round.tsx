@@ -50,6 +50,7 @@ export default function MatchdayScreen() {
   const tournamentId = useStore((s) => s.tournamentId);
   const roundFolder = useStore((s) => s.roundFolder);
   const groupByTours = useStore((s) => s.groupByTours);
+  const showAvgGoals = useStore((s) => s.showAvgGoals);
   const setModal = useStore((s) => s.setModal);
   const addMatch = useStore((s) => s.addMatch);
   const setSelectedMatch = useStore((s) => s.setSelectedMatch);
@@ -223,7 +224,7 @@ export default function MatchdayScreen() {
             players={players}
             playerLabel={t('table.player').toUpperCase()}
             compact
-            columns={getStandingsTableColumns(t)}
+            columns={getStandingsTableColumns(t, showAvgGoals)}
           />
         ) : (
           <View style={styles.cardsContainer}>

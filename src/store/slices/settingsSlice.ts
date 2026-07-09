@@ -9,6 +9,7 @@ export interface SettingsState {
   showNick: boolean;
   showTeamLogo: boolean;
   groupByTours: boolean;
+  showAvgGoals: boolean;
   colorScheme: ThemePreference;
   language: Language;
   demoMode: boolean;
@@ -19,6 +20,7 @@ export interface SettingsActions {
   setShowNick: (v: boolean) => void;
   setShowTeamLogo: (v: boolean) => void;
   setGroupByTours: (v: boolean) => void;
+  setShowAvgGoals: (v: boolean) => void;
   setColorScheme: (scheme: ThemePreference) => void;
   setLanguage: (lang: Language) => void;
   setDemoMode: (on: boolean) => void;
@@ -30,6 +32,7 @@ export const createSettingsSlice: StateCreator<RootState, [], [], SettingsSlice>
   showNick: true,
   showTeamLogo: true,
   groupByTours: true,
+  showAvgGoals: true,
   colorScheme: 'dark',
   language: 'en',
   demoMode: false,
@@ -38,6 +41,7 @@ export const createSettingsSlice: StateCreator<RootState, [], [], SettingsSlice>
   setShowNick: (v) => set({ showNick: v }),
   setShowTeamLogo: (v) => set({ showTeamLogo: v }),
   setGroupByTours: (v) => set({ groupByTours: v }),
+  setShowAvgGoals: (v) => set({ showAvgGoals: v }),
   setColorScheme: (scheme) => set({ colorScheme: scheme }),
   setLanguage: (lang) => set({ language: lang }),
 
