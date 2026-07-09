@@ -1,7 +1,7 @@
 import * as Aptabase from '@aptabase/react-native';
 
 export function initAnalytics() {
-  if (!process.env.EXPO_PUBLIC_APTABASE_APP_KEY) return;
+  if (__DEV__ || !process.env.EXPO_PUBLIC_APTABASE_APP_KEY) return;
   const Constants = require('expo-constants').default as typeof import('expo-constants').default;
   Aptabase.init(process.env.EXPO_PUBLIC_APTABASE_APP_KEY, {
     enableWeb: true,
@@ -10,6 +10,6 @@ export function initAnalytics() {
 }
 
 export function trackEvent(name: string, props?: Record<string, string | number>) {
-  if (!process.env.EXPO_PUBLIC_APTABASE_APP_KEY) return;
+  if (__DEV__ || !process.env.EXPO_PUBLIC_APTABASE_APP_KEY) return;
   Aptabase.trackEvent(name, props);
 }

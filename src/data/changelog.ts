@@ -10,6 +10,15 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.37',
+    fixed: [
+      '`@aptabase/react-native` was declared as a dependency but never installed, breaking the web bundle entirely',
+    ],
+    internal: [
+      'Internal: analytics events (`initAnalytics`/`trackEvent`) now also gate on `__DEV__`, so only production builds send events — never local dev servers or test runs',
+    ],
+  },
+  {
     version: '1.9.36',
     internal: [
       'Internal: added product-analytics event tracking (Aptabase) for screen views, key button taps, option selections (ranked/friendly), and tournament/round/match creation counts',
