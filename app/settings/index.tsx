@@ -144,7 +144,7 @@ export default function SettingsScreen() {
             onPress={d.handleVersionTap}
             chevron={false}
           />
-          {devUnlocked && (
+          {devUnlocked && !demoMode && (
             <SettingsRow
               icon="⚙️"
               label={t('settings.developer.menuLabel')}

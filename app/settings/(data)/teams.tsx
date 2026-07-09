@@ -24,6 +24,7 @@ export default function TeamsScreen() {
   const colors = useColors();
   const styles = makeStyles(colors);
   const teams = useStore((s) => s.teams);
+  const demoMode = useStore((s) => s.demoMode);
   const matches = useStore((s) => s.matches);
   const archivedRounds = useStore((s) => s.archivedRounds);
   const closedTournaments = useStore((s) => s.closedTournaments);
@@ -90,13 +91,16 @@ export default function TeamsScreen() {
     } catch {
       /* fall back to the original file if resizing fails */
     }
-    const remoteUrl = await uploadTeamLogo(localUri);
+    // Demo Mode edits are thrown away on exit (realDataBackup restore) and
+    // must never reach the user's real cloud storage — keep the picked
+    // logo local-only instead of uploading it under their real account.
+    const remoteUrl = demoMode ? localUri : await uploadTeamLogo(localUri);
     if (editSessionRef.current !== session) return; // user moved to a different team's form
     setLogoUploading(false);
     // Local file:// URIs aren't visible to other devices and aren't
     // guaranteed to survive app restarts — only keep the remote URL.
     if (remoteUrl) setFormLogo(remoteUrl);
-  }, []);
+  }, [demoMode]);
 
   const handleSave = useCallback(() => {
     const name = formName.trim();

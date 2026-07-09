@@ -81,7 +81,7 @@ export function useSettings() {
     } catch (e) {
       console.warn('[handleReset] cloud wipe failed', e);
     }
-    await store.resetStore();
+    await store.resetStore({ deleteCloudMedia: true });
     setIsResetting(false);
     setShowResetConfirm(false);
     router.dismissAll();

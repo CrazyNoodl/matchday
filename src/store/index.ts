@@ -91,7 +91,7 @@ interface RootActions {
     roundOpen: boolean;
     roundPlayers: string[];
   }) => void;
-  resetStore: () => Promise<void>;
+  resetStore: (options?: { deleteCloudMedia?: boolean }) => Promise<void>;
   // Sync tables not yet pushed to Supabase. Persisted (unlike useSyncManager's
   // in-memory dirty tracking) so an app crash/force-quit/OS eviction before a
   // push completes doesn't silently lose the edit on next launch — see
@@ -153,7 +153,17 @@ export const useStore = create<RootState>()(
       pendingSyncTables: [],
       setPendingSyncTables: (tables) => set({ pendingSyncTables: tables }),
 
-      resetStore: async () => {
+      // deleteCloudMedia defaults to false: resetStore() is also used by
+      // sign-out to clear the *local* cache so it can't leak into the next
+      // account on this device — that must never delete the real photos/
+      // logos still sitting in the user's Supabase Storage bucket. Only the
+      // explicit "Reset All Data" flow (which already deletes the user's
+      // cloud DB rows via deleteAllCloudData()) opts in. Without this flag,
+      // every resetStore() call — including a plain sign-out, and doubly so
+      // one made while Demo Mode was on, since realDataBackup's real media
+      // is included below too — permanently deleted the user's real cloud
+      // media as a side effect of a supposedly local-only cache clear.
+      resetStore: async (options) => {
         const s = get();
         const matchUris = [
           ...s.matches,
@@ -202,7 +212,9 @@ export const useStore = create<RootState>()(
         });
         syncSuppressionRef.current = false;
 
-        await Promise.all(mediaUris.map((uri) => deleteMediaItem(uri)));
+        if (options?.deleteCloudMedia) {
+          await Promise.all(mediaUris.map((uri) => deleteMediaItem(uri)));
+        }
       },
     }),
     {
