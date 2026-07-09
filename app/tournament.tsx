@@ -73,6 +73,16 @@ export default function TournamentScreen() {
     [archivedRounds, tournamentRanked, roundOpen, matches],
   );
 
+  // All friendly matches across all archived rounds + current open round (if not ranked) —
+  // only used by ShareStandingsModal's own include toggles, not the on-screen standings above.
+  const allFriendlyMatches = useMemo(
+    () => [
+      ...archivedRounds.filter((r) => !r.ranked).flatMap((r) => r.matches),
+      ...(!tournamentRanked && roundOpen ? matches : []),
+    ],
+    [archivedRounds, tournamentRanked, roundOpen, matches],
+  );
+
   const standings = useMemo(
     () => calculateStandings(allRankedMatches, tournamentPlayers),
     [allRankedMatches, tournamentPlayers],
@@ -336,7 +346,10 @@ export default function TournamentScreen() {
         onClose={() => setShareStandingsVisible(false)}
         tournamentName={tournamentName || t('tournament.sheet.title').toUpperCase()}
         subtitle={shareRoundLabel}
-        standings={standings}
+        rankedMatches={allRankedMatches}
+        friendlyMatches={allFriendlyMatches}
+        tournamentPlayers={tournamentPlayers}
+        archivedRounds={archivedRounds}
       />
     </SafeAreaView>
   );

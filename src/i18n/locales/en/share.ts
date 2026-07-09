@@ -6,6 +6,8 @@ const share = {
   notAvailable: 'Sharing is not available on this device.',
   includeStandings: 'Include standings',
   includeAllMatches: 'Include all matches',
+  includeRankedMatches: 'Include all ranked matches',
+  includeFriendlyMatches: 'Include all friendly matches',
   download: '⬇  Download',
   saveToPhotos: '💾  Save to Photos',
   share: '↗  Share',

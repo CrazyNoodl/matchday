@@ -3,7 +3,7 @@ import type { Meta, StoryObj, Decorator } from '@storybook/react-native-web-vite
 import { ShareStandingsModal } from './ShareStandingsModal';
 import { useStore } from '@/store';
 import { Colors } from '@/theme/colors';
-import type { Standing } from '@/utils/standings';
+import type { ArchivedRound, Match } from '@/store/types';
 
 const MOCK_TEAMS = [
   { code: 'MCI', name: 'Manchester City', short: 'MCI', color: Colors.team[0] },
@@ -17,11 +17,59 @@ const MOCK_PLAYERS = [
   { id: 'p3', name: 'Ivan Petrenko', teamCode: 'RMA' },
 ];
 
-const MOCK_STANDINGS: Standing[] = [
-  { playerId: 'p1', played: 8, wins: 6, draws: 1, losses: 1, gf: 20, ga: 8, gd: 12, pts: 19 },
-  { playerId: 'p2', played: 8, wins: 4, draws: 2, losses: 2, gf: 15, ga: 12, gd: 3, pts: 14 },
-  { playerId: 'p3', played: 8, wins: 1, draws: 1, losses: 6, gf: 7, ga: 22, gd: -15, pts: 4 },
+const ROUND_1_MATCHES: Match[] = [
+  { id: 'm1', aId: 'p1', bId: 'p2', aTeam: 'MCI', bTeam: 'BAR', aScore: 3, bScore: 1 },
+  { id: 'm2', aId: 'p1', bId: 'p3', aTeam: 'MCI', bTeam: 'RMA', aScore: 2, bScore: 2 },
+  { id: 'm3', aId: 'p2', bId: 'p3', aTeam: 'BAR', bTeam: 'RMA', aScore: 1, bScore: 0 },
 ];
+
+const ROUND_2_MATCHES: Match[] = [
+  { id: 'm4', aId: 'p1', bId: 'p2', aTeam: 'MCI', bTeam: 'BAR', aScore: 2, bScore: 0 },
+  { id: 'm5', aId: 'p1', bId: 'p3', aTeam: 'MCI', bTeam: 'RMA', aScore: 1, bScore: 1 },
+];
+
+const FRIENDLY_ROUND_MATCHES: Match[] = [
+  { id: 'm6', aId: 'p1', bId: 'p2', aTeam: 'MCI', bTeam: 'BAR', aScore: 1, bScore: 1 },
+];
+
+const MOCK_ARCHIVED_ROUNDS: ArchivedRound[] = [
+  {
+    id: 'r1',
+    n: 1,
+    date: '2026-05-04',
+    winner: 'p1',
+    games: ROUND_1_MATCHES.length,
+    ranked: true,
+    name: 'Round 1',
+    players: ['p1', 'p2', 'p3'],
+    matches: ROUND_1_MATCHES,
+  },
+  {
+    id: 'r2',
+    n: 2,
+    date: '2026-06-01',
+    winner: '',
+    games: FRIENDLY_ROUND_MATCHES.length,
+    ranked: false,
+    name: 'Friendly',
+    players: ['p1', 'p2'],
+    matches: FRIENDLY_ROUND_MATCHES,
+  },
+  {
+    id: 'r3',
+    n: 3,
+    date: '2026-06-23',
+    winner: 'p1',
+    games: ROUND_2_MATCHES.length,
+    ranked: true,
+    name: 'Round 3',
+    players: ['p1', 'p2', 'p3'],
+    matches: ROUND_2_MATCHES,
+  },
+];
+
+const MOCK_RANKED_MATCHES: Match[] = [...ROUND_1_MATCHES, ...ROUND_2_MATCHES];
+const MOCK_FRIENDLY_MATCHES: Match[] = FRIENDLY_ROUND_MATCHES;
 
 const withMockData: Decorator = (Story) => {
   useEffect(() => {
@@ -42,7 +90,10 @@ const meta = {
     onClose: () => {},
     tournamentName: 'Sunday League',
     subtitle: 'Season 2026 · 8 rounds played',
-    standings: MOCK_STANDINGS,
+    rankedMatches: MOCK_RANKED_MATCHES,
+    friendlyMatches: MOCK_FRIENDLY_MATCHES,
+    tournamentPlayers: ['p1', 'p2', 'p3'],
+    archivedRounds: MOCK_ARCHIVED_ROUNDS,
   },
 } satisfies Meta<typeof ShareStandingsModal>;
 

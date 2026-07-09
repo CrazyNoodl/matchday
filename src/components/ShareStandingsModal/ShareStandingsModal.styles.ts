@@ -128,6 +128,86 @@ export const makeCardStyles = (colors: AppColors) =>
       fontSize: FontSize.sm,
       color: colors.accent.green,
     },
+    roundsTitle: {
+      fontFamily: FontFamily.bodyBold,
+      fontSize: 9,
+      color: colors.text.placeholder,
+      letterSpacing: 0.5,
+      paddingBottom: Spacing.sm,
+    },
+    roundRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 8,
+    },
+    // Left/right take equal flex share so the (optional) center badge lands
+    // truly centered regardless of how wide the winner name or date text is.
+    roundLeft: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+    },
+    roundCenter: {
+      flexShrink: 0,
+      alignItems: 'center',
+      paddingHorizontal: Spacing.xs,
+    },
+    roundRight: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'flex-end',
+      gap: 6,
+    },
+    roundBadge: {
+      width: 22,
+      height: 22,
+      borderRadius: 11,
+      backgroundColor: colors.bg.elevated,
+      alignItems: 'center',
+      justifyContent: 'center',
+      flexShrink: 0,
+    },
+    roundBadgeText: {
+      fontFamily: FontFamily.displayBold,
+      fontSize: 10,
+      color: colors.text.secondary,
+    },
+    roundInfo: {
+      flexShrink: 0,
+      gap: 1,
+    },
+    roundDate: {
+      fontFamily: FontFamily.bodySemiBold,
+      fontSize: 10,
+      color: colors.text.secondary,
+    },
+    roundMatchCount: {
+      fontFamily: FontFamily.body,
+      fontSize: 9,
+      color: colors.text.muted,
+    },
+    roundWinnerName: {
+      fontFamily: FontFamily.bodySemiBold,
+      fontSize: FontSize.xs,
+      color: colors.text.primary,
+      flexShrink: 1,
+    },
+    friendlyBadge: {
+      paddingHorizontal: 6,
+      paddingVertical: 2,
+      borderRadius: Radius.xs,
+      backgroundColor: colors.bg.elevated,
+      borderWidth: 1,
+      borderColor: colors.border.medium,
+    },
+    friendlyBadgeText: {
+      fontFamily: FontFamily.bodyBold,
+      fontSize: 8,
+      color: colors.text.muted,
+      letterSpacing: 0.4,
+    },
   });
 
 export const makeModalStyles = (colors: AppColors) =>
@@ -175,6 +255,11 @@ export const makeModalStyles = (colors: AppColors) =>
       shadowOpacity: 0.5,
       shadowRadius: 24,
       elevation: 12,
+    },
+    optionsWrap: {
+      gap: Spacing.sm,
+      paddingHorizontal: Spacing.xl,
+      paddingTop: Spacing.lg,
     },
     actions: {
       flexDirection: 'row',
