@@ -1,7 +1,9 @@
 import { test, expect, createTeamViaUI, createPlayerViaUI } from './fixtures';
 
 test.describe('Full tournament flow', () => {
-  test('creates tournament with two pre-created players and teams @smoke', async ({ authedPage: page }) => {
+  test('creates tournament with two pre-created players and teams @smoke', async ({
+    authedPage: page,
+  }) => {
     // Create two teams
     await createTeamViaUI(page, 'Liverpool', 'LIV');
     await createTeamViaUI(page, 'Arsenal', 'ARS');

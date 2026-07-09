@@ -36,9 +36,11 @@ export const AllBadges: Story = {
   name: 'Showcase – All badges',
   render: () => (
     <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-      {(['live', 'soon', 'leader', 'editing', 'archived', 'friendly', 'auto', 'ranked'] as const).map(
-        (type) => <StatusBadge key={type} type={type} />,
-      )}
+      {(
+        ['live', 'soon', 'leader', 'editing', 'archived', 'friendly', 'auto', 'ranked'] as const
+      ).map((type) => (
+        <StatusBadge key={type} type={type} />
+      ))}
     </View>
   ),
 };

@@ -20,7 +20,14 @@ interface EditRoundDateSheetProps {
   onSave: () => void;
 }
 
-export function EditRoundDateSheet({ visible, onClose, value, onChangeValue, error, onSave }: EditRoundDateSheetProps) {
+export function EditRoundDateSheet({
+  visible,
+  onClose,
+  value,
+  onChangeValue,
+  error,
+  onSave,
+}: EditRoundDateSheetProps) {
   const { t } = useTranslation();
   const colors = useColors();
   const styles = makeStyles(colors);

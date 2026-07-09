@@ -82,7 +82,9 @@ describe('supabase auth storage adapter', () => {
   });
 
   it('keeps persistSession and autoRefreshToken enabled regardless of platform', () => {
-    jest.doMock('react-native-mmkv', () => ({ createMMKV: jest.fn(() => ({ getString: jest.fn(), set: jest.fn(), remove: jest.fn() })) }));
+    jest.doMock('react-native-mmkv', () => ({
+      createMMKV: jest.fn(() => ({ getString: jest.fn(), set: jest.fn(), remove: jest.fn() })),
+    }));
     mockPlatform('ios');
     const createClient = mockCreateClient();
 

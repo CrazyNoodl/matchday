@@ -3,7 +3,7 @@ import { View, Text } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useShallow } from 'zustand/react/shallow';
 import { useStore } from '../../store';
-import { Standing, getFormChips } from '../../utils/standings';
+import { type Standing, getFormChips } from '../../utils/standings';
 import { useColors } from '../../theme';
 import { Avatar } from '../Avatar';
 import { FormChip } from '../FormChip';
@@ -42,16 +42,9 @@ export const StandingCard = React.memo(function StandingCard({
   const isLeader = position === 1;
 
   return (
-    <View
-      style={[
-        styles.card,
-        isLeader && styles.cardLeader,
-      ]}
-    >
+    <View style={[styles.card, isLeader && styles.cardLeader]}>
       {/* Position */}
-      <Text style={[styles.position, { color: posColor }]}>
-        {position}
-      </Text>
+      <Text style={[styles.position, { color: posColor }]}>{position}</Text>
 
       {/* Avatar */}
       <Avatar playerId={playerId} size="lg" style={styles.avatar} />
@@ -85,7 +78,8 @@ export const StandingCard = React.memo(function StandingCard({
                   { color: standing.gd > 0 ? colors.accent.green : colors.accent.red },
                 ]}
               >
-                {standing.gd > 0 ? '+' : ''}{standing.gd}
+                {standing.gd > 0 ? '+' : ''}
+                {standing.gd}
               </Text>
             </>
           )}
@@ -103,9 +97,7 @@ export const StandingCard = React.memo(function StandingCard({
 
       {/* Points */}
       <View style={styles.ptsBlock}>
-        <Text style={styles.pts}>
-          {standing.pts}
-        </Text>
+        <Text style={styles.pts}>{standing.pts}</Text>
         <Text style={styles.ptsLabel}>{t('common.pts')}</Text>
       </View>
     </View>

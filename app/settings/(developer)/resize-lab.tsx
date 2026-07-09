@@ -29,16 +29,36 @@ function formatBytes(bytes: number): string {
 }
 
 interface Preset {
-  labelKey: 'resizeLab.presets.regularMedia' | 'resizeLab.presets.ocrPayload' | 'resizeLab.presets.statPhotoStorage' | 'resizeLab.presets.teamLogo';
+  labelKey:
+    | 'resizeLab.presets.regularMedia'
+    | 'resizeLab.presets.ocrPayload'
+    | 'resizeLab.presets.statPhotoStorage'
+    | 'resizeLab.presets.teamLogo';
   target: string;
   maxDimension: number;
 }
 
 const PRESETS: Preset[] = [
-  { labelKey: 'resizeLab.presets.regularMedia', target: `${MEDIA_MAX_DIMENSION}px cap`, maxDimension: MEDIA_MAX_DIMENSION },
-  { labelKey: 'resizeLab.presets.ocrPayload', target: `${OCR_PAYLOAD_MAX_DIMENSION}px cap`, maxDimension: OCR_PAYLOAD_MAX_DIMENSION },
-  { labelKey: 'resizeLab.presets.statPhotoStorage', target: `${STAT_PHOTO_STORAGE_MAX_DIMENSION}px cap`, maxDimension: STAT_PHOTO_STORAGE_MAX_DIMENSION },
-  { labelKey: 'resizeLab.presets.teamLogo', target: `${TEAM_LOGO_MAX_DIMENSION}px cap`, maxDimension: TEAM_LOGO_MAX_DIMENSION },
+  {
+    labelKey: 'resizeLab.presets.regularMedia',
+    target: `${MEDIA_MAX_DIMENSION}px cap`,
+    maxDimension: MEDIA_MAX_DIMENSION,
+  },
+  {
+    labelKey: 'resizeLab.presets.ocrPayload',
+    target: `${OCR_PAYLOAD_MAX_DIMENSION}px cap`,
+    maxDimension: OCR_PAYLOAD_MAX_DIMENSION,
+  },
+  {
+    labelKey: 'resizeLab.presets.statPhotoStorage',
+    target: `${STAT_PHOTO_STORAGE_MAX_DIMENSION}px cap`,
+    maxDimension: STAT_PHOTO_STORAGE_MAX_DIMENSION,
+  },
+  {
+    labelKey: 'resizeLab.presets.teamLogo',
+    target: `${TEAM_LOGO_MAX_DIMENSION}px cap`,
+    maxDimension: TEAM_LOGO_MAX_DIMENSION,
+  },
 ];
 
 interface PresetResult {
@@ -96,14 +116,16 @@ export default function ResizeLabScreen() {
         resizeImage(asset.uri, asset, preset.maxDimension, { base64: true })
           .then((r) => {
             const size = r.base64 ? base64ByteSize(r.base64) : originalSize;
-            setResults((prev) => prev.map((item, i) => (
-              i === idx ? { status: 'done', uri: r.uri, size } : item
-            )));
+            setResults((prev) =>
+              prev.map((item, i) => (i === idx ? { status: 'done', uri: r.uri, size } : item)),
+            );
           })
           .catch((e) => {
-            setResults((prev) => prev.map((item, i) => (
-              i === idx ? { status: 'error', error: e?.message ?? String(e) } : item
-            )));
+            setResults((prev) =>
+              prev.map((item, i) =>
+                i === idx ? { status: 'error', error: e?.message ?? String(e) } : item,
+              ),
+            );
           });
       });
     } finally {
@@ -121,7 +143,12 @@ export default function ResizeLabScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <TouchableOpacity style={styles.pickBtn} onPress={pickPhoto} activeOpacity={0.8} disabled={picking}>
+        <TouchableOpacity
+          style={styles.pickBtn}
+          onPress={pickPhoto}
+          activeOpacity={0.8}
+          disabled={picking}
+        >
           {picking ? (
             <ActivityIndicator color={colors.bg.base} size="small" />
           ) : (
@@ -131,11 +158,7 @@ export default function ResizeLabScreen() {
           )}
         </TouchableOpacity>
 
-        {!original && (
-          <Text style={styles.emptyHint}>
-            {t('resizeLab.emptyHint')}
-          </Text>
-        )}
+        {!original && <Text style={styles.emptyHint}>{t('resizeLab.emptyHint')}</Text>}
 
         {original && (
           <View style={styles.originalCard}>
@@ -144,7 +167,9 @@ export default function ResizeLabScreen() {
             </View>
             <View style={styles.originalInfo}>
               <Text style={styles.originalLabel}>{t('resizeLab.original')}</Text>
-              <Text style={styles.originalName} numberOfLines={1}>{original.fileName}</Text>
+              <Text style={styles.originalName} numberOfLines={1}>
+                {original.fileName}
+              </Text>
               <Text style={styles.originalMeta}>
                 {original.width}×{original.height} · {formatBytes(original.size)}
               </Text>
@@ -152,51 +177,63 @@ export default function ResizeLabScreen() {
           </View>
         )}
 
-        {original && PRESETS.map((preset, idx) => {
-          const r = results[idx];
-          const reductionPct = r?.status === 'done' && original.size > 0
-            ? Math.round((1 - r.size! / original.size) * 100)
-            : null;
-          return (
-            <View key={preset.labelKey} style={styles.presetCard}>
-              <View style={styles.thumb}>
-                {r?.status === 'done' && r.uri ? (
-                  <Image source={{ uri: r.uri }} style={styles.thumbImage} resizeMode="cover" />
-                ) : (
-                  <View style={styles.thumbImage} />
-                )}
+        {original &&
+          PRESETS.map((preset, idx) => {
+            const r = results[idx];
+            const reductionPct =
+              r?.status === 'done' && original.size > 0
+                ? Math.round((1 - r.size! / original.size) * 100)
+                : null;
+            return (
+              <View key={preset.labelKey} style={styles.presetCard}>
+                <View style={styles.thumb}>
+                  {r?.status === 'done' && r.uri ? (
+                    <Image source={{ uri: r.uri }} style={styles.thumbImage} resizeMode="cover" />
+                  ) : (
+                    <View style={styles.thumbImage} />
+                  )}
+                </View>
+                <View style={styles.presetInfo}>
+                  <Text style={styles.presetName}>{t(preset.labelKey)}</Text>
+                  <Text style={styles.presetTarget}>{preset.target}</Text>
+                  {r?.status === 'loading' && (
+                    <View style={styles.presetMetaRow}>
+                      <ActivityIndicator size="small" color={colors.text.muted} />
+                      <Text style={styles.presetMeta}>{t('resizeLab.resizing')}</Text>
+                    </View>
+                  )}
+                  {r?.status === 'error' && (
+                    <Text style={styles.errorText} numberOfLines={2}>
+                      {t('resizeLab.failed', { error: r.error })}
+                    </Text>
+                  )}
+                  {r?.status === 'done' && (
+                    <View style={styles.presetMetaRow}>
+                      <Text style={styles.presetMeta}>{formatBytes(r.size!)}</Text>
+                      {reductionPct !== null && (
+                        <View
+                          style={[
+                            styles.reductionBadge,
+                            reductionPct > 0 ? styles.reductionBadgeGood : styles.reductionBadgeBad,
+                          ]}
+                        >
+                          <Text
+                            style={
+                              reductionPct > 0
+                                ? styles.reductionBadgeTextGood
+                                : styles.reductionBadgeTextBad
+                            }
+                          >
+                            {reductionPct > 0 ? `-${reductionPct}%` : `+${-reductionPct}%`}
+                          </Text>
+                        </View>
+                      )}
+                    </View>
+                  )}
+                </View>
               </View>
-              <View style={styles.presetInfo}>
-                <Text style={styles.presetName}>{t(preset.labelKey)}</Text>
-                <Text style={styles.presetTarget}>{preset.target}</Text>
-                {r?.status === 'loading' && (
-                  <View style={styles.presetMetaRow}>
-                    <ActivityIndicator size="small" color={colors.text.muted} />
-                    <Text style={styles.presetMeta}>{t('resizeLab.resizing')}</Text>
-                  </View>
-                )}
-                {r?.status === 'error' && (
-                  <Text style={styles.errorText} numberOfLines={2}>{t('resizeLab.failed', { error: r.error })}</Text>
-                )}
-                {r?.status === 'done' && (
-                  <View style={styles.presetMetaRow}>
-                    <Text style={styles.presetMeta}>{formatBytes(r.size!)}</Text>
-                    {reductionPct !== null && (
-                      <View style={[
-                        styles.reductionBadge,
-                        reductionPct > 0 ? styles.reductionBadgeGood : styles.reductionBadgeBad,
-                      ]}>
-                        <Text style={reductionPct > 0 ? styles.reductionBadgeTextGood : styles.reductionBadgeTextBad}>
-                          {reductionPct > 0 ? `-${reductionPct}%` : `+${-reductionPct}%`}
-                        </Text>
-                      </View>
-                    )}
-                  </View>
-                )}
-              </View>
-            </View>
-          );
-        })}
+            );
+          })}
 
         <View style={{ height: 48 }} />
       </ScrollView>

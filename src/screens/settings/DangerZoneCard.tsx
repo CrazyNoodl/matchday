@@ -12,7 +12,14 @@ interface DangerZoneCardProps {
   onPress: () => void;
 }
 
-export function DangerZoneCard({ title, label, description, buttonLabel, disabled, onPress }: DangerZoneCardProps) {
+export function DangerZoneCard({
+  title,
+  label,
+  description,
+  buttonLabel,
+  disabled,
+  onPress,
+}: DangerZoneCardProps) {
   const colors = useColors();
   const styles = makeStyles(colors);
 

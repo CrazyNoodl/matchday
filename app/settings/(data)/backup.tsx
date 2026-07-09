@@ -96,7 +96,8 @@ export default function BackupScreen() {
     setStatus(null);
     const picked = await pickAndReadBackupFile();
     if (!picked.ok) {
-      if (picked.reason !== 'canceled') setStatus({ kind: 'error', text: t(`backup.error.${picked.reason}`) });
+      if (picked.reason !== 'canceled')
+        setStatus({ kind: 'error', text: t(`backup.error.${picked.reason}`) });
       return;
     }
     handleValidateAndConfirm(picked.raw);
@@ -206,7 +207,9 @@ export default function BackupScreen() {
         {/* Status */}
         {status && (
           <View style={status.kind === 'ok' ? styles.statusCardOk : styles.statusCardErr}>
-            <Text style={status.kind === 'ok' ? styles.statusTextOk : styles.statusTextErr}>{status.text}</Text>
+            <Text style={status.kind === 'ok' ? styles.statusTextOk : styles.statusTextErr}>
+              {status.text}
+            </Text>
           </View>
         )}
 
@@ -222,7 +225,9 @@ export default function BackupScreen() {
             {creating ? (
               <ActivityIndicator color={colors.bg.base} size="small" />
             ) : (
-              <Text style={[styles.primaryBtnText, actionsDisabled && styles.primaryBtnTextDisabled]}>
+              <Text
+                style={[styles.primaryBtnText, actionsDisabled && styles.primaryBtnTextDisabled]}
+              >
                 {t('backup.createBtn').toUpperCase()}
               </Text>
             )}
@@ -291,7 +296,9 @@ export default function BackupScreen() {
             disabled={actionsDisabled}
             activeOpacity={0.8}
           >
-            <Text style={[styles.secondaryBtnText, actionsDisabled && styles.secondaryBtnTextDisabled]}>
+            <Text
+              style={[styles.secondaryBtnText, actionsDisabled && styles.secondaryBtnTextDisabled]}
+            >
               {t('backup.importFromFileBtn').toUpperCase()}
             </Text>
           </TouchableOpacity>
@@ -324,7 +331,10 @@ export default function BackupScreen() {
         onCloseDeleteConfirm={() => setDeleteTarget(null)}
         onConfirmDelete={handleConfirmDelete}
         showImportConfirm={showImportConfirm}
-        onCloseImportConfirm={() => { setShowImportConfirm(false); setPickedFile(null); }}
+        onCloseImportConfirm={() => {
+          setShowImportConfirm(false);
+          setPickedFile(null);
+        }}
         onConfirmImport={handleConfirmImport}
       />
 

@@ -66,7 +66,7 @@ beforeEach(() => {
 it('never bootstraps a push when the initial pull fails, even with local data present', async () => {
   // Local state has real data — this is exactly the scenario that risks
   // data loss if a failed pull is mistaken for "cloud is empty".
-  const localPlayer: Player = { id: 'local-1', name: 'Local', color: '#f00', teamCode: 'JUV' };
+  const localPlayer: Player = { id: 'local-1', name: 'Local', teamCode: 'JUV' };
   useStore.getState().addPlayer(localPlayer);
 
   mockPullState.mockRejectedValue(new Error('network error'));
@@ -86,7 +86,7 @@ it('never bootstraps a push when the initial pull fails, even with local data pr
 });
 
 it('does bootstrap a push when the pull genuinely succeeds with an empty cloud', async () => {
-  const localPlayer: Player = { id: 'local-1', name: 'Local', color: '#f00', teamCode: 'JUV' };
+  const localPlayer: Player = { id: 'local-1', name: 'Local', teamCode: 'JUV' };
   useStore.getState().addPlayer(localPlayer);
 
   mockPullState.mockResolvedValue(null);

@@ -1,10 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Platform,
-} from 'react-native';
+import { View, Text, TouchableOpacity, Platform } from 'react-native';
 import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -14,6 +9,7 @@ import { Sheet } from '@/components/Sheet/Sheet';
 import { Toggle } from '@/components/Toggle';
 import { makeStyles } from './NewRoundModal.styles';
 import { useColors } from '@/theme';
+import { trackEvent } from '@/analytics';
 
 // ---------------------------------------------------------------------------
 // Shared "start a new round" sheet — used by the Home screen and the
@@ -58,93 +54,100 @@ export function NewRoundModal() {
   const handleStart = () => {
     if (newRoundPlayerIds.size < 2) return;
     startRound(newRoundRanked, Array.from(newRoundPlayerIds));
+    trackEvent('round_started', {
+      ranked: newRoundRanked ? 'true' : 'false',
+      playerCount: newRoundPlayerIds.size,
+    });
     setModal(null);
     router.push('/round');
   };
 
   return (
     <Sheet visible={visible} onClose={close}>
-        <View style={styles.sheet}>
-          <Text style={styles.title}>{t('tournament.newRound.title').toUpperCase()}</Text>
-          <Text style={styles.subtitle} numberOfLines={1}>
-            {t('tournament.newRound.subtitle', { name: tournamentName, round: rankedCompleted + 1 })}
-          </Text>
+      <View style={styles.sheet}>
+        <Text style={styles.title}>{t('tournament.newRound.title').toUpperCase()}</Text>
+        <Text style={styles.subtitle} numberOfLines={1}>
+          {t('tournament.newRound.subtitle', { name: tournamentName, round: rankedCompleted + 1 })}
+        </Text>
 
-          {/* Ranked toggle */}
-          <Toggle
-            label={t('tournament.newRound.rankedLabel')}
-            subtitle={
-              rankedLimitReached
-                ? t('tournament.newRound.rankedLimitReached', { count: tournamentRounds })
-                : t('tournament.newRound.rankedSub')
-            }
-            value={newRoundRanked}
-            onValueChange={setNewRoundRanked}
-            disabled={rankedLimitReached}
-          />
+        {/* Ranked toggle */}
+        <Toggle
+          label={t('tournament.newRound.rankedLabel')}
+          subtitle={
+            rankedLimitReached
+              ? t('tournament.newRound.rankedLimitReached', { count: tournamentRounds })
+              : t('tournament.newRound.rankedSub')
+          }
+          value={newRoundRanked}
+          onValueChange={(value) => {
+            setNewRoundRanked(value);
+            trackEvent('ranked_toggle_changed', { ranked: value ? 'true' : 'false' });
+          }}
+          disabled={rankedLimitReached}
+        />
 
-          {/* Players section */}
-          <Text style={styles.playersLabel}>
-            {t('tournament.newRound.playersLabel', { count: newRoundPlayerIds.size }).toUpperCase()}
-          </Text>
+        {/* Players section */}
+        <Text style={styles.playersLabel}>
+          {t('tournament.newRound.playersLabel', { count: newRoundPlayerIds.size }).toUpperCase()}
+        </Text>
 
-          <BottomSheetScrollView style={styles.playersList} showsVerticalScrollIndicator={false}>
-            {players.map((player) => {
-              const selected = newRoundPlayerIds.has(player.id);
-              return (
-                <TouchableOpacity
-                  key={player.id}
-                  style={[styles.playerRow, selected && styles.playerRowSelected]}
-                  onPress={() => {
-                    setNewRoundPlayerIds((prev) => {
-                      const next = new Set(prev);
-                      if (next.has(player.id)) {
-                        next.delete(player.id);
-                      } else {
-                        next.add(player.id);
-                      }
-                      return next;
-                    });
-                  }}
-                  activeOpacity={0.7}
-                >
-                  <Avatar playerId={player.id} size="sm" />
-                  <View style={styles.playerRowInfo}>
-                    <Text style={styles.playerRowName}>{player.name}</Text>
-                    {player.nick ? (
-                      <Text style={styles.playerRowNick}>@{player.nick}</Text>
-                    ) : null}
-                  </View>
-                  <View style={[styles.checkbox, selected && styles.checkboxOn]}>
-                    {selected && <Text style={styles.checkmark}>✓</Text>}
-                  </View>
-                </TouchableOpacity>
-              );
-            })}
-          </BottomSheetScrollView>
+        <BottomSheetScrollView style={styles.playersList} showsVerticalScrollIndicator={false}>
+          {players.map((player) => {
+            const selected = newRoundPlayerIds.has(player.id);
+            return (
+              <TouchableOpacity
+                key={player.id}
+                style={[styles.playerRow, selected && styles.playerRowSelected]}
+                onPress={() => {
+                  setNewRoundPlayerIds((prev) => {
+                    const next = new Set(prev);
+                    if (next.has(player.id)) {
+                      next.delete(player.id);
+                    } else {
+                      next.add(player.id);
+                    }
+                    return next;
+                  });
+                }}
+                activeOpacity={0.7}
+              >
+                <Avatar playerId={player.id} size="sm" />
+                <View style={styles.playerRowInfo}>
+                  <Text style={styles.playerRowName}>{player.name}</Text>
+                  {player.nick ? <Text style={styles.playerRowNick}>@{player.nick}</Text> : null}
+                </View>
+                <View style={[styles.checkbox, selected && styles.checkboxOn]}>
+                  {selected && <Text style={styles.checkmark}>✓</Text>}
+                </View>
+              </TouchableOpacity>
+            );
+          })}
+        </BottomSheetScrollView>
 
-          {newRoundPlayerIds.size < 2 && (
-            <Text style={styles.minPlayersHint}>{t('tournament.newRound.minPlayers')}</Text>
-          )}
+        {newRoundPlayerIds.size < 2 && (
+          <Text style={styles.minPlayersHint}>{t('tournament.newRound.minPlayers')}</Text>
+        )}
 
-          <View style={styles.actions}>
-            <TouchableOpacity style={styles.cancelBtn} onPress={close} activeOpacity={0.75}>
-              <Text style={styles.cancelText}>{t('tournament.newRound.cancel')}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.startBtn, newRoundPlayerIds.size < 2 && styles.startBtnDisabled]}
-              onPress={handleStart}
-              activeOpacity={0.85}
-              disabled={newRoundPlayerIds.size < 2}
+        <View style={styles.actions}>
+          <TouchableOpacity style={styles.cancelBtn} onPress={close} activeOpacity={0.75}>
+            <Text style={styles.cancelText}>{t('tournament.newRound.cancel')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.startBtn, newRoundPlayerIds.size < 2 && styles.startBtnDisabled]}
+            onPress={handleStart}
+            activeOpacity={0.85}
+            disabled={newRoundPlayerIds.size < 2}
+          >
+            <Text
+              style={[styles.startText, newRoundPlayerIds.size < 2 && styles.startTextDisabled]}
             >
-              <Text style={[styles.startText, newRoundPlayerIds.size < 2 && styles.startTextDisabled]}>
-                {t('tournament.newRound.start').toUpperCase()}
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          {Platform.OS === 'ios' && <View style={{ height: 16 }} />}
+              {t('tournament.newRound.start').toUpperCase()}
+            </Text>
+          </TouchableOpacity>
         </View>
+
+        {Platform.OS === 'ios' && <View style={{ height: 16 }} />}
+      </View>
     </Sheet>
   );
 }

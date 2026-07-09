@@ -12,7 +12,14 @@ interface SettingsRowProps {
   chevron?: boolean;
 }
 
-export function SettingsRow({ icon, label, sub, onPress, right, chevron = true }: SettingsRowProps) {
+export function SettingsRow({
+  icon,
+  label,
+  sub,
+  onPress,
+  right,
+  chevron = true,
+}: SettingsRowProps) {
   const colors = useColors();
   const styles = makeStyles(colors);
   const Row = onPress ? TouchableOpacity : View;

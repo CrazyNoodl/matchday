@@ -13,8 +13,8 @@ jest.mock('react-native', () => ({
   Platform: { OS: 'web' },
 }));
 
-const P1: Player = { id: 'p1', name: 'Alice', color: '#f00', teamCode: 'JUV' };
-const P2: Player = { id: 'p2', name: 'Bob', color: '#00f', teamCode: 'BAR' };
+const P1: Player = { id: 'p1', name: 'Alice', teamCode: 'JUV' };
+const P2: Player = { id: 'p2', name: 'Bob', teamCode: 'BAR' };
 
 const matchWithP1: Match = {
   id: 'm1',
@@ -66,7 +66,6 @@ describe('updatePlayer', () => {
     useStore.getState().updatePlayer({ ...P1, nick: 'ali' });
     const updated = useStore.getState().players[0];
     expect(updated.id).toBe(P1.id);
-    expect(updated.color).toBe(P1.color);
     expect(updated.teamCode).toBe(P1.teamCode);
     expect(updated.nick).toBe('ali');
   });

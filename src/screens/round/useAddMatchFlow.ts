@@ -1,17 +1,18 @@
 import { useCallback, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import * as ImagePicker from 'expo-image-picker';
-import { Player, Match, MediaItem } from '@/store/types';
+import { useStore } from '@/store';
+import { type Player, type Match, type MediaItem } from '@/store/types';
 import { uploadMediaItems, buildMatchFolder } from '@/supabase/storage';
 import { extractStatsFromPhoto } from '@/utils/extractStats';
-import { resizeImage, OCR_PAYLOAD_MAX_DIMENSION, STAT_PHOTO_STORAGE_MAX_DIMENSION } from '@/utils/imageResize';
-import { mergeStatArrays, toPendingStatsRecord } from '@/utils/ocrPhotoMerge';
 import {
-  AddMatchState,
-  OcrPhotoEntry,
-  initAddMatch,
-  isAddMatchDirty,
-} from '@/utils/addMatchState';
+  resizeImage,
+  OCR_PAYLOAD_MAX_DIMENSION,
+  STAT_PHOTO_STORAGE_MAX_DIMENSION,
+} from '@/utils/imageResize';
+import { mergeStatArrays, toPendingStatsRecord } from '@/utils/ocrPhotoMerge';
+import { type AddMatchState, type OcrPhotoEntry, initAddMatch, isAddMatchDirty } from '@/utils/addMatchState';
+import { trackEvent } from '@/analytics';
 
 interface UseAddMatchFlowParams {
   tournamentRanked: boolean;
@@ -31,6 +32,7 @@ export function useAddMatchFlow({
   closeModal,
 }: UseAddMatchFlowParams) {
   const { t } = useTranslation();
+  const demoMode = useStore((s) => s.demoMode);
   const [addMatch, setAddMatch] = useState<AddMatchState>(initAddMatch());
   const [isSavingMatch, setIsSavingMatch] = useState(false);
   const [showDiscardDialog, setShowDiscardDialog] = useState(false);
@@ -77,10 +79,16 @@ export function useAddMatchFlow({
       const matchFolder = buildMatchFolder(addMatch.homeScore, addMatch.awayScore, new Date());
       const mediaFolder = roundFolder ? `${roundFolder}/${matchFolder}` : matchFolder;
 
-      // Upload local media to Supabase Storage before saving
-      const uploadedMedia = addMatch.media.length > 0
-        ? await uploadMediaItems(addMatch.media, { tournamentId, mediaFolder })
-        : [];
+      // Upload local media to Supabase Storage before saving. Demo Mode
+      // matches are discarded on exit (realDataBackup restore) and must
+      // never reach the user's real cloud storage — keep the media local-
+      // only instead of uploading it under their real account.
+      const uploadedMedia =
+        addMatch.media.length === 0
+          ? []
+          : demoMode
+            ? addMatch.media
+            : await uploadMediaItems(addMatch.media, { tournamentId, mediaFolder });
 
       const match: Match = {
         id: matchId,
@@ -96,6 +104,10 @@ export function useAddMatchFlow({
         mediaFolder: matchFolder,
       };
       addMatchToStore(match);
+      trackEvent('match_added', {
+        hasMedia: uploadedMedia.length > 0 ? 'true' : 'false',
+        hasStats: match.statsOverride ? 'true' : 'false',
+      });
       closeModal();
       reset();
     } catch {
@@ -103,51 +115,64 @@ export function useAddMatchFlow({
     } finally {
       setIsSavingMatch(false);
     }
-  }, [addMatch, isSavingMatch, players, addMatchToStore, closeModal, reset, t, tournamentId, roundFolder]);
+  }, [
+    addMatch,
+    isSavingMatch,
+    players,
+    addMatchToStore,
+    closeModal,
+    reset,
+    t,
+    tournamentId,
+    roundFolder,
+    demoMode,
+  ]);
 
   // Only (re)scans photos that don't have stats yet — already-succeeded photos
   // are never re-sent to the AI provider (#71 twin bug). A photo that fails
   // mid-batch does not discard sibling photos that succeeded earlier in the
   // same call: `updated` accumulates in place, and both the success path and
   // the catch below derive `pendingStats` from whatever's in it at that point.
-  const runOcr = useCallback(
-    async (photos: OcrPhotoEntry[]) => {
-      ocrCancelledRef.current = false;
-      setAddMatch((prev) => ({ ...prev, ocrScanning: true, ocrStatus: 'scanning', ocrPhotos: photos }));
+  const runOcr = useCallback(async (photos: OcrPhotoEntry[]) => {
+    ocrCancelledRef.current = false;
+    setAddMatch((prev) => ({
+      ...prev,
+      ocrScanning: true,
+      ocrStatus: 'scanning',
+      ocrPhotos: photos,
+    }));
 
-      const updated = [...photos];
-      const toScan = photos
-        .map((p, i) => ({ p, i }))
-        .filter(({ p }) => p.asset !== null && p.stats === null);
+    const updated = [...photos];
+    const toScan = photos
+      .map((p, i) => ({ p, i }))
+      .filter(({ p }) => p.asset !== null && p.stats === null);
 
-      const commit = (ocrStatus: 'done' | 'error') => {
-        const merged = mergeStatArrays(updated.map((p) => p.stats ?? []));
-        setAddMatch((prev) => ({
-          ...prev,
-          ocrScanning: false,
-          ocrStatus,
-          ocrPhotos: updated,
-          pendingStats: toPendingStatsRecord(merged),
-        }));
-      };
+    const commit = (ocrStatus: 'done' | 'error') => {
+      const merged = mergeStatArrays(updated.map((p) => p.stats ?? []));
+      setAddMatch((prev) => ({
+        ...prev,
+        ocrScanning: false,
+        ocrStatus,
+        ocrPhotos: updated,
+        pendingStats: toPendingStatsRecord(merged),
+      }));
+    };
 
-      try {
-        for (const { p, i } of toScan) {
-          const stats = await extractStatsFromPhoto(p.asset!.base64, p.asset!.mimeType);
-          if (ocrCancelledRef.current) return;
-          updated[i] = { ...p, stats };
-        }
-        commit('done');
-      } catch {
+    try {
+      for (const { p, i } of toScan) {
+        const stats = await extractStatsFromPhoto(p.asset!.base64, p.asset!.mimeType);
         if (ocrCancelledRef.current) return;
-        // A sibling photo's failure must not wipe already-good stats from
-        // photos that succeeded — unlike the old flat-scan model, we know
-        // exactly which photo failed and leave everything else intact.
-        commit('error');
+        updated[i] = { ...p, stats };
       }
-    },
-    [],
-  );
+      commit('done');
+    } catch {
+      if (ocrCancelledRef.current) return;
+      // A sibling photo's failure must not wipe already-good stats from
+      // photos that succeeded — unlike the old flat-scan model, we know
+      // exactly which photo failed and leave everything else intact.
+      commit('error');
+    }
+  }, []);
 
   const handlePickMedia = useCallback(async () => {
     if (addMatch.ocrStatus === 'scanning') return;
@@ -177,7 +202,9 @@ export function useAddMatchFlow({
         const [storageResult, ocrResult] = await Promise.all([
           resizeImage(a.uri, a, STAT_PHOTO_STORAGE_MAX_DIMENSION).catch(() => ({ uri: a.uri })),
           a.base64
-            ? resizeImage(a.uri, a, OCR_PAYLOAD_MAX_DIMENSION, { base64: true }).catch(() => ({ base64: a.base64 }))
+            ? resizeImage(a.uri, a, OCR_PAYLOAD_MAX_DIMENSION, { base64: true }).catch(() => ({
+                base64: a.base64,
+              }))
             : Promise.resolve({ base64: undefined }),
         ]);
 
@@ -212,7 +239,7 @@ export function useAddMatchFlow({
       ...prev,
       media: [...prev.media, ...newItems],
       ocrPhotos: allOcrPhotos,
-      ocrStatus: (hasScannableNewPhotos && !userSkippedOcr) ? 'scanning' : prev.ocrStatus,
+      ocrStatus: hasScannableNewPhotos && !userSkippedOcr ? 'scanning' : prev.ocrStatus,
     }));
 
     if (hasScannableNewPhotos && !userSkippedOcr) {

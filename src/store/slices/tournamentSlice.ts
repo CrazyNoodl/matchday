@@ -1,6 +1,13 @@
-import { StateCreator } from 'zustand';
-import { Player, Match, ArchivedRound, ClosedTournament, MediaItem, StatConfidence } from '../types';
-import { ParsedMatch } from '@/utils/importRound';
+import { type StateCreator } from 'zustand';
+import {
+  type Player,
+  type Match,
+  type ArchivedRound,
+  type ClosedTournament,
+  type MediaItem,
+  type StatConfidence,
+} from '../types';
+import { type ParsedMatch } from '@/utils/importRound';
 import { calculateStandings, isTopTied } from '@/utils/standings';
 import { Colors } from '@/theme/colors';
 import { initials, patchMatchEverywhere, matchMediaFolder } from '../sliceHelpers';
@@ -25,7 +32,12 @@ export interface TournamentState {
 }
 
 export interface TournamentActions {
-  startTournament: (name: string, playerIds: string[], ranked: boolean, tournamentRounds?: number) => void;
+  startTournament: (
+    name: string,
+    playerIds: string[],
+    ranked: boolean,
+    tournamentRounds?: number,
+  ) => void;
   startRound: (ranked: boolean, playerIds: string[]) => void;
   addMatch: (match: Match) => void;
   deleteMatch: (id: string) => void;
@@ -49,7 +61,10 @@ export interface TournamentActions {
 
 export type TournamentSlice = TournamentState & TournamentActions;
 
-export const createTournamentSlice: StateCreator<RootState, [], [], TournamentSlice> = (set, get) => ({
+export const createTournamentSlice: StateCreator<RootState, [], [], TournamentSlice> = (
+  set,
+  get,
+) => ({
   tournamentId: '',
   hasTournament: false,
   tournamentName: '',
@@ -90,14 +105,15 @@ export const createTournamentSlice: StateCreator<RootState, [], [], TournamentSl
       roundFolder: buildRoundFolder(new Date()),
     })),
 
-  addMatch: (match) =>
-    set((s) => ({ matches: [...s.matches, match] })),
+  addMatch: (match) => set((s) => ({ matches: [...s.matches, match] })),
 
   deleteMatch: (id) => {
     const s = get();
     const match = s.matches.find((m) => m.id === id);
     if (match) {
-      deleteStorageFolder(`${s.tournamentId}/${matchMediaFolder(s.roundFolder, match)}`).catch(() => {});
+      deleteStorageFolder(`${s.tournamentId}/${matchMediaFolder(s.roundFolder, match)}`).catch(
+        () => {},
+      );
     }
     set((st) => ({ matches: st.matches.filter((m) => m.id !== id) }));
   },
@@ -105,11 +121,9 @@ export const createTournamentSlice: StateCreator<RootState, [], [], TournamentSl
   updateMatchScore: (id, aScore, bScore) =>
     set((s) => patchMatchEverywhere(s, id, { aScore, bScore })),
 
-  updateMatchMedia: (id, media) =>
-    set((s) => patchMatchEverywhere(s, id, { media })),
+  updateMatchMedia: (id, media) => set((s) => patchMatchEverywhere(s, id, { media })),
 
-  updateMatchNote: (id, note) =>
-    set((s) => patchMatchEverywhere(s, id, { note })),
+  updateMatchNote: (id, note) => set((s) => patchMatchEverywhere(s, id, { note })),
 
   updateMatchStats: (id, stats) =>
     set((s) => patchMatchEverywhere(s, id, { statsOverride: stats })),
@@ -168,7 +182,9 @@ export const createTournamentSlice: StateCreator<RootState, [], [], TournamentSl
     s.matches
       .filter((m) => !m.mediaFolder)
       .forEach((m) => {
-        deleteStorageFolder(`${s.tournamentId}/${matchMediaFolder(s.roundFolder, m)}`).catch(() => {});
+        deleteStorageFolder(`${s.tournamentId}/${matchMediaFolder(s.roundFolder, m)}`).catch(
+          () => {},
+        );
       });
     set({ matches: [], roundOpen: false, roundPlayers: [], roundFolder: '' });
   },
@@ -183,7 +199,9 @@ export const createTournamentSlice: StateCreator<RootState, [], [], TournamentSl
       round.matches
         .filter((m) => !m.mediaFolder)
         .forEach((m) => {
-          deleteStorageFolder(`${s.tournamentId}/${matchMediaFolder(round.folder, m)}`).catch(() => {});
+          deleteStorageFolder(`${s.tournamentId}/${matchMediaFolder(round.folder, m)}`).catch(
+            () => {},
+          );
         });
     }
     set((st) => ({ archivedRounds: st.archivedRounds.filter((r) => r.id !== id) }));
@@ -202,13 +220,12 @@ export const createTournamentSlice: StateCreator<RootState, [], [], TournamentSl
     const s = get();
 
     // Calculate overall champion from all ranked archived rounds
-    const allMatches = s.archivedRounds
-      .filter((r) => r.ranked)
-      .flatMap((r) => r.matches);
+    const allMatches = s.archivedRounds.filter((r) => r.ranked).flatMap((r) => r.matches);
 
     const standings = calculateStandings(allMatches, s.tournamentPlayers);
     const champId = standings[0]?.playerId ?? '';
     const champPlayer = s.players.find((p: Player) => p.id === champId);
+    const champTeam = s.teams.find((t) => t.code === champPlayer?.teamCode);
 
     const closed: ClosedTournament = {
       id: s.tournamentId || `tour-${Date.now()}`,
@@ -217,7 +234,7 @@ export const createTournamentSlice: StateCreator<RootState, [], [], TournamentSl
       rounds: [...s.archivedRounds],
       champId,
       champName: champPlayer?.name ?? '',
-      champColor: champPlayer?.color ?? Colors.player[0],
+      champColor: champTeam?.color ?? Colors.team[0],
       champInit: champPlayer ? initials(champPlayer.name) : '',
       players: [...s.tournamentPlayers],
     };
@@ -246,9 +263,7 @@ export const createTournamentSlice: StateCreator<RootState, [], [], TournamentSl
     set((s) => {
       if (!s.hasTournament) return s;
       return {
-        archivedRounds: s.archivedRounds.map((r) =>
-          r.id === id ? { ...r, date } : r,
-        ),
+        archivedRounds: s.archivedRounds.map((r) => (r.id === id ? { ...r, date } : r)),
       };
     }),
 
@@ -272,7 +287,6 @@ export const createTournamentSlice: StateCreator<RootState, [], [], TournamentSl
           player = {
             id: `player-import-${ts}-${newPlayers.length}`,
             name,
-            color: Colors.player[(s.players.length + newPlayers.length) % Colors.player.length],
             teamCode: s.teams[0]?.code ?? 'JUV',
           };
           newPlayers.push(player);
@@ -286,9 +300,7 @@ export const createTournamentSlice: StateCreator<RootState, [], [], TournamentSl
 
       const resolveTeam = (code: string | null, fallback: string): string => {
         if (!code) return fallback;
-        const found = s.teams.find(
-          (t) => t.code.toUpperCase() === code.toUpperCase(),
-        );
+        const found = s.teams.find((t) => t.code.toUpperCase() === code.toUpperCase());
         return found ? found.code : fallback;
       };
 
@@ -303,9 +315,7 @@ export const createTournamentSlice: StateCreator<RootState, [], [], TournamentSl
       });
     }
 
-    const allMatchPlayerIds = [
-      ...new Set(newMatches.flatMap((m) => [m.aId, m.bId])),
-    ];
+    const allMatchPlayerIds = [...new Set(newMatches.flatMap((m) => [m.aId, m.bId]))];
     const missingFromTournament = allMatchPlayerIds.filter(
       (id) => !s.tournamentPlayers.includes(id),
     );
@@ -313,9 +323,7 @@ export const createTournamentSlice: StateCreator<RootState, [], [], TournamentSl
     set({
       players: [...s.players, ...newPlayers],
       matches: [...s.matches, ...newMatches],
-      tournamentPlayers: [
-        ...new Set([...s.tournamentPlayers, ...missingFromTournament]),
-      ],
+      tournamentPlayers: [...new Set([...s.tournamentPlayers, ...missingFromTournament])],
     });
   },
 });

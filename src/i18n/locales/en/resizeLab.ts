@@ -8,7 +8,8 @@ const resizeLab = {
   },
   pickAnotherPhoto: 'Pick another photo',
   pickPhoto: 'Pick a photo',
-  emptyHint: 'Pick a real photo from your library to see exactly what each resize preset produces on this device — dimensions, file size, and any error the resize step hits.',
+  emptyHint:
+    'Pick a real photo from your library to see exactly what each resize preset produces on this device — dimensions, file size, and any error the resize step hits.',
   original: 'Original',
   resizing: 'Resizing...',
   failed: 'Failed: {{error}}',

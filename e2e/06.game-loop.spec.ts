@@ -1,7 +1,9 @@
 import { test, expect, createTeamViaUI, createPlayerViaUI, addMatchViaUI } from './fixtures';
 
 test.describe('Main game loop', () => {
-  test('play a full round with the equal-games rule, finish it, and crown a tournament champion @smoke', async ({ authedPage: page }) => {
+  test('play a full round with the equal-games rule, finish it, and crown a tournament champion @smoke', async ({
+    authedPage: page,
+  }) => {
     // ---- Setup: 3 teams, 3 players ----
     await createTeamViaUI(page, 'Liverpool', 'LIV');
     await createTeamViaUI(page, 'Arsenal', 'ARS');

@@ -4,7 +4,7 @@ import { useGoBack } from '@/utils/useGoBack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '@/store';
-import i18n, { LANGUAGES, Language } from '@/i18n';
+import i18n, { LANGUAGES, type Language } from '@/i18n';
 import { useColors } from '@/theme';
 import { NavHeader, GlowBackground } from '@/components';
 import { makeStyles } from '@/screens/settings/language/language.styles';
@@ -65,4 +65,3 @@ export default function LanguageScreen() {
     </SafeAreaView>
   );
 }
-

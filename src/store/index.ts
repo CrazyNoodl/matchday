@@ -1,16 +1,14 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { Platform } from 'react-native';
-import { Player, Team, Match, ArchivedRound, ClosedTournament } from './types';
+import { type Player, type Team, type Match, type ArchivedRound, type ClosedTournament } from './types';
 import { deleteMediaItem } from '../supabase/storage';
-import {
-  createTournamentSlice,
-  TournamentSlice,
-} from './slices/tournamentSlice';
-import { createPlayersSlice, PlayersSlice } from './slices/playersSlice';
-import { createTeamsSlice, TeamsSlice } from './slices/teamsSlice';
-import { createSettingsSlice, SettingsSlice } from './slices/settingsSlice';
-import { createUiSlice, UiSlice } from './slices/uiSlice';
+import { createTournamentSlice, type TournamentSlice } from './slices/tournamentSlice';
+import { createPlayersSlice, type PlayersSlice } from './slices/playersSlice';
+import { createTeamsSlice, type TeamsSlice } from './slices/teamsSlice';
+import { createSettingsSlice, type SettingsSlice } from './slices/settingsSlice';
+import { createUiSlice, type UiSlice } from './slices/uiSlice';
+import { stripUploadingMedia } from './sliceHelpers';
 
 // ---------------------------------------------------------------------------
 // Storage adapter — MMKV on native, localStorage on web
@@ -19,13 +17,21 @@ const buildStorage = () => {
   if (Platform.OS === 'web') {
     return {
       getItem: (name: string): string | null => {
-        try { return localStorage.getItem(name); } catch { return null; }
+        try {
+          return localStorage.getItem(name);
+        } catch {
+          return null;
+        }
       },
       setItem: (name: string, value: string): void => {
-        try { localStorage.setItem(name, value); } catch {}
+        try {
+          localStorage.setItem(name, value);
+        } catch {}
       },
       removeItem: (name: string): void => {
-        try { localStorage.removeItem(name); } catch {}
+        try {
+          localStorage.removeItem(name);
+        } catch {}
       },
     };
   }
@@ -39,14 +45,20 @@ const buildStorage = () => {
     return {
       getItem: (name: string): string | null => mmkv.getString(name) ?? null,
       setItem: (name: string, value: string): void => mmkv.set(name, value),
-      removeItem: (name: string): void => { mmkv.remove(name); },
+      removeItem: (name: string): void => {
+        mmkv.remove(name);
+      },
     };
   } catch {
     const memory = new Map<string, string>();
     return {
       getItem: (name: string): string | null => memory.get(name) ?? null,
-      setItem: (name: string, value: string): void => { memory.set(name, value); },
-      removeItem: (name: string): void => { memory.delete(name); },
+      setItem: (name: string, value: string): void => {
+        memory.set(name, value);
+      },
+      removeItem: (name: string): void => {
+        memory.delete(name);
+      },
     };
   }
 };
@@ -80,7 +92,7 @@ interface RootActions {
     roundOpen: boolean;
     roundPlayers: string[];
   }) => void;
-  resetStore: () => Promise<void>;
+  resetStore: (options?: { deleteCloudMedia?: boolean }) => Promise<void>;
   // Sync tables not yet pushed to Supabase. Persisted (unlike useSyncManager's
   // in-memory dirty tracking) so an app crash/force-quit/OS eviction before a
   // push completes doesn't silently lose the edit on next launch — see
@@ -92,7 +104,12 @@ interface RootActions {
 // ---------------------------------------------------------------------------
 // Combined store type — every consumer still calls useStore() exactly as before
 // ---------------------------------------------------------------------------
-export type RootState = TournamentSlice & PlayersSlice & TeamsSlice & SettingsSlice & UiSlice & RootActions;
+export type RootState = TournamentSlice &
+  PlayersSlice &
+  TeamsSlice &
+  SettingsSlice &
+  UiSlice &
+  RootActions;
 
 // ---------------------------------------------------------------------------
 // Store
@@ -137,7 +154,17 @@ export const useStore = create<RootState>()(
       pendingSyncTables: [],
       setPendingSyncTables: (tables) => set({ pendingSyncTables: tables }),
 
-      resetStore: async () => {
+      // deleteCloudMedia defaults to false: resetStore() is also used by
+      // sign-out to clear the *local* cache so it can't leak into the next
+      // account on this device — that must never delete the real photos/
+      // logos still sitting in the user's Supabase Storage bucket. Only the
+      // explicit "Reset All Data" flow (which already deletes the user's
+      // cloud DB rows via deleteAllCloudData()) opts in. Without this flag,
+      // every resetStore() call — including a plain sign-out, and doubly so
+      // one made while Demo Mode was on, since realDataBackup's real media
+      // is included below too — permanently deleted the user's real cloud
+      // media as a side effect of a supposedly local-only cache clear.
+      resetStore: async (options) => {
         const s = get();
         const matchUris = [
           ...s.matches,
@@ -145,16 +172,18 @@ export const useStore = create<RootState>()(
           ...s.closedTournaments.flatMap((t) => t.rounds.flatMap((r) => r.matches)),
           ...(s.realDataBackup?.matches ?? []),
           ...(s.realDataBackup?.archivedRounds.flatMap((r) => r.matches) ?? []),
-          ...(s.realDataBackup?.closedTournaments.flatMap((t) => t.rounds.flatMap((r) => r.matches)) ?? []),
-        ].flatMap((m) => m.media ?? []).map((media) => media.uri);
-        const playerPhotoUris = [
-          ...s.players,
-          ...(s.realDataBackup?.players ?? []),
-        ].map((p) => p.photo).filter((uri): uri is string => !!uri);
-        const teamLogoUris = [
-          ...s.teams,
-          ...(s.realDataBackup?.teams ?? []),
-        ].map((t) => t.logo).filter((uri): uri is string => !!uri);
+          ...(s.realDataBackup?.closedTournaments.flatMap((t) =>
+            t.rounds.flatMap((r) => r.matches),
+          ) ?? []),
+        ]
+          .flatMap((m) => m.media ?? [])
+          .map((media) => media.uri);
+        const playerPhotoUris = [...s.players, ...(s.realDataBackup?.players ?? [])]
+          .map((p) => p.photo)
+          .filter((uri): uri is string => !!uri);
+        const teamLogoUris = [...s.teams, ...(s.realDataBackup?.teams ?? [])]
+          .map((t) => t.logo)
+          .filter((uri): uri is string => !!uri);
 
         const mediaUris = [...new Set([...matchUris, ...playerPhotoUris, ...teamLogoUris])];
 
@@ -184,7 +213,9 @@ export const useStore = create<RootState>()(
         });
         syncSuppressionRef.current = false;
 
-        await Promise.all(mediaUris.map((uri) => deleteMediaItem(uri)));
+        if (options?.deleteCloudMedia) {
+          await Promise.all(mediaUris.map((uri) => deleteMediaItem(uri)));
+        }
       },
     }),
     {
@@ -192,16 +223,10 @@ export const useStore = create<RootState>()(
       storage: createJSONStorage(() => mmkvStorage),
       onRehydrateStorage: () => (state) => {
         if (!state) return;
-        const stripTransient = (matches: Match[]) =>
-          matches.map((m) =>
-            m.media?.some((i) => i.pendingUpload || i.uploading)
-              ? { ...m, media: m.media!.filter((i) => !i.pendingUpload && !i.uploading) }
-              : m,
-          );
-        state.matches = stripTransient(state.matches);
+        state.matches = stripUploadingMedia(state.matches);
         state.archivedRounds = state.archivedRounds.map((r) => ({
           ...r,
-          matches: stripTransient(r.matches),
+          matches: stripUploadingMedia(r.matches),
         }));
       },
       partialize: (state) => ({
@@ -222,6 +247,7 @@ export const useStore = create<RootState>()(
         pendingSyncTables: state.pendingSyncTables,
         showNick: state.showNick,
         showTeamLogo: state.showTeamLogo,
+        groupByTours: state.groupByTours,
         colorScheme: state.colorScheme,
         language: state.language,
         demoMode: state.demoMode,
@@ -234,8 +260,6 @@ export const useStore = create<RootState>()(
 // ---------------------------------------------------------------------------
 // Convenience selectors
 // ---------------------------------------------------------------------------
-export const selectPlayer = (id: string) => (s: RootState) =>
-  s.players.find((p) => p.id === id);
+export const selectPlayer = (id: string) => (s: RootState) => s.players.find((p) => p.id === id);
 
-export const selectTeam = (code: string) => (s: RootState) =>
-  s.teams.find((t) => t.code === code);
+export const selectTeam = (code: string) => (s: RootState) => s.teams.find((t) => t.code === code);

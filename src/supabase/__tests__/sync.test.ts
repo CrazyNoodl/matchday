@@ -6,7 +6,14 @@
 // code in the app (it can delete cloud rows for a user).
 
 import { getCurrentUserId } from '../auth';
-import { pushState, pullState, deleteAllCloudData, buildSyncPayload, pushAllTables, type SyncPayload } from '../sync';
+import {
+  pushState,
+  pullState,
+  deleteAllCloudData,
+  buildSyncPayload,
+  pushAllTables,
+  type SyncPayload,
+} from '../sync';
 
 jest.mock('../auth', () => ({
   getCurrentUserId: jest.fn(),
@@ -114,7 +121,7 @@ describe('pushState', () => {
 
     await pushState({
       ...basePayload,
-      players: [{ id: 'p1', name: 'Alice', color: '#fff', teamCode: 'JUV' }],
+      players: [{ id: 'p1', name: 'Alice', teamCode: 'JUV' }],
     });
 
     const playerUpsert = calls.find((c) => c.table === 'players' && c.method === 'upsert');
@@ -129,7 +136,7 @@ describe('pushState', () => {
     expect(playerDeleteNot!.args).toEqual(['id', 'in', '(p1)']);
   });
 
-  it('wipes ALL of a user\'s cloud players when the local players array is empty', async () => {
+  it("wipes ALL of a user's cloud players when the local players array is empty", async () => {
     // This is intentional behavior (user deleted every player locally), but it
     // is also the most destructive path in pushState: if the local array is
     // empty for the WRONG reason (e.g. state never finished loading), this is
@@ -173,16 +180,24 @@ describe('pushState', () => {
     // on the very next pull.
     mockGetCurrentUserId.mockResolvedValue('user-1');
     const { db } = buildMockDb({
-      matches: { data: null, error: { message: 'insert or update on table "matches" violates foreign key constraint' } },
+      matches: {
+        data: null,
+        error: { message: 'insert or update on table "matches" violates foreign key constraint' },
+      },
     });
     setMockDb(db);
 
     await expect(
-      pushState({
-        ...basePayload,
-        tournamentId: 'tour-1',
-        matches: [{ id: 'm1', aId: 'p1', bId: 'p2', aTeam: 'JUV', bTeam: 'ARS', aScore: 1, bScore: 0 }],
-      }, new Set(['openMatches'])),
+      pushState(
+        {
+          ...basePayload,
+          tournamentId: 'tour-1',
+          matches: [
+            { id: 'm1', aId: 'p1', bId: 'p2', aTeam: 'JUV', bTeam: 'ARS', aScore: 1, bScore: 0 },
+          ],
+        },
+        new Set(['openMatches']),
+      ),
     ).rejects.toThrow(/foreign key constraint/);
   });
 });
@@ -251,12 +266,39 @@ describe('buildSyncPayload', () => {
       teams: [],
       matches: [matchWithMedia('m1')],
       archivedRounds: [
-        { id: 'r1', n: 1, date: '', winner: '', games: 1, ranked: true, name: '', matches: [matchWithMedia('m2')] },
+        {
+          id: 'r1',
+          n: 1,
+          date: '',
+          winner: '',
+          games: 1,
+          ranked: true,
+          name: '',
+          matches: [matchWithMedia('m2')],
+        },
       ],
       closedTournaments: [
         {
-          id: 'ct1', name: '', date: '', champId: '', champName: '', champColor: '', champInit: '', players: [],
-          rounds: [{ id: 'r2', n: 1, date: '', winner: '', games: 1, ranked: true, name: '', matches: [matchWithMedia('m3')] }],
+          id: 'ct1',
+          name: '',
+          date: '',
+          champId: '',
+          champName: '',
+          champColor: '',
+          champInit: '',
+          players: [],
+          rounds: [
+            {
+              id: 'r2',
+              n: 1,
+              date: '',
+              winner: '',
+              games: 1,
+              ranked: true,
+              name: '',
+              matches: [matchWithMedia('m3')],
+            },
+          ],
         },
       ],
       tournamentName: 'Cup',
@@ -295,13 +337,20 @@ describe('pushAllTables', () => {
 
     await pushAllTables({
       tournamentId: '',
-      players: [{ id: 'p1', name: 'Alice', color: '#fff', teamCode: 'JUV' }],
+      players: [{ id: 'p1', name: 'Alice', teamCode: 'JUV' }],
       teams: [{ code: 'JUV', name: 'Juventus', short: 'JUV', color: '#000' }],
       matches: [],
       archivedRounds: [],
       closedTournaments: [],
       tournament: {
-        name: '', ranked: true, roundsTarget: 0, playerIds: [], round: 0, roundOpen: false, roundPlayers: [], hasTournament: false,
+        name: '',
+        ranked: true,
+        roundsTarget: 0,
+        playerIds: [],
+        round: 0,
+        roundOpen: false,
+        roundPlayers: [],
+        hasTournament: false,
       },
     });
 
@@ -325,7 +374,10 @@ describe('pullState', () => {
   it('assembles players/teams/closed tournaments from successful queries', async () => {
     mockGetCurrentUserId.mockResolvedValue('user-1');
     const { db } = buildMockDb({
-      players: { data: [{ id: 'p1', name: 'Alice', color: '#fff', team_code: 'JUV' }], error: null },
+      players: {
+        data: [{ id: 'p1', name: 'Alice', team_code: 'JUV' }],
+        error: null,
+      },
       teams: { data: [], error: null },
       tournaments: { data: [], error: null },
       rounds: { data: [], error: null },
@@ -338,7 +390,13 @@ describe('pullState', () => {
 
     expect(result).not.toBeNull();
     expect(result!.players).toEqual([
-      { id: 'p1', name: 'Alice', nick: undefined, color: '#fff', teamCode: 'JUV', photo: undefined },
+      {
+        id: 'p1',
+        name: 'Alice',
+        nick: undefined,
+        teamCode: 'JUV',
+        photo: undefined,
+      },
     ]);
     expect(result!.hasTournament).toBe(false);
   });

@@ -6,8 +6,8 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   StyleSheet,
-  ViewStyle,
-  ImageStyle,
+  type ViewStyle,
+  type ImageStyle,
 } from 'react-native';
 import { useColors } from '../../theme';
 import type { MediaType } from '../../store/types';
@@ -50,11 +50,7 @@ export const MediaThumbnail = React.memo(function MediaThumbnail({
           onPress={effectiveOnPress}
           activeOpacity={effectiveOnPress ? 0.85 : undefined}
         >
-          <Image
-            source={{ uri }}
-            style={[styles.image, imageStyle]}
-            resizeMode="cover"
-          />
+          <Image source={{ uri }} style={[styles.image, imageStyle]} resizeMode="cover" />
           {type === 'video' && !pendingUpload && (
             <View style={styles.videoOverlay}>
               <Text style={styles.videoPlayIcon}>▶</Text>
@@ -63,7 +59,11 @@ export const MediaThumbnail = React.memo(function MediaThumbnail({
           {pendingUpload && (
             <View style={styles.pendingOverlay}>
               {retrying ? (
-                <ActivityIndicator size="small" color={colors.accent.yellow} style={styles.pendingSpinner} />
+                <ActivityIndicator
+                  size="small"
+                  color={colors.accent.yellow}
+                  style={styles.pendingSpinner}
+                />
               ) : (
                 <Text style={styles.pendingIcon}>⚠</Text>
               )}

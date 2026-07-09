@@ -1,12 +1,5 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  Image,
-  ActivityIndicator,
-} from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useColors } from '@/theme';
@@ -48,10 +41,13 @@ export default function MatchDetailScreen() {
   } = d;
 
   const importStatsLabel =
-    importStatsStep === 'preparing' ? t('matchDetail.importStats.preparing')
-      : importStatsStep === 'uploading' ? t('matchDetail.importStats.uploading')
-      : importStatsStep === 'scanning' ? t('matchDetail.importStats.scanning')
-      : null;
+    importStatsStep === 'preparing'
+      ? t('matchDetail.importStats.preparing')
+      : importStatsStep === 'uploading'
+        ? t('matchDetail.importStats.uploading')
+        : importStatsStep === 'scanning'
+          ? t('matchDetail.importStats.scanning')
+          : null;
 
   if (!match) {
     const isLoading = syncStatus === 'syncing' || remoteLoading;
@@ -175,8 +171,8 @@ export default function MatchDetailScreen() {
                 <View style={styles.sourceBadgeBlue}>
                   <Text style={styles.sourceBadgeBlueText}>{t('matchDetail.aiRead')}</Text>
                 </View>
-                {isEditableMatch && (
-                  importingStats ? (
+                {isEditableMatch &&
+                  (importingStats ? (
                     <View style={styles.statsRescanProgress}>
                       <ActivityIndicator size="small" color={colors.accent.blue} />
                       <Text style={styles.statsRescanProgressText}>{importStatsLabel}</Text>
@@ -189,8 +185,7 @@ export default function MatchDetailScreen() {
                     >
                       <Text style={styles.statsMenuDots}>···</Text>
                     </TouchableOpacity>
-                  )
-                )}
+                  ))}
               </View>
             </View>
 
@@ -221,7 +216,10 @@ export default function MatchDetailScreen() {
             <View style={styles.mediaActions}>
               {!hasStatsOverride && (
                 <TouchableOpacity
-                  style={[styles.importStatsBtn, (uploadingMedia || isOffline) && styles.btnCrossBlocked]}
+                  style={[
+                    styles.importStatsBtn,
+                    (uploadingMedia || isOffline) && styles.btnCrossBlocked,
+                  ]}
                   onPress={d.handleImportStats}
                   activeOpacity={0.75}
                   disabled={importingStats || uploadingMedia || isOffline}
@@ -233,12 +231,17 @@ export default function MatchDetailScreen() {
                       <Text style={styles.importStatsBtnText}>{importStatsLabel}</Text>
                     </View>
                   ) : (
-                    <Text style={styles.importStatsBtnText}>{t('matchDetail.importStats.cta')}</Text>
+                    <Text style={styles.importStatsBtnText}>
+                      {t('matchDetail.importStats.cta')}
+                    </Text>
                   )}
                 </TouchableOpacity>
               )}
               <TouchableOpacity
-                style={[styles.addMediaBtn, (importingStats || isMediaFull || isOffline) && styles.btnCrossBlocked]}
+                style={[
+                  styles.addMediaBtn,
+                  (importingStats || isMediaFull || isOffline) && styles.btnCrossBlocked,
+                ]}
                 onPress={d.handleAddMedia}
                 activeOpacity={0.75}
                 disabled={uploadingMedia || importingStats || isMediaFull || isOffline}
@@ -247,7 +250,9 @@ export default function MatchDetailScreen() {
                 {uploadingMedia ? (
                   <View style={styles.statsRescanProgress}>
                     <ActivityIndicator size="small" color={colors.accent.green} />
-                    <Text style={styles.addMediaBtnText}>{t('matchDetail.importStats.preparing')}</Text>
+                    <Text style={styles.addMediaBtnText}>
+                      {t('matchDetail.importStats.preparing')}
+                    </Text>
                   </View>
                 ) : (
                   <Text style={styles.addMediaBtnText}>{'+ ' + t('common.add')}</Text>
@@ -268,15 +273,23 @@ export default function MatchDetailScreen() {
               return (
                 <View key={originalIndex} style={styles.mediaThumbnail}>
                   <TouchableOpacity
-                    onPress={item.uploading
-                      ? undefined
-                      : item.pendingUpload
-                        ? (isOffline ? undefined : () => d.handleRetryUpload(item.uri))
-                        : () => d.setViewingMediaIndex(originalIndex)}
+                    onPress={
+                      item.uploading
+                        ? undefined
+                        : item.pendingUpload
+                          ? isOffline
+                            ? undefined
+                            : () => d.handleRetryUpload(item.uri)
+                          : () => d.setViewingMediaIndex(originalIndex)
+                    }
                     activeOpacity={item.uploading ? 1 : 0.85}
                     disabled={isRetrying || !!item.uploading || (item.pendingUpload && isOffline)}
                   >
-                    <Image source={{ uri: item.uri }} style={styles.mediaImage} resizeMode="cover" />
+                    <Image
+                      source={{ uri: item.uri }}
+                      style={styles.mediaImage}
+                      resizeMode="cover"
+                    />
                     {item.uploading && (
                       <View style={styles.pendingUploadOverlay}>
                         <ActivityIndicator size="small" color={colors.accent.green} />
@@ -289,7 +302,9 @@ export default function MatchDetailScreen() {
                         ) : (
                           <>
                             <Text style={styles.pendingUploadIcon}>⚠</Text>
-                            <Text style={styles.pendingUploadText}>{t('matchDetail.media.retryUpload')}</Text>
+                            <Text style={styles.pendingUploadText}>
+                              {t('matchDetail.media.retryUpload')}
+                            </Text>
                           </>
                         )}
                       </View>
@@ -317,7 +332,9 @@ export default function MatchDetailScreen() {
             activeOpacity={isEditableMatch && !isOffline ? 0.7 : 1}
           >
             <Text style={styles.mediaEmptyText}>
-              {isEditableMatch && !isOffline ? t('matchDetail.media.tapToAdd') : t('matchDetail.media.empty')}
+              {isEditableMatch && !isOffline
+                ? t('matchDetail.media.tapToAdd')
+                : t('matchDetail.media.empty')}
             </Text>
           </TouchableOpacity>
         )}

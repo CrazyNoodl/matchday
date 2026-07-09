@@ -22,6 +22,7 @@ main  ← stable releases only
 ```
 
 **Start new work:**
+
 ```bash
 ./scripts/new-feature.sh <name> [fix|feature|test]
 # Creates ../matchday-wt-<name> with a fresh branch from dev + npm install
@@ -29,6 +30,7 @@ main  ← stable releases only
 ```
 
 **Finish and merge:**
+
 ```bash
 ./scripts/finish-feature.sh <name>
 # Merges branch into dev, removes worktree, deletes local branch
@@ -37,6 +39,7 @@ main  ← stable releases only
 **Before calling `finish-feature.sh`, update `docs/CONTEXT.md` in the main repo** (not the worktree) with what was built: add the feature to the "What is fully implemented" table, remove it from "What is NOT implemented" if it was listed there, update the open GitHub issues list if any were closed, and note any non-obvious implementation details discovered. The worktree is deleted after `finish-feature.sh` — update CONTEXT.md first.
 
 **Before any `git push` to `main` or `dev`, run through this checklist:**
+
 1. `docs/CONTEXT.md` is up to date
 2. `npm test` is green
 3. `npm run e2e:smoke` is green
@@ -51,6 +54,7 @@ main  ← stable releases only
 **Before declaring a worktree feature done, cover it with tests and run the suite (`npm test`).** Add/update Jest tests for the new behavior (see `src/store/__tests__/` for the existing pattern), then run `npm test` and make sure it's green — don't just type-check and eyeball the browser. Only after tests pass and the browser smoke-test looks right should you tell the user it's ready for merge review.
 
 **List active worktrees:**
+
 ```bash
 git worktree list
 ```
@@ -151,13 +155,13 @@ Two flags control what's editable on the match detail screen:
 - `isCurrentRoundMatch` — match is in `matches` (the currently open round, not yet archived)
 - `isEditableMatch` — match is in `matches` OR in `archivedRounds` while `hasTournament` is true
 
-| Action | Condition |
-|---|---|
-| Edit score (header button) | `isEditableMatch` |
+| Action                       | Condition                  |
+| ---------------------------- | -------------------------- |
+| Edit score (header button)   | `isEditableMatch`          |
 | Delete match (header button) | `isCurrentRoundMatch` only |
-| Edit stats | `isEditableMatch` |
-| Add / delete media | `isEditableMatch` |
-| Edit commentary | `isEditableMatch` |
+| Edit stats                   | `isEditableMatch`          |
+| Add / delete media           | `isEditableMatch`          |
+| Edit commentary              | `isEditableMatch`          |
 
 Once `closeTournament()` is called, `hasTournament` becomes false and matches move into `closedTournaments` — all edit UI disappears and the match is read-only.
 
@@ -166,6 +170,7 @@ All four store update actions (`updateMatchScore`, `updateMatchStats`, `updateMa
 ### Path Alias
 
 `@/` maps to `src/`. Use it for all imports from `src/`:
+
 ```ts
 import { useStore } from '@/store';
 import { Colors } from '@/theme';
@@ -175,6 +180,7 @@ import { Avatar } from '@/components/Avatar';
 ### Design System
 
 All design tokens are in `src/theme/`:
+
 - `colors.ts` — `Colors.bg.*`, `Colors.text.*`, `Colors.accent.*`, `Colors.border.*`, `Colors.player[]`, `Colors.team[]`
 - `typography.ts` — `FontFamily.*` (SairaCondensed for display/numbers, Sora for body), `FontSize.*`
 - `spacing.ts` — `Spacing.*` (4–32), `Radius.*` (5–999)
@@ -184,6 +190,7 @@ Fonts are loaded once in `_layout.tsx` via `useFonts`. The app shows a spinner u
 ### Component Library
 
 Reusable components in `src/components/`:
+
 - `Avatar` — colored circle with player initials or photo
 - `StandingCard` — standings table row (rank, avatar, name, form chips, pts)
 - `MatchCard` — match result card (team badges, score, player names)

@@ -32,7 +32,9 @@ describe('TeamBadge', () => {
   });
 
   it('falls back to initials when the remote logo image fails to load', async () => {
-    setTeams([{ code: 'ARS', short: 'ARS', color: '#ff0000', logo: 'https://example.com/logo.png' }]);
+    setTeams([
+      { code: 'ARS', short: 'ARS', color: '#ff0000', logo: 'https://example.com/logo.png' },
+    ]);
     const { getByText, getByTestId, queryByText } = await render(<TeamBadge teamCode="ARS" />);
 
     expect(queryByText('ARS')).toBeNull();

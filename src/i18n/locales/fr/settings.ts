@@ -10,7 +10,7 @@ const settings = {
     devModeOn: '🛠  Mode développeur activé',
     tapsToUnlock: 'Encore {{count}} appuis pour débloquer le menu développeur',
     menuLabel: 'Menu développeur',
-    menuSub: 'Outils d\'import et options internes',
+    menuSub: "Outils d'import et options internes",
   },
   play: {
     section: 'Jouer',
@@ -33,6 +33,12 @@ const settings = {
     backup: 'Sauvegarde et restauration',
     backupSub: 'Exporter ou importer un instantané local de vos données',
   },
+  sync: {
+    title: 'Synchronisation',
+    syncing: 'Synchronisation…',
+    pending: '{{count}} modification(s) en attente de synchronisation',
+    error: 'Échec de la synchronisation — appuyez pour réessayer',
+  },
   display: {
     section: 'Affichage',
     theme: 'Thème',
@@ -45,6 +51,9 @@ const settings = {
     showTeamLogosDesc: 'Afficher les écussons des équipes sur les cartes de match',
     nicknamesOn: 'Pseudos activés',
     nicknamesOff: 'Pseudos désactivés',
+    matches: 'Matchs',
+    groupByTours: 'Grouper les matchs par tours',
+    groupByToursDesc: 'Répartir les matchs du round en blocs par cycle de tour',
     upcoming: 'Bientôt disponible',
     inDevelopment: 'En développement',
   },
@@ -68,7 +77,10 @@ const settings = {
     section: 'Zone dangereuse',
     resetAll: 'Réinitialiser les données',
     resetTitle: 'Réinitialiser les données ?',
-    resetDesc: 'Cela supprimera définitivement tous les tournois, matchs, tours et réinitialisera les joueurs et équipes par défaut.',
+    resetDesc:
+      'Cela supprimera définitivement tous les tournois, matchs, tours et réinitialisera les joueurs et équipes par défaut.',
+    resetDisabledDemo: 'Désactivez le mode démo pour réinitialiser vos données.',
+    resetDisabledOffline: 'Vous devez être en ligne pour réinitialiser vos données.',
     backupFirst: "Sauvegarder d'abord mes données",
     cancel: 'Annuler',
     reset: 'Réinitialiser',

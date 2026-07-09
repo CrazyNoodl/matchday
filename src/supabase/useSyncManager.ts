@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import * as Sentry from '@sentry/react-native';
 import { useStore, syncSuppressionRef } from '@/store';
 import { getCurrentUserId } from './auth';
 import { pushState, pullState, subscribeToChanges, buildSyncPayload, ALL_DIRTY } from './sync';
@@ -9,6 +10,13 @@ import { useIsOnline } from '@/hooks/useIsOnline';
 const PUSH_DEBOUNCE_MS = 300;
 const PULL_DEBOUNCE_MS = 400;
 
+// Lets UI outside this hook (SyncStatusIndicator's manual "retry now" tap)
+// trigger the same push-if-dirty-else-pull reconciliation the offline ->
+// online transition already runs, without threading a callback prop through
+// the app root. Same module-level-ref-as-imperative-handle pattern as
+// syncSuppressionRef in store/index.ts.
+export const manualRetryRef = { current: () => {} };
+
 export function useSyncManager() {
   const setSyncStatus = useStore((s) => s.setSyncStatus);
   const applyCloudState = useStore((s) => s.applyCloudState);
@@ -18,8 +26,11 @@ export function useSyncManager() {
   const pushTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pullTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pushingRef = useRef(false);
+  // Set when a store edit's debounce settles while a push is already in
+  // flight — that push's payload was captured before this edit, so starting
+  // a second overlapping push now would race it (see runPush's finally below).
+  const pushQueuedRef = useRef(false);
   const dirtyRef = useRef<Set<DirtyTable>>(new Set());
-  const prevDemoModeRef = useRef<boolean>(useStore.getState().demoMode);
   // Bridges the reconnect effect (below) into the main effect's closure —
   // reassigned once init() has real `pull`/`runPush`/`userId` in scope.
   const reconnectRef = useRef<() => void>(() => {});
@@ -60,10 +71,12 @@ export function useSyncManager() {
     // 'empty': query succeeded and the cloud genuinely has nothing for this user.
     // 'has-data': query succeeded and applyCloudState() was applied.
     async function pull(): Promise<'failed' | 'empty' | 'has-data'> {
+      Sentry.addBreadcrumb({ category: 'sync', message: 'pull start' });
       let pulled: Awaited<ReturnType<typeof pullState>>;
       try {
         pulled = await pullState();
-      } catch {
+      } catch (err) {
+        Sentry.captureException(err, { tags: { syncOp: 'pull' } });
         setSyncStatus('error');
         return 'failed';
       }
@@ -83,20 +96,29 @@ export function useSyncManager() {
         pulled.hasTournament;
       applyingRef.current = true;
       applyCloudState(pulled);
-      setTimeout(() => { applyingRef.current = false; }, 100);
+      setTimeout(() => {
+        applyingRef.current = false;
+      }, 100);
       return hasCloudData ? 'has-data' : 'empty';
     }
 
     async function runPush(forceDirty?: Set<DirtyTable>) {
+      // Last line of defense: whatever caller/timing led here, never push
+      // while demo data is what's actually sitting in the store — a caller
+      // upstream missing a demoMode check must not be able to leak demo
+      // rows into the user's real cloud data.
+      if (useStore.getState().demoMode) return;
       const dirty = forceDirty ?? new Set(dirtyRef.current);
       if (!forceDirty) {
         dirtyRef.current = new Set();
         persistDirty();
       }
       pushingRef.current = true;
+      Sentry.addBreadcrumb({ category: 'sync', message: 'push start', data: { dirty: [...dirty] } });
       try {
         await pushState(buildSyncPayload(useStore.getState()), dirty);
-      } catch {
+      } catch (err) {
+        Sentry.captureException(err, { tags: { syncOp: 'push' }, extra: { dirty: [...dirty] } });
         setSyncStatus('error');
         if (!forceDirty) {
           dirty.forEach((t) => dirtyRef.current.add(t));
@@ -104,11 +126,21 @@ export function useSyncManager() {
         }
       } finally {
         pushingRef.current = false;
+        if (pushQueuedRef.current) {
+          // An edit's debounce settled while this push was in flight and got
+          // deferred instead of overlapping it. Run now with a fresh
+          // dirtyRef/state snapshot — by now it includes that edit.
+          pushQueuedRef.current = false;
+          runPush();
+        }
       }
     }
 
     async function init() {
-      if (!supabaseConfigured) { setSyncStatus('idle'); return; }
+      if (!supabaseConfigured) {
+        setSyncStatus('idle');
+        return;
+      }
 
       // Migration: ensure tournamentId is set for existing active tournaments
       const currentState = useStore.getState();
@@ -125,7 +157,11 @@ export function useSyncManager() {
       setSyncStatus('syncing');
       try {
         userId = await getCurrentUserId();
-        if (!userId) { setSyncStatus('idle'); return; }
+        if (!userId) {
+          setSyncStatus('idle');
+          return;
+        }
+        Sentry.setUser({ id: userId });
 
         if (dirtyRef.current.size > 0) {
           // Local edits from a previous session never reached the cloud.
@@ -183,9 +219,12 @@ export function useSyncManager() {
           // Coalesce bursts of realtime events (one push can touch 5+ tables)
           // into a single pull instead of one per table write.
           if (pullTimerRef.current) clearTimeout(pullTimerRef.current);
-          pullTimerRef.current = setTimeout(() => { pull(); }, PULL_DEBOUNCE_MS);
+          pullTimerRef.current = setTimeout(() => {
+            pull();
+          }, PULL_DEBOUNCE_MS);
         });
-      } catch {
+      } catch (err) {
+        Sentry.captureException(err, { tags: { syncOp: 'init' } });
         setSyncStatus('error');
       }
     }
@@ -194,6 +233,7 @@ export function useSyncManager() {
 
     reconnectRef.current = () => {
       if (!userId || useStore.getState().demoMode) return;
+      Sentry.addBreadcrumb({ category: 'sync', message: 'reconnect' });
       // A push is already mid-flight (its dirty tables were claimed
       // synchronously when it started, so dirtyRef may look empty right
       // now even though that push hasn't landed or failed yet). Pulling
@@ -214,6 +254,7 @@ export function useSyncManager() {
         pull();
       }
     };
+    manualRetryRef.current = reconnectRef.current;
 
     const unsubscribe = useStore.subscribe((state, prevState) => {
       // persistDirty()'s own setState call — nothing to detect, would just
@@ -225,9 +266,17 @@ export function useSyncManager() {
       // or the debounced push would delete the user's actual cloud rows.
       if (syncSuppressionRef.current) return;
 
-      // Detect which table groups changed (reference equality — Zustand+Immer
-      // creates new references only for mutated state, unchanged fields keep the same ref)
-      if (!applyingRef.current) {
+      const demoModeChanged = state.demoMode !== prevState.demoMode;
+      if (demoModeChanged) Sentry.setTag('demoMode', String(state.demoMode));
+
+      // Entering/exiting demo mode swaps players/teams/matches/tournament
+      // wholesale (DEMO_STATE <-> realDataBackup) in one set() call. That
+      // reference churn is not a real edit — treating it as dirty used to
+      // (a) let a leftover-dirty flush push demo data to Supabase after a
+      // force-quit while demo mode was on, and (b) make the exit-demo pull
+      // below always see a non-empty dirtyRef and skip applying the pulled
+      // cloud state, defeating its own "pull before overwrite" safeguard.
+      if (!applyingRef.current && !demoModeChanged) {
         const sizeBefore = dirtyRef.current.size;
         if (state.players !== prevState.players) dirtyRef.current.add('players');
         if (state.teams !== prevState.teams) dirtyRef.current.add('teams');
@@ -243,40 +292,52 @@ export function useSyncManager() {
           state.round !== prevState.round ||
           state.roundOpen !== prevState.roundOpen ||
           state.roundPlayers !== prevState.roundPlayers
-        ) dirtyRef.current.add('activeTournament');
-        if (state.closedTournaments !== prevState.closedTournaments) dirtyRef.current.add('closedTournaments');
+        )
+          dirtyRef.current.add('activeTournament');
+        if (state.closedTournaments !== prevState.closedTournaments)
+          dirtyRef.current.add('closedTournaments');
         if (dirtyRef.current.size !== sizeBefore) persistDirty();
       }
 
       if (applyingRef.current) return;
-      if (dirtyRef.current.size === 0) return;
 
-      const wasDemo = prevDemoModeRef.current;
-      prevDemoModeRef.current = state.demoMode;
-
-      if (state.demoMode) {
-        // Cancel any pending push when entering demo mode so demo data
-        // never reaches Supabase via a lingering debounce timer.
-        if (pushTimerRef.current) {
-          clearTimeout(pushTimerRef.current);
-          pushTimerRef.current = null;
+      if (demoModeChanged) {
+        if (state.demoMode) {
+          // Just entered demo mode: cancel any pending push so demo data
+          // never reaches Supabase via a lingering debounce timer.
+          if (pushTimerRef.current) {
+            clearTimeout(pushTimerRef.current);
+            pushTimerRef.current = null;
+          }
+          return;
         }
-        return;
-      }
-
-      if (!userId) return;
-
-      if (wasDemo) {
         // Just exited demo mode: pull the latest cloud state first so we
-        // don't overwrite changes made on another device while demo was active.
+        // don't overwrite changes made on another device while demo was
+        // active, then push the restored real state to reconcile.
+        if (!userId) return;
         pull().then(() => {
           if (!useStore.getState().demoMode) runPush(ALL_DIRTY);
         });
         return;
       }
 
+      if (dirtyRef.current.size === 0) return;
+      if (state.demoMode || !userId) return;
+
       if (pushTimerRef.current) clearTimeout(pushTimerRef.current);
-      pushTimerRef.current = setTimeout(runPush, PUSH_DEBOUNCE_MS);
+      pushTimerRef.current = setTimeout(() => {
+        if (pushingRef.current) {
+          // A push is already mid-flight with a payload snapshot taken
+          // before this edit. Starting a second one now would race it: if
+          // this stale in-flight push's delete-by-absence writes land after
+          // the newer push's, it deletes rows the newer push just added
+          // (see useSyncManager.overlappingPush.test.ts). Defer instead —
+          // the in-flight push's finally() picks this back up once it's done.
+          pushQueuedRef.current = true;
+          return;
+        }
+        runPush();
+      }, PUSH_DEBOUNCE_MS);
     });
 
     return () => {
@@ -285,7 +346,8 @@ export function useSyncManager() {
       if (pushTimerRef.current) clearTimeout(pushTimerRef.current);
       if (pullTimerRef.current) clearTimeout(pullTimerRef.current);
       reconnectRef.current = () => {};
+      manualRetryRef.current = () => {};
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 }

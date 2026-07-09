@@ -22,7 +22,7 @@ const setup = {
   addPlayerBtn: 'Ajouter le joueur',
   teamFor: 'Équipe pour {{name}}',
   manageTeamsTitle: 'Gérer les équipes',
-  teamNamePlaceholder: 'Nom de l\'équipe',
+  teamNamePlaceholder: "Nom de l'équipe",
 } as const;
 
 export default setup;

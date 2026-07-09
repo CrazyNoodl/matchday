@@ -271,9 +271,7 @@ describe('sign up', () => {
     await fireEvent.press(getByText('CREATE ACCOUNT'));
 
     await waitFor(() => {
-      expect(
-        getByText('Account created! Check your email to confirm, then sign in.'),
-      ).toBeTruthy();
+      expect(getByText('Account created! Check your email to confirm, then sign in.')).toBeTruthy();
       expect(queryByText('CREATE ACCOUNT')).toBeNull();
       expect(getByText('SIGN IN')).toBeTruthy();
     });

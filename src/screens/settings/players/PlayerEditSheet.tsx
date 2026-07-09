@@ -4,7 +4,7 @@ import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { useTranslation } from 'react-i18next';
 import { useColors } from '@/theme';
 import { Sheet, TeamBadge } from '@/components';
-import { Player, Team } from '@/store/types';
+import { type Player, type Team } from '@/store/types';
 import { makeStyles } from './players.styles';
 
 interface PlayerEditSheetProps {
@@ -12,15 +12,12 @@ interface PlayerEditSheetProps {
   onClose: () => void;
   editingPlayer: Player | null;
   teams: Team[];
-  playerColors: string[];
   formName: string;
   onChangeName: (v: string) => void;
   formNick: string;
   onChangeNick: (v: string) => void;
   formTeam: string;
   onChangeTeam: (v: string) => void;
-  formColor: string;
-  onChangeColor: (v: string) => void;
   onSave: () => void;
 }
 
@@ -29,15 +26,12 @@ export function PlayerEditSheet({
   onClose,
   editingPlayer,
   teams,
-  playerColors,
   formName,
   onChangeName,
   formNick,
   onChangeNick,
   formTeam,
   onChangeTeam,
-  formColor,
-  onChangeColor,
   onSave,
 }: PlayerEditSheetProps) {
   const { t } = useTranslation();
@@ -48,10 +42,16 @@ export function PlayerEditSheet({
     <Sheet visible={visible} onClose={onClose}>
       <View style={styles.sheet}>
         <Text style={styles.sheetTitle}>
-          {editingPlayer ? t('players.editTitle').toUpperCase() : t('setup.newPlayer').toUpperCase()}
+          {editingPlayer
+            ? t('players.editTitle').toUpperCase()
+            : t('setup.newPlayer').toUpperCase()}
         </Text>
 
-        <BottomSheetScrollView style={{ maxHeight: 360 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+        <BottomSheetScrollView
+          style={{ maxHeight: 360 }}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
           <View style={styles.formGroup}>
             <Text style={styles.formLabel}>{t('setup.form.name').toUpperCase()}</Text>
             <TextInput
@@ -78,11 +78,7 @@ export function PlayerEditSheet({
 
           <View style={styles.formGroup}>
             <Text style={styles.formLabel}>{t('setup.form.defaultTeam').toUpperCase()}</Text>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              style={styles.teamPicker}
-            >
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.teamPicker}>
               {teams.map((team) => (
                 <TouchableOpacity
                   key={team.code}
@@ -104,32 +100,10 @@ export function PlayerEditSheet({
               ))}
             </ScrollView>
           </View>
-
-          <View style={styles.formGroup}>
-            <Text style={styles.formLabel}>{t('setup.form.color').toUpperCase()}</Text>
-            <View style={styles.colorPicker}>
-              {playerColors.map((c) => (
-                <TouchableOpacity
-                  key={c}
-                  style={[
-                    styles.colorDot,
-                    { backgroundColor: c },
-                    formColor === c && styles.colorDotSelected,
-                  ]}
-                  onPress={() => onChangeColor(c)}
-                  activeOpacity={0.8}
-                />
-              ))}
-            </View>
-          </View>
         </BottomSheetScrollView>
 
         <View style={styles.sheetActions}>
-          <TouchableOpacity
-            style={styles.cancelBtn}
-            onPress={onClose}
-            activeOpacity={0.75}
-          >
+          <TouchableOpacity style={styles.cancelBtn} onPress={onClose} activeOpacity={0.75}>
             <Text style={styles.cancelBtnText}>{t('common.cancel').toUpperCase()}</Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -138,10 +112,10 @@ export function PlayerEditSheet({
             disabled={!formName.trim()}
             activeOpacity={0.85}
           >
-            <Text
-              style={[styles.saveBtnText, !formName.trim() && styles.saveBtnTextDisabled]}
-            >
-              {editingPlayer ? t('common.save').toUpperCase() : t('setup.addPlayerBtn').toUpperCase()}
+            <Text style={[styles.saveBtnText, !formName.trim() && styles.saveBtnTextDisabled]}>
+              {editingPlayer
+                ? t('common.save').toUpperCase()
+                : t('setup.addPlayerBtn').toUpperCase()}
             </Text>
           </TouchableOpacity>
         </View>

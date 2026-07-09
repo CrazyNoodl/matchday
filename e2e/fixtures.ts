@@ -1,4 +1,4 @@
-import { test as base, expect, Page } from '@playwright/test';
+import { test as base, expect, type Page } from '@playwright/test';
 
 // Supabase project ref from EXPO_PUBLIC_SUPABASE_URL
 const SUPABASE_PROJECT_REF = 'vjivyppkjogpqggnvrvo';
@@ -72,7 +72,9 @@ export async function createPlayerViaUI(page: Page, name: string, teamShort?: st
   await expect(page.getByPlaceholder('Player name')).toBeVisible();
   await page.getByPlaceholder('Player name').fill(name);
   if (teamShort) {
-    await expect(page.getByText(teamShort, { exact: true }).first()).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText(teamShort, { exact: true }).first()).toBeVisible({
+      timeout: 15_000,
+    });
     await page.getByText(teamShort, { exact: true }).first().click();
   }
   await page.getByText('ADD PLAYER', { exact: true }).click();

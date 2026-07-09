@@ -3,12 +3,7 @@ import { TouchableOpacity, Text, ActivityIndicator } from 'react-native';
 import { useColors } from '../../theme';
 import { makeVariants, SIZES, styles } from './Button.styles';
 
-export type ButtonVariant =
-  | 'primary'
-  | 'secondary'
-  | 'outlined'
-  | 'ghost'
-  | 'destructive';
+export type ButtonVariant = 'primary' | 'secondary' | 'outlined' | 'ghost' | 'destructive';
 
 export type ButtonSize = 'sm' | 'md' | 'lg';
 

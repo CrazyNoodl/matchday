@@ -1,12 +1,16 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
+import * as Sentry from '@sentry/react-native';
+import { trackEvent } from '@/analytics';
 import { useGoBack } from '@/utils/useGoBack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NavHeader } from '@/components';
 import { useColors } from '@/theme';
+import { useStore } from '@/store';
 import { makeStyles } from '@/screens/settings/developer/developer.styles';
+import { DevSuccessDialog } from '@/screens/settings/developer/DeveloperModals';
 
 interface DevRowProps {
   icon: string;
@@ -38,6 +42,22 @@ export default function DeveloperScreen() {
   const colors = useColors();
   const styles = makeStyles(colors);
   const { t } = useTranslation();
+  const demoMode = useStore((s) => s.demoMode);
+  const [sentDialog, setSentDialog] = useState<'event' | 'error' | null>(null);
+
+  // Dev tools (import round, OCR lab, resize lab) all write into whichever
+  // tournament/match state is currently active — while Demo Mode is on
+  // that's the demo data, so anything imported/scanned there is silently
+  // discarded the moment Demo Mode exits and realDataBackup is restored.
+  // Bounce back out instead of letting someone use a tool that can't
+  // actually persist anything. Also covers demoMode turning on while this
+  // screen happens to already be mounted (the Settings row hides the entry
+  // point, but that alone wouldn't close an already-open screen).
+  useEffect(() => {
+    if (demoMode) goBack();
+  }, [demoMode, goBack]);
+
+  if (demoMode) return null;
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
@@ -49,7 +69,9 @@ export default function DeveloperScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionHeader}>{t('developer.dataImport.section').toUpperCase()}</Text>
+          <Text style={styles.sectionHeader}>
+            {t('developer.dataImport.section').toUpperCase()}
+          </Text>
           <View style={styles.card}>
             <DevRow
               icon="📥"
@@ -61,7 +83,9 @@ export default function DeveloperScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionHeader}>{t('developer.aiExperiments.section').toUpperCase()}</Text>
+          <Text style={styles.sectionHeader}>
+            {t('developer.aiExperiments.section').toUpperCase()}
+          </Text>
           <View style={styles.card}>
             <DevRow
               icon="🔬"
@@ -73,7 +97,9 @@ export default function DeveloperScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionHeader}>{t('developer.imagePipeline.section').toUpperCase()}</Text>
+          <Text style={styles.sectionHeader}>
+            {t('developer.imagePipeline.section').toUpperCase()}
+          </Text>
           <View style={styles.card}>
             <DevRow
               icon="🖼️"
@@ -83,8 +109,54 @@ export default function DeveloperScreen() {
             />
           </View>
         </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionHeader}>
+            {t('developer.errorTracking.section').toUpperCase()}
+          </Text>
+          <View style={styles.card}>
+            <DevRow
+              icon="🐞"
+              label={t('developer.errorTracking.sendTestError')}
+              sub={t('developer.errorTracking.sendTestErrorSub')}
+              onPress={() => {
+                Sentry.captureException(new Error('Matchday: test error from Developer Tools'));
+                setSentDialog('error');
+              }}
+            />
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionHeader}>{t('developer.analytics.section').toUpperCase()}</Text>
+          <View style={styles.card}>
+            <DevRow
+              icon="📊"
+              label={t('developer.analytics.sendTestEvent')}
+              sub={t('developer.analytics.sendTestEventSub')}
+              onPress={() => {
+                trackEvent('dev_test_event');
+                setSentDialog('event');
+              }}
+            />
+          </View>
+        </View>
       </View>
+
+      <DevSuccessDialog
+        visible={sentDialog !== null}
+        onClose={() => setSentDialog(null)}
+        title={
+          sentDialog === 'error'
+            ? t('developer.errorTracking.testErrorSentTitle')
+            : t('developer.analytics.testEventSentTitle')
+        }
+        description={
+          sentDialog === 'error'
+            ? t('developer.errorTracking.testErrorSentDesc')
+            : t('developer.analytics.testEventSentDesc')
+        }
+      />
     </SafeAreaView>
   );
 }
-

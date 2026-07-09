@@ -62,9 +62,7 @@ describe('auth gate – static session states', () => {
   });
 
   it('shows LoginScreen when session is null and Supabase is configured', async () => {
-    const { getByText } = await render(
-      <AuthGate session={null} supabaseConfigured={true} />,
-    );
+    const { getByText } = await render(<AuthGate session={null} supabaseConfigured={true} />);
     expect(getByText('SIGN IN')).toBeTruthy();
   });
 
@@ -78,9 +76,7 @@ describe('auth gate – static session states', () => {
   it('shows app content when Supabase is not configured (offline / demo mode)', async () => {
     // When supabaseConfigured=false, _layout.tsx initialises session as null
     // but skips the login guard, so the app renders normally.
-    const { getByTestId } = await render(
-      <AuthGate session={null} supabaseConfigured={false} />,
-    );
+    const { getByTestId } = await render(<AuthGate session={null} supabaseConfigured={false} />);
     expect(getByTestId('app-content')).toBeTruthy();
   });
 });
@@ -132,10 +128,7 @@ describe('screen access after logout', () => {
       return (
         <>
           <AuthGate session={session} supabaseConfigured={true} />
-          <Text
-            testID="fake-login-btn"
-            onPress={() => setSession(FAKE_SESSION)}
-          >
+          <Text testID="fake-login-btn" onPress={() => setSession(FAKE_SESSION)}>
             LOG IN
           </Text>
         </>

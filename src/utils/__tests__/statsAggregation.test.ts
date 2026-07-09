@@ -5,21 +5,19 @@ import {
   countMatchDaysPlayed,
   buildH2HPairs,
 } from '../statsAggregation';
-import { ArchivedRound, ClosedTournament, Match, Player } from '../../store/types';
+import { type ArchivedRound, type ClosedTournament, type Match, type Player } from '../../store/types';
 
-const match = (
-  id: string,
-  aId: string,
-  bId: string,
-  aScore: number,
-  bScore: number,
-): Match => ({ id, aId, bId, aScore, bScore, aTeam: 'A', bTeam: 'B' });
+const match = (id: string, aId: string, bId: string, aScore: number, bScore: number): Match => ({
+  id,
+  aId,
+  bId,
+  aScore,
+  bScore,
+  aTeam: 'A',
+  bTeam: 'B',
+});
 
-const round = (
-  id: string,
-  matches: Match[],
-  ranked = true,
-): ArchivedRound => ({
+const round = (id: string, matches: Match[], ranked = true): ArchivedRound => ({
   id,
   n: 1,
   date: '2026-01-01',
@@ -50,7 +48,6 @@ const closedTournament = (
 const player = (id: string, name = id): Player => ({
   id,
   name,
-  color: '#f00',
   teamCode: 'JUV',
 });
 
@@ -75,13 +72,12 @@ describe('collectAllMatches', () => {
   });
 
   it('flattens multiple rounds per closed tournament and multiple closed tournaments', () => {
-    const t1 = closedTournament('t1', ['p1', 'p2'], [
-      round('r1', [match('m1', 'p1', 'p2', 1, 0)]),
-      round('r2', [match('m2', 'p1', 'p2', 2, 0)]),
-    ]);
-    const t2 = closedTournament('t2', ['p1', 'p2'], [
-      round('r3', [match('m3', 'p1', 'p2', 0, 1)]),
-    ]);
+    const t1 = closedTournament(
+      't1',
+      ['p1', 'p2'],
+      [round('r1', [match('m1', 'p1', 'p2', 1, 0)]), round('r2', [match('m2', 'p1', 'p2', 2, 0)])],
+    );
+    const t2 = closedTournament('t2', ['p1', 'p2'], [round('r3', [match('m3', 'p1', 'p2', 0, 1)])]);
 
     const result = collectAllMatches([t1, t2], [], []);
     expect(result.map((m) => m.id)).toEqual(['m1', 'm2', 'm3']);

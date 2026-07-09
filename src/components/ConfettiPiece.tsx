@@ -10,7 +10,13 @@ interface Props {
 
 export const ConfettiPiece = React.memo(function ConfettiPiece({ delay }: Props) {
   const colors = useColors();
-  const confettiColors = [colors.accent.green, colors.accent.yellow, colors.accent.blue, '#c98bff', '#ff8f6b'];
+  const confettiColors = [
+    colors.accent.green,
+    colors.accent.yellow,
+    colors.accent.blue,
+    '#c98bff',
+    '#ff8f6b',
+  ];
   const anim = useRef(new Animated.Value(0)).current;
   const x = useRef(Math.random() * SCREEN_WIDTH).current;
   const color = confettiColors[Math.floor(Math.random() * confettiColors.length)];

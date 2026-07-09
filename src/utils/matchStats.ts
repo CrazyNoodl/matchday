@@ -25,11 +25,7 @@ function randInRange(seed: number, index: number, min: number, max: number): num
   return Math.floor(seededRandom(seed, index) * (max - min + 1)) + min;
 }
 
-export function generateMatchStats(
-  matchId: string,
-  aScore: number,
-  bScore: number,
-): MatchStat[] {
+export function generateMatchStats(matchId: string, aScore: number, bScore: number): MatchStat[] {
   const seed = hashMatchId(matchId);
 
   const isDraw = aScore === bScore;

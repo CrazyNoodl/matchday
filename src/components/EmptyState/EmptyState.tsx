@@ -18,12 +18,7 @@ export function EmptyState({ message, ctaText, ctaColor, onPress }: EmptyStatePr
       <Text style={styles.message}>{message}</Text>
       {ctaText ? (
         <TouchableOpacity style={styles.cta} activeOpacity={0.75} onPress={onPress}>
-          <Text
-            style={[
-              styles.ctaText,
-              { color: ctaColor ?? colors.accent.green },
-            ]}
-          >
+          <Text style={[styles.ctaText, { color: ctaColor ?? colors.accent.green }]}>
             {ctaText}
           </Text>
         </TouchableOpacity>

@@ -7,7 +7,10 @@ const meta = {
   title: 'Elements/MediaThumbnail',
   component: MediaThumbnail,
   argTypes: {
-    uri: { control: { type: 'text' }, description: 'Image URI — omitted shows a hatched placeholder' },
+    uri: {
+      control: { type: 'text' },
+      description: 'Image URI — omitted shows a hatched placeholder',
+    },
     onRemove: { action: 'onRemove' },
   },
   args: { uri: 'https://placehold.co/180x236' },

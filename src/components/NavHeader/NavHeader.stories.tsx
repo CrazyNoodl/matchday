@@ -37,7 +37,13 @@ export const WithRightElement: Story = {
     onBack: () => {},
     rightElement: (
       <TouchableOpacity>
-        <Text style={{ fontFamily: FontFamily.bodySemiBold, fontSize: FontSize.sm, color: Colors.accent.green }}>
+        <Text
+          style={{
+            fontFamily: FontFamily.bodySemiBold,
+            fontSize: FontSize.sm,
+            color: Colors.accent.green,
+          }}
+        >
           Edit
         </Text>
       </TouchableOpacity>

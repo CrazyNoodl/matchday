@@ -1,14 +1,8 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleProp,
-  ViewStyle,
-} from 'react-native';
+import { View, Text, TouchableOpacity, type StyleProp, type ViewStyle } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../../store';
-import { Match } from '../../store/types';
+import { type Match } from '../../store/types';
 import { useColors } from '../../theme';
 import { Avatar } from '../Avatar';
 import { makeStyles } from './MatchCard.styles';
@@ -20,7 +14,12 @@ interface MatchCardProps {
   style?: StyleProp<ViewStyle>;
 }
 
-export const MatchCard = React.memo(function MatchCard({ match, onPress, readonly = false, style }: MatchCardProps) {
+export const MatchCard = React.memo(function MatchCard({
+  match,
+  onPress,
+  readonly = false,
+  style,
+}: MatchCardProps) {
   const { t } = useTranslation();
   const colors = useColors();
   const styles = makeStyles(colors);
@@ -35,18 +34,24 @@ export const MatchCard = React.memo(function MatchCard({ match, onPress, readonl
 
   const aNameColor = !bWins ? colors.text.primary : colors.text.muted;
   const bNameColor = !aWins ? colors.text.primary : colors.text.muted;
-  const aScoreColor = aWins ? colors.accent.green : isDraw ? colors.text.secondary : colors.text.ghost;
-  const bScoreColor = bWins ? colors.accent.green : isDraw ? colors.text.secondary : colors.text.ghost;
+  const aScoreColor = aWins
+    ? colors.accent.green
+    : isDraw
+      ? colors.text.secondary
+      : colors.text.ghost;
+  const bScoreColor = bWins
+    ? colors.accent.green
+    : isDraw
+      ? colors.text.secondary
+      : colors.text.ghost;
 
   const handlePress = onPress ? () => onPress(match.id) : undefined;
   const Container = handlePress && !readonly ? TouchableOpacity : View;
-  const containerProps = handlePress && !readonly ? { onPress: handlePress, activeOpacity: 0.75 } : {};
+  const containerProps =
+    handlePress && !readonly ? { onPress: handlePress, activeOpacity: 0.75 } : {};
 
   return (
-    <Container
-      {...containerProps}
-      style={[styles.card, style]}
-    >
+    <Container {...containerProps} style={[styles.card, style]}>
       {/* Side A */}
       <View style={styles.side}>
         <Avatar playerId={match.aId} size="md" />
@@ -57,13 +62,9 @@ export const MatchCard = React.memo(function MatchCard({ match, onPress, readonl
 
       {/* Score */}
       <View style={styles.scoreBlock}>
-        <Text style={[styles.scoreText, { color: aScoreColor }]}>
-          {match.aScore}
-        </Text>
+        <Text style={[styles.scoreText, { color: aScoreColor }]}>{match.aScore}</Text>
         <Text style={styles.scoreSeparator}>:</Text>
-        <Text style={[styles.scoreText, { color: bScoreColor }]}>
-          {match.bScore}
-        </Text>
+        <Text style={[styles.scoreText, { color: bScoreColor }]}>{match.bScore}</Text>
       </View>
 
       {/* Side B */}
@@ -78,7 +79,7 @@ export const MatchCard = React.memo(function MatchCard({ match, onPress, readonl
       </View>
 
       {/* Media / comment indicators */}
-      {(match.media && match.media.length > 0 || !!match.note) && (
+      {((match.media && match.media.length > 0) || !!match.note) && (
         <View style={styles.indicators}>
           {match.media && match.media.length > 0 && (
             <View style={styles.indicator}>

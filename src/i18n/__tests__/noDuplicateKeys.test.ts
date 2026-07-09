@@ -43,7 +43,7 @@ function findDuplicateKeysInFile(filePath: string): string[] {
 function flattenKeys(obj: unknown, prefix = ''): string[] {
   if (typeof obj !== 'object' || obj === null) return [prefix];
   return Object.entries(obj as Record<string, unknown>).flatMap(([key, value]) =>
-    flattenKeys(value, prefix ? `${prefix}.${key}` : key)
+    flattenKeys(value, prefix ? `${prefix}.${key}` : key),
   );
 }
 

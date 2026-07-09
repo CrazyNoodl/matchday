@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ViewStyle } from 'react-native';
+import { View, Text, type ViewStyle } from 'react-native';
 import { Image } from 'expo-image';
 import { useStore } from '../../store';
 import { styles } from './TeamBadge.styles';
@@ -12,7 +12,11 @@ interface TeamBadgeProps {
   style?: ViewStyle;
 }
 
-export const TeamBadge = React.memo(function TeamBadge({ teamCode, size = 'md', style }: TeamBadgeProps) {
+export const TeamBadge = React.memo(function TeamBadge({
+  teamCode,
+  size = 'md',
+  style,
+}: TeamBadgeProps) {
   const team = useStore((s) => s.teams.find((t) => t.code === teamCode));
   const [logoFailed, setLogoFailed] = useState(false);
 
@@ -43,11 +47,7 @@ export const TeamBadge = React.memo(function TeamBadge({ teamCode, size = 'md', 
     }
     return (
       <View
-        style={[
-          styles.xs,
-          { backgroundColor: color + '28', borderColor: color + '55' },
-          style,
-        ]}
+        style={[styles.xs, { backgroundColor: color + '28', borderColor: color + '55' }, style]}
       >
         <Text style={[styles.textXs, { color }]}>{label}</Text>
       </View>
@@ -71,11 +71,7 @@ export const TeamBadge = React.memo(function TeamBadge({ teamCode, size = 'md', 
     }
     return (
       <View
-        style={[
-          styles.lg,
-          { backgroundColor: color + '28', borderColor: color + '55' },
-          style,
-        ]}
+        style={[styles.lg, { backgroundColor: color + '28', borderColor: color + '55' }, style]}
       >
         <Text style={[styles.textLg, { color }]}>{label}</Text>
       </View>
@@ -98,13 +94,7 @@ export const TeamBadge = React.memo(function TeamBadge({ teamCode, size = 'md', 
     );
   }
   return (
-    <View
-      style={[
-        styles.md,
-        { backgroundColor: color + '28', borderColor: color + '55' },
-        style,
-      ]}
-    >
+    <View style={[styles.md, { backgroundColor: color + '28', borderColor: color + '55' }, style]}>
       <Text style={[styles.textMd, { color }]}>{label}</Text>
     </View>
   );

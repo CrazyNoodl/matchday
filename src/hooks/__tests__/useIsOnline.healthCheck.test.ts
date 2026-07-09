@@ -11,7 +11,10 @@ import { act, renderHook } from '@testing-library/react-native';
 import { pingSupabase } from '@/supabase/health';
 import { useIsOnline, HEALTH_CHECK_INTERVAL_MS } from '../useIsOnline';
 
-type NetInfoListener = (state: { isConnected: boolean | null; isInternetReachable: boolean | null }) => void;
+type NetInfoListener = (state: {
+  isConnected: boolean | null;
+  isInternetReachable: boolean | null;
+}) => void;
 type AppStateListener = (state: string) => void;
 
 let mockNetInfoListener: NetInfoListener | null = null;

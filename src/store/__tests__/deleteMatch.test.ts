@@ -27,7 +27,16 @@ beforeEach(() => {
   useStore.setState({
     matches: [makeMatch('m1'), makeMatch('m2'), makeMatch('m3')],
     archivedRounds: [
-      { id: 'r1', n: 1, date: '', winner: '', games: 1, name: 'Round 1', ranked: true, matches: [makeMatch('archived-m1')] },
+      {
+        id: 'r1',
+        n: 1,
+        date: '',
+        winner: '',
+        games: 1,
+        name: 'Round 1',
+        ranked: true,
+        matches: [makeMatch('archived-m1')],
+      },
     ],
   });
 });
