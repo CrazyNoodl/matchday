@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -10,6 +10,7 @@ import { NavHeader } from '@/components';
 import { useColors } from '@/theme';
 import { useStore } from '@/store';
 import { makeStyles } from '@/screens/settings/developer/developer.styles';
+import { DevSuccessDialog } from '@/screens/settings/developer/DeveloperModals';
 
 interface DevRowProps {
   icon: string;
@@ -42,6 +43,7 @@ export default function DeveloperScreen() {
   const styles = makeStyles(colors);
   const { t } = useTranslation();
   const demoMode = useStore((s) => s.demoMode);
+  const [sentDialog, setSentDialog] = useState<'event' | 'error' | null>(null);
 
   // Dev tools (import round, OCR lab, resize lab) all write into whichever
   // tournament/match state is currently active — while Demo Mode is on
@@ -117,9 +119,10 @@ export default function DeveloperScreen() {
               icon="🐞"
               label={t('developer.errorTracking.sendTestError')}
               sub={t('developer.errorTracking.sendTestErrorSub')}
-              onPress={() =>
-                Sentry.captureException(new Error('Matchday: test error from Developer Tools'))
-              }
+              onPress={() => {
+                Sentry.captureException(new Error('Matchday: test error from Developer Tools'));
+                setSentDialog('error');
+              }}
             />
           </View>
         </View>
@@ -131,11 +134,29 @@ export default function DeveloperScreen() {
               icon="📊"
               label={t('developer.analytics.sendTestEvent')}
               sub={t('developer.analytics.sendTestEventSub')}
-              onPress={() => trackEvent('dev_test_event')}
+              onPress={() => {
+                trackEvent('dev_test_event');
+                setSentDialog('event');
+              }}
             />
           </View>
         </View>
       </View>
+
+      <DevSuccessDialog
+        visible={sentDialog !== null}
+        onClose={() => setSentDialog(null)}
+        title={
+          sentDialog === 'error'
+            ? t('developer.errorTracking.testErrorSentTitle')
+            : t('developer.analytics.testEventSentTitle')
+        }
+        description={
+          sentDialog === 'error'
+            ? t('developer.errorTracking.testErrorSentDesc')
+            : t('developer.analytics.testEventSentDesc')
+        }
+      />
     </SafeAreaView>
   );
 }

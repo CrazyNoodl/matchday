@@ -20,11 +20,15 @@ const developer = {
     section: 'Suivi des erreurs',
     sendTestError: 'Envoyer une erreur test',
     sendTestErrorSub: 'Déclenche une erreur test pour vérifier que Sentry est bien connecté',
+    testErrorSentTitle: 'Erreur test envoyée',
+    testErrorSentDesc: 'Vérifiez le tableau de bord Sentry pour confirmer la réception.',
   },
   analytics: {
     section: 'Analytique',
     sendTestEvent: 'Envoyer un événement test',
     sendTestEventSub: 'Envoie un événement test pour vérifier qu’Aptabase est bien connecté',
+    testEventSentTitle: 'Événement test envoyé',
+    testEventSentDesc: 'Vérifiez le tableau de bord Aptabase pour confirmer la réception.',
   },
 } as const;
 

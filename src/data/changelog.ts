@@ -10,6 +10,12 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.38',
+    added: [
+      'Developer settings now shows a confirmation dialog after sending a test error or test event, instead of no feedback at all',
+    ],
+  },
+  {
     version: '1.9.37',
     fixed: [
       '`@aptabase/react-native` was declared as a dependency but never installed, breaking the web bundle entirely',
@@ -22,6 +28,21 @@ export const CHANGELOG: ChangelogEntry[] = [
     version: '1.9.36',
     internal: [
       'Internal: added product-analytics event tracking (Aptabase) for screen views, key button taps, option selections (ranked/friendly), and tournament/round/match creation counts',
+    ],
+  },
+  {
+    version: '1.9.35',
+    added: [
+      'Settings now shows a persistent sync-status row (syncing/pending/error), and the offline banner distinguishes "no network" from "reachable but sync is failing" (#73)',
+    ],
+    fixed: [
+      'Reconnecting after being offline now retries every pending photo/video upload across all matches, not just whichever match happened to be open',
+    ],
+  },
+  {
+    version: '1.9.34',
+    internal: [
+      'Internal: wired Sentry error tracking into the root error boundary and the sync/storage layer (previously-silent catches now report with breadcrumbs), plus a "Send test error" row in Developer settings to verify the pipeline — no visible change',
     ],
   },
   {
