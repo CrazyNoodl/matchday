@@ -9,6 +9,13 @@ import { useIsOnline } from '@/hooks/useIsOnline';
 const PUSH_DEBOUNCE_MS = 300;
 const PULL_DEBOUNCE_MS = 400;
 
+// Lets UI outside this hook (SyncStatusIndicator's manual "retry now" tap)
+// trigger the same push-if-dirty-else-pull reconciliation the offline ->
+// online transition already runs, without threading a callback prop through
+// the app root. Same module-level-ref-as-imperative-handle pattern as
+// syncSuppressionRef in store/index.ts.
+export const manualRetryRef = { current: () => {} };
+
 export function useSyncManager() {
   const setSyncStatus = useStore((s) => s.setSyncStatus);
   const applyCloudState = useStore((s) => s.applyCloudState);
@@ -235,6 +242,7 @@ export function useSyncManager() {
         pull();
       }
     };
+    manualRetryRef.current = reconnectRef.current;
 
     const unsubscribe = useStore.subscribe((state, prevState) => {
       // persistDirty()'s own setState call — nothing to detect, would just
@@ -320,6 +328,7 @@ export function useSyncManager() {
       if (pushTimerRef.current) clearTimeout(pushTimerRef.current);
       if (pullTimerRef.current) clearTimeout(pullTimerRef.current);
       reconnectRef.current = () => {};
+      manualRetryRef.current = () => {};
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

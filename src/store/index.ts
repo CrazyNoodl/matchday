@@ -8,6 +8,7 @@ import { createPlayersSlice, type PlayersSlice } from './slices/playersSlice';
 import { createTeamsSlice, type TeamsSlice } from './slices/teamsSlice';
 import { createSettingsSlice, type SettingsSlice } from './slices/settingsSlice';
 import { createUiSlice, type UiSlice } from './slices/uiSlice';
+import { stripUploadingMedia } from './sliceHelpers';
 
 // ---------------------------------------------------------------------------
 // Storage adapter — MMKV on native, localStorage on web
@@ -210,16 +211,10 @@ export const useStore = create<RootState>()(
       storage: createJSONStorage(() => mmkvStorage),
       onRehydrateStorage: () => (state) => {
         if (!state) return;
-        const stripTransient = (matches: Match[]) =>
-          matches.map((m) =>
-            m.media?.some((i) => i.pendingUpload || i.uploading)
-              ? { ...m, media: m.media!.filter((i) => !i.pendingUpload && !i.uploading) }
-              : m,
-          );
-        state.matches = stripTransient(state.matches);
+        state.matches = stripUploadingMedia(state.matches);
         state.archivedRounds = state.archivedRounds.map((r) => ({
           ...r,
-          matches: stripTransient(r.matches),
+          matches: stripUploadingMedia(r.matches),
         }));
       },
       partialize: (state) => ({

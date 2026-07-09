@@ -1,5 +1,20 @@
 import { type Match, type ArchivedRound, type ClosedTournament } from './types';
 
+// uploading:true means an upload was still mid-flight when the app died —
+// there's no way to know if it actually finished, so the item is dropped on
+// rehydrate. pendingUpload:true means the upload already failed and is a
+// known, deliberately-kept-around retry candidate (see useMediaRetryManager.ts)
+// — it must survive a restart the same way pendingSyncTables does, or a
+// failed photo upload is lost for good the moment the user force-quits
+// instead of reopening the match.
+export function stripUploadingMedia(matches: Match[]): Match[] {
+  return matches.map((m) =>
+    m.media?.some((i) => i.uploading)
+      ? { ...m, media: m.media!.filter((i) => !i.uploading) }
+      : m,
+  );
+}
+
 export function initials(name: string): string {
   const parts = name.trim().split(/\s+/);
   if (parts.length >= 2) {

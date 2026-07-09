@@ -1,4 +1,4 @@
-import { matchMediaFolder } from '../sliceHelpers';
+import { matchMediaFolder, stripUploadingMedia } from '../sliceHelpers';
 import type { Match } from '../types';
 
 const makeMatch = (overrides: Partial<Match> = {}): Match => ({
@@ -29,5 +29,39 @@ describe('matchMediaFolder', () => {
     const match = makeMatch({ mediaFolder: undefined });
     expect(matchMediaFolder('matchday-2026-07-03_1100', match)).toBe('match-1');
     expect(matchMediaFolder(undefined, match)).toBe('match-1');
+  });
+});
+
+describe('stripUploadingMedia', () => {
+  it('drops uploading:true items (upload was mid-flight when the app died)', () => {
+    const match = makeMatch({
+      media: [
+        { uri: 'file:///tmp/a.jpg', type: 'image', uploading: true },
+        { uri: 'https://cdn/b.jpg', type: 'image' },
+      ],
+    });
+    const [result] = stripUploadingMedia([match]);
+    expect(result.media).toEqual([{ uri: 'https://cdn/b.jpg', type: 'image' }]);
+  });
+
+  it('keeps pendingUpload:true items so a failed upload survives a restart for later retry', () => {
+    const match = makeMatch({
+      media: [{ uri: 'file:///tmp/a.jpg', type: 'image', pendingUpload: true }],
+    });
+    const [result] = stripUploadingMedia([match]);
+    expect(result.media).toEqual([
+      { uri: 'file:///tmp/a.jpg', type: 'image', pendingUpload: true },
+    ]);
+  });
+
+  it('leaves a match with no transient media untouched (same reference)', () => {
+    const match = makeMatch({ media: [{ uri: 'https://cdn/b.jpg', type: 'image' }] });
+    const [result] = stripUploadingMedia([match]);
+    expect(result).toBe(match);
+  });
+
+  it('handles a match with no media at all', () => {
+    const match = makeMatch();
+    expect(stripUploadingMedia([match])).toEqual([match]);
   });
 });

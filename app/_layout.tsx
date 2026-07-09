@@ -24,6 +24,8 @@ import { useStore } from '@/store';
 import { bannerStyles, offlineBannerStyles } from '@/screens/layout/layout.styles';
 import { useTranslation } from 'react-i18next';
 import { useSyncManager } from '@/supabase/useSyncManager';
+import { useMediaRetryManager } from '@/hooks/useMediaRetryManager';
+import { resolveOfflineBannerVariant } from '@/utils/offlineBanner';
 import { supabase, supabaseConfigured } from '@/supabase/client';
 import { LoginScreen, OfflineScreen, ErrorFallback } from '@/components';
 import { useIsOnline } from '@/hooks/useIsOnline';
@@ -54,6 +56,11 @@ function SyncManager() {
   return null;
 }
 
+function MediaRetryManager({ isOnline }: { isOnline: boolean }) {
+  useMediaRetryManager(isOnline);
+  return null;
+}
+
 function LanguageSync() {
   const language = useStore((s) => s.language);
   useEffect(() => {
@@ -66,11 +73,15 @@ function LanguageSync() {
 
 function OfflineBanner({ isOnline }: { isOnline: boolean }) {
   const demoMode = useStore((s) => s.demoMode);
+  const syncStatus = useStore((s) => s.syncStatus);
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
 
   // Demo mode's own banner already occupies the bottom-anchored slot.
-  if (isOnline || demoMode) return null;
+  if (demoMode) return null;
+
+  const variant = resolveOfflineBannerVariant(isOnline, syncStatus);
+  if (!variant) return null;
 
   return (
     <View
@@ -80,8 +91,8 @@ function OfflineBanner({ isOnline }: { isOnline: boolean }) {
         { paddingBottom: 12 + (insets.bottom > 0 ? insets.bottom : 8) },
       ]}
     >
-      <Text style={offlineBannerStyles.title}>{t('offline.bannerTitle').toUpperCase()}</Text>
-      <Text style={offlineBannerStyles.sub}>{t('offline.bannerSub')}</Text>
+      <Text style={offlineBannerStyles.title}>{t(variant.titleKey).toUpperCase()}</Text>
+      <Text style={offlineBannerStyles.sub}>{t(variant.subKey)}</Text>
     </View>
   );
 }
@@ -179,6 +190,7 @@ function AppContent({
           </Head>
         )}
         <SyncManager />
+        <MediaRetryManager isOnline={isOnline} />
         <LanguageSync />
         <StatusBar style={colorScheme === 'light' ? 'dark' : 'light'} />
         {/* flex:1 wrapper reserves the banners their own row below instead of
