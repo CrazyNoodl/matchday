@@ -1,8 +1,9 @@
 {
   "name": "matchday",
-  "version": "1.9.35",
+  "version": "1.9.36",
   "main": "expo-router/entry",
   "dependencies": {
+    "@aptabase/react-native": "^0.5.0",
     "@expo-google-fonts/saira-condensed": "^0.4.1",
     "@expo-google-fonts/sora": "^0.4.2",
     "@gorhom/bottom-sheet": "^5.2.14",

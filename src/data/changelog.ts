@@ -10,6 +10,12 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.36',
+    internal: [
+      'Internal: added product-analytics event tracking (Aptabase) for screen views, key button taps, option selections (ranked/friendly), and tournament/round/match creation counts',
+    ],
+  },
+  {
     version: '1.9.33',
     fixed: [
       '"Reset All Data" is now disabled while offline, since it would wipe local data without being able to also wipe the cloud copy',

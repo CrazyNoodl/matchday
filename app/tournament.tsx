@@ -23,6 +23,7 @@ import {
   EditTournamentNameSheet,
   CloseTournamentDialog,
 } from '@/screens/tournament/TournamentModals';
+import { trackEvent } from '@/analytics';
 import type { ArchivedRound } from '@/store/types';
 
 // ---------------------------------------------------------------------------
@@ -320,6 +321,7 @@ export default function TournamentScreen() {
         onClose={() => setModal('tourSettings')}
         onConfirm={() => {
           closeTournament();
+          trackEvent('tournament_closed');
           setModal(null);
           router.push('/');
         }}

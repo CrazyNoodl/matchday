@@ -18,6 +18,7 @@ import { type Team } from '@/store/types';
 import { generateTeamCode } from '@/utils/teamCode';
 import { makeStyles } from '@/screens/setup/setup.styles';
 import { AddPlayerSheet, AssignTeamSheet, ManageTeamsSheet } from '@/screens/setup/SetupModals';
+import { trackEvent } from '@/analytics';
 
 export default function SetupScreen() {
   const router = useRouter();
@@ -131,6 +132,7 @@ export default function SetupScreen() {
       }
     });
     startTournament(tournamentName.trim(), playerIds, true, roundsTarget);
+    trackEvent('tournament_created', { playerCount: playerIds.length, roundsTarget });
     router.push('/');
   }, [
     canStart,

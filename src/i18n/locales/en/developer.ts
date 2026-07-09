@@ -21,6 +21,11 @@ const developer = {
     sendTestError: 'Send test error',
     sendTestErrorSub: 'Throws a test error to verify Sentry is wired up',
   },
+  analytics: {
+    section: 'Analytics',
+    sendTestEvent: 'Send test event',
+    sendTestEventSub: 'Fires a test event to verify Aptabase is wired up',
+  },
 } as const;
 
 export default developer;

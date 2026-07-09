@@ -9,6 +9,7 @@ import { Sheet } from '@/components/Sheet/Sheet';
 import { Toggle } from '@/components/Toggle';
 import { makeStyles } from './NewRoundModal.styles';
 import { useColors } from '@/theme';
+import { trackEvent } from '@/analytics';
 
 // ---------------------------------------------------------------------------
 // Shared "start a new round" sheet — used by the Home screen and the
@@ -53,6 +54,10 @@ export function NewRoundModal() {
   const handleStart = () => {
     if (newRoundPlayerIds.size < 2) return;
     startRound(newRoundRanked, Array.from(newRoundPlayerIds));
+    trackEvent('round_started', {
+      ranked: newRoundRanked ? 'true' : 'false',
+      playerCount: newRoundPlayerIds.size,
+    });
     setModal(null);
     router.push('/round');
   };
@@ -74,7 +79,10 @@ export function NewRoundModal() {
               : t('tournament.newRound.rankedSub')
           }
           value={newRoundRanked}
-          onValueChange={setNewRoundRanked}
+          onValueChange={(value) => {
+            setNewRoundRanked(value);
+            trackEvent('ranked_toggle_changed', { ranked: value ? 'true' : 'false' });
+          }}
           disabled={rankedLimitReached}
         />
 
