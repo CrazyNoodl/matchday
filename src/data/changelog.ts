@@ -10,6 +10,12 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.40',
+    added: [
+      'Display settings now has a "Standings view" toggle to choose whether the matchday screen shows standings as a table or as cards, instead of a screen-level tab',
+    ],
+  },
+  {
     version: '1.9.39',
     added: [
       'Display settings now has a "Show average goals columns" toggle to show/hide the GF/G and GA/G columns in standings tables',
