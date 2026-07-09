@@ -21,6 +21,11 @@ const developer = {
     sendTestError: 'Надіслати тестову помилку',
     sendTestErrorSub: 'Кидає тестову помилку, щоб перевірити підключення Sentry',
   },
+  analytics: {
+    section: 'Аналітика',
+    sendTestEvent: 'Надіслати тестову подію',
+    sendTestEventSub: 'Надсилає тестову подію, щоб перевірити підключення Aptabase',
+  },
 } as const;
 
 export default developer;

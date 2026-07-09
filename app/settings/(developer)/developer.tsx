@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import * as Sentry from '@sentry/react-native';
+import { trackEvent } from '@/analytics';
 import { useGoBack } from '@/utils/useGoBack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NavHeader } from '@/components';
@@ -119,6 +120,18 @@ export default function DeveloperScreen() {
               onPress={() =>
                 Sentry.captureException(new Error('Matchday: test error from Developer Tools'))
               }
+            />
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionHeader}>{t('developer.analytics.section').toUpperCase()}</Text>
+          <View style={styles.card}>
+            <DevRow
+              icon="📊"
+              label={t('developer.analytics.sendTestEvent')}
+              sub={t('developer.analytics.sendTestEventSub')}
+              onPress={() => trackEvent('dev_test_event')}
             />
           </View>
         </View>

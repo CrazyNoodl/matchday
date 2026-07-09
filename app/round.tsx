@@ -24,6 +24,7 @@ import { useTranslation } from 'react-i18next';
 import { makeStyles } from '@/screens/round/round.styles';
 import { useAddMatchFlow } from '@/screens/round/useAddMatchFlow';
 import { AddMatchSheet } from '@/screens/round/AddMatchSheet';
+import { trackEvent } from '@/analytics';
 import {
   EndRoundDialog,
   NeedEqualDialog,
@@ -90,6 +91,11 @@ export default function MatchdayScreen() {
     return counts.every((c) => c === counts[0]);
   }, [standings]);
 
+  const handleOpenAddMatch = useCallback(() => {
+    trackEvent('add_match_tapped');
+    setModal('add');
+  }, [setModal]);
+
   const handleFinishPress = useCallback(() => {
     if (matches.length === 0) {
       setModal('needEqual');
@@ -108,6 +114,7 @@ export default function MatchdayScreen() {
     const winnerId = isTrueDraw || !s[0] ? null : s[0].playerId;
     setLocalWinnerId(winnerId);
     finishRound();
+    trackEvent('round_finished', { matchCount: matches.length });
     setModal('winner');
   }, [matches, roundPlayers, finishRound, setModal]);
 
@@ -241,7 +248,7 @@ export default function MatchdayScreen() {
               <EmptyState
                 message={t('matchday.noMatches')}
                 ctaText={roundOpen ? t('matchday.noMatchesAction') : undefined}
-                onPress={roundOpen ? () => setModal('add') : undefined}
+                onPress={roundOpen ? handleOpenAddMatch : undefined}
               />
             ) : (
               tours.map((tour) => {
@@ -282,7 +289,7 @@ export default function MatchdayScreen() {
         <View style={styles.fab}>
           <TouchableOpacity
             style={styles.fabBtn}
-            onPress={() => setModal('add')}
+            onPress={handleOpenAddMatch}
             activeOpacity={0.85}
           >
             <Text style={styles.fabText}>{t('matchday.addMatch').toUpperCase()}</Text>

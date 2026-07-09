@@ -12,6 +12,7 @@ import {
 } from '@/utils/imageResize';
 import { mergeStatArrays, toPendingStatsRecord } from '@/utils/ocrPhotoMerge';
 import { type AddMatchState, type OcrPhotoEntry, initAddMatch, isAddMatchDirty } from '@/utils/addMatchState';
+import { trackEvent } from '@/analytics';
 
 interface UseAddMatchFlowParams {
   tournamentRanked: boolean;
@@ -103,6 +104,10 @@ export function useAddMatchFlow({
         mediaFolder: matchFolder,
       };
       addMatchToStore(match);
+      trackEvent('match_added', {
+        hasMedia: uploadedMedia.length > 0 ? 'true' : 'false',
+        hasStats: match.statsOverride ? 'true' : 'false',
+      });
       closeModal();
       reset();
     } catch {

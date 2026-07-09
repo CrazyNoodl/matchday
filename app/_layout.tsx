@@ -1,5 +1,5 @@
 import i18n from '@/i18n';
-import { Stack, useRouter } from 'expo-router';
+import { Stack, useRouter, usePathname } from 'expo-router';
 import Head from 'expo-router/head';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -31,9 +31,11 @@ import { supabase, supabaseConfigured } from '@/supabase/client';
 import { LoginScreen, OfflineScreen, ErrorFallback } from '@/components';
 import { useIsOnline } from '@/hooks/useIsOnline';
 import { initSentry } from '@/sentry';
+import { initAnalytics, trackEvent } from '@/analytics';
 import type { Session } from '@supabase/supabase-js';
 
 initSentry();
+initAnalytics();
 
 (Text as any).defaultProps = { ...((Text as any).defaultProps ?? {}), allowFontScaling: false };
 (TextInput as any).defaultProps = {
@@ -65,6 +67,14 @@ function SyncManager() {
 
 function MediaRetryManager({ isOnline }: { isOnline: boolean }) {
   useMediaRetryManager(isOnline);
+  return null;
+}
+
+function ScreenViewTracker() {
+  const pathname = usePathname();
+  useEffect(() => {
+    trackEvent('screen_view', { path: pathname });
+  }, [pathname]);
   return null;
 }
 
@@ -199,6 +209,7 @@ function AppContent({
         <SyncManager />
         <MediaRetryManager isOnline={isOnline} />
         <LanguageSync />
+        <ScreenViewTracker />
         <StatusBar style={colorScheme === 'light' ? 'dark' : 'light'} />
         {/* flex:1 wrapper reserves the banners their own row below instead of
             letting them float on top of screen content — see layout.styles.ts */}
