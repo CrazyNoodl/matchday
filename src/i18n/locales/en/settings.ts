@@ -33,6 +33,12 @@ const settings = {
     backup: 'Backup & Restore',
     backupSub: 'Export or import a local snapshot of your data',
   },
+  sync: {
+    title: 'Sync',
+    syncing: 'Syncing…',
+    pending: '{{count}} change(s) pending sync',
+    error: 'Sync failed — tap to retry',
+  },
   display: {
     section: 'Display',
     theme: 'Theme',

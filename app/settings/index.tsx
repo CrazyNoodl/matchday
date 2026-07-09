@@ -4,7 +4,7 @@ import Constants from 'expo-constants';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useColors } from '@/theme';
-import { NavHeader, GlowBackground } from '@/components';
+import { NavHeader, GlowBackground, SyncStatusIndicator, useSyncStatus } from '@/components';
 import { supabaseConfigured } from '@/supabase/client';
 import { makeStyles } from '@/screens/settings/settings.styles';
 import { SettingsRow } from '@/screens/settings/SettingsRow';
@@ -24,6 +24,7 @@ export default function SettingsScreen() {
   const colors = useColors();
   const styles = makeStyles(colors);
   const d = useSettings();
+  const syncStatus = useSyncStatus();
 
   const {
     router,
@@ -131,6 +132,7 @@ export default function SettingsScreen() {
             sub={t('settings.data.backupSub')}
             onPress={() => router.push('/settings/backup')}
           />
+          {syncStatus.visible && <SyncStatusIndicator />}
           <SettingsRow
             icon="ℹ️"
             label={t('settings.about.appName')}

@@ -33,6 +33,12 @@ const settings = {
     backup: 'Sauvegarde et restauration',
     backupSub: 'Exporter ou importer un instantané local de vos données',
   },
+  sync: {
+    title: 'Synchronisation',
+    syncing: 'Synchronisation…',
+    pending: '{{count}} modification(s) en attente de synchronisation',
+    error: 'Échec de la synchronisation — appuyez pour réessayer',
+  },
   display: {
     section: 'Affichage',
     theme: 'Thème',
