@@ -40,6 +40,11 @@ jest.mock('@/supabase/sync', () => ({
   deleteAllCloudData: jest.fn().mockResolvedValue(undefined),
 }));
 
+let mockIsOnline = true;
+jest.mock('@/hooks/useIsOnline', () => ({
+  useIsOnline: () => mockIsOnline,
+}));
+
 const mockSignOut = signOut as jest.Mock;
 const mockDeleteAllCloudData = deleteAllCloudData as jest.Mock;
 
@@ -71,7 +76,23 @@ function setSeedState() {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockIsOnline = true;
   useStore.getState().resetStore();
+});
+
+// ── isOffline ─────────────────────────────────────────────────────────────────
+
+describe('isOffline', () => {
+  it('is false while online', async () => {
+    const { result } = await renderHook(() => useSettings());
+    expect(result.current.isOffline).toBe(false);
+  });
+
+  it('is true while offline', async () => {
+    mockIsOnline = false;
+    const { result } = await renderHook(() => useSettings());
+    expect(result.current.isOffline).toBe(true);
+  });
 });
 
 // ── isDefaultState ────────────────────────────────────────────────────────────

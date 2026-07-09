@@ -6,11 +6,13 @@ import { LANGUAGES } from '@/i18n';
 import { signOut } from '@/supabase/auth';
 import { supabase, supabaseConfigured } from '@/supabase/client';
 import { deleteAllCloudData } from '@/supabase/sync';
+import { useIsOnline } from '@/hooks/useIsOnline';
 
 export function useSettings() {
   const router = useRouter();
   const goBack = useGoBack();
   const store = useStore();
+  const isOffline = !useIsOnline();
 
   const RESET_CONFIRM_DELAY_SECONDS = 5;
   const [showResetConfirm, setShowResetConfirm] = useState(false);
@@ -148,6 +150,7 @@ export function useSettings() {
     demoMode,
     currentLang,
     isDefaultState,
+    isOffline,
     userEmail,
     versionTaps,
     devUnlocked,

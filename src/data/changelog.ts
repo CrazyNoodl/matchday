@@ -10,6 +10,12 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.33',
+    fixed: [
+      '"Reset All Data" is now disabled while offline, since it would wipe local data without being able to also wipe the cloud copy',
+    ],
+  },
+  {
     version: '1.9.32',
     fixed: [
       'Confirm dialogs with a single button (e.g. "Cannot Delete") rendered with an invisible label — the button collapsed to a sliver instead of showing its text',
