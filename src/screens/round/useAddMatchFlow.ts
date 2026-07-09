@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import * as ImagePicker from 'expo-image-picker';
+import { useStore } from '@/store';
 import { type Player, type Match, type MediaItem } from '@/store/types';
 import { uploadMediaItems, buildMatchFolder } from '@/supabase/storage';
 import { extractStatsFromPhoto } from '@/utils/extractStats';
@@ -30,6 +31,7 @@ export function useAddMatchFlow({
   closeModal,
 }: UseAddMatchFlowParams) {
   const { t } = useTranslation();
+  const demoMode = useStore((s) => s.demoMode);
   const [addMatch, setAddMatch] = useState<AddMatchState>(initAddMatch());
   const [isSavingMatch, setIsSavingMatch] = useState(false);
   const [showDiscardDialog, setShowDiscardDialog] = useState(false);
@@ -76,11 +78,16 @@ export function useAddMatchFlow({
       const matchFolder = buildMatchFolder(addMatch.homeScore, addMatch.awayScore, new Date());
       const mediaFolder = roundFolder ? `${roundFolder}/${matchFolder}` : matchFolder;
 
-      // Upload local media to Supabase Storage before saving
+      // Upload local media to Supabase Storage before saving. Demo Mode
+      // matches are discarded on exit (realDataBackup restore) and must
+      // never reach the user's real cloud storage — keep the media local-
+      // only instead of uploading it under their real account.
       const uploadedMedia =
-        addMatch.media.length > 0
-          ? await uploadMediaItems(addMatch.media, { tournamentId, mediaFolder })
-          : [];
+        addMatch.media.length === 0
+          ? []
+          : demoMode
+            ? addMatch.media
+            : await uploadMediaItems(addMatch.media, { tournamentId, mediaFolder });
 
       const match: Match = {
         id: matchId,
@@ -113,6 +120,7 @@ export function useAddMatchFlow({
     t,
     tournamentId,
     roundFolder,
+    demoMode,
   ]);
 
   // Only (re)scans photos that don't have stats yet — already-succeeded photos

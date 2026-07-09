@@ -251,14 +251,21 @@ export function useMatchDetail() {
             }
           }
 
+          // Demo Mode matches are discarded on exit (realDataBackup restore)
+          // and must never reach the user's real cloud storage — keep the
+          // media local-only instead of uploading it under their real account.
           let remoteUrl: string | null;
-          try {
-            remoteUrl = await uploadMediaItem(localUri, type, {
-              tournamentId: store.tournamentId,
-              mediaFolder,
-            });
-          } catch {
-            remoteUrl = null;
+          if (store.demoMode) {
+            remoteUrl = localUri;
+          } else {
+            try {
+              remoteUrl = await uploadMediaItem(localUri, type, {
+                tournamentId: store.tournamentId,
+                mediaFolder,
+              });
+            } catch {
+              remoteUrl = null;
+            }
           }
 
           // Replace the optimistic item matched by the original local URI + uploading flag
@@ -376,6 +383,12 @@ export function useMatchDetail() {
             } catch {
               /* fall back to the original file if resizing fails */
             }
+            // Demo Mode matches are discarded on exit (realDataBackup restore)
+            // and must never reach the user's real cloud storage — keep the
+            // media local-only instead of uploading it under their real account.
+            if (store.demoMode) {
+              return { ...r, remoteUrl: storageUri, localUri: storageUri };
+            }
             try {
               const remoteUrl = await uploadMediaItem(storageUri, 'image', {
                 tournamentId: store.tournamentId,
@@ -480,13 +493,17 @@ export function useMatchDetail() {
 
       try {
         let remoteUrl: string | null;
-        try {
-          remoteUrl = await uploadMediaItem(itemUri, item.type, {
-            tournamentId: store.tournamentId,
-            mediaFolder,
-          });
-        } catch {
-          remoteUrl = null;
+        if (store.demoMode) {
+          remoteUrl = itemUri;
+        } else {
+          try {
+            remoteUrl = await uploadMediaItem(itemUri, item.type, {
+              tournamentId: store.tournamentId,
+              mediaFolder,
+            });
+          } catch {
+            remoteUrl = null;
+          }
         }
 
         const freshMedia = getFreshMedia();

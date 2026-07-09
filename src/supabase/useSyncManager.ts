@@ -23,7 +23,6 @@ export function useSyncManager() {
   // a second overlapping push now would race it (see runPush's finally below).
   const pushQueuedRef = useRef(false);
   const dirtyRef = useRef<Set<DirtyTable>>(new Set());
-  const prevDemoModeRef = useRef<boolean>(useStore.getState().demoMode);
   // Bridges the reconnect effect (below) into the main effect's closure —
   // reassigned once init() has real `pull`/`runPush`/`userId` in scope.
   const reconnectRef = useRef<() => void>(() => {});
@@ -94,6 +93,11 @@ export function useSyncManager() {
     }
 
     async function runPush(forceDirty?: Set<DirtyTable>) {
+      // Last line of defense: whatever caller/timing led here, never push
+      // while demo data is what's actually sitting in the store — a caller
+      // upstream missing a demoMode check must not be able to leak demo
+      // rows into the user's real cloud data.
+      if (useStore.getState().demoMode) return;
       const dirty = forceDirty ?? new Set(dirtyRef.current);
       if (!forceDirty) {
         dirtyRef.current = new Set();
@@ -246,9 +250,16 @@ export function useSyncManager() {
       // or the debounced push would delete the user's actual cloud rows.
       if (syncSuppressionRef.current) return;
 
-      // Detect which table groups changed (reference equality — Zustand+Immer
-      // creates new references only for mutated state, unchanged fields keep the same ref)
-      if (!applyingRef.current) {
+      const demoModeChanged = state.demoMode !== prevState.demoMode;
+
+      // Entering/exiting demo mode swaps players/teams/matches/tournament
+      // wholesale (DEMO_STATE <-> realDataBackup) in one set() call. That
+      // reference churn is not a real edit — treating it as dirty used to
+      // (a) let a leftover-dirty flush push demo data to Supabase after a
+      // force-quit while demo mode was on, and (b) make the exit-demo pull
+      // below always see a non-empty dirtyRef and skip applying the pulled
+      // cloud state, defeating its own "pull before overwrite" safeguard.
+      if (!applyingRef.current && !demoModeChanged) {
         const sizeBefore = dirtyRef.current.size;
         if (state.players !== prevState.players) dirtyRef.current.add('players');
         if (state.teams !== prevState.teams) dirtyRef.current.add('teams');
@@ -272,31 +283,29 @@ export function useSyncManager() {
       }
 
       if (applyingRef.current) return;
-      if (dirtyRef.current.size === 0) return;
 
-      const wasDemo = prevDemoModeRef.current;
-      prevDemoModeRef.current = state.demoMode;
-
-      if (state.demoMode) {
-        // Cancel any pending push when entering demo mode so demo data
-        // never reaches Supabase via a lingering debounce timer.
-        if (pushTimerRef.current) {
-          clearTimeout(pushTimerRef.current);
-          pushTimerRef.current = null;
+      if (demoModeChanged) {
+        if (state.demoMode) {
+          // Just entered demo mode: cancel any pending push so demo data
+          // never reaches Supabase via a lingering debounce timer.
+          if (pushTimerRef.current) {
+            clearTimeout(pushTimerRef.current);
+            pushTimerRef.current = null;
+          }
+          return;
         }
-        return;
-      }
-
-      if (!userId) return;
-
-      if (wasDemo) {
         // Just exited demo mode: pull the latest cloud state first so we
-        // don't overwrite changes made on another device while demo was active.
+        // don't overwrite changes made on another device while demo was
+        // active, then push the restored real state to reconcile.
+        if (!userId) return;
         pull().then(() => {
           if (!useStore.getState().demoMode) runPush(ALL_DIRTY);
         });
         return;
       }
+
+      if (dirtyRef.current.size === 0) return;
+      if (state.demoMode || !userId) return;
 
       if (pushTimerRef.current) clearTimeout(pushTimerRef.current);
       pushTimerRef.current = setTimeout(() => {

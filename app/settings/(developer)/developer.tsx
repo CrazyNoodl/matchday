@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -6,6 +6,7 @@ import { useGoBack } from '@/utils/useGoBack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NavHeader } from '@/components';
 import { useColors } from '@/theme';
+import { useStore } from '@/store';
 import { makeStyles } from '@/screens/settings/developer/developer.styles';
 
 interface DevRowProps {
@@ -38,6 +39,21 @@ export default function DeveloperScreen() {
   const colors = useColors();
   const styles = makeStyles(colors);
   const { t } = useTranslation();
+  const demoMode = useStore((s) => s.demoMode);
+
+  // Dev tools (import round, OCR lab, resize lab) all write into whichever
+  // tournament/match state is currently active — while Demo Mode is on
+  // that's the demo data, so anything imported/scanned there is silently
+  // discarded the moment Demo Mode exits and realDataBackup is restored.
+  // Bounce back out instead of letting someone use a tool that can't
+  // actually persist anything. Also covers demoMode turning on while this
+  // screen happens to already be mounted (the Settings row hides the entry
+  // point, but that alone wouldn't close an already-open screen).
+  useEffect(() => {
+    if (demoMode) goBack();
+  }, [demoMode, goBack]);
+
+  if (demoMode) return null;
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
