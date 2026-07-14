@@ -10,6 +10,12 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.41',
+    fixed: [
+      'Fixed a crash ("Something went wrong") when opening an archived round from a closed tournament in the Archive tab',
+    ],
+  },
+  {
     version: '1.9.40',
     added: [
       'Display settings now has a "Standings view" toggle to choose whether the matchday screen shows standings as a table or as cards, instead of a screen-level tab',

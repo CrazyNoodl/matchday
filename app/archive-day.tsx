@@ -22,7 +22,7 @@ import {
 } from '@/components';
 import { useDropdownMenu } from '@/hooks/useDropdownMenu';
 import { groupMatchesByTour } from '@/utils/matchTours';
-import { getRankedRoundOrdinals } from '@/utils/roundOrdinals';
+import { getRankedRoundOrdinals, EMPTY_ROUNDS } from '@/utils/roundOrdinals';
 import { type Match } from '@/store/types';
 import { makeStyles } from '@/screens/archive-day/archive-day.styles';
 import { EditRoundDateSheet } from '@/screens/archive-day/ArchiveDayModals';
@@ -92,7 +92,7 @@ export default function ArchiveDayScreen() {
   const roundsForOrdinal = useStore((s) =>
     viewingRound && s.archivedRounds.some((r) => r.id === viewingRound.id)
       ? s.archivedRounds
-      : (s.viewingTournament?.rounds ?? []),
+      : (s.viewingTournament?.rounds ?? EMPTY_ROUNDS),
   );
   const roundNumber = useMemo(
     () => getRankedRoundOrdinals(roundsForOrdinal)[liveRound?.id ?? ''] ?? 0,

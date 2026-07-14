@@ -45,7 +45,7 @@ function RoundRow({ round, ordinal, onPress }: RoundRowProps) {
 
 interface ClosedTournamentCardProps {
   tournament: ClosedTournament;
-  onRoundPress: (round: ArchivedRound) => void;
+  onRoundPress: (round: ArchivedRound, tournament: ClosedTournament) => void;
   onStatsPress: () => void;
 }
 
@@ -140,7 +140,7 @@ function ClosedTournamentCard({
                   key={r.id}
                   round={r}
                   ordinal={roundOrdinals[r.id] ?? 0}
-                  onPress={() => onRoundPress(r)}
+                  onPress={() => onRoundPress(r, tournament)}
                 />
               ))
           )}
@@ -182,11 +182,12 @@ export default function ArchiveScreen() {
   const setViewingTournament = useStore((s) => s.setViewingTournament);
 
   const handleRoundPress = useCallback(
-    (round: ArchivedRound) => {
+    (round: ArchivedRound, tournament: ClosedTournament) => {
       setViewingRound(round);
+      setViewingTournament(tournament);
       router.push('/archive-day');
     },
-    [setViewingRound, router],
+    [setViewingRound, setViewingTournament, router],
   );
 
   const handleStatsPress = useCallback(
