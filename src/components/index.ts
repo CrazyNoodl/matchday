@@ -28,6 +28,7 @@ export * from './StandingsTable';
 export * from './StatsRow';
 export * from './StatusBadge';
 export * from './SyncStatusIndicator';
+export * from './TeamAssignSheet';
 export * from './TeamBadge';
 export * from './TeamEditSheet';
 export * from './TeamPickerRow';

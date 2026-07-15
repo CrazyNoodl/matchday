@@ -20,6 +20,7 @@ import {
   GlowBackground,
   PlayerEditSheet,
   TeamEditSheet,
+  TeamAssignSheet,
 } from '@/components';
 import { useIsOnline } from '@/hooks/useIsOnline';
 import { usePlayerEditForm } from '@/hooks/usePlayerEditForm';
@@ -45,6 +46,7 @@ export default function SetupScreen() {
   const [tournamentName, setTournamentName] = useState('');
   const [roundsTarget, setRoundsTarget] = useState(0);
   const [selectedPlayers, setSelectedPlayers] = useState<Set<string>>(new Set());
+  const [teamAssignPlayerId, setTeamAssignPlayerId] = useState<string | null>(null);
 
   const playerForm = usePlayerEditForm({
     addPlayer,
@@ -64,6 +66,10 @@ export default function SetupScreen() {
       return next;
     });
   }, []);
+
+  const teamAssignPlayer = teamAssignPlayerId
+    ? (players.find((p) => p.id === teamAssignPlayerId) ?? null)
+    : null;
 
   const canStart = tournamentName.trim().length > 0 && selectedPlayers.size >= 2;
 
@@ -188,9 +194,16 @@ export default function SetupScreen() {
                     {player.nick ? <Text style={styles.playerNick}>@{player.nick}</Text> : null}
                   </View>
                   {isSelected && (
-                    <View style={styles.teamChip}>
-                      <TeamBadge teamCode={player.teamCode} size="xs" />
-                    </View>
+                    <TouchableOpacity
+                      style={styles.teamChip}
+                      onPress={(e) => {
+                        e.stopPropagation();
+                        setTeamAssignPlayerId(player.id);
+                      }}
+                      activeOpacity={0.75}
+                    >
+                      <TeamBadge teamCode={player.teamCode} size="md" />
+                    </TouchableOpacity>
                   )}
                   <View style={[styles.checkCircle, isSelected && styles.checkCircleSelected]}>
                     {isSelected && <Text style={styles.checkMark}>✓</Text>}
@@ -271,6 +284,20 @@ export default function SetupScreen() {
         logoUploading={teamForm.logoUploading}
         isOffline={isOffline}
         onSave={teamForm.save}
+      />
+
+      <TeamAssignSheet
+        visible={!!teamAssignPlayer}
+        onClose={() => setTeamAssignPlayerId(null)}
+        playerName={teamAssignPlayer?.name ?? ''}
+        teams={teams}
+        selectedCode={teamAssignPlayer?.teamCode ?? ''}
+        onSelect={(code) => {
+          if (teamAssignPlayer) {
+            updatePlayer({ ...teamAssignPlayer, teamCode: code });
+          }
+          setTeamAssignPlayerId(null);
+        }}
       />
     </SafeAreaView>
   );

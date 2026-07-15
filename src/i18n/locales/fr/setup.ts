@@ -11,6 +11,7 @@ const setup = {
   addTeam: 'Ajouter une équipe',
   startTournament: 'Démarrer le tournoi',
   newPlayer: 'Nouveau joueur',
+  changeTeamFor: 'Équipe de {{name}}',
   form: {
     name: 'Nom',
     nickname: 'Pseudo (optionnel)',

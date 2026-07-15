@@ -11,6 +11,7 @@ const setup = {
   addTeam: 'Додати команду',
   startTournament: 'Розпочати турнір',
   newPlayer: 'Новий гравець',
+  changeTeamFor: 'Команда для {{name}}',
   form: {
     name: "Ім'я",
     nickname: "Нікнейм (необов'язково)",
