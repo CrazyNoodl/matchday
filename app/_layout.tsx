@@ -222,6 +222,7 @@ function AppContent({
             }}
           >
             <Stack.Screen name="index" />
+            <Stack.Screen name="welcome" options={{ gestureEnabled: false }} />
             <Stack.Screen name="setup" />
             <Stack.Screen name="round" />
             <Stack.Screen name="tournament" />

@@ -17,6 +17,7 @@ export interface SettingsState {
   language: Language;
   demoMode: boolean;
   realDataBackup: RealDataBackup | null;
+  hasSeenOnboarding: boolean;
 }
 
 export interface SettingsActions {
@@ -28,6 +29,7 @@ export interface SettingsActions {
   setColorScheme: (scheme: ThemePreference) => void;
   setLanguage: (lang: Language) => void;
   setDemoMode: (on: boolean) => void;
+  setHasSeenOnboarding: (v: boolean) => void;
 }
 
 export type SettingsSlice = SettingsState & SettingsActions;
@@ -42,6 +44,7 @@ export const createSettingsSlice: StateCreator<RootState, [], [], SettingsSlice>
   language: 'en',
   demoMode: false,
   realDataBackup: null,
+  hasSeenOnboarding: false,
 
   setShowNick: (v) => set({ showNick: v }),
   setShowTeamLogo: (v) => set({ showTeamLogo: v }),
@@ -50,6 +53,7 @@ export const createSettingsSlice: StateCreator<RootState, [], [], SettingsSlice>
   setStandingsViewMode: (mode) => set({ standingsViewMode: mode }),
   setColorScheme: (scheme) => set({ colorScheme: scheme }),
   setLanguage: (lang) => set({ language: lang }),
+  setHasSeenOnboarding: (v) => set({ hasSeenOnboarding: v }),
 
   setDemoMode: (on) => {
     const s = get();

@@ -21,6 +21,10 @@ const settings = {
   more: {
     section: 'Ще',
   },
+  help: {
+    showOnboarding: 'Показати онбординг знову',
+    showOnboardingSub: 'Переглянути вступний огляд додатку',
+  },
   tournament: {
     label: 'Турніри',
     noActive: 'Немає активного турніру',
