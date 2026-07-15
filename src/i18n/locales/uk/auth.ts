@@ -9,6 +9,18 @@ const auth = {
   createAccount: 'Створити акаунт',
   noAccountPrompt: 'Немає акаунта? Зареєструватись',
   hasAccountPrompt: 'Вже є акаунт? Увійти',
+  forgotPassword: 'Забули пароль?',
+  backToSignIn: 'Назад до входу',
+  missingEmail: 'Введіть email',
+  sendResetLink: 'Надіслати посилання',
+  resetEmailSent: 'Перевірте пошту — ми надіслали посилання для скидання пароля.',
+  resetPasswordTitle: 'Новий пароль',
+  resetPasswordSubtitle: 'Придумайте новий пароль для акаунта',
+  newPasswordLabel: 'Новий пароль',
+  confirmPasswordLabel: 'Підтвердіть пароль',
+  setNewPassword: 'Встановити пароль',
+  missingPassword: 'Введіть та підтвердіть новий пароль',
+  passwordMismatch: 'Паролі не збігаються',
 } as const;
 
 export default auth;

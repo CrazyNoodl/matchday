@@ -21,6 +21,10 @@ const settings = {
   more: {
     section: 'Plus',
   },
+  help: {
+    showOnboarding: "Revoir l'introduction",
+    showOnboardingSub: "Revoir le guide de bienvenue",
+  },
   tournament: {
     label: 'Tournois',
     noActive: 'Aucun tournoi actif',
@@ -54,6 +58,10 @@ const settings = {
     matches: 'Matchs',
     groupByTours: 'Grouper les matchs par tours',
     groupByToursDesc: 'Répartir les matchs du round en blocs par cycle de tour',
+    showAvgGoals: 'Afficher les colonnes de moyenne de buts',
+    showAvgGoalsDesc: 'Afficher les colonnes BP/M et BC/M dans les tableaux de classement',
+    standingsView: 'Affichage du classement',
+    standingsViewDesc: 'Choisissez comment afficher le classement sur l\'écran du round',
     upcoming: 'Bientôt disponible',
     inDevelopment: 'En développement',
   },

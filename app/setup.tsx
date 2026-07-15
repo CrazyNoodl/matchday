@@ -12,12 +12,20 @@ import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStore } from '@/store';
-import { Colors, useColors } from '@/theme';
-import { Avatar, TeamBadge, SectionLabel, GlowBackground } from '@/components';
-import { type Team } from '@/store/types';
-import { generateTeamCode } from '@/utils/teamCode';
+import { useColors } from '@/theme';
+import {
+  Avatar,
+  TeamBadge,
+  SectionLabel,
+  GlowBackground,
+  PlayerEditSheet,
+  TeamEditSheet,
+  TeamAssignSheet,
+} from '@/components';
+import { useIsOnline } from '@/hooks/useIsOnline';
+import { usePlayerEditForm } from '@/hooks/usePlayerEditForm';
+import { useTeamEditForm } from '@/hooks/useTeamEditForm';
 import { makeStyles } from '@/screens/setup/setup.styles';
-import { AddPlayerSheet, AssignTeamSheet, ManageTeamsSheet } from '@/screens/setup/SetupModals';
 import { trackEvent } from '@/analytics';
 
 export default function SetupScreen() {
@@ -26,134 +34,52 @@ export default function SetupScreen() {
   const styles = makeStyles(colors);
   const players = useStore((s) => s.players);
   const teams = useStore((s) => s.teams);
+  const demoMode = useStore((s) => s.demoMode);
   const addTeam = useStore((s) => s.addTeam);
-  const deleteTeam = useStore((s) => s.deleteTeam);
+  const updateTeam = useStore((s) => s.updateTeam);
   const addPlayer = useStore((s) => s.addPlayer);
   const updatePlayer = useStore((s) => s.updatePlayer);
   const startTournament = useStore((s) => s.startTournament);
+  const isOffline = !useIsOnline();
   const { t } = useTranslation();
 
   const [tournamentName, setTournamentName] = useState('');
   const [roundsTarget, setRoundsTarget] = useState(0);
   const [selectedPlayers, setSelectedPlayers] = useState<Set<string>>(new Set());
-  const [playerTeams, setPlayerTeams] = useState<Map<string, string>>(new Map());
+  const [teamAssignPlayerId, setTeamAssignPlayerId] = useState<string | null>(null);
 
-  // Modals
-  const [assignSheetPlayerId, setAssignSheetPlayerId] = useState<string | null>(null);
-  const [showTeamsModal, setShowTeamsModal] = useState(false);
-  const [showAddPlayer, setShowAddPlayer] = useState(false);
+  const playerForm = usePlayerEditForm({
+    addPlayer,
+    updatePlayer,
+    defaultTeamCode: useCallback(() => teams[0]?.code ?? '', [teams]),
+  });
+  const teamForm = useTeamEditForm({ teams, addTeam, updateTeam, demoMode });
 
-  // Add team form
-  const [newTeamName, setNewTeamName] = useState('');
-
-  // Add player form
-  const [newPlayerName, setNewPlayerName] = useState('');
-  const [newPlayerNick, setNewPlayerNick] = useState('');
-  const [newPlayerTeam, setNewPlayerTeam] = useState(teams[0]?.code ?? '');
-
-  const togglePlayer = useCallback(
-    (id: string) => {
-      setSelectedPlayers((prev) => {
-        const next = new Set(prev);
-        if (next.has(id)) {
-          next.delete(id);
-          setPlayerTeams((pm) => {
-            const nm = new Map(pm);
-            nm.delete(id);
-            return nm;
-          });
-        } else {
-          next.add(id);
-          // default to player's own team
-          const player = players.find((p) => p.id === id);
-          if (player?.teamCode) {
-            setPlayerTeams((pm) => new Map(pm).set(id, player.teamCode));
-          }
-        }
-        return next;
-      });
-    },
-    [players],
-  );
-
-  const handleAssignTeam = useCallback((playerId: string, teamCode: string) => {
-    setPlayerTeams((prev) => new Map(prev).set(playerId, teamCode));
-    setAssignSheetPlayerId(null);
+  const togglePlayer = useCallback((id: string) => {
+    setSelectedPlayers((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
   }, []);
 
-  const handleAddTeam = useCallback(() => {
-    const n = newTeamName.trim();
-    if (!n) return;
-    const short = n.slice(0, 3).toUpperCase().replace(/\s/g, '');
-    const code = generateTeamCode(short);
-    const newTeam: Team = {
-      code,
-      name: n,
-      short,
-      color: Colors.team[teams.length % Colors.team.length],
-      custom: true,
-    };
-    addTeam(newTeam);
-    setNewTeamName('');
-  }, [newTeamName, teams, addTeam]);
-
-  const handleAddPlayer = useCallback(() => {
-    const name = newPlayerName.trim();
-    if (!name) return;
-    const id = `player-${Date.now()}`;
-    addPlayer({
-      id,
-      name,
-      nick: newPlayerNick.trim() || undefined,
-      teamCode: newPlayerTeam || teams[0]?.code || '',
-    });
-    setNewPlayerName('');
-    setNewPlayerNick('');
-    setShowAddPlayer(false);
-  }, [newPlayerName, newPlayerNick, newPlayerTeam, addPlayer, teams]);
-
-  const handleDeleteTeam = useCallback(
-    (code: string) => {
-      deleteTeam(code);
-    },
-    [deleteTeam],
-  );
+  const teamAssignPlayer = teamAssignPlayerId
+    ? (players.find((p) => p.id === teamAssignPlayerId) ?? null)
+    : null;
 
   const canStart = tournamentName.trim().length > 0 && selectedPlayers.size >= 2;
 
   const handleStart = useCallback(() => {
     if (!canStart) return;
-    // apply player teams
     const playerIds = Array.from(selectedPlayers);
-    playerTeams.forEach((teamCode, playerId) => {
-      const player = players.find((p) => p.id === playerId);
-      if (player && player.teamCode !== teamCode) {
-        updatePlayer({ ...player, teamCode });
-      }
-    });
     startTournament(tournamentName.trim(), playerIds, true, roundsTarget);
     trackEvent('tournament_created', { playerCount: playerIds.length, roundsTarget });
     router.push('/');
-  }, [
-    canStart,
-    selectedPlayers,
-    playerTeams,
-    players,
-    updatePlayer,
-    startTournament,
-    tournamentName,
-    router,
-  ]);
-
-  const assignSheetPlayer = assignSheetPlayerId
-    ? players.find((p) => p.id === assignSheetPlayerId)
-    : null;
-
-  const assignSheetCurrentTeamCode = assignSheetPlayerId
-    ? (playerTeams.get(assignSheetPlayerId) ??
-      players.find((p) => p.id === assignSheetPlayerId)?.teamCode ??
-      '')
-    : '';
+  }, [canStart, selectedPlayers, startTournament, tournamentName, roundsTarget, router]);
 
   return (
     <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
@@ -255,7 +181,6 @@ export default function SetupScreen() {
           <View style={styles.playersList}>
             {players.map((player) => {
               const isSelected = selectedPlayers.has(player.id);
-              const assignedTeam = playerTeams.get(player.id) ?? player.teamCode;
               return (
                 <TouchableOpacity
                   key={player.id}
@@ -271,10 +196,13 @@ export default function SetupScreen() {
                   {isSelected && (
                     <TouchableOpacity
                       style={styles.teamChip}
-                      onPress={() => setAssignSheetPlayerId(player.id)}
+                      onPress={(e) => {
+                        e.stopPropagation();
+                        setTeamAssignPlayerId(player.id);
+                      }}
                       activeOpacity={0.75}
                     >
-                      <TeamBadge teamCode={assignedTeam} size="xs" />
+                      <TeamBadge teamCode={player.teamCode} size="md" />
                     </TouchableOpacity>
                   )}
                   <View style={[styles.checkCircle, isSelected && styles.checkCircleSelected]}>
@@ -287,12 +215,7 @@ export default function SetupScreen() {
             {/* Add player row */}
             <TouchableOpacity
               style={styles.manageTeamsRow}
-              onPress={() => {
-                setNewPlayerName('');
-                setNewPlayerNick('');
-                setNewPlayerTeam(teams[0]?.code ?? '');
-                setShowAddPlayer(true);
-              }}
+              onPress={playerForm.openCreate}
               activeOpacity={0.75}
             >
               <Text style={styles.manageTeamsIcon}>👤</Text>
@@ -300,14 +223,14 @@ export default function SetupScreen() {
               <Text style={styles.manageTeamsChevron}>›</Text>
             </TouchableOpacity>
 
-            {/* Manage teams row */}
+            {/* Add team row */}
             <TouchableOpacity
               style={styles.manageTeamsRow}
-              onPress={() => setShowTeamsModal(true)}
+              onPress={teamForm.openCreate}
               activeOpacity={0.75}
             >
               <Text style={styles.manageTeamsIcon}>🛡</Text>
-              <Text style={styles.manageTeamsText}>{t('setup.manageTeams')}</Text>
+              <Text style={styles.manageTeamsText}>{t('setup.addTeam')}</Text>
               <Text style={styles.manageTeamsChevron}>›</Text>
             </TouchableOpacity>
           </View>
@@ -330,36 +253,51 @@ export default function SetupScreen() {
         </TouchableOpacity>
       </View>
 
-      <AddPlayerSheet
-        visible={showAddPlayer}
-        onClose={() => setShowAddPlayer(false)}
+      <PlayerEditSheet
+        visible={playerForm.visible}
+        onClose={playerForm.close}
+        editingPlayer={playerForm.editingPlayer}
         teams={teams}
-        name={newPlayerName}
-        onChangeName={setNewPlayerName}
-        nick={newPlayerNick}
-        onChangeNick={setNewPlayerNick}
-        teamCode={newPlayerTeam}
-        onChangeTeamCode={setNewPlayerTeam}
-        onSubmit={handleAddPlayer}
+        formName={playerForm.formName}
+        onChangeName={playerForm.setFormName}
+        formNick={playerForm.formNick}
+        onChangeNick={playerForm.setFormNick}
+        formTeam={playerForm.formTeam}
+        onChangeTeam={playerForm.setFormTeam}
+        onSave={playerForm.save}
       />
 
-      <AssignTeamSheet
-        visible={!!assignSheetPlayerId}
-        onClose={() => setAssignSheetPlayerId(null)}
-        playerName={assignSheetPlayer?.name ?? ''}
-        teams={teams}
-        currentTeamCode={assignSheetCurrentTeamCode}
-        onSelectTeam={(code) => assignSheetPlayerId && handleAssignTeam(assignSheetPlayerId, code)}
+      <TeamEditSheet
+        visible={teamForm.visible}
+        onClose={teamForm.close}
+        editingTeam={teamForm.editingTeam}
+        teamColors={teamForm.teamColors}
+        formName={teamForm.formName}
+        onChangeName={teamForm.setFormName}
+        formShort={teamForm.formShort}
+        onChangeShort={teamForm.setFormShort}
+        formColor={teamForm.formColor}
+        onChangeColor={teamForm.setFormColor}
+        formLogo={teamForm.formLogo}
+        onPickLogo={teamForm.pickLogo}
+        onRemoveLogo={teamForm.removeLogo}
+        logoUploading={teamForm.logoUploading}
+        isOffline={isOffline}
+        onSave={teamForm.save}
       />
 
-      <ManageTeamsSheet
-        visible={showTeamsModal}
-        onClose={() => setShowTeamsModal(false)}
+      <TeamAssignSheet
+        visible={!!teamAssignPlayer}
+        onClose={() => setTeamAssignPlayerId(null)}
+        playerName={teamAssignPlayer?.name ?? ''}
         teams={teams}
-        newTeamName={newTeamName}
-        onChangeNewTeamName={setNewTeamName}
-        onAddTeam={handleAddTeam}
-        onDeleteTeam={handleDeleteTeam}
+        selectedCode={teamAssignPlayer?.teamCode ?? ''}
+        onSelect={(code) => {
+          if (teamAssignPlayer) {
+            updatePlayer({ ...teamAssignPlayer, teamCode: code });
+          }
+          setTeamAssignPlayerId(null);
+        }}
       />
     </SafeAreaView>
   );

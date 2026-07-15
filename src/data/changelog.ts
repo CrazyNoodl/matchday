@@ -10,6 +10,57 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.45',
+    internal: [
+      'Internal: extended Sentry error reporting to every remaining previously-silent/console-only catch block outside the sync/storage layer (local storage fallbacks, backup read/write/share/delete, OCR/upload/resize flows, share-capture flows, service worker registration) — no visible change',
+      'Internal: fixed Sheet keeping its content mounted forever after first open instead of unmounting once the close animation finishes, which was causing a Playwright e2e assertion to fail — no visible change',
+    ],
+  },
+  {
+    version: '1.9.44',
+    added: [
+      'Added a "Forgot password?" link on the sign-in screen to reset your password by email',
+    ],
+  },
+  {
+    version: '1.9.43',
+    added: [
+      'The team badge next to a selected player in tournament Setup is now tappable, opening a quick picker to change that player\'s team without leaving the setup flow',
+    ],
+    fixed: [
+      'Deleting a team from Settings no longer leaves players stuck with a dangling team code when that team is still set as a player\'s default team',
+    ],
+  },
+  {
+    version: '1.9.42',
+    fixed: [
+      'Fixed local backups showing the previous account\'s data after switching accounts on the same device',
+      'Fixed sign-out so it can no longer leak one account\'s data into another account\'s cloud storage if the app closes mid-sign-out',
+      'Display preferences (theme, language, standings view, etc.) now sync per account instead of staying stuck on a shared device',
+    ],
+  },
+  {
+    version: '1.9.41',
+    fixed: [
+      'Fixed a crash ("Something went wrong") when opening an archived round from a closed tournament in the Archive tab',
+    ],
+  },
+  {
+    version: '1.9.40',
+    added: [
+      'Display settings now has a "Standings view" toggle to choose whether the matchday screen shows standings as a table or as cards, instead of a screen-level tab',
+    ],
+  },
+  {
+    version: '1.9.39',
+    added: [
+      'Display settings now has a "Show average goals columns" toggle to show/hide the GF/G and GA/G columns in standings tables',
+    ],
+    internal: [
+      'Internal: added analytics events for the "Group matches by tours" and "Show average goals columns" toggles in Display settings',
+    ],
+  },
+  {
     version: '1.9.38',
     added: [
       'Developer settings now shows a confirmation dialog after sending a test error or test event, instead of no feedback at all',

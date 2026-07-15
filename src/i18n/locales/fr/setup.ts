@@ -8,9 +8,10 @@ const setup = {
   roundsUnlimited: '∞',
   playersLabel: 'Joueurs & équipes · {{count}} sélectionnés',
   addPlayer: 'Ajouter un joueur',
-  manageTeams: 'Gérer les équipes',
+  addTeam: 'Ajouter une équipe',
   startTournament: 'Démarrer le tournoi',
   newPlayer: 'Nouveau joueur',
+  changeTeamFor: 'Équipe de {{name}}',
   form: {
     name: 'Nom',
     nickname: 'Pseudo (optionnel)',
@@ -20,9 +21,6 @@ const setup = {
     nicknamePlaceholder: 'ex. Fox',
   },
   addPlayerBtn: 'Ajouter le joueur',
-  teamFor: 'Équipe pour {{name}}',
-  manageTeamsTitle: 'Gérer les équipes',
-  teamNamePlaceholder: "Nom de l'équipe",
 } as const;
 
 export default setup;

@@ -75,6 +75,7 @@ const stalePulledState = {
   round: 0,
   roundOpen: false,
   roundPlayers: [],
+  settings: null,
 };
 
 beforeEach(() => {
@@ -106,7 +107,7 @@ it('pushes leftover unsynced edits before pulling on the next cold start, instea
   mockPushState.mockResolvedValue(undefined);
   mockPullState.mockResolvedValue(stalePulledState);
 
-  await renderHook(() => useSyncManager());
+  const { unmount: unmountSession2 } = await renderHook(() => useSyncManager());
 
   await waitFor(() => expect(mockPushState).toHaveBeenCalledTimes(1));
 
@@ -120,5 +121,15 @@ it('pushes leftover unsynced edits before pulling on the next cold start, instea
 
   // Only after the leftover edit is safely pushed should it ever pull.
   await waitFor(() => expect(mockPullState).toHaveBeenCalledTimes(1));
-  expect(useStore.getState().pendingSyncTables).toEqual([]);
+  // 'settings' is expected here, not a leak from the fix above: this pulled
+  // state has real cloud data (players) but settings: null, i.e. an account
+  // that had cloud data before #81 shipped and has no user_settings row yet
+  // — pull() intentionally marks 'settings' dirty so this device's local
+  // preferences get pushed up as that account's first settings row.
+  expect(useStore.getState().pendingSyncTables).toEqual(['settings']);
+
+  // Left-over 'settings' dirty table would otherwise sit on a still-mounted
+  // hook with a live debounced-push timer past the end of this test — unmount
+  // explicitly (like session 1 above) so nothing fires during a later test.
+  unmountSession2();
 });

@@ -1,5 +1,5 @@
 import { useStore } from '../index';
-import type { Match, Team } from '../types';
+import type { Match, Player, Team } from '../types';
 
 jest.mock('react-native-mmkv', () => ({
   createMMKV: () => ({
@@ -142,6 +142,14 @@ describe('deleteTeam', () => {
         },
       ],
     });
+    useStore.getState().deleteTeam('JUV');
+    expect(useStore.getState().teams).toContainEqual(T1);
+  });
+
+  it('is a no-op when team is assigned to a player', () => {
+    const player: Player = { id: 'p1', name: 'Alice', teamCode: 'JUV' };
+    useStore.getState().addTeam(T1);
+    useStore.setState({ players: [player] });
     useStore.getState().deleteTeam('JUV');
     expect(useStore.getState().teams).toContainEqual(T1);
   });

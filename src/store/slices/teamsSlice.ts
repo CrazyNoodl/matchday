@@ -29,6 +29,7 @@ export const createTeamsSlice: StateCreator<RootState, [], [], TeamsSlice> = (se
     const s = get();
     const allMatches = collectAllMatches(s);
     if (allMatches.some((m) => m.aTeam === code || m.bTeam === code)) return;
+    if (s.players.some((p) => p.teamCode === code)) return;
     set({ teams: s.teams.filter((t) => t.code !== code) });
   },
 });

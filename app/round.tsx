@@ -14,7 +14,6 @@ import {
   SectionLabel,
   EmptyState,
   GlowBackground,
-  SegmentedControl,
   DropdownMenu,
   ConfirmDialog,
 } from '@/components';
@@ -30,8 +29,6 @@ import {
   NeedEqualDialog,
   WinnerCelebrationModal,
 } from '@/screens/round/RoundDialogs';
-
-type StandingsView = 'table' | 'cards';
 
 export default function MatchdayScreen() {
   const router = useRouter();
@@ -50,6 +47,8 @@ export default function MatchdayScreen() {
   const tournamentId = useStore((s) => s.tournamentId);
   const roundFolder = useStore((s) => s.roundFolder);
   const groupByTours = useStore((s) => s.groupByTours);
+  const showAvgGoals = useStore((s) => s.showAvgGoals);
+  const standingsViewMode = useStore((s) => s.standingsViewMode);
   const setModal = useStore((s) => s.setModal);
   const addMatch = useStore((s) => s.addMatch);
   const setSelectedMatch = useStore((s) => s.setSelectedMatch);
@@ -61,7 +60,6 @@ export default function MatchdayScreen() {
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const roundMenu = useDropdownMenu();
 
-  const [standingsView, setStandingsView] = useState<StandingsView>('table');
   const [localWinnerId, setLocalWinnerId] = useState<string | null>(null);
 
   const closeModal = useCallback(() => setModal(null), [setModal]);
@@ -198,32 +196,20 @@ export default function MatchdayScreen() {
         </View>
       </View>
 
-      {/* Standings toggle */}
-      <View style={styles.toggleContainer}>
-        <SegmentedControl
-          value={standingsView}
-          onChange={setStandingsView}
-          options={[
-            { value: 'table', label: t('matchday.table') },
-            { value: 'cards', label: t('matchday.cards') },
-          ]}
-        />
-      </View>
-
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
         {/* Standings */}
-        {standingsView === 'table' ? (
+        {standingsViewMode === 'table' ? (
           <StandingsTable
             style={{ marginBottom: Spacing.lg }}
             standings={standings}
             players={players}
             playerLabel={t('table.player').toUpperCase()}
             compact
-            columns={getStandingsTableColumns(t)}
+            columns={getStandingsTableColumns(t, showAvgGoals)}
           />
         ) : (
           <View style={styles.cardsContainer}>

@@ -21,6 +21,10 @@ const settings = {
   more: {
     section: 'More',
   },
+  help: {
+    showOnboarding: 'Show onboarding again',
+    showOnboardingSub: 'Replay the welcome walkthrough',
+  },
   tournament: {
     label: 'Tournaments',
     noActive: 'No active tournament',
@@ -54,6 +58,10 @@ const settings = {
     matches: 'Matches',
     groupByTours: 'Group matches by tours',
     groupByToursDesc: 'Split round matches into blocks by round-robin cycle',
+    showAvgGoals: 'Show average goals columns',
+    showAvgGoalsDesc: 'Show GF/G and GA/G columns in standings tables',
+    standingsView: 'Standings view',
+    standingsViewDesc: 'Choose how standings are displayed on the matchday screen',
     upcoming: 'Coming soon',
     inDevelopment: 'In development',
   },

@@ -80,10 +80,6 @@ export const makeStyles = (colors: AppColors) =>
       color: colors.accent.yellow,
       letterSpacing: 0.5,
     },
-    toggleContainer: {
-      paddingHorizontal: Spacing.xl,
-      paddingVertical: Spacing.md,
-    },
     scroll: {
       flex: 1,
     },

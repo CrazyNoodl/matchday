@@ -1,6 +1,8 @@
 import { Platform } from 'react-native';
+import * as Sentry from '@sentry/react-native';
 import { useStore, syncSuppressionRef } from '@/store';
 import type { RootState } from '@/store';
+import { getCurrentUserId } from '@/supabase/auth';
 import type {
   RealDataBackup,
   Player,
@@ -51,15 +53,27 @@ export type BackupValidationResult =
   | { valid: false; reason: 'invalidFormat' | 'unsupportedVersion' | 'missingFields' };
 
 // ---------------------------------------------------------------------------
-// Filename <-> exportedAt encoding
+// Filename <-> userId/exportedAt encoding
 //
 // Filenames double as the sort key and the metadata source for listBackups()
-// (no file content needs reading just to show a date), so the encoding must
-// be a lossless, order-preserving transform of the ISO timestamp: colons
-// aren't valid in filenames, hyphens are, and swapping them keeps the
-// year-month-day-hour-min-sec fields in the same zero-padded order, so
-// lexicographic filename sort == chronological order.
+// (no file content needs reading just to show a date), so the timestamp
+// encoding must be a lossless, order-preserving transform of the ISO
+// timestamp: colons aren't valid in filenames, hyphens are, and swapping
+// them keeps the year-month-day-hour-min-sec fields in the same zero-padded
+// order, so lexicographic filename sort == chronological order.
+//
+// The signed-in user's id is embedded too (see #79 — local backups used to
+// have no account association at all, so switching accounts on the same
+// device surfaced the previous account's backups). 'local' is used as the
+// scoping key when there's no signed-in user (offline/no-Supabase usage) —
+// there's no other account to leak into on this device in that case.
 // ---------------------------------------------------------------------------
+
+const LOCAL_BACKUP_USER_ID = 'local';
+
+async function currentBackupUserId(): Promise<string> {
+  return (await getCurrentUserId()) ?? LOCAL_BACKUP_USER_ID;
+}
 
 function isoToFileSafe(iso: string): string {
   return iso.replace(/:/g, '-');
@@ -72,13 +86,23 @@ function fileSafeToIso(safe: string): string | null {
   return `${datePart}T${hh}:${mm}:${ss}${msPart ?? ''}Z`;
 }
 
-export function backupFileName(date: Date = new Date()): string {
-  return `matchday-backup-${isoToFileSafe(date.toISOString())}.json`;
+export function backupFileName(userId: string, date: Date = new Date()): string {
+  return `matchday-backup-${userId}-${isoToFileSafe(date.toISOString())}.json`;
 }
 
-function parseExportedAtFromFileName(fileName: string): string | null {
-  const m = fileName.match(/^matchday-backup-(.+)\.json$/);
-  return m ? fileSafeToIso(m[1]) : null;
+const FILE_NAME_RE =
+  /^matchday-backup-(.+)-(\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}(?:\.\d+)?Z)\.json$/;
+
+// Backups created before #79 (no userId in the filename) never match this
+// pattern and are intentionally excluded from listBackups() — they can't be
+// safely attributed to an account, and the whole point of this scoping is to
+// never show a backup that isn't provably the current account's.
+function parseBackupFileName(fileName: string): { userId: string; exportedAt: string } | null {
+  const m = fileName.match(FILE_NAME_RE);
+  if (!m) return null;
+  const exportedAt = fileSafeToIso(m[2]);
+  if (!exportedAt) return null;
+  return { userId: m[1], exportedAt };
 }
 
 // ---------------------------------------------------------------------------
@@ -227,7 +251,8 @@ export async function createBackup(): Promise<
 > {
   const file = buildBackupPayload(useStore.getState());
   const json = serializeBackup(file);
-  const fileName = backupFileName(new Date(file.exportedAt));
+  const userId = await currentBackupUserId();
+  const fileName = backupFileName(userId, new Date(file.exportedAt));
 
   try {
     if (Platform.OS === 'web') {
@@ -245,22 +270,28 @@ export async function createBackup(): Promise<
       ok: true,
       meta: { fileName, uri: f.uri, exportedAt: file.exportedAt, sizeBytes: f.size },
     };
-  } catch {
+  } catch (e) {
+    console.warn('[backup] createBackup write failed:', e);
+    Sentry.captureException(e, { tags: { backupOp: 'createBackup' } });
     return { ok: false, reason: 'writeFailed' };
   }
 }
 
 export async function listBackups(): Promise<BackupMeta[]> {
+  const userId = await currentBackupUserId();
+
   if (Platform.OS === 'web') {
     const metas: BackupMeta[] = [];
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
-      if (!key || !key.startsWith('matchday-backup-')) continue;
+      if (!key) continue;
+      const parsed = parseBackupFileName(key);
+      if (!parsed || parsed.userId !== userId) continue;
       const value = localStorage.getItem(key) ?? '';
       metas.push({
         fileName: key,
         uri: key,
-        exportedAt: parseExportedAtFromFileName(key) ?? new Date(0).toISOString(),
+        exportedAt: parsed.exportedAt,
         sizeBytes: value.length,
       });
     }
@@ -273,16 +304,20 @@ export async function listBackups(): Promise<BackupMeta[]> {
     if (!dir.exists) return [];
     const metas: BackupMeta[] = [];
     for (const entry of dir.list()) {
-      if (!(entry instanceof File) || !entry.name.startsWith('matchday-backup-')) continue;
+      if (!(entry instanceof File)) continue;
+      const parsed = parseBackupFileName(entry.name);
+      if (!parsed || parsed.userId !== userId) continue;
       metas.push({
         fileName: entry.name,
         uri: entry.uri,
-        exportedAt: parseExportedAtFromFileName(entry.name) ?? new Date(0).toISOString(),
+        exportedAt: parsed.exportedAt,
         sizeBytes: entry.size,
       });
     }
     return metas.sort((a, b) => (a.fileName < b.fileName ? 1 : -1));
-  } catch {
+  } catch (e) {
+    console.warn('[backup] listBackups failed:', e);
+    Sentry.captureException(e, { tags: { backupOp: 'listBackups' } });
     return [];
   }
 }
@@ -310,7 +345,9 @@ export async function shareBackup(
     if (!(await Sharing.isAvailableAsync())) return { ok: false, reason: 'notAvailable' };
     await Sharing.shareAsync(meta.uri, { mimeType: 'application/json', dialogTitle });
     return { ok: true };
-  } catch {
+  } catch (e) {
+    console.warn('[backup] shareBackup failed:', e);
+    Sentry.captureException(e, { tags: { backupOp: 'shareBackup' } });
     return { ok: false, reason: 'shareFailed' };
   }
 }
@@ -323,8 +360,11 @@ export async function deleteBackup(meta: BackupMeta): Promise<void> {
   try {
     const { File } = (await import('expo-file-system')) as FileSystemModule;
     new File(meta.uri).delete();
-  } catch {
-    // Already gone or inaccessible — nothing further to do.
+  } catch (e) {
+    // Already gone or inaccessible — nothing further to do, but still worth
+    // knowing about if it happens for an unexpected reason (e.g. permissions).
+    console.warn('[backup] deleteBackup failed:', e);
+    Sentry.captureException(e, { tags: { backupOp: 'deleteBackup' } });
   }
 }
 
@@ -344,12 +384,16 @@ export async function readBackupMeta(
       const { File } = (await import('expo-file-system')) as FileSystemModule;
       text = await new File(meta.uri).text();
     }
-  } catch {
+  } catch (e) {
+    console.warn('[backup] readBackupMeta read failed:', e);
+    Sentry.captureException(e, { tags: { backupOp: 'readBackupMeta:read' } });
     return { ok: false, reason: 'readError' };
   }
   try {
     return { ok: true, raw: JSON.parse(text) };
-  } catch {
+  } catch (e) {
+    console.warn('[backup] readBackupMeta parse failed:', e);
+    Sentry.captureException(e, { tags: { backupOp: 'readBackupMeta:parse' } });
     return { ok: false, reason: 'parseError' };
   }
 }
@@ -381,7 +425,9 @@ export async function pickAndReadBackupFile(): Promise<
         reader.onload = () => {
           try {
             resolve({ ok: true, raw: JSON.parse(reader.result as string), fileName: f.name });
-          } catch {
+          } catch (e) {
+            console.warn('[backup] pickAndReadBackupFile web parse failed:', e);
+            Sentry.captureException(e, { tags: { backupOp: 'pickAndReadBackupFile:webParse' } });
             resolve({ ok: false, reason: 'parseError' });
           }
         };
@@ -399,7 +445,9 @@ export async function pickAndReadBackupFile(): Promise<
       type: 'application/json',
       copyToCacheDirectory: true,
     });
-  } catch {
+  } catch (e) {
+    console.warn('[backup] pickAndReadBackupFile document picker failed:', e);
+    Sentry.captureException(e, { tags: { backupOp: 'pickAndReadBackupFile:pick' } });
     return { ok: false, reason: 'readError' };
   }
   if (result.canceled || !result.assets?.[0]) return { ok: false, reason: 'canceled' };
@@ -408,12 +456,16 @@ export async function pickAndReadBackupFile(): Promise<
   try {
     const { File } = (await import('expo-file-system')) as FileSystemModule;
     text = await new File(result.assets[0].uri).text();
-  } catch {
+  } catch (e) {
+    console.warn('[backup] pickAndReadBackupFile native read failed:', e);
+    Sentry.captureException(e, { tags: { backupOp: 'pickAndReadBackupFile:read' } });
     return { ok: false, reason: 'readError' };
   }
   try {
     return { ok: true, raw: JSON.parse(text), fileName: result.assets[0].name };
-  } catch {
+  } catch (e) {
+    console.warn('[backup] pickAndReadBackupFile native parse failed:', e);
+    Sentry.captureException(e, { tags: { backupOp: 'pickAndReadBackupFile:parse' } });
     return { ok: false, reason: 'parseError' };
   }
 }

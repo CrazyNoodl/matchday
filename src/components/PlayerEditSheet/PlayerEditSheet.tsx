@@ -1,11 +1,12 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, TextInput, ScrollView, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, Platform } from 'react-native';
 import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { useTranslation } from 'react-i18next';
 import { useColors } from '@/theme';
-import { Sheet, TeamBadge } from '@/components';
+import { Sheet } from '@/components/Sheet';
+import { TeamPickerRow } from '@/components/TeamPickerRow';
 import { type Player, type Team } from '@/store/types';
-import { makeStyles } from './players.styles';
+import { makeStyles } from './PlayerEditSheet.styles';
 
 interface PlayerEditSheetProps {
   visible: boolean;
@@ -21,6 +22,8 @@ interface PlayerEditSheetProps {
   onSave: () => void;
 }
 
+// Shared by Settings → Players and the new-tournament Setup flow — one
+// component/behavior for both create and edit, driven entirely by props.
 export function PlayerEditSheet({
   visible,
   onClose,
@@ -39,7 +42,7 @@ export function PlayerEditSheet({
   const styles = makeStyles(colors);
 
   return (
-    <Sheet visible={visible} onClose={onClose}>
+    <Sheet visible={visible} onClose={onClose} avoidKeyboard>
       <View style={styles.sheet}>
         <Text style={styles.sheetTitle}>
           {editingPlayer
@@ -78,27 +81,7 @@ export function PlayerEditSheet({
 
           <View style={styles.formGroup}>
             <Text style={styles.formLabel}>{t('setup.form.defaultTeam').toUpperCase()}</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.teamPicker}>
-              {teams.map((team) => (
-                <TouchableOpacity
-                  key={team.code}
-                  style={[
-                    styles.teamPickItem,
-                    formTeam === team.code && {
-                      borderColor: team.color + '88',
-                      backgroundColor: team.color + '22',
-                    },
-                  ]}
-                  onPress={() => onChangeTeam(team.code)}
-                  activeOpacity={0.8}
-                >
-                  <TeamBadge teamCode={team.code} size="md" />
-                  <Text style={styles.teamPickName} numberOfLines={1}>
-                    {team.short}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
+            <TeamPickerRow teams={teams} selectedCode={formTeam} onSelect={onChangeTeam} />
           </View>
         </BottomSheetScrollView>
 

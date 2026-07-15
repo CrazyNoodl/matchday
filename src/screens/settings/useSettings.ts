@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import * as Sentry from '@sentry/react-native';
 import { useRouter } from 'expo-router';
 import { useGoBack } from '@/utils/useGoBack';
 import { useStore } from '@/store';
@@ -80,6 +81,7 @@ export function useSettings() {
       await deleteAllCloudData();
     } catch (e) {
       console.warn('[handleReset] cloud wipe failed', e);
+      Sentry.captureException(e, { tags: { settingsOp: 'deleteAllCloudData' } });
     }
     await store.resetStore({ deleteCloudMedia: true });
     setIsResetting(false);
@@ -106,14 +108,20 @@ export function useSettings() {
 
   const confirmSignOut = async () => {
     setShowSignOutConfirm(false);
+    // Clear locally cached data BEFORE clearing the session (#80): if the
+    // app is killed/crashes between the two steps, the old order could leave
+    // a cleared session paired with account A's data still in the store —
+    // the next account to sign in on this device would inherit it via
+    // useSyncManager's bootstrap push. Wiping first means a crash here just
+    // leaves the user still signed in as A with local data intact, which is
+    // safe to retry; it can never leak into account B's cloud rows.
+    await store.resetStore();
     try {
       await signOut();
     } catch (e) {
       console.warn('[signOut]', e);
+      Sentry.captureException(e, { tags: { settingsOp: 'signOut' } });
     }
-    // Clear locally cached data so it can't leak into the next account
-    // that signs in on this device (sync would otherwise re-upload it).
-    await store.resetStore();
   };
 
   const handleDemoToggle = (on: boolean) => {

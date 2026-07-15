@@ -25,6 +25,7 @@ import backup from './backup';
 import importRound from './importRound';
 import ocrLab from './ocrLab';
 import resizeLab from './resizeLab';
+import welcome from './welcome';
 
 const fr = {
   common,
@@ -53,6 +54,7 @@ const fr = {
   importRound,
   ocrLab,
   resizeLab,
+  welcome,
 } as const satisfies TranslationSchema;
 
 export default fr;

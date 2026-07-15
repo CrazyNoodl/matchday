@@ -132,6 +132,15 @@ export default function SettingsScreen() {
             sub={t('settings.data.backupSub')}
             onPress={() => router.push('/settings/backup')}
           />
+          <SettingsRow
+            icon="👋"
+            label={t('settings.help.showOnboarding')}
+            sub={t('settings.help.showOnboardingSub')}
+            onPress={() => {
+              d.store.setHasSeenOnboarding(false);
+              router.push('/welcome');
+            }}
+          />
           {syncStatus.visible && <SyncStatusIndicator />}
           <SettingsRow
             icon="ℹ️"

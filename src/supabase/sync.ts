@@ -11,13 +11,16 @@ import * as Sentry from '@sentry/react-native';
 import { supabase, supabaseConfigured } from './client';
 import { getCurrentUserId } from './auth';
 import type { Player, Team, Match, ArchivedRound, ClosedTournament } from '../store/types';
+import type { StandingsViewMode } from '../store/slices/settingsSlice';
+import type { ThemePreference } from '../theme/colors';
+import type { Language } from '../i18n';
 
 // ---------------------------------------------------------------------------
 // Push — local → Supabase
 // ---------------------------------------------------------------------------
 
 export type DirtyTable =
-  'players' | 'teams' | 'activeTournament' | 'openMatches' | 'closedTournaments';
+  'players' | 'teams' | 'activeTournament' | 'openMatches' | 'closedTournaments' | 'settings';
 
 export const ALL_DIRTY = new Set<DirtyTable>([
   'players',
@@ -25,7 +28,18 @@ export const ALL_DIRTY = new Set<DirtyTable>([
   'activeTournament',
   'openMatches',
   'closedTournaments',
+  'settings',
 ]);
+
+export interface SyncedSettings {
+  showNick: boolean;
+  showTeamLogo: boolean;
+  groupByTours: boolean;
+  showAvgGoals: boolean;
+  standingsViewMode: StandingsViewMode;
+  colorScheme: ThemePreference;
+  language: Language;
+}
 
 export interface SyncPayload {
   tournamentId: string;
@@ -44,6 +58,7 @@ export interface SyncPayload {
     roundPlayers: string[];
     hasTournament: boolean;
   };
+  settings: SyncedSettings;
 }
 
 // Strips locally-in-flight media (still uploading, or a failed upload awaiting
@@ -76,6 +91,13 @@ export interface SyncPayloadSource {
   roundOpen: boolean;
   roundPlayers: string[];
   hasTournament: boolean;
+  showNick: boolean;
+  showTeamLogo: boolean;
+  groupByTours: boolean;
+  showAvgGoals: boolean;
+  standingsViewMode: StandingsViewMode;
+  colorScheme: ThemePreference;
+  language: Language;
 }
 
 export function buildSyncPayload(s: SyncPayloadSource): SyncPayload {
@@ -104,6 +126,15 @@ export function buildSyncPayload(s: SyncPayloadSource): SyncPayload {
       roundOpen: s.roundOpen,
       roundPlayers: s.roundPlayers,
       hasTournament: s.hasTournament,
+    },
+    settings: {
+      showNick: s.showNick,
+      showTeamLogo: s.showTeamLogo,
+      groupByTours: s.groupByTours,
+      showAvgGoals: s.showAvgGoals,
+      standingsViewMode: s.standingsViewMode,
+      colorScheme: s.colorScheme,
+      language: s.language,
     },
   };
 }
@@ -447,6 +478,28 @@ export async function pushState(
       await exec(db.from('tournaments').delete().eq('user_id', userId).eq('status', 'closed'));
     }
   }
+
+  // 6. User settings (display preferences — account-scoped, see #81). Always
+  // exactly one row per user, so a plain upsert with no delete-by-absence
+  // step is enough — there's nothing to orphan.
+  if (dirty.has('settings')) {
+    await exec(
+      db.from('user_settings').upsert(
+        {
+          user_id: userId,
+          show_nick: payload.settings.showNick,
+          show_team_logo: payload.settings.showTeamLogo,
+          group_by_tours: payload.settings.groupByTours,
+          show_avg_goals: payload.settings.showAvgGoals,
+          standings_view_mode: payload.settings.standingsViewMode,
+          color_scheme: payload.settings.colorScheme,
+          language: payload.settings.language,
+          updated_at: now,
+        },
+        { onConflict: 'user_id' },
+      ),
+    );
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -483,6 +536,10 @@ export async function deleteAllCloudData(): Promise<void> {
   // Deletes both active and closed tournament rows; rounds/matches cascade
   // via FK (see supabase/migrations/001_initial_schema.sql).
   await exec(db.from('tournaments').delete().eq('user_id', userId));
+  // Without this, resetStore()'s local reset-to-defaults for display
+  // preferences (see store/index.ts) would get silently overwritten again
+  // by the next pull, since the stale cloud row would still exist (#81).
+  await exec(db.from('user_settings').delete().eq('user_id', userId));
 }
 
 // ---------------------------------------------------------------------------
@@ -504,6 +561,9 @@ export interface PulledState {
   round: number;
   roundOpen: boolean;
   roundPlayers: string[];
+  // null when this account has no synced settings row yet (fresh account, or
+  // an existing account's first pull after #81 shipped).
+  settings: SyncedSettings | null;
 }
 
 export async function pullState(): Promise<PulledState | null> {
@@ -523,6 +583,7 @@ export async function pullState(): Promise<PulledState | null> {
       .select('*')
       .eq('user_id', userId)
       .order('id', { ascending: true }),
+    db.from('user_settings').select('*').eq('user_id', userId).limit(1),
   ]);
 
   // A failed query (network blip, RLS error, etc.) must NOT be treated as
@@ -541,7 +602,10 @@ export async function pullState(): Promise<PulledState | null> {
     { data: allRounds },
     { data: allMatches },
     { data: closedTourRows },
+    { data: settingsRows },
   ] = results;
+
+  const settingsRow = ((settingsRows ?? []) as Record<string, unknown>[])[0] ?? null;
 
   const activeTournament = ((activeTournamentRows ?? []) as Record<string, unknown>[])[0] ?? null;
   const rounds = (allRounds ?? []) as Record<string, unknown>[];
@@ -642,6 +706,17 @@ export async function pullState(): Promise<PulledState | null> {
     archivedRounds,
     closedTournaments,
     ...tournamentState,
+    settings: settingsRow
+      ? {
+          showNick: Boolean(settingsRow.show_nick),
+          showTeamLogo: Boolean(settingsRow.show_team_logo),
+          groupByTours: Boolean(settingsRow.group_by_tours),
+          showAvgGoals: Boolean(settingsRow.show_avg_goals),
+          standingsViewMode: settingsRow.standings_view_mode as StandingsViewMode,
+          colorScheme: settingsRow.color_scheme as ThemePreference,
+          language: settingsRow.language as Language,
+        }
+      : null,
   };
 }
 
@@ -681,6 +756,11 @@ export function subscribeToChanges(userId: string, onUpdate: () => void) {
     .on(
       'postgres_changes',
       { event: '*', schema: 'public', table: 'closed_tournaments', filter: `user_id=eq.${userId}` },
+      onUpdate,
+    )
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'user_settings', filter: `user_id=eq.${userId}` },
       onUpdate,
     )
     .subscribe();

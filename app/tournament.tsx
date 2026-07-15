@@ -54,6 +54,7 @@ export default function TournamentScreen() {
   const setViewingRound = useStore((s) => s.setViewingRound);
   const renameTournament = useStore((s) => s.renameTournament);
   const closeTournament = useStore((s) => s.closeTournament);
+  const showAvgGoals = useStore((s) => s.showAvgGoals);
 
   const colors = useColors();
   const styles = makeStyles(colors);
@@ -68,6 +69,16 @@ export default function TournamentScreen() {
     () => [
       ...archivedRounds.filter((r) => r.ranked).flatMap((r) => r.matches),
       ...(tournamentRanked && roundOpen ? matches : []),
+    ],
+    [archivedRounds, tournamentRanked, roundOpen, matches],
+  );
+
+  // All friendly matches across all archived rounds + current open round (if not ranked) —
+  // only used by ShareStandingsModal's own include toggles, not the on-screen standings above.
+  const allFriendlyMatches = useMemo(
+    () => [
+      ...archivedRounds.filter((r) => !r.ranked).flatMap((r) => r.matches),
+      ...(!tournamentRanked && roundOpen ? matches : []),
     ],
     [archivedRounds, tournamentRanked, roundOpen, matches],
   );
@@ -152,7 +163,7 @@ export default function TournamentScreen() {
           players={players}
           playerLabel={t('table.player').toUpperCase()}
           emptyLabel={t('tournament.noMatches')}
-          columns={getStandingsTableColumns(t)}
+          columns={getStandingsTableColumns(t, showAvgGoals)}
         />
 
         {/* ---- CURRENT MATCH DAY (only if roundOpen) ---- */}
@@ -335,7 +346,10 @@ export default function TournamentScreen() {
         onClose={() => setShareStandingsVisible(false)}
         tournamentName={tournamentName || t('tournament.sheet.title').toUpperCase()}
         subtitle={shareRoundLabel}
-        standings={standings}
+        rankedMatches={allRankedMatches}
+        friendlyMatches={allFriendlyMatches}
+        tournamentPlayers={tournamentPlayers}
+        archivedRounds={archivedRounds}
       />
     </SafeAreaView>
   );

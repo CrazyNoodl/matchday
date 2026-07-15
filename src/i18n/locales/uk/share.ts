@@ -6,6 +6,8 @@ const share = {
   notAvailable: 'Поділитись недоступно на цьому пристрої.',
   includeStandings: 'Включити таблицю',
   includeAllMatches: 'Включити всі матчі',
+  includeRankedMatches: 'Включити усі рейтингові матчі',
+  includeFriendlyMatches: 'Включити усі френдлі матчі',
   download: '⬇  Завантажити',
   saveToPhotos: '💾  Зберегти у Фото',
   share: '↗  Поділитись',

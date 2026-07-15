@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { NavHeader } from '@/components';
 import { useStore } from '@/store';
 import { useColors } from '@/theme';
-import { supabaseConfigured } from '@/supabase/client';
+import { supabase, supabaseConfigured } from '@/supabase/client';
 import { buildSyncPayload, pushAllTables } from '@/supabase/sync';
 import { formatShortDate } from '@/utils/dateFormat';
 import {
@@ -61,12 +61,25 @@ export default function BackupScreen() {
 
   const actionsDisabled = demoMode || restoring;
 
+  const reloadBackups = async () => {
+    setLoadingList(true);
+    setBackups(await listBackups());
+    setLoadingList(false);
+  };
+
   useEffect(() => {
-    (async () => {
-      setLoadingList(true);
-      setBackups(await listBackups());
-      setLoadingList(false);
-    })();
+    reloadBackups();
+    // Reload on sign-out/sign-in, not just on mount (#79) — listBackups() is
+    // scoped to the currently signed-in account, so a fresh account change
+    // must re-filter the list rather than leaving the previous account's
+    // (already-fetched) backups on screen.
+    if (!supabaseConfigured) return;
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(() => {
+      reloadBackups();
+    });
+    return () => subscription.unsubscribe();
   }, []);
 
   const handleValidateAndConfirm = (raw: unknown) => {

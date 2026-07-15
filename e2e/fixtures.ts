@@ -46,6 +46,13 @@ async function clearAppState(page: Page) {
     for (const key of Object.keys(localStorage)) {
       if (!key.startsWith('sb-')) localStorage.removeItem(key);
     }
+    // Skip the first-launch onboarding carousel (app/welcome.tsx) — it gates
+    // Home behind hasSeenOnboarding, which the clear above always resets to
+    // false, so every test would otherwise land on /welcome instead of Home.
+    localStorage.setItem(
+      'matchday-store',
+      JSON.stringify({ state: { hasSeenOnboarding: true }, version: 0 }),
+    );
   });
 }
 

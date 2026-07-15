@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import * as Sentry from '@sentry/react-native';
 import { Platform } from 'react-native';
 import type { Database } from './types';
 
@@ -26,7 +27,9 @@ function buildAuthStorage() {
         mmkv.remove(key);
       },
     };
-  } catch {
+  } catch (e) {
+    console.warn('[supabase/client] MMKV unavailable, falling back to in-memory storage:', e);
+    Sentry.captureException(e, { tags: { storageOp: 'authStorageMmkvInit' } });
     const memory = new Map<string, string>();
     return {
       getItem: (key: string): string | null => memory.get(key) ?? null,

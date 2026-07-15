@@ -1,4 +1,5 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useMemo, useEffect } from 'react';
+import * as Sentry from '@sentry/react-native';
 import {
   View,
   Text,
@@ -11,9 +12,13 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '@/store';
-import { type Standing } from '@/utils/standings';
+import { type ArchivedRound, type Match } from '@/store/types';
+import { calculateStandings, type Standing } from '@/utils/standings';
 import { useColors } from '@/theme';
 import { CardAvatar } from '@/components/ShareRoundModal';
+import { Toggle } from '@/components/Toggle';
+import { formatShortDate } from '@/utils/dateFormat';
+import { getRankedRoundOrdinals } from '@/utils/roundOrdinals';
 import { STANDINGS_NUM_COLS, formatShareCardDate } from '@/utils/shareCard';
 import { makeCardStyles, makeModalStyles } from './ShareStandingsModal.styles';
 // Native-only modules loaded dynamically so web build doesn't crash
@@ -31,7 +36,13 @@ interface ShareStandingsModalProps {
   onClose: () => void;
   tournamentName: string;
   subtitle: string;
-  standings: Standing[];
+  /** All ranked-round matches (archived + current open round, if ranked) — combined with friendlyMatches per this modal's own include toggles. */
+  rankedMatches: Match[];
+  /** All friendly-round matches (archived + current open round, if not ranked). */
+  friendlyMatches: Match[];
+  tournamentPlayers: string[];
+  /** Finished rounds — rendered as a "PLAYED ROUNDS" list on the share card itself, filtered by the same include toggles. */
+  archivedRounds: ArchivedRound[];
 }
 
 // ---------------------------------------------------------------------------
@@ -85,13 +96,67 @@ function StandingsRow({
   );
 }
 
+function RoundSummaryRow({
+  round,
+  n,
+  isLast,
+}: {
+  round: ArchivedRound;
+  n: number;
+  isLast: boolean;
+}) {
+  const winner = useStore((s) => s.players.find((p) => p.id === round.winner));
+  const colors = useColors();
+  const cardStyles = makeCardStyles(colors);
+  const { t } = useTranslation();
+
+  return (
+    <View style={[cardStyles.roundRow, !isLast && cardStyles.rowBorder]}>
+      <View style={cardStyles.roundLeft}>
+        <View style={cardStyles.roundBadge}>
+          <Text style={cardStyles.roundBadgeText}>{round.ranked ? n : '–'}</Text>
+        </View>
+        <View style={cardStyles.roundInfo}>
+          <Text style={cardStyles.roundDate}>{formatShortDate(round.date)}</Text>
+          <Text style={cardStyles.roundMatchCount}>
+            {t('tournament.roundMatches', { count: round.games })}
+          </Text>
+        </View>
+      </View>
+
+      <View style={cardStyles.roundCenter}>
+        {!round.ranked && (
+          <View style={cardStyles.friendlyBadge}>
+            <Text style={cardStyles.friendlyBadgeText}>{t('common.friendly').toUpperCase()}</Text>
+          </View>
+        )}
+      </View>
+
+      <View style={cardStyles.roundRight}>
+        <CardAvatar teamCode={winner?.teamCode} size={20} />
+        <Text style={cardStyles.roundWinnerName} numberOfLines={1}>
+          {winner ? (winner.nick ?? winner.name) : '—'}
+        </Text>
+      </View>
+    </View>
+  );
+}
+
 interface StandingsCardProps {
   tournamentName: string;
   subtitle: string;
   standings: Standing[];
+  rounds: ArchivedRound[];
+  roundOrdinals: Record<string, number>;
 }
 
-function StandingsCard({ tournamentName, subtitle, standings }: StandingsCardProps) {
+function StandingsCard({
+  tournamentName,
+  subtitle,
+  standings,
+  rounds,
+  roundOrdinals,
+}: StandingsCardProps) {
   const colors = useColors();
   const cardStyles = makeCardStyles(colors);
   const dateStr = formatShareCardDate();
@@ -148,6 +213,26 @@ function StandingsCard({ tournamentName, subtitle, standings }: StandingsCardPro
           />
         ))}
       </View>
+
+      {/* Played rounds */}
+      {rounds.length > 0 && (
+        <>
+          <View style={cardStyles.divider} />
+          <View style={cardStyles.section}>
+            <Text style={cardStyles.roundsTitle}>
+              {t('tournament.playedRounds', { count: rounds.length }).toUpperCase()}
+            </Text>
+            {rounds.map((r, idx) => (
+              <RoundSummaryRow
+                key={r.id}
+                round={r}
+                n={roundOrdinals[r.id] ?? 0}
+                isLast={idx === rounds.length - 1}
+              />
+            ))}
+          </View>
+        </>
+      )}
     </View>
   );
 }
@@ -161,14 +246,39 @@ export function ShareStandingsModal({
   onClose,
   tournamentName,
   subtitle,
-  standings,
+  rankedMatches,
+  friendlyMatches,
+  tournamentPlayers,
+  archivedRounds,
 }: ShareStandingsModalProps) {
   const [loading, setLoading] = useState(false);
+  const [includeRanked, setIncludeRanked] = useState(true);
+  const [includeFriendly, setIncludeFriendly] = useState(false);
   const [saveMessage, setSaveMessage] = useState<{ ok: boolean; text: string } | null>(null);
   const cardRef = useRef<View>(null);
   const colors = useColors();
   const modalStyles = makeModalStyles(colors);
   const { t } = useTranslation();
+
+  const standings = useMemo(
+    () =>
+      calculateStandings(
+        [...(includeRanked ? rankedMatches : []), ...(includeFriendly ? friendlyMatches : [])],
+        tournamentPlayers,
+      ),
+    [includeRanked, includeFriendly, rankedMatches, friendlyMatches, tournamentPlayers],
+  );
+
+  const roundOrdinals = useMemo(() => getRankedRoundOrdinals(archivedRounds), [archivedRounds]);
+
+  // Newest first, same set of rounds the toggles above already apply to the standings.
+  const includedRounds = useMemo(
+    () =>
+      archivedRounds
+        .filter((r) => (r.ranked && includeRanked) || (!r.ranked && includeFriendly))
+        .reverse(),
+    [archivedRounds, includeRanked, includeFriendly],
+  );
 
   useEffect(() => {
     if (!visible) {
@@ -181,7 +291,9 @@ export function ShareStandingsModal({
     try {
       const { captureRef } = (await import('react-native-view-shot')) as { captureRef: CaptureRef };
       return await captureRef(cardRef, { format: 'png', quality: 1.0, result: 'tmpfile' });
-    } catch {
+    } catch (e) {
+      console.warn('[ShareStandingsModal] captureNative failed:', e);
+      Sentry.captureException(e, { tags: { shareOp: 'captureNative' } });
       setSaveMessage({ ok: false, text: t('share.captureError') });
       return null;
     }
@@ -201,7 +313,9 @@ export function ShareStandingsModal({
       return new Promise((resolve) => {
         canvas.toBlob((blob) => resolve(blob), 'image/png', 1.0);
       });
-    } catch {
+    } catch (e) {
+      console.warn('[ShareStandingsModal] captureWeb failed:', e);
+      Sentry.captureException(e, { tags: { shareOp: 'captureWeb' } });
       setSaveMessage({ ok: false, text: t('share.captureError') });
       return null;
     }
@@ -233,7 +347,9 @@ export function ShareStandingsModal({
         await MediaLibrary.saveToLibraryAsync(uri);
         setSaveMessage({ ok: true, text: t('share.saved') });
       }
-    } catch {
+    } catch (e) {
+      console.warn('[ShareStandingsModal] handleSave failed:', e);
+      Sentry.captureException(e, { tags: { shareOp: 'handleSave' } });
       setSaveMessage({ ok: false, text: t('share.saveError') });
     } finally {
       setLoading(false);
@@ -269,8 +385,14 @@ export function ShareStandingsModal({
           dialogTitle: t('tournament.shareStandings.dialogTitle'),
         });
       }
-    } catch {
-      // user cancelled share dialog
+    } catch (e) {
+      // navigator.share/Sharing.shareAsync throw AbortError when the user
+      // cancels the share sheet — not a real failure, don't report it.
+      const isUserCancel = e instanceof Error && e.name === 'AbortError';
+      if (!isUserCancel) {
+        console.warn('[ShareStandingsModal] handleShare failed:', e);
+        Sentry.captureException(e, { tags: { shareOp: 'handleShare' } });
+      }
     } finally {
       setLoading(false);
     }
@@ -300,10 +422,26 @@ export function ShareStandingsModal({
                 tournamentName={tournamentName}
                 subtitle={subtitle}
                 standings={standings}
+                rounds={includedRounds}
+                roundOrdinals={roundOrdinals}
               />
             </View>
           </View>
         </ScrollView>
+
+        {/* Options */}
+        <View style={modalStyles.optionsWrap}>
+          <Toggle
+            label={t('share.includeRankedMatches')}
+            value={includeRanked}
+            onValueChange={setIncludeRanked}
+          />
+          <Toggle
+            label={t('share.includeFriendlyMatches')}
+            value={includeFriendly}
+            onValueChange={setIncludeFriendly}
+          />
+        </View>
 
         {/* Action buttons */}
         {saveMessage && (

@@ -21,6 +21,10 @@ const settings = {
   more: {
     section: 'Ще',
   },
+  help: {
+    showOnboarding: 'Показати онбординг знову',
+    showOnboardingSub: 'Переглянути вступний огляд додатку',
+  },
   tournament: {
     label: 'Турніри',
     noActive: 'Немає активного турніру',
@@ -54,6 +58,10 @@ const settings = {
     matches: 'Матчі',
     groupByTours: 'Групувати матчі по турам',
     groupByToursDesc: 'Розбивати матчі раунду на блоки по колу гри',
+    showAvgGoals: 'Показувати колонки середніх голів',
+    showAvgGoalsDesc: 'Показувати колонки ГЗ/і та ГП/і у турнірних таблицях',
+    standingsView: 'Вигляд таблиці',
+    standingsViewDesc: 'Оберіть, як відображати турнірну таблицю на екрані туру',
     upcoming: 'Скоро',
     inDevelopment: 'У розробці',
   },

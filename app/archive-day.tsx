@@ -22,7 +22,7 @@ import {
 } from '@/components';
 import { useDropdownMenu } from '@/hooks/useDropdownMenu';
 import { groupMatchesByTour } from '@/utils/matchTours';
-import { getRankedRoundOrdinals } from '@/utils/roundOrdinals';
+import { getRankedRoundOrdinals, EMPTY_ROUNDS } from '@/utils/roundOrdinals';
 import { type Match } from '@/store/types';
 import { makeStyles } from '@/screens/archive-day/archive-day.styles';
 import { EditRoundDateSheet } from '@/screens/archive-day/ArchiveDayModals';
@@ -88,10 +88,11 @@ export default function ArchiveDayScreen() {
   );
   const deleteArchivedRound = useStore((s) => s.deleteArchivedRound);
   const groupByTours = useStore((s) => s.groupByTours);
+  const showAvgGoals = useStore((s) => s.showAvgGoals);
   const roundsForOrdinal = useStore((s) =>
     viewingRound && s.archivedRounds.some((r) => r.id === viewingRound.id)
       ? s.archivedRounds
-      : (s.viewingTournament?.rounds ?? []),
+      : (s.viewingTournament?.rounds ?? EMPTY_ROUNDS),
   );
   const roundNumber = useMemo(
     () => getRankedRoundOrdinals(roundsForOrdinal)[liveRound?.id ?? ''] ?? 0,
@@ -220,7 +221,7 @@ export default function ArchiveDayScreen() {
               standings={standings}
               players={players}
               playerLabel={t('table.player').toUpperCase()}
-              columns={getStandingsTableColumns(t)}
+              columns={getStandingsTableColumns(t, showAvgGoals)}
             />
           </>
         )}

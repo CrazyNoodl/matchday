@@ -55,6 +55,11 @@ export function Sheet({
   const [height, setHeight] = useState(MIN_HEIGHT);
   const { bottom: bottomInset } = useSafeAreaInsets();
   const [everOpened, setEverOpened] = useState(false);
+  // Content stays mounted through the close animation (sliding off-screen),
+  // then unmounts once the library reports it fully closed — otherwise it
+  // lingers in the DOM with a non-zero, off-screen bounding box, which reads
+  // as "visible" to accessibility tooling and Playwright alike.
+  const [isOpen, setIsOpen] = useState(false);
   const keyboardHeight = useKeyboardHeight(avoidKeyboard);
   // Tracks whether the sheet was closed programmatically (visible→false) so
   // we don't fire onClose when the library's animation finishes — that would
@@ -65,6 +70,7 @@ export function Sheet({
     if (visible) {
       closedExternallyRef.current = false;
       setEverOpened(true);
+      setIsOpen(true);
       ref.current?.snapToIndex(0);
     } else {
       closedExternallyRef.current = true;
@@ -112,12 +118,14 @@ export function Sheet({
         disableClose
           ? undefined
           : () => {
+              setIsOpen(false);
               if (!closedExternallyRef.current) onClose();
               closedExternallyRef.current = false;
             }
       }
     >
       {everOpened &&
+        isOpen &&
         (snapToMax ? (
           children
         ) : (

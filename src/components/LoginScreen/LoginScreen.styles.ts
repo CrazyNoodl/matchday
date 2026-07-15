@@ -75,6 +75,14 @@ export const makeStyles = (colors: AppColors) =>
       alignItems: 'center',
       paddingVertical: Spacing.sm,
     },
+    forgotBtn: {
+      alignItems: 'flex-end',
+    },
+    forgotText: {
+      fontFamily: FontFamily.body,
+      fontSize: FontSize.xs,
+      color: colors.text.muted,
+    },
     toggleText: {
       fontFamily: FontFamily.body,
       fontSize: FontSize.sm,

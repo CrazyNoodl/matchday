@@ -5,23 +5,31 @@ import type { ThemePreference } from '@/theme/colors';
 import type { Language } from '@/i18n';
 import type { RootState } from '../index';
 
+export type StandingsViewMode = 'table' | 'cards';
+
 export interface SettingsState {
   showNick: boolean;
   showTeamLogo: boolean;
   groupByTours: boolean;
+  showAvgGoals: boolean;
+  standingsViewMode: StandingsViewMode;
   colorScheme: ThemePreference;
   language: Language;
   demoMode: boolean;
   realDataBackup: RealDataBackup | null;
+  hasSeenOnboarding: boolean;
 }
 
 export interface SettingsActions {
   setShowNick: (v: boolean) => void;
   setShowTeamLogo: (v: boolean) => void;
   setGroupByTours: (v: boolean) => void;
+  setShowAvgGoals: (v: boolean) => void;
+  setStandingsViewMode: (mode: StandingsViewMode) => void;
   setColorScheme: (scheme: ThemePreference) => void;
   setLanguage: (lang: Language) => void;
   setDemoMode: (on: boolean) => void;
+  setHasSeenOnboarding: (v: boolean) => void;
 }
 
 export type SettingsSlice = SettingsState & SettingsActions;
@@ -30,16 +38,22 @@ export const createSettingsSlice: StateCreator<RootState, [], [], SettingsSlice>
   showNick: true,
   showTeamLogo: true,
   groupByTours: true,
+  showAvgGoals: true,
+  standingsViewMode: 'table',
   colorScheme: 'dark',
   language: 'en',
   demoMode: false,
   realDataBackup: null,
+  hasSeenOnboarding: false,
 
   setShowNick: (v) => set({ showNick: v }),
   setShowTeamLogo: (v) => set({ showTeamLogo: v }),
   setGroupByTours: (v) => set({ groupByTours: v }),
+  setShowAvgGoals: (v) => set({ showAvgGoals: v }),
+  setStandingsViewMode: (mode) => set({ standingsViewMode: mode }),
   setColorScheme: (scheme) => set({ colorScheme: scheme }),
   setLanguage: (lang) => set({ language: lang }),
+  setHasSeenOnboarding: (v) => set({ hasSeenOnboarding: v }),
 
   setDemoMode: (on) => {
     const s = get();

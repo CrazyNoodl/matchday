@@ -10,6 +10,7 @@
 
 import { useStore, syncSuppressionRef } from '@/store';
 import type { Player, Team, Match, ArchivedRound, ClosedTournament } from '@/store/types';
+import { getCurrentUserId } from '@/supabase/auth';
 import {
   BACKUP_SCHEMA_VERSION,
   backupFileName,
@@ -35,6 +36,12 @@ jest.mock('react-native-mmkv', () => ({
 jest.mock('react-native', () => ({
   Platform: { OS: 'web' },
 }));
+
+jest.mock('@/supabase/auth', () => ({
+  getCurrentUserId: jest.fn().mockResolvedValue('user-1'),
+}));
+
+const mockGetCurrentUserId = getCurrentUserId as jest.MockedFunction<typeof getCurrentUserId>;
 
 // Minimal in-memory Web Storage polyfill — the Jest "node" test environment
 // has no real localStorage, but backup.ts's web branch calls the same API a
@@ -74,9 +81,9 @@ beforeEach(() => {
 });
 
 describe('backupFileName', () => {
-  it('produces a filesystem-safe, chronologically-sortable name', () => {
-    const name = backupFileName(new Date('2026-07-06T14:32:05.123Z'));
-    expect(name).toBe('matchday-backup-2026-07-06T14-32-05.123Z.json');
+  it('produces a filesystem-safe, chronologically-sortable name tagged with the account id', () => {
+    const name = backupFileName('user-1', new Date('2026-07-06T14:32:05.123Z'));
+    expect(name).toBe('matchday-backup-user-1-2026-07-06T14-32-05.123Z.json');
     expect(name).not.toMatch(/:/);
   });
 });
@@ -245,12 +252,53 @@ describe('web storage I/O', () => {
   });
 
   it('sorts backups newest first by filename', async () => {
-    const older = backupFileName(new Date('2026-01-01T00:00:00.000Z'));
-    const newer = backupFileName(new Date('2026-06-01T00:00:00.000Z'));
+    const older = backupFileName('user-1', new Date('2026-01-01T00:00:00.000Z'));
+    const newer = backupFileName('user-1', new Date('2026-06-01T00:00:00.000Z'));
     localStorage.setItem(older, serializeBackup(buildBackupPayload(useStore.getState())));
     localStorage.setItem(newer, serializeBackup(buildBackupPayload(useStore.getState())));
 
     const list = await listBackups();
     expect(list.map((b) => b.fileName)).toEqual([newer, older]);
+  });
+});
+
+describe('account scoping (#79)', () => {
+  it('tags a created backup with the signed-in account id and only lists that account\'s backups', async () => {
+    mockGetCurrentUserId.mockResolvedValue('account-a');
+    const created = await createBackup();
+    expect(created.ok).toBe(true);
+    if (!created.ok) return;
+    expect(created.meta.fileName).toContain('account-a');
+
+    // Switch accounts on the same device — account B must not see A's backup.
+    mockGetCurrentUserId.mockResolvedValue('account-b');
+    expect(await listBackups()).toEqual([]);
+
+    mockGetCurrentUserId.mockResolvedValue('account-a');
+    const listA = await listBackups();
+    expect(listA).toHaveLength(1);
+    expect(listA[0].fileName).toBe(created.meta.fileName);
+  });
+
+  it('scopes backups to a "local" bucket when no account is signed in, without leaking into a real account', async () => {
+    mockGetCurrentUserId.mockResolvedValue(null);
+    const created = await createBackup();
+    expect(created.ok).toBe(true);
+    if (!created.ok) return;
+    expect(created.meta.fileName).toContain('matchday-backup-local-');
+    expect(await listBackups()).toHaveLength(1);
+
+    mockGetCurrentUserId.mockResolvedValue('account-a');
+    expect(await listBackups()).toEqual([]);
+  });
+
+  it('omits pre-#79 backups with no account id in the filename — they can no longer be safely attributed', async () => {
+    mockGetCurrentUserId.mockResolvedValue('account-a');
+    localStorage.setItem(
+      'matchday-backup-2026-01-01T00-00-00.000Z.json',
+      serializeBackup(buildBackupPayload(useStore.getState())),
+    );
+
+    expect(await listBackups()).toEqual([]);
   });
 });

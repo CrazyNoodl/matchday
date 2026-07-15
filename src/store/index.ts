@@ -1,12 +1,15 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { Platform } from 'react-native';
+import * as Sentry from '@sentry/react-native';
 import { type Player, type Team, type Match, type ArchivedRound, type ClosedTournament } from './types';
 import { deleteMediaItem } from '../supabase/storage';
 import { createTournamentSlice, type TournamentSlice } from './slices/tournamentSlice';
 import { createPlayersSlice, type PlayersSlice } from './slices/playersSlice';
 import { createTeamsSlice, type TeamsSlice } from './slices/teamsSlice';
-import { createSettingsSlice, type SettingsSlice } from './slices/settingsSlice';
+import { createSettingsSlice, type SettingsSlice, type StandingsViewMode } from './slices/settingsSlice';
+import type { ThemePreference } from '../theme/colors';
+import type { Language } from '../i18n';
 import { createUiSlice, type UiSlice } from './slices/uiSlice';
 import { stripUploadingMedia } from './sliceHelpers';
 
@@ -19,19 +22,27 @@ const buildStorage = () => {
       getItem: (name: string): string | null => {
         try {
           return localStorage.getItem(name);
-        } catch {
+        } catch (e) {
+          console.warn('[store] localStorage.getItem failed:', e);
+          Sentry.captureException(e, { tags: { storageOp: 'getItem' } });
           return null;
         }
       },
       setItem: (name: string, value: string): void => {
         try {
           localStorage.setItem(name, value);
-        } catch {}
+        } catch (e) {
+          console.warn('[store] localStorage.setItem failed:', e);
+          Sentry.captureException(e, { tags: { storageOp: 'setItem' } });
+        }
       },
       removeItem: (name: string): void => {
         try {
           localStorage.removeItem(name);
-        } catch {}
+        } catch (e) {
+          console.warn('[store] localStorage.removeItem failed:', e);
+          Sentry.captureException(e, { tags: { storageOp: 'removeItem' } });
+        }
       },
     };
   }
@@ -49,7 +60,9 @@ const buildStorage = () => {
         mmkv.remove(name);
       },
     };
-  } catch {
+  } catch (e) {
+    console.warn('[store] MMKV unavailable, falling back to in-memory storage:', e);
+    Sentry.captureException(e, { tags: { storageOp: 'mmkvInit' } });
     const memory = new Map<string, string>();
     return {
       getItem: (name: string): string | null => memory.get(name) ?? null,
@@ -91,6 +104,19 @@ interface RootActions {
     round: number;
     roundOpen: boolean;
     roundPlayers: string[];
+    // null when the account has no synced settings row yet (fresh account,
+    // or an existing account signing in for the first time after #81
+    // shipped) — applyCloudState() leaves local settings untouched in that
+    // case rather than overwriting them with anything.
+    settings: {
+      showNick: boolean;
+      showTeamLogo: boolean;
+      groupByTours: boolean;
+      showAvgGoals: boolean;
+      standingsViewMode: StandingsViewMode;
+      colorScheme: ThemePreference;
+      language: Language;
+    } | null;
   }) => void;
   resetStore: (options?: { deleteCloudMedia?: boolean }) => Promise<void>;
   // Sync tables not yet pushed to Supabase. Persisted (unlike useSyncManager's
@@ -99,6 +125,13 @@ interface RootActions {
   // useSyncManager's init(), which pushes these before ever pulling.
   pendingSyncTables: string[];
   setPendingSyncTables: (tables: string[]) => void;
+  // The Supabase user id the local store's data was last confirmed to belong
+  // to. Persisted so useSyncManager's init() can detect, on next launch, that
+  // local data survived under the wrong account (e.g. a sign-out crashed
+  // between resetStore() and signOut()) and force a wipe before that stale
+  // data can reach the newly-signed-in account's cloud rows — see #80.
+  lastSyncedUserId: string | null;
+  setLastSyncedUserId: (id: string | null) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -132,7 +165,28 @@ export const useStore = create<RootState>()(
           pulled.teams.length > 0 ||
           pulled.closedTournaments.length > 0 ||
           pulled.hasTournament;
-        if (!hasCloudData) return;
+        // Settings are account-scoped independently of the rest of the data
+        // (#81) — apply them whenever a cloud row exists, even on a device
+        // that otherwise has no cloud data yet (e.g. settings-only sync).
+        // When there's no cloud row at all, leave local settings as-is:
+        // either genuine device defaults, or an existing user's pre-#81
+        // local preferences that useSyncManager will push up as the
+        // account's first settings row.
+        const settingsUpdate = pulled.settings
+          ? {
+              showNick: pulled.settings.showNick,
+              showTeamLogo: pulled.settings.showTeamLogo,
+              groupByTours: pulled.settings.groupByTours,
+              showAvgGoals: pulled.settings.showAvgGoals,
+              standingsViewMode: pulled.settings.standingsViewMode,
+              colorScheme: pulled.settings.colorScheme,
+              language: pulled.settings.language,
+            }
+          : {};
+        if (!hasCloudData) {
+          if (pulled.settings) set(settingsUpdate);
+          return;
+        }
         set({
           players: pulled.players,
           teams: pulled.teams,
@@ -148,11 +202,15 @@ export const useStore = create<RootState>()(
           round: pulled.round,
           roundOpen: pulled.roundOpen,
           roundPlayers: pulled.roundPlayers,
+          ...settingsUpdate,
         });
       },
 
       pendingSyncTables: [],
       setPendingSyncTables: (tables) => set({ pendingSyncTables: tables }),
+
+      lastSyncedUserId: null,
+      setLastSyncedUserId: (id) => set({ lastSyncedUserId: id }),
 
       // deleteCloudMedia defaults to false: resetStore() is also used by
       // sign-out to clear the *local* cache so it can't leak into the next
@@ -210,6 +268,21 @@ export const useStore = create<RootState>()(
           selectedMatchId: null,
           viewingRound: null,
           viewingTournament: null,
+          lastSyncedUserId: null,
+          // Display preferences are account-scoped and synced (#81) — reset
+          // to defaults here too, so a sign-out can't leave account A's
+          // language/theme/etc. visible to account B before the next pull
+          // completes. Reset All Data (the other resetStore() caller) also
+          // wipes the matching cloud row via deleteAllCloudData(), so this
+          // stays consistent there instead of resurrecting the old values
+          // on the next sync.
+          showNick: true,
+          showTeamLogo: true,
+          groupByTours: true,
+          showAvgGoals: true,
+          standingsViewMode: 'table',
+          colorScheme: 'dark',
+          language: 'en',
         });
         syncSuppressionRef.current = false;
 
@@ -245,13 +318,17 @@ export const useStore = create<RootState>()(
         players: state.players,
         teams: state.teams,
         pendingSyncTables: state.pendingSyncTables,
+        lastSyncedUserId: state.lastSyncedUserId,
         showNick: state.showNick,
         showTeamLogo: state.showTeamLogo,
         groupByTours: state.groupByTours,
+        showAvgGoals: state.showAvgGoals,
+        standingsViewMode: state.standingsViewMode,
         colorScheme: state.colorScheme,
         language: state.language,
         demoMode: state.demoMode,
         realDataBackup: state.realDataBackup,
+        hasSeenOnboarding: state.hasSeenOnboarding,
       }),
     },
   ),
