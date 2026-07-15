@@ -10,6 +10,13 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.45',
+    internal: [
+      'Internal: extended Sentry error reporting to every remaining previously-silent/console-only catch block outside the sync/storage layer (local storage fallbacks, backup read/write/share/delete, OCR/upload/resize flows, share-capture flows, service worker registration) — no visible change',
+      'Internal: fixed Sheet keeping its content mounted forever after first open instead of unmounting once the close animation finishes, which was causing a Playwright e2e assertion to fail — no visible change',
+    ],
+  },
+  {
     version: '1.9.44',
     added: [
       'Added a "Forgot password?" link on the sign-in screen to reset your password by email',
