@@ -49,11 +49,14 @@ const tables: Record<string, Map<string, Row>> = {
   rounds: new Map(),
   matches: new Map(),
   closed_tournaments: new Map(),
+  user_settings: new Map(),
 };
 let networkUp = true;
 
 function keyFor(table: string, row: Row): string {
-  return table === 'teams' ? (row.code as string) : (row.id as string);
+  if (table === 'teams') return row.code as string;
+  if (table === 'user_settings') return row.user_id as string;
+  return row.id as string;
 }
 
 function parseInList(raw: string): string[] {

@@ -84,6 +84,16 @@ beforeEach(() => {
 
 // ─── pushState ───────────────────────────────────────────────────────────────
 
+const BASE_SETTINGS: SyncPayload['settings'] = {
+  showNick: true,
+  showTeamLogo: true,
+  groupByTours: true,
+  showAvgGoals: true,
+  standingsViewMode: 'table',
+  colorScheme: 'dark',
+  language: 'en',
+};
+
 describe('pushState', () => {
   const basePayload: SyncPayload = {
     tournamentId: '',
@@ -102,6 +112,7 @@ describe('pushState', () => {
       roundPlayers: [],
       hasTournament: false,
     },
+    settings: BASE_SETTINGS,
   };
 
   it('does nothing when there is no signed-in user', async () => {
@@ -200,6 +211,33 @@ describe('pushState', () => {
       ),
     ).rejects.toThrow(/foreign key constraint/);
   });
+
+  it('upserts user_settings only when settings is in the dirty set', async () => {
+    mockGetCurrentUserId.mockResolvedValue('user-1');
+    const { db, calls } = buildMockDb();
+    setMockDb(db);
+
+    await pushState(
+      { ...basePayload, settings: { ...BASE_SETTINGS, language: 'uk', colorScheme: 'light' } },
+      new Set(['settings']),
+    );
+
+    const settingsUpsert = calls.find((c) => c.table === 'user_settings' && c.method === 'upsert');
+    expect(settingsUpsert).toBeDefined();
+    expect(settingsUpsert!.args[0]).toEqual(
+      expect.objectContaining({
+        user_id: 'user-1',
+        language: 'uk',
+        color_scheme: 'light',
+      }),
+    );
+
+    mockGetCurrentUserId.mockResolvedValue('user-1');
+    const { db: db2, calls: calls2 } = buildMockDb();
+    setMockDb(db2);
+    await pushState(basePayload, new Set(['players']));
+    expect(calls2.some((c) => c.table === 'user_settings')).toBe(false);
+  });
 });
 
 // ─── deleteAllCloudData ──────────────────────────────────────────────────────
@@ -215,14 +253,14 @@ describe('deleteAllCloudData', () => {
     expect(calls).toHaveLength(0);
   });
 
-  it('deletes players, teams, closed_tournaments and tournaments scoped to the user, with no survivor filter', async () => {
+  it('deletes players, teams, closed_tournaments, tournaments and user_settings scoped to the user, with no survivor filter', async () => {
     mockGetCurrentUserId.mockResolvedValue('user-1');
     const { db, calls } = buildMockDb();
     setMockDb(db);
 
     await deleteAllCloudData();
 
-    for (const table of ['players', 'teams', 'closed_tournaments', 'tournaments']) {
+    for (const table of ['players', 'teams', 'closed_tournaments', 'tournaments', 'user_settings']) {
       const del = calls.find((c) => c.table === table && c.method === 'delete');
       expect(del).toBeDefined();
       const eq = calls.find((c) => c.table === table && c.method === 'eq');
@@ -309,6 +347,13 @@ describe('buildSyncPayload', () => {
       roundOpen: true,
       roundPlayers: [],
       hasTournament: true,
+      showNick: false,
+      showTeamLogo: true,
+      groupByTours: false,
+      showAvgGoals: true,
+      standingsViewMode: 'cards',
+      colorScheme: 'light',
+      language: 'uk',
     });
 
     expect(payload.matches[0].media).toEqual([keptMedia]);
@@ -323,6 +368,15 @@ describe('buildSyncPayload', () => {
       roundOpen: true,
       roundPlayers: [],
       hasTournament: true,
+    });
+    expect(payload.settings).toEqual({
+      showNick: false,
+      showTeamLogo: true,
+      groupByTours: false,
+      showAvgGoals: true,
+      standingsViewMode: 'cards',
+      colorScheme: 'light',
+      language: 'uk',
     });
   });
 });
@@ -352,11 +406,13 @@ describe('pushAllTables', () => {
         roundPlayers: [],
         hasTournament: false,
       },
+      settings: BASE_SETTINGS,
     });
 
     expect(calls.some((c) => c.table === 'players' && c.method === 'upsert')).toBe(true);
     expect(calls.some((c) => c.table === 'teams' && c.method === 'upsert')).toBe(true);
     expect(calls.some((c) => c.table === 'tournaments' && c.method === 'delete')).toBe(true);
+    expect(calls.some((c) => c.table === 'user_settings' && c.method === 'upsert')).toBe(true);
   });
 });
 
@@ -399,6 +455,47 @@ describe('pullState', () => {
       },
     ]);
     expect(result!.hasTournament).toBe(false);
+    expect(result!.settings).toBeNull();
+  });
+
+  it('maps a user_settings row when one exists (#81)', async () => {
+    mockGetCurrentUserId.mockResolvedValue('user-1');
+    const { db } = buildMockDb({
+      players: { data: [], error: null },
+      teams: { data: [], error: null },
+      tournaments: { data: [], error: null },
+      rounds: { data: [], error: null },
+      matches: { data: [], error: null },
+      closed_tournaments: { data: [], error: null },
+      user_settings: {
+        data: [
+          {
+            user_id: 'user-1',
+            show_nick: false,
+            show_team_logo: true,
+            group_by_tours: false,
+            show_avg_goals: true,
+            standings_view_mode: 'cards',
+            color_scheme: 'light',
+            language: 'uk',
+          },
+        ],
+        error: null,
+      },
+    });
+    setMockDb(db);
+
+    const result = await pullState();
+
+    expect(result!.settings).toEqual({
+      showNick: false,
+      showTeamLogo: true,
+      groupByTours: false,
+      showAvgGoals: true,
+      standingsViewMode: 'cards',
+      colorScheme: 'light',
+      language: 'uk',
+    });
   });
 
   it('throws instead of silently returning an empty state when a query errors', async () => {

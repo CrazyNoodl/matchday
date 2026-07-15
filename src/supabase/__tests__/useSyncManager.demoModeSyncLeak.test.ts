@@ -133,6 +133,7 @@ it('applies a newer cloud pull on exiting Demo Mode instead of always short-circ
     round: 0,
     roundOpen: false,
     roundPlayers: [],
+    settings: null,
   };
   mockPullState.mockResolvedValue(cloudSnapshot);
   mockPushState.mockClear();

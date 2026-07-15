@@ -10,6 +10,14 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.42',
+    fixed: [
+      'Fixed local backups showing the previous account\'s data after switching accounts on the same device',
+      'Fixed sign-out so it can no longer leak one account\'s data into another account\'s cloud storage if the app closes mid-sign-out',
+      'Display preferences (theme, language, standings view, etc.) now sync per account instead of staying stuck on a shared device',
+    ],
+  },
+  {
     version: '1.9.41',
     fixed: [
       'Fixed a crash ("Something went wrong") when opening an archived round from a closed tournament in the Archive tab',

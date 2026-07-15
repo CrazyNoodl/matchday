@@ -62,6 +62,7 @@ const tables: Record<string, Map<string, Row>> = {
   rounds: new Map(),
   matches: new Map(),
   closed_tournaments: new Map(),
+  user_settings: new Map(),
 };
 
 // FIFO of held 'matches' table calls — each entry can be resolved on demand,
@@ -76,7 +77,9 @@ let heldMatchesCalls: Deferred[] = [];
 let holdMatchesCalls = false;
 
 function keyFor(table: string, row: Row): string {
-  return table === 'teams' ? (row.code as string) : (row.id as string);
+  if (table === 'teams') return row.code as string;
+  if (table === 'user_settings') return row.user_id as string;
+  return row.id as string;
 }
 
 function parseInList(raw: string): string[] {
