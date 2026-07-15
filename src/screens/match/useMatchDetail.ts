@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import * as Sentry from '@sentry/react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useGoBack } from '@/utils/useGoBack';
@@ -70,7 +71,11 @@ export function useMatchDetail() {
         setRemoteMatch(m);
         setRemoteLoading(false);
       })
-      .catch(() => setRemoteLoading(false));
+      .catch((e) => {
+        console.warn('[useMatchDetail] fetchMatchById failed:', e);
+        Sentry.captureException(e, { tags: { matchDetailOp: 'fetchMatchById' } });
+        setRemoteLoading(false);
+      });
   }, [id, localMatch, syncStatus]);
 
   const match = localMatch ?? remoteMatch ?? undefined;
@@ -246,8 +251,10 @@ export function useMatchDetail() {
           if (type === 'image') {
             try {
               localUri = (await resizeImage(originalUri, asset, MEDIA_MAX_DIMENSION)).uri;
-            } catch {
-              /* fall back to the original file if resizing fails */
+            } catch (e) {
+              // Fall back to the original file if resizing fails
+              console.warn('[useMatchDetail] resizeImage (media) failed:', e);
+              Sentry.captureException(e, { tags: { matchDetailOp: 'resizeImage:media' } });
             }
           }
 
@@ -341,13 +348,17 @@ export function useMatchDetail() {
                 base64: true,
               });
               if (payload.base64) base64 = payload.base64;
-            } catch {
-              /* keep original base64 */
+            } catch (e) {
+              // Keep original base64
+              console.warn('[useMatchDetail] resizeImage (OCR payload) failed:', e);
+              Sentry.captureException(e, { tags: { matchDetailOp: 'resizeImage:ocrPayload' } });
             }
             try {
               const stats = await extractStatsFromPhoto(base64, asset.mimeType ?? 'image/jpeg');
               return { asset, stats, ocrFailed: false };
-            } catch {
+            } catch (e) {
+              console.warn('[useMatchDetail] extractStatsFromPhoto failed:', e);
+              Sentry.captureException(e, { tags: { matchDetailOp: 'extractStatsFromPhoto' } });
               return { asset, stats: [] as ExtractedStat[], ocrFailed: true };
             }
           }),
@@ -380,8 +391,10 @@ export function useMatchDetail() {
               storageUri = (
                 await resizeImage(r.asset.uri, r.asset, STAT_PHOTO_STORAGE_MAX_DIMENSION)
               ).uri;
-            } catch {
-              /* fall back to the original file if resizing fails */
+            } catch (e) {
+              // Fall back to the original file if resizing fails
+              console.warn('[useMatchDetail] resizeImage (stat photo storage) failed:', e);
+              Sentry.captureException(e, { tags: { matchDetailOp: 'resizeImage:statPhoto' } });
             }
             // Demo Mode matches are discarded on exit (realDataBackup restore)
             // and must never reach the user's real cloud storage — keep the
@@ -458,7 +471,9 @@ export function useMatchDetail() {
         } else if (map.size === 0 && anyPhotoOcrFailed) {
           setShowOcrFailed(true);
         }
-      } catch {
+      } catch (e) {
+        console.warn('[useMatchDetail] import stats flow failed:', e);
+        Sentry.captureException(e, { tags: { matchDetailOp: 'handleImportStats' } });
         setShowOcrFailed(true);
       } finally {
         setImportingStats(false);

@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
+import * as Sentry from '@sentry/react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { uploadTeamLogo } from '@/supabase/storage';
 import { resizeImage, TEAM_LOGO_MAX_DIMENSION } from '@/utils/imageResize';
@@ -72,8 +73,10 @@ export function useTeamEditForm({ teams, addTeam, updateTeam, demoMode }: UseTea
     // Downscale before upload — see #62. Logos only ever render as a small badge.
     try {
       localUri = (await resizeImage(asset.uri, asset, TEAM_LOGO_MAX_DIMENSION)).uri;
-    } catch {
-      /* fall back to the original file if resizing fails */
+    } catch (e) {
+      // Fall back to the original file if resizing fails
+      console.warn('[useTeamEditForm] resizeImage (logo) failed:', e);
+      Sentry.captureException(e, { tags: { teamEditOp: 'resizeImage:logo' } });
     }
     // Demo Mode edits are thrown away on exit (realDataBackup restore) and
     // must never reach the user's real cloud storage — keep the picked
