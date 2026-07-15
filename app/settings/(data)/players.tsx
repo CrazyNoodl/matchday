@@ -4,12 +4,11 @@ import { useGoBack } from '@/utils/useGoBack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStore } from '@/store';
 import { useColors } from '@/theme';
-import { NavHeader, Avatar, EmptyState, GlowBackground } from '@/components';
-import { type Player } from '@/store/types';
+import { NavHeader, Avatar, EmptyState, GlowBackground, PlayerEditSheet } from '@/components';
 import { useTranslation } from 'react-i18next';
 import { makeStyles } from '@/screens/settings/players/players.styles';
-import { PlayerEditSheet } from '@/screens/settings/players/PlayerEditSheet';
 import { PlayerDialogs } from '@/screens/settings/players/PlayerDialogs';
+import { usePlayerEditForm } from '@/hooks/usePlayerEditForm';
 
 export default function PlayersScreen() {
   const goBack = useGoBack();
@@ -25,54 +24,15 @@ export default function PlayersScreen() {
   const updatePlayer = useStore((s) => s.updatePlayer);
   const deletePlayer = useStore((s) => s.deletePlayer);
 
-  const [editingPlayer, setEditingPlayer] = useState<Player | null>(null);
-  const [showEdit, setShowEdit] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showCannotDelete, setShowCannotDelete] = useState(false);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
-  // Edit form state
-  const [formName, setFormName] = useState('');
-  const [formNick, setFormNick] = useState('');
-  const [formTeam, setFormTeam] = useState('');
-
-  const openCreate = useCallback(() => {
-    setEditingPlayer(null);
-    setFormName('');
-    setFormNick('');
-    setFormTeam(teams[0]?.code ?? '');
-    setShowEdit(true);
-  }, [teams]);
-
-  const openEdit = useCallback((player: Player) => {
-    setEditingPlayer(player);
-    setFormName(player.name);
-    setFormNick(player.nick ?? '');
-    setFormTeam(player.teamCode);
-    setShowEdit(true);
-  }, []);
-
-  const handleSave = useCallback(() => {
-    const name = formName.trim();
-    if (!name) return;
-
-    if (editingPlayer) {
-      updatePlayer({
-        ...editingPlayer,
-        name,
-        nick: formNick.trim() || undefined,
-        teamCode: formTeam,
-      });
-    } else {
-      addPlayer({
-        id: `player-${Date.now()}`,
-        name,
-        nick: formNick.trim() || undefined,
-        teamCode: formTeam,
-      });
-    }
-    setShowEdit(false);
-  }, [formName, formNick, formTeam, editingPlayer, addPlayer, updatePlayer]);
+  const playerForm = usePlayerEditForm({
+    addPlayer,
+    updatePlayer,
+    defaultTeamCode: useCallback(() => teams[0]?.code ?? '', [teams]),
+  });
 
   const handleDelete = useCallback(
     (id: string) => {
@@ -107,7 +67,7 @@ export default function PlayersScreen() {
         subtitle={t('settings.data.playersCount', { count: players.length })}
         onBack={() => goBack()}
         rightElement={
-          <TouchableOpacity style={styles.addBtn} onPress={openCreate} activeOpacity={0.8}>
+          <TouchableOpacity style={styles.addBtn} onPress={playerForm.openCreate} activeOpacity={0.8}>
             <Text style={styles.addBtnText}>{'+ ' + t('common.add').toUpperCase()}</Text>
           </TouchableOpacity>
         }
@@ -122,7 +82,7 @@ export default function PlayersScreen() {
           <EmptyState
             message={t('players.noResults')}
             ctaText={t('players.noResultsAction')}
-            onPress={openCreate}
+            onPress={playerForm.openCreate}
           />
         ) : (
           players.map((player) => (
@@ -135,7 +95,7 @@ export default function PlayersScreen() {
               <View style={styles.playerActions}>
                 <TouchableOpacity
                   style={styles.actionBtn}
-                  onPress={() => openEdit(player)}
+                  onPress={() => playerForm.openEdit(player)}
                   activeOpacity={0.75}
                   hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 >
@@ -157,17 +117,17 @@ export default function PlayersScreen() {
       </ScrollView>
 
       <PlayerEditSheet
-        visible={showEdit}
-        onClose={() => setShowEdit(false)}
-        editingPlayer={editingPlayer}
+        visible={playerForm.visible}
+        onClose={playerForm.close}
+        editingPlayer={playerForm.editingPlayer}
         teams={teams}
-        formName={formName}
-        onChangeName={setFormName}
-        formNick={formNick}
-        onChangeNick={setFormNick}
-        formTeam={formTeam}
-        onChangeTeam={setFormTeam}
-        onSave={handleSave}
+        formName={playerForm.formName}
+        onChangeName={playerForm.setFormName}
+        formNick={playerForm.formNick}
+        onChangeNick={playerForm.setFormNick}
+        formTeam={playerForm.formTeam}
+        onChangeTeam={playerForm.setFormTeam}
+        onSave={playerForm.save}
       />
 
       <PlayerDialogs

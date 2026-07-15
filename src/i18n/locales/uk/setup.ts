@@ -8,7 +8,7 @@ const setup = {
   roundsUnlimited: '∞',
   playersLabel: 'Гравці й команди · {{count}} обрано',
   addPlayer: 'Додати гравця',
-  manageTeams: 'Управління командами',
+  addTeam: 'Додати команду',
   startTournament: 'Розпочати турнір',
   newPlayer: 'Новий гравець',
   form: {
@@ -20,9 +20,6 @@ const setup = {
     nicknamePlaceholder: 'напр. Fox',
   },
   addPlayerBtn: 'Додати гравця',
-  teamFor: 'Команда для {{name}}',
-  manageTeamsTitle: 'Управління командами',
-  teamNamePlaceholder: 'Назва команди',
 } as const;
 
 export default setup;
