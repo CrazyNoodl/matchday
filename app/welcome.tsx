@@ -78,7 +78,9 @@ export default function WelcomeScreen() {
               </View>
             ) : (
               <View style={styles.iconWrap}>
-                <Text style={styles.iconText}>{slide.icon}</Text>
+                <Text style={styles.iconText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.3}>
+                  {slide.icon}
+                </Text>
               </View>
             )}
             <Text style={styles.title}>{t(`welcome.${slide.key}.title`)}</Text>
