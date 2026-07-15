@@ -3,9 +3,9 @@ import { View, Text, TouchableOpacity, TextInput, Image, Platform } from 'react-
 import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { useTranslation } from 'react-i18next';
 import { useColors } from '@/theme';
-import { Sheet } from '@/components';
+import { Sheet } from '@/components/Sheet';
 import { type Team } from '@/store/types';
-import { makeStyles } from './teams.styles';
+import { makeStyles } from './TeamEditSheet.styles';
 
 interface TeamEditSheetProps {
   visible: boolean;
@@ -26,6 +26,8 @@ interface TeamEditSheetProps {
   onSave: () => void;
 }
 
+// Shared by Settings → Teams and the new-tournament Setup flow — one
+// component/behavior for both create and edit, driven entirely by props.
 export function TeamEditSheet({
   visible,
   onClose,
