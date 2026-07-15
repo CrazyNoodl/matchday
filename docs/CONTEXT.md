@@ -15,7 +15,7 @@
 9. [Overlapping-push race deleting matches added while offline (2026-07-09)](#overlapping-push-race-deleting-matches-added-while-offline-2026-07-09)
 10. [Demo Mode leaked into Supabase (2026-07-09)](#demo-mode-leaked-into-supabase-2026-07-09)
 11. [Account-switch data leakage — investigation (2026-07-14)](#account-switch-data-leakage--investigation-2026-07-14)
-12. [Key file locations](#key-file-locations)
+12. [Key file locations](#key-file-locations) — moved to [`docs/FILE_MAP.md`](FILE_MAP.md)
 
 ---
 
@@ -287,24 +287,4 @@ Grep-confirmed no other unscoped local storage exists outside these three — `b
 
 ## Key file locations
 
-```
-src/utils/statDefinitions.ts   — all 23 stat keys + labels
-src/utils/standings.ts         — standings calc + H2H tiebreaker + getFormChips
-src/utils/shareCard.ts         — shared column config for share cards
-src/components/ShareRoundModal/    — share round image modal
-src/components/ShareStandingsModal/ — share standings image modal
-src/utils/backup.ts            — local JSON backup export/import
-src/supabase/sync.ts           — push/pull, deleteAllCloudData, buildSyncPayload
-src/supabase/useSyncManager.ts — dirty-tracking, debounced push, reconnect retry
-src/hooks/useIsOnline.ts       — connectivity + Supabase reachability
-app/stats.tsx                  — Ranking + H2H tabs (all-time aggregation)
-src/utils/statsAggregation.ts  — pure aggregation behind app/stats.tsx (3-layer merge, H2H pairs)
-app/season-stats.tsx           — season-level stats screen
-src/utils/seasonStatsAggregation.ts — pure aggregation behind app/season-stats.tsx (ranked/friendly filter, champ days)
-src/store/types.ts             — all types incl. modal discriminated union
-src/store/index.ts             — Zustand store, MMKV/localStorage adapter
-docs/pitfalls.md               — read before touching i18n or Sheet+scroll
-.storybook/preview.tsx         — theme decorator, i18n init, layout:fullscreen handling
-.storybook/mocks/              — Storybook-only stubs (gorhom-bottom-sheet, expo-router, etc.)
-src/components/Toggle/         — shared on/off control, used by NewRoundModal + ShareRoundModal
-```
+Moved to [`docs/FILE_MAP.md`](FILE_MAP.md) — grouped by area (screens, store, utils, hooks, supabase, components, i18n, theme). Update that file, not this section, when a new file earns its place.

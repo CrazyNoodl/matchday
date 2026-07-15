@@ -114,8 +114,9 @@ File-based routing via `expo-router`. All screens live in `app/`. The router is 
 app/
   _layout.tsx          # Root: font loading, GestureHandlerRootView, Stack config
   index.tsx            # Home
+  welcome.tsx          # First-launch onboarding carousel
   setup.tsx            # Create tournament (multi-step modal-like flow)
-  matchday.tsx         # Active match day (standings + match list + ADD MATCH modal)
+  round.tsx            # Active round (standings + match list + ADD MATCH modal)
   tournament.tsx       # Tournament overview
   stats.tsx            # Stats (Ranking + H2H tabs)
   archive.tsx          # Archive (closed tournaments accordion)
@@ -123,14 +124,21 @@ app/
   season-stats.tsx     # Season-level stats
   match/[id].tsx       # Match detail
   settings/
-    index.tsx          # Settings menu
-    players.tsx        # Player management
-    teams.tsx          # Team management
-    tournaments.tsx    # Closed tournaments list
-    display.tsx        # Display preferences
-    developer.tsx      # Developer tools (debug/reset)
-    import-round.tsx   # Import round from external data
+    index.tsx                     # Settings menu
+    (data)/players.tsx            # Player management
+    (data)/teams.tsx               # Team management
+    (data)/backup.tsx              # Local JSON backup export/import/restore
+    (tournament)/tournaments.tsx   # Closed tournaments list
+    (display)/display.tsx          # Display preferences
+    (language)/language.tsx        # Language picker
+    (developer)/developer.tsx      # Developer tools (debug/reset)
+    (developer)/import-round.tsx   # Import round from external data
+    (developer)/ocr-lab.tsx        # AI stats extraction from photo
+    (developer)/resize-lab.tsx     # Image resize before/after inspector
+    (about)/changelog.tsx          # Changelog viewer
 ```
+
+Route groups (`(data)`, `(display)`, etc.) are URL-invisible folders used only to cluster related settings screens. See `docs/CONTEXT.md`'s "Key file locations" for the full file map incl. `src/`.
 
 ### State Management
 
