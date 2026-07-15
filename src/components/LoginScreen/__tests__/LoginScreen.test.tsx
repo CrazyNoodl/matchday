@@ -243,11 +243,12 @@ describe('mode toggle', () => {
 
   it('clears success message when mode is toggled', async () => {
     mockSignUpWithEmail.mockResolvedValue({ error: null });
-    const { getByText, queryByText, getByPlaceholderText } = await renderScreen();
+    const { getByText, queryByText, getByPlaceholderText, getByTestId } = await renderScreen();
 
     await fireEvent.press(getByText("Don't have an account? Sign up"));
     await fireEvent.changeText(getByPlaceholderText('your@email.com'), 'new@test.com');
-    await fireEvent.changeText(getByPlaceholderText('••••••••'), 'password123');
+    await fireEvent.changeText(getByTestId('password-input'), 'password123');
+    await fireEvent.changeText(getByTestId('confirm-password-input'), 'password123');
     await fireEvent.press(getByText('CREATE ACCOUNT'));
 
     await waitFor(() => expect(getByText(/Account created/)).toBeTruthy());
@@ -263,11 +264,12 @@ describe('mode toggle', () => {
 describe('sign up', () => {
   it('shows success message and switches back to sign-in after successful sign up', async () => {
     mockSignUpWithEmail.mockResolvedValue({ error: null });
-    const { getByText, queryByText, getByPlaceholderText } = await renderScreen();
+    const { getByText, queryByText, getByPlaceholderText, getByTestId } = await renderScreen();
 
     await fireEvent.press(getByText("Don't have an account? Sign up"));
     await fireEvent.changeText(getByPlaceholderText('your@email.com'), 'new@test.com');
-    await fireEvent.changeText(getByPlaceholderText('••••••••'), 'password123');
+    await fireEvent.changeText(getByTestId('password-input'), 'password123');
+    await fireEvent.changeText(getByTestId('confirm-password-input'), 'password123');
     await fireEvent.press(getByText('CREATE ACCOUNT'));
 
     await waitFor(() => {
@@ -280,11 +282,12 @@ describe('sign up', () => {
   it('does NOT call onSuccess after sign up', async () => {
     mockSignUpWithEmail.mockResolvedValue({ error: null });
     const onSuccess = jest.fn();
-    const { getByText, getByPlaceholderText } = await renderScreen(onSuccess);
+    const { getByText, getByPlaceholderText, getByTestId } = await renderScreen(onSuccess);
 
     await fireEvent.press(getByText("Don't have an account? Sign up"));
     await fireEvent.changeText(getByPlaceholderText('your@email.com'), 'new@test.com');
-    await fireEvent.changeText(getByPlaceholderText('••••••••'), 'password123');
+    await fireEvent.changeText(getByTestId('password-input'), 'password123');
+    await fireEvent.changeText(getByTestId('confirm-password-input'), 'password123');
     await fireEvent.press(getByText('CREATE ACCOUNT'));
 
     await waitFor(() => expect(getByText(/Account created/)).toBeTruthy());
@@ -293,11 +296,12 @@ describe('sign up', () => {
 
   it('displays the error message when sign up fails', async () => {
     mockSignUpWithEmail.mockResolvedValue({ error: 'User already registered' });
-    const { getByText, getByPlaceholderText } = await renderScreen();
+    const { getByText, getByPlaceholderText, getByTestId } = await renderScreen();
 
     await fireEvent.press(getByText("Don't have an account? Sign up"));
     await fireEvent.changeText(getByPlaceholderText('your@email.com'), 'existing@test.com');
-    await fireEvent.changeText(getByPlaceholderText('••••••••'), 'password');
+    await fireEvent.changeText(getByTestId('password-input'), 'password');
+    await fireEvent.changeText(getByTestId('confirm-password-input'), 'password');
     await fireEvent.press(getByText('CREATE ACCOUNT'));
 
     await waitFor(() => expect(getByText('User already registered')).toBeTruthy());
@@ -305,11 +309,12 @@ describe('sign up', () => {
 
   it('stays in sign-up mode after a failed sign-up attempt', async () => {
     mockSignUpWithEmail.mockResolvedValue({ error: 'User already registered' });
-    const { getByText, getByPlaceholderText } = await renderScreen();
+    const { getByText, getByPlaceholderText, getByTestId } = await renderScreen();
 
     await fireEvent.press(getByText("Don't have an account? Sign up"));
     await fireEvent.changeText(getByPlaceholderText('your@email.com'), 'existing@test.com');
-    await fireEvent.changeText(getByPlaceholderText('••••••••'), 'password');
+    await fireEvent.changeText(getByTestId('password-input'), 'password');
+    await fireEvent.changeText(getByTestId('confirm-password-input'), 'password');
     await fireEvent.press(getByText('CREATE ACCOUNT'));
 
     await waitFor(() => expect(getByText('User already registered')).toBeTruthy());
@@ -318,11 +323,12 @@ describe('sign up', () => {
 
   it('trims email before passing to signUpWithEmail', async () => {
     mockSignUpWithEmail.mockResolvedValue({ error: null });
-    const { getByText, getByPlaceholderText } = await renderScreen();
+    const { getByText, getByPlaceholderText, getByTestId } = await renderScreen();
 
     await fireEvent.press(getByText("Don't have an account? Sign up"));
     await fireEvent.changeText(getByPlaceholderText('your@email.com'), '  new@test.com  ');
-    await fireEvent.changeText(getByPlaceholderText('••••••••'), 'password123');
+    await fireEvent.changeText(getByTestId('password-input'), 'password123');
+    await fireEvent.changeText(getByTestId('confirm-password-input'), 'password123');
     await fireEvent.press(getByText('CREATE ACCOUNT'));
 
     await waitFor(() =>
@@ -338,5 +344,115 @@ describe('sign up', () => {
 
     await waitFor(() => expect(getByText('Enter email and password')).toBeTruthy());
     expect(mockSignUpWithEmail).not.toHaveBeenCalled();
+  });
+
+  it('requires confirm password to be filled', async () => {
+    const { getByText, getByPlaceholderText, getByTestId } = await renderScreen();
+
+    await fireEvent.press(getByText("Don't have an account? Sign up"));
+    await fireEvent.changeText(getByPlaceholderText('your@email.com'), 'new@test.com');
+    await fireEvent.changeText(getByTestId('password-input'), 'password123');
+    await fireEvent.press(getByText('CREATE ACCOUNT'));
+
+    await waitFor(() => expect(getByText('Enter email and password')).toBeTruthy());
+    expect(mockSignUpWithEmail).not.toHaveBeenCalled();
+  });
+
+  it('rejects an invalid email format', async () => {
+    const { getByText, getByPlaceholderText, getByTestId } = await renderScreen();
+
+    await fireEvent.press(getByText("Don't have an account? Sign up"));
+    await fireEvent.changeText(getByPlaceholderText('your@email.com'), 'not-an-email');
+    await fireEvent.changeText(getByTestId('password-input'), 'password123');
+    await fireEvent.changeText(getByTestId('confirm-password-input'), 'password123');
+    await fireEvent.press(getByText('CREATE ACCOUNT'));
+
+    await waitFor(() => expect(getByText('Enter a valid email')).toBeTruthy());
+    expect(mockSignUpWithEmail).not.toHaveBeenCalled();
+  });
+
+  it('rejects a password shorter than 6 characters', async () => {
+    const { getByText, getByPlaceholderText, getByTestId } = await renderScreen();
+
+    await fireEvent.press(getByText("Don't have an account? Sign up"));
+    await fireEvent.changeText(getByPlaceholderText('your@email.com'), 'new@test.com');
+    await fireEvent.changeText(getByTestId('password-input'), '123');
+    await fireEvent.changeText(getByTestId('confirm-password-input'), '123');
+    await fireEvent.press(getByText('CREATE ACCOUNT'));
+
+    await waitFor(() =>
+      expect(getByText('Password must be at least 6 characters')).toBeTruthy(),
+    );
+    expect(mockSignUpWithEmail).not.toHaveBeenCalled();
+  });
+
+  it('blocks submit when password and confirm password do not match', async () => {
+    const { getByText, getByPlaceholderText, getByTestId } = await renderScreen();
+
+    await fireEvent.press(getByText("Don't have an account? Sign up"));
+    await fireEvent.changeText(getByPlaceholderText('your@email.com'), 'new@test.com');
+    await fireEvent.changeText(getByTestId('password-input'), 'password123');
+    await fireEvent.changeText(getByTestId('confirm-password-input'), 'password124');
+    await fireEvent.press(getByText('CREATE ACCOUNT'));
+
+    // The live hint (already visible) is the only mismatch message — no duplicate error box.
+    expect(mockSignUpWithEmail).not.toHaveBeenCalled();
+  });
+
+  it('shows a live hint while confirm password does not match yet', async () => {
+    const { queryByText, getByText, getByTestId } = await renderScreen();
+
+    await fireEvent.press(getByText("Don't have an account? Sign up"));
+    await fireEvent.changeText(getByTestId('password-input'), 'password123');
+    expect(queryByText('Passwords do not match')).toBeNull();
+
+    await fireEvent.changeText(getByTestId('confirm-password-input'), 'password1');
+    expect(getByText('Passwords do not match')).toBeTruthy();
+
+    await fireEvent.changeText(getByTestId('confirm-password-input'), 'password123');
+    expect(queryByText('Passwords do not match')).toBeNull();
+  });
+
+  it('does not apply the sign-up min-length rule to sign-in passwords', async () => {
+    mockSignInWithEmail.mockResolvedValue({ error: null });
+    const onSuccess = jest.fn();
+    const { getByText, getByPlaceholderText, getByTestId } = await renderScreen(onSuccess);
+
+    await fireEvent.changeText(getByPlaceholderText('your@email.com'), 'user@test.com');
+    await fireEvent.changeText(getByTestId('password-input'), 'pass');
+    await fireEvent.press(getByText('SIGN IN'));
+
+    await waitFor(() => expect(onSuccess).toHaveBeenCalledTimes(1));
+    expect(mockSignInWithEmail).toHaveBeenCalledWith('user@test.com', 'pass');
+  });
+});
+
+// ─── Password visibility toggle ────────────────────────────────────────────────
+
+describe('password visibility toggle', () => {
+  it('starts with password hidden and reveals it on toggle press', async () => {
+    const { getByTestId, getByText } = await renderScreen();
+
+    expect(getByTestId('password-input').props.secureTextEntry).toBe(true);
+
+    await fireEvent.press(getByText('Show'));
+    expect(getByTestId('password-input').props.secureTextEntry).toBe(false);
+
+    await fireEvent.press(getByText('Hide'));
+    expect(getByTestId('password-input').props.secureTextEntry).toBe(true);
+  });
+
+  it('resets visibility toggles when switching modes', async () => {
+    const { getByText, getByTestId, queryByTestId } = await renderScreen();
+
+    await fireEvent.press(getByText('Show'));
+    expect(getByTestId('password-input').props.secureTextEntry).toBe(false);
+
+    await fireEvent.press(getByText("Don't have an account? Sign up"));
+    expect(getByTestId('password-input').props.secureTextEntry).toBe(true);
+    expect(queryByTestId('confirm-password-input')).toBeTruthy();
+
+    await fireEvent.press(getByText('Already have an account? Sign in'));
+    expect(queryByTestId('confirm-password-input')).toBeNull();
   });
 });

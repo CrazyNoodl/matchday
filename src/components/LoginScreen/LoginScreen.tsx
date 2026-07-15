@@ -18,6 +18,9 @@ interface Props {
   onSuccess: () => void;
 }
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const MIN_PASSWORD_LENGTH = 6;
+
 export function LoginScreen({ onSuccess }: Props) {
   const { t } = useTranslation();
   const colors = useColors();
@@ -25,34 +28,67 @@ export function LoginScreen({ onSuccess }: Props) {
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
+  const passwordsMismatch =
+    mode === 'signup' && confirmPassword.length > 0 && password !== confirmPassword;
+
+  function switchMode() {
+    setMode(mode === 'signin' ? 'signup' : 'signin');
+    setError(null);
+    setSuccessMsg(null);
+    setConfirmPassword('');
+    setShowPassword(false);
+    setShowConfirmPassword(false);
+  }
+
   async function handleSubmit() {
     setError(null);
     setSuccessMsg(null);
-    if (!email.trim() || !password.trim()) {
+    const trimmedEmail = email.trim();
+    const missingConfirm = mode === 'signup' && !confirmPassword.trim();
+    if (!trimmedEmail || !password.trim() || missingConfirm) {
       setError(t('auth.missingFields'));
       return;
+    }
+    if (!EMAIL_REGEX.test(trimmedEmail)) {
+      setError(t('auth.invalidEmail'));
+      return;
+    }
+    if (mode === 'signup') {
+      if (password.length < MIN_PASSWORD_LENGTH) {
+        setError(t('auth.passwordTooShort'));
+        return;
+      }
+      if (password !== confirmPassword) {
+        // Mismatch is already surfaced by the live hint below the field —
+        // no need to duplicate it in the error box.
+        return;
+      }
     }
     setLoading(true);
     try {
       if (mode === 'signin') {
-        const { error: err } = await signInWithEmail(email.trim(), password);
+        const { error: err } = await signInWithEmail(trimmedEmail, password);
         if (err) {
           setError(err);
           return;
         }
         onSuccess();
       } else {
-        const { error: err } = await signUpWithEmail(email.trim(), password);
+        const { error: err } = await signUpWithEmail(trimmedEmail, password);
         if (err) {
           setError(err);
           return;
         }
         setSuccessMsg(t('auth.signUpSuccess'));
         setMode('signin');
+        setConfirmPassword('');
       }
     } finally {
       setLoading(false);
@@ -97,14 +133,55 @@ export function LoginScreen({ onSuccess }: Props) {
           />
 
           <Text style={styles.label}>{t('auth.passwordLabel').toUpperCase()}</Text>
-          <TextInput
-            style={styles.input}
-            value={password}
-            onChangeText={setPassword}
-            placeholder="••••••••"
-            placeholderTextColor={colors.text.muted}
-            secureTextEntry
-          />
+          <View style={styles.passwordWrapper}>
+            <TextInput
+              testID="password-input"
+              style={[styles.input, styles.passwordInput]}
+              value={password}
+              onChangeText={setPassword}
+              placeholder="••••••••"
+              placeholderTextColor={colors.text.muted}
+              secureTextEntry={!showPassword}
+            />
+            <TouchableOpacity
+              style={styles.visibilityToggle}
+              onPress={() => setShowPassword((v) => !v)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.visibilityToggleText}>
+                {showPassword ? t('auth.hidePassword') : t('auth.showPassword')}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {mode === 'signup' ? (
+            <>
+              <Text style={styles.label}>{t('auth.confirmPasswordLabel').toUpperCase()}</Text>
+              <View style={styles.passwordWrapper}>
+                <TextInput
+                  testID="confirm-password-input"
+                  style={[styles.input, styles.passwordInput]}
+                  value={confirmPassword}
+                  onChangeText={setConfirmPassword}
+                  placeholder="••••••••"
+                  placeholderTextColor={colors.text.muted}
+                  secureTextEntry={!showConfirmPassword}
+                />
+                <TouchableOpacity
+                  style={styles.visibilityToggle}
+                  onPress={() => setShowConfirmPassword((v) => !v)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.visibilityToggleText}>
+                    {showConfirmPassword ? t('auth.hidePassword') : t('auth.showPassword')}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+              {passwordsMismatch ? (
+                <Text style={styles.fieldHint}>{t('auth.passwordMismatch')}</Text>
+              ) : null}
+            </>
+          ) : null}
 
           <TouchableOpacity
             style={[styles.btn, loading && styles.btnDisabled]}
@@ -123,15 +200,7 @@ export function LoginScreen({ onSuccess }: Props) {
             )}
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.toggleBtn}
-            onPress={() => {
-              setMode(mode === 'signin' ? 'signup' : 'signin');
-              setError(null);
-              setSuccessMsg(null);
-            }}
-            activeOpacity={0.7}
-          >
+          <TouchableOpacity style={styles.toggleBtn} onPress={switchMode} activeOpacity={0.7}>
             <Text style={styles.toggleText}>
               {mode === 'signin' ? t('auth.noAccountPrompt') : t('auth.hasAccountPrompt')}
             </Text>
