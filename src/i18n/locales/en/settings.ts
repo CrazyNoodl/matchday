@@ -21,6 +21,10 @@ const settings = {
   more: {
     section: 'More',
   },
+  help: {
+    showOnboarding: 'Show onboarding again',
+    showOnboardingSub: 'Replay the welcome walkthrough',
+  },
   tournament: {
     label: 'Tournaments',
     noActive: 'No active tournament',

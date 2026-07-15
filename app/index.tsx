@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -14,6 +14,7 @@ export default function HomeScreen() {
   const styles = makeStyles(colors);
   const router = useRouter();
   const { t } = useTranslation();
+  const hasSeenOnboarding = useStore((s) => s.hasSeenOnboarding);
   const hasTournament = useStore((s) => s.hasTournament);
   const tournamentName = useStore((s) => s.tournamentName);
   const round = useStore((s) => s.round);
@@ -25,6 +26,12 @@ export default function HomeScreen() {
   const archivedRounds = useStore((s) => s.archivedRounds);
   const closedTournaments = useStore((s) => s.closedTournaments);
   const setModal = useStore((s) => s.setModal);
+
+  useEffect(() => {
+    if (!hasSeenOnboarding) {
+      router.replace('/welcome');
+    }
+  }, [hasSeenOnboarding, router]);
 
   const SPORT_CHIPS = [
     { label: 'FC / FIFA', active: true, soon: false },

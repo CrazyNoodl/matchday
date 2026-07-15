@@ -254,6 +254,7 @@ export const useStore = create<RootState>()(
         language: state.language,
         demoMode: state.demoMode,
         realDataBackup: state.realDataBackup,
+        hasSeenOnboarding: state.hasSeenOnboarding,
       }),
     },
   ),

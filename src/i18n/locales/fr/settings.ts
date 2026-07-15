@@ -21,6 +21,10 @@ const settings = {
   more: {
     section: 'Plus',
   },
+  help: {
+    showOnboarding: "Revoir l'introduction",
+    showOnboardingSub: "Revoir le guide de bienvenue",
+  },
   tournament: {
     label: 'Tournois',
     noActive: 'Aucun tournoi actif',

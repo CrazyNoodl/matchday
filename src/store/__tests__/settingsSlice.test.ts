@@ -53,3 +53,17 @@ describe('standingsViewMode', () => {
     expect(useStore.getState().standingsViewMode).toBe('table');
   });
 });
+
+describe('hasSeenOnboarding', () => {
+  it('defaults to false', () => {
+    expect(useStore.getState().hasSeenOnboarding).toBe(false);
+  });
+
+  it('setHasSeenOnboarding flips the value', () => {
+    useStore.getState().setHasSeenOnboarding(true);
+    expect(useStore.getState().hasSeenOnboarding).toBe(true);
+
+    useStore.getState().setHasSeenOnboarding(false);
+    expect(useStore.getState().hasSeenOnboarding).toBe(false);
+  });
+});
