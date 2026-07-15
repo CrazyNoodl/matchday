@@ -9,6 +9,18 @@ const auth = {
   createAccount: 'Create account',
   noAccountPrompt: "Don't have an account? Sign up",
   hasAccountPrompt: 'Already have an account? Sign in',
+  forgotPassword: 'Forgot password?',
+  backToSignIn: 'Back to sign in',
+  missingEmail: 'Enter your email',
+  sendResetLink: 'Send reset link',
+  resetEmailSent: 'Check your email for a password reset link.',
+  resetPasswordTitle: 'Set a new password',
+  resetPasswordSubtitle: 'Choose a new password for your account',
+  newPasswordLabel: 'New password',
+  confirmPasswordLabel: 'Confirm password',
+  setNewPassword: 'Set new password',
+  missingPassword: 'Enter and confirm your new password',
+  passwordMismatch: 'Passwords do not match',
 } as const;
 
 export default auth;

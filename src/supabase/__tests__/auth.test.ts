@@ -1,7 +1,14 @@
 // Unit tests for src/supabase/auth.ts
 // Mocks the Supabase client to isolate auth function behavior.
 
-import { getCurrentUserId, signInWithEmail, signUpWithEmail, signOut } from '../auth';
+import {
+  getCurrentUserId,
+  signInWithEmail,
+  signUpWithEmail,
+  resetPasswordForEmail,
+  updatePassword,
+  signOut,
+} from '../auth';
 import { supabase } from '@/supabase/client';
 
 jest.mock('@/supabase/client', () => ({
@@ -10,15 +17,23 @@ jest.mock('@/supabase/client', () => ({
       getSession: jest.fn(),
       signInWithPassword: jest.fn(),
       signUp: jest.fn(),
+      resetPasswordForEmail: jest.fn(),
+      updateUser: jest.fn(),
       signOut: jest.fn(),
     },
   },
   supabaseConfigured: true,
 }));
 
+jest.mock('@/utils/authRecovery', () => ({
+  buildRecoveryRedirectUrl: () => 'matchday://reset-password',
+}));
+
 const mockGetSession = supabase.auth.getSession as jest.Mock;
 const mockSignInWithPassword = supabase.auth.signInWithPassword as jest.Mock;
 const mockSignUp = supabase.auth.signUp as jest.Mock;
+const mockResetPasswordForEmail = supabase.auth.resetPasswordForEmail as jest.Mock;
+const mockUpdateUser = supabase.auth.updateUser as jest.Mock;
 const mockSignOut = supabase.auth.signOut as jest.Mock;
 
 beforeEach(() => {
@@ -106,6 +121,54 @@ describe('signUpWithEmail', () => {
       error: { message: 'Password should be at least 6 characters' },
     });
     const result = await signUpWithEmail('new@example.com', '12');
+    expect(result).toEqual({ error: 'Password should be at least 6 characters' });
+  });
+});
+
+// ─── resetPasswordForEmail ───────────────────────────────────────────────────
+
+describe('resetPasswordForEmail', () => {
+  it('returns { error: null } on success', async () => {
+    mockResetPasswordForEmail.mockResolvedValue({ error: null });
+    const result = await resetPasswordForEmail('user@example.com');
+    expect(result).toEqual({ error: null });
+  });
+
+  it('calls resetPasswordForEmail with the email and a redirectTo URL', async () => {
+    mockResetPasswordForEmail.mockResolvedValue({ error: null });
+    await resetPasswordForEmail('user@example.com');
+    expect(mockResetPasswordForEmail).toHaveBeenCalledWith('user@example.com', {
+      redirectTo: 'matchday://reset-password',
+    });
+  });
+
+  it('returns the error message string from Supabase on failure', async () => {
+    mockResetPasswordForEmail.mockResolvedValue({ error: { message: 'Unable to send email' } });
+    const result = await resetPasswordForEmail('user@example.com');
+    expect(result).toEqual({ error: 'Unable to send email' });
+  });
+});
+
+// ─── updatePassword ──────────────────────────────────────────────────────────
+
+describe('updatePassword', () => {
+  it('returns { error: null } on success', async () => {
+    mockUpdateUser.mockResolvedValue({ error: null });
+    const result = await updatePassword('newSecret123');
+    expect(result).toEqual({ error: null });
+  });
+
+  it('calls updateUser with the new password', async () => {
+    mockUpdateUser.mockResolvedValue({ error: null });
+    await updatePassword('newSecret123');
+    expect(mockUpdateUser).toHaveBeenCalledWith({ password: 'newSecret123' });
+  });
+
+  it('returns the error message string from Supabase on failure', async () => {
+    mockUpdateUser.mockResolvedValue({
+      error: { message: 'Password should be at least 6 characters' },
+    });
+    const result = await updatePassword('123');
     expect(result).toEqual({ error: 'Password should be at least 6 characters' });
   });
 });

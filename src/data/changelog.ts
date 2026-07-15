@@ -10,6 +10,12 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.44',
+    added: [
+      'Added a "Forgot password?" link on the sign-in screen to reset your password by email',
+    ],
+  },
+  {
     version: '1.9.43',
     added: [
       'The team badge next to a selected player in tournament Setup is now tappable, opening a quick picker to change that player\'s team without leaving the setup flow',

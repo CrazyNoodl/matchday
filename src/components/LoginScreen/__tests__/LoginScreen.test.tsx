@@ -6,15 +6,17 @@ import '@/i18n';
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { LoginScreen } from '../LoginScreen';
-import { signInWithEmail, signUpWithEmail } from '@/supabase/auth';
+import { signInWithEmail, signUpWithEmail, resetPasswordForEmail } from '@/supabase/auth';
 
 jest.mock('@/supabase/auth', () => ({
   signInWithEmail: jest.fn(),
   signUpWithEmail: jest.fn(),
+  resetPasswordForEmail: jest.fn(),
 }));
 
 const mockSignInWithEmail = signInWithEmail as jest.Mock;
 const mockSignUpWithEmail = signUpWithEmail as jest.Mock;
+const mockResetPasswordForEmail = resetPasswordForEmail as jest.Mock;
 
 async function renderScreen(onSuccess = jest.fn()) {
   return render(<LoginScreen onSuccess={onSuccess} />);
@@ -338,5 +340,68 @@ describe('sign up', () => {
 
     await waitFor(() => expect(getByText('Enter email and password')).toBeTruthy());
     expect(mockSignUpWithEmail).not.toHaveBeenCalled();
+  });
+});
+
+// ─── Forgot password ──────────────────────────────────────────────────────────
+
+describe('forgot password', () => {
+  it('switches to forgot-password mode and hides the password field', async () => {
+    const { getByText, queryByPlaceholderText } = await renderScreen();
+    await fireEvent.press(getByText('Forgot password?'));
+
+    expect(getByText('SEND RESET LINK')).toBeTruthy();
+    expect(queryByPlaceholderText('••••••••')).toBeNull();
+  });
+
+  it('does not show the forgot-password link in sign-up mode', async () => {
+    const { getByText, queryByText } = await renderScreen();
+    await fireEvent.press(getByText("Don't have an account? Sign up"));
+
+    expect(queryByText('Forgot password?')).toBeNull();
+  });
+
+  it('validates empty email before calling the API', async () => {
+    const { getByText } = await renderScreen();
+    await fireEvent.press(getByText('Forgot password?'));
+    await fireEvent.press(getByText('SEND RESET LINK'));
+
+    await waitFor(() => expect(getByText('Enter your email')).toBeTruthy());
+    expect(mockResetPasswordForEmail).not.toHaveBeenCalled();
+  });
+
+  it('sends the trimmed email and switches back to sign-in with a success message', async () => {
+    mockResetPasswordForEmail.mockResolvedValue({ error: null });
+    const { getByText, getByPlaceholderText } = await renderScreen();
+
+    await fireEvent.press(getByText('Forgot password?'));
+    await fireEvent.changeText(getByPlaceholderText('your@email.com'), '  user@test.com  ');
+    await fireEvent.press(getByText('SEND RESET LINK'));
+
+    await waitFor(() => {
+      expect(mockResetPasswordForEmail).toHaveBeenCalledWith('user@test.com');
+      expect(getByText('Check your email for a password reset link.')).toBeTruthy();
+      expect(getByText('SIGN IN')).toBeTruthy();
+    });
+  });
+
+  it('displays the error message when the reset request fails', async () => {
+    mockResetPasswordForEmail.mockResolvedValue({ error: 'Rate limit exceeded' });
+    const { getByText, getByPlaceholderText } = await renderScreen();
+
+    await fireEvent.press(getByText('Forgot password?'));
+    await fireEvent.changeText(getByPlaceholderText('your@email.com'), 'user@test.com');
+    await fireEvent.press(getByText('SEND RESET LINK'));
+
+    await waitFor(() => expect(getByText('Rate limit exceeded')).toBeTruthy());
+  });
+
+  it('returns to sign-in mode via "Back to sign in" without calling the API', async () => {
+    const { getByText } = await renderScreen();
+    await fireEvent.press(getByText('Forgot password?'));
+    await fireEvent.press(getByText('Back to sign in'));
+
+    expect(getByText('SIGN IN')).toBeTruthy();
+    expect(mockResetPasswordForEmail).not.toHaveBeenCalled();
   });
 });

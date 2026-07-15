@@ -11,27 +11,56 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useColors } from '@/theme';
-import { signInWithEmail, signUpWithEmail } from '@/supabase/auth';
+import { signInWithEmail, signUpWithEmail, resetPasswordForEmail } from '@/supabase/auth';
 import { makeStyles } from './LoginScreen.styles';
 
 interface Props {
   onSuccess: () => void;
 }
 
+type Mode = 'signin' | 'signup' | 'forgot';
+
 export function LoginScreen({ onSuccess }: Props) {
   const { t } = useTranslation();
   const colors = useColors();
   const styles = makeStyles(colors);
-  const [mode, setMode] = useState<'signin' | 'signup'>('signin');
+  const [mode, setMode] = useState<Mode>('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
+  function switchMode(next: Mode) {
+    setMode(next);
+    setError(null);
+    setSuccessMsg(null);
+  }
+
   async function handleSubmit() {
     setError(null);
     setSuccessMsg(null);
+
+    if (mode === 'forgot') {
+      if (!email.trim()) {
+        setError(t('auth.missingEmail'));
+        return;
+      }
+      setLoading(true);
+      try {
+        const { error: err } = await resetPasswordForEmail(email.trim());
+        if (err) {
+          setError(err);
+          return;
+        }
+        setSuccessMsg(t('auth.resetEmailSent'));
+        setMode('signin');
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
     if (!email.trim() || !password.trim()) {
       setError(t('auth.missingFields'));
       return;
@@ -96,15 +125,29 @@ export function LoginScreen({ onSuccess }: Props) {
             autoCorrect={false}
           />
 
-          <Text style={styles.label}>{t('auth.passwordLabel').toUpperCase()}</Text>
-          <TextInput
-            style={styles.input}
-            value={password}
-            onChangeText={setPassword}
-            placeholder="••••••••"
-            placeholderTextColor={colors.text.muted}
-            secureTextEntry
-          />
+          {mode !== 'forgot' && (
+            <>
+              <Text style={styles.label}>{t('auth.passwordLabel').toUpperCase()}</Text>
+              <TextInput
+                style={styles.input}
+                value={password}
+                onChangeText={setPassword}
+                placeholder="••••••••"
+                placeholderTextColor={colors.text.muted}
+                secureTextEntry
+              />
+            </>
+          )}
+
+          {mode === 'signin' && (
+            <TouchableOpacity
+              style={styles.forgotBtn}
+              onPress={() => switchMode('forgot')}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.forgotText}>{t('auth.forgotPassword')}</Text>
+            </TouchableOpacity>
+          )}
 
           <TouchableOpacity
             style={[styles.btn, loading && styles.btnDisabled]}
@@ -118,22 +161,24 @@ export function LoginScreen({ onSuccess }: Props) {
               <Text style={styles.btnText}>
                 {mode === 'signin'
                   ? t('auth.signIn').toUpperCase()
-                  : t('auth.createAccount').toUpperCase()}
+                  : mode === 'signup'
+                    ? t('auth.createAccount').toUpperCase()
+                    : t('auth.sendResetLink').toUpperCase()}
               </Text>
             )}
           </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.toggleBtn}
-            onPress={() => {
-              setMode(mode === 'signin' ? 'signup' : 'signin');
-              setError(null);
-              setSuccessMsg(null);
-            }}
+            onPress={() => switchMode(mode === 'signin' ? 'signup' : 'signin')}
             activeOpacity={0.7}
           >
             <Text style={styles.toggleText}>
-              {mode === 'signin' ? t('auth.noAccountPrompt') : t('auth.hasAccountPrompt')}
+              {mode === 'signin'
+                ? t('auth.noAccountPrompt')
+                : mode === 'signup'
+                  ? t('auth.hasAccountPrompt')
+                  : t('auth.backToSignIn')}
             </Text>
           </TouchableOpacity>
         </View>
