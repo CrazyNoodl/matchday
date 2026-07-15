@@ -163,6 +163,25 @@ export function useSyncManager() {
         }
         Sentry.setUser({ id: userId });
 
+        // Defense-in-depth for #80: the local store should only ever hold
+        // one account's data at a time. If it's still tagged for a
+        // *different* account than the one now signed in — e.g. a sign-out
+        // crashed between resetStore() and signOut(), or some other bug left
+        // stale data behind — force a wipe (including any dirty tables just
+        // seeded above, which belong to the old account) before this data
+        // can be read as "local data to bootstrap-push" into the wrong
+        // account's cloud rows. A null lastSyncedUserId (fresh install, or
+        // already reset) is not a mismatch — it just means "unknown", which
+        // is safe.
+        if (
+          useStore.getState().lastSyncedUserId &&
+          useStore.getState().lastSyncedUserId !== userId
+        ) {
+          await useStore.getState().resetStore();
+          dirtyRef.current = new Set();
+        }
+        useStore.getState().setLastSyncedUserId(userId);
+
         if (dirtyRef.current.size > 0) {
           // Local edits from a previous session never reached the cloud.
           // This app is local-first, so push them now, before any pull —

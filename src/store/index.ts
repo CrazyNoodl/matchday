@@ -99,6 +99,13 @@ interface RootActions {
   // useSyncManager's init(), which pushes these before ever pulling.
   pendingSyncTables: string[];
   setPendingSyncTables: (tables: string[]) => void;
+  // The Supabase user id the local store's data was last confirmed to belong
+  // to. Persisted so useSyncManager's init() can detect, on next launch, that
+  // local data survived under the wrong account (e.g. a sign-out crashed
+  // between resetStore() and signOut()) and force a wipe before that stale
+  // data can reach the newly-signed-in account's cloud rows — see #80.
+  lastSyncedUserId: string | null;
+  setLastSyncedUserId: (id: string | null) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -153,6 +160,9 @@ export const useStore = create<RootState>()(
 
       pendingSyncTables: [],
       setPendingSyncTables: (tables) => set({ pendingSyncTables: tables }),
+
+      lastSyncedUserId: null,
+      setLastSyncedUserId: (id) => set({ lastSyncedUserId: id }),
 
       // deleteCloudMedia defaults to false: resetStore() is also used by
       // sign-out to clear the *local* cache so it can't leak into the next
@@ -210,6 +220,7 @@ export const useStore = create<RootState>()(
           selectedMatchId: null,
           viewingRound: null,
           viewingTournament: null,
+          lastSyncedUserId: null,
         });
         syncSuppressionRef.current = false;
 
@@ -245,6 +256,7 @@ export const useStore = create<RootState>()(
         players: state.players,
         teams: state.teams,
         pendingSyncTables: state.pendingSyncTables,
+        lastSyncedUserId: state.lastSyncedUserId,
         showNick: state.showNick,
         showTeamLogo: state.showTeamLogo,
         groupByTours: state.groupByTours,
