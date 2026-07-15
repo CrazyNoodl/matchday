@@ -39,7 +39,7 @@ export function PlayerEditSheet({
   const styles = makeStyles(colors);
 
   return (
-    <Sheet visible={visible} onClose={onClose}>
+    <Sheet visible={visible} onClose={onClose} avoidKeyboard>
       <View style={styles.sheet}>
         <Text style={styles.sheetTitle}>
           {editingPlayer

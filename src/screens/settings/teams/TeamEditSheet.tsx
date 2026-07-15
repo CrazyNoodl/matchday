@@ -50,7 +50,7 @@ export function TeamEditSheet({
   const canSave = !!formName.trim() && !!formShort.trim() && !logoUploading;
 
   return (
-    <Sheet visible={visible} onClose={onClose}>
+    <Sheet visible={visible} onClose={onClose} avoidKeyboard>
       <View style={styles.sheet}>
         <Text style={styles.sheetTitle}>
           {editingTeam ? t('teams.editTitle').toUpperCase() : t('teams.newTitle').toUpperCase()}
