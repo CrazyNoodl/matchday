@@ -99,6 +99,16 @@ export function useSyncManager() {
       setTimeout(() => {
         applyingRef.current = false;
       }, 100);
+      // Migration for accounts that already had cloud data before #81
+      // shipped: they have no user_settings row yet, and applyCloudState()
+      // deliberately left local settings untouched (see its comment). Mark
+      // settings dirty so this device's existing local preferences become
+      // that account's first synced settings row, instead of silently never
+      // syncing until the user happens to toggle one manually.
+      if (hasCloudData && !pulled.settings) {
+        dirtyRef.current.add('settings');
+        persistDirty();
+      }
       return hasCloudData ? 'has-data' : 'empty';
     }
 
@@ -315,6 +325,17 @@ export function useSyncManager() {
           dirtyRef.current.add('activeTournament');
         if (state.closedTournaments !== prevState.closedTournaments)
           dirtyRef.current.add('closedTournaments');
+        // Display preferences — account-scoped and synced (#81).
+        if (
+          state.showNick !== prevState.showNick ||
+          state.showTeamLogo !== prevState.showTeamLogo ||
+          state.groupByTours !== prevState.groupByTours ||
+          state.showAvgGoals !== prevState.showAvgGoals ||
+          state.standingsViewMode !== prevState.standingsViewMode ||
+          state.colorScheme !== prevState.colorScheme ||
+          state.language !== prevState.language
+        )
+          dirtyRef.current.add('settings');
         if (dirtyRef.current.size !== sizeBefore) persistDirty();
       }
 

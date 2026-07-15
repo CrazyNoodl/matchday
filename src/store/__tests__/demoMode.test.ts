@@ -153,6 +153,7 @@ describe('demo mode — store isolation', () => {
       round: 0,
       roundOpen: false,
       roundPlayers: [],
+      settings: null,
     });
 
     const s = useStore.getState();
@@ -181,6 +182,7 @@ describe('demo mode — store isolation', () => {
       round: 1,
       roundOpen: false,
       roundPlayers: [],
+      settings: null,
     });
 
     const s = useStore.getState();

@@ -369,8 +369,12 @@ describe('media storage folder lifecycle (#67)', () => {
   });
 });
 
-describe('resetStore — device-level display preferences', () => {
-  it('preserves colorScheme, language, showNick, showTeamLogo and groupByTours across a sign-out reset', async () => {
+describe('resetStore — account-scoped display preferences (#81)', () => {
+  it('resets colorScheme, language, showNick, showTeamLogo and groupByTours to defaults across a sign-out reset', async () => {
+    // These are now account-scoped and synced (#81), not device-local — a
+    // sign-out must reset them so the next account signed in on this device
+    // doesn't briefly inherit account A's language/theme/etc. before the
+    // next pull completes.
     useStore.setState({
       colorScheme: 'light',
       language: 'uk',
@@ -381,11 +385,11 @@ describe('resetStore — device-level display preferences', () => {
 
     await useStore.getState().resetStore();
 
-    expect(useStore.getState().colorScheme).toBe('light');
-    expect(useStore.getState().language).toBe('uk');
-    expect(useStore.getState().showNick).toBe(false);
-    expect(useStore.getState().showTeamLogo).toBe(false);
-    expect(useStore.getState().groupByTours).toBe(false);
+    expect(useStore.getState().colorScheme).toBe('dark');
+    expect(useStore.getState().language).toBe('en');
+    expect(useStore.getState().showNick).toBe(true);
+    expect(useStore.getState().showTeamLogo).toBe(true);
+    expect(useStore.getState().groupByTours).toBe(true);
   });
 
   it('still clears account-scoped data like players and tournaments', async () => {

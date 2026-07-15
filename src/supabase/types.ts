@@ -3,6 +3,7 @@
 
 export type TournamentSyncStatus = 'active' | 'closed';
 export type RoundSyncStatus = 'open' | 'archived';
+export type StandingsViewModeDb = 'table' | 'cards';
 
 export interface Database {
   public: {
@@ -130,6 +131,24 @@ export interface Database {
           updated_at?: string;
         };
         Update: Partial<Database['public']['Tables']['closed_tournaments']['Insert']>;
+        Relationships: [];
+      };
+      user_settings: {
+        Row: {
+          user_id: string;
+          show_nick: boolean;
+          show_team_logo: boolean;
+          group_by_tours: boolean;
+          show_avg_goals: boolean;
+          standings_view_mode: StandingsViewModeDb;
+          color_scheme: string;
+          language: string;
+          updated_at: string;
+        };
+        Insert: Omit<Database['public']['Tables']['user_settings']['Row'], 'updated_at'> & {
+          updated_at?: string;
+        };
+        Update: Partial<Database['public']['Tables']['user_settings']['Insert']>;
         Relationships: [];
       };
     };
