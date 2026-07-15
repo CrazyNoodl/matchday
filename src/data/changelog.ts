@@ -10,6 +10,15 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.43',
+    added: [
+      'The team badge next to a selected player in tournament Setup is now tappable, opening a quick picker to change that player\'s team without leaving the setup flow',
+    ],
+    fixed: [
+      'Deleting a team from Settings no longer leaves players stuck with a dangling team code when that team is still set as a player\'s default team',
+    ],
+  },
+  {
     version: '1.9.42',
     fixed: [
       'Fixed local backups showing the previous account\'s data after switching accounts on the same device',
