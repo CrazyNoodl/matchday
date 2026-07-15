@@ -16,6 +16,7 @@ export * from './NewRoundModal';
 export * from './OfflineScreen';
 export * from './PlayerEditSheet';
 export * from './PlayerRankCard';
+export * from './ResetPasswordScreen';
 export * from './RoundCard';
 export * from './ScoreCounter';
 export * from './SectionLabel';

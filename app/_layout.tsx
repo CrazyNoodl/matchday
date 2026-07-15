@@ -28,10 +28,13 @@ import { useSyncManager } from '@/supabase/useSyncManager';
 import { useMediaRetryManager } from '@/hooks/useMediaRetryManager';
 import { resolveOfflineBannerVariant } from '@/utils/offlineBanner';
 import { supabase, supabaseConfigured } from '@/supabase/client';
-import { LoginScreen, OfflineScreen, ErrorFallback } from '@/components';
+import { signOut } from '@/supabase/auth';
+import { LoginScreen, OfflineScreen, ErrorFallback, ResetPasswordScreen } from '@/components';
 import { useIsOnline } from '@/hooks/useIsOnline';
 import { initSentry } from '@/sentry';
 import { initAnalytics, trackEvent } from '@/analytics';
+import { parseRecoveryTokens } from '@/utils/authRecovery';
+import * as Linking from 'expo-linking';
 import type { Session } from '@supabase/supabase-js';
 
 initSentry();
@@ -147,10 +150,14 @@ function AppContent({
   fontsLoaded,
   session,
   isOnline,
+  passwordRecovery,
+  onRecoveryDone,
 }: {
   fontsLoaded: boolean;
   session: Session | null | undefined;
   isOnline: boolean;
+  passwordRecovery: boolean;
+  onRecoveryDone: () => void;
 }) {
   const colors = useColors();
   const colorScheme = useEffectiveColorScheme();
@@ -167,6 +174,16 @@ function AppContent({
       >
         <ActivityIndicator color={colors.accent.green} size="large" />
       </View>
+    );
+  }
+
+  // Recovery session from a password-reset email link — must set a new
+  // password before dropping the user into the app with a temporary session.
+  if (passwordRecovery) {
+    return (
+      <AppErrorBoundary>
+        <ResetPasswordScreen onDone={onRecoveryDone} />
+      </AppErrorBoundary>
     );
   }
 
@@ -223,6 +240,7 @@ function AppContent({
           >
             <Stack.Screen name="index" />
             <Stack.Screen name="welcome" options={{ gestureEnabled: false }} />
+            <Stack.Screen name="reset-password" options={{ gestureEnabled: false }} />
             <Stack.Screen name="setup" />
             <Stack.Screen name="round" />
             <Stack.Screen name="tournament" />
@@ -265,6 +283,19 @@ export default function RootLayout() {
   const [session, setSession] = useState<Session | null | undefined>(
     supabaseConfigured ? undefined : null,
   );
+  // Lazy-initialized synchronously from the URL on web so the recovery gate is
+  // already active on the very first render — otherwise, if the browser already
+  // has a normal logged-in session, AppContent renders the full app Stack (which
+  // has no /reset-password screen) before the async setSession() below resolves,
+  // and Expo Router's Stack shows its own "Unmatched Route" page instead. Native
+  // can't check synchronously (Linking.getInitialURL() is async); the registered
+  // reset-password route below is the safety net for that platform instead.
+  const [passwordRecovery, setPasswordRecovery] = useState(() => {
+    if (!supabaseConfigured || Platform.OS !== 'web' || typeof window === 'undefined') {
+      return false;
+    }
+    return parseRecoveryTokens(window.location.href) !== null;
+  });
 
   useEffect(() => {
     if (!supabaseConfigured) return;
@@ -273,6 +304,43 @@ export default function RootLayout() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, s) => setSession(s));
     return () => subscription.unsubscribe();
+  }, []);
+
+  // detectSessionInUrl is off (see src/supabase/client.ts), so a password-reset
+  // email link's #access_token/#refresh_token fragment must be parsed and
+  // exchanged for a session by hand, on both cold start and warm deep links.
+  useEffect(() => {
+    if (!supabaseConfigured) return;
+    async function tryRecoverFromUrl(url: string | null) {
+      if (!url) return;
+      const tokens = parseRecoveryTokens(url);
+      if (!tokens) return;
+      const { error } = await supabase.auth.setSession({
+        access_token: tokens.accessToken,
+        refresh_token: tokens.refreshToken,
+      });
+      if (!error) {
+        setPasswordRecovery(true);
+        if (Platform.OS === 'web') {
+          window.history.replaceState(null, '', window.location.pathname + window.location.search);
+        }
+      } else {
+        // Falls back to the normal sign-in screen — covers the synchronous web
+        // initial-state guess above turning out wrong (expired/already-used link).
+        setPasswordRecovery(false);
+        Sentry.captureException(error, { tags: { authOp: 'recovery-set-session' } });
+      }
+    }
+
+    if (Platform.OS === 'web') {
+      tryRecoverFromUrl(window.location.href);
+      return;
+    }
+    Linking.getInitialURL().then(tryRecoverFromUrl);
+    const sub = Linking.addEventListener('url', ({ url }) => {
+      void tryRecoverFromUrl(url);
+    });
+    return () => sub.remove();
   }, []);
 
   useEffect(() => {
@@ -284,7 +352,19 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider>
-      <AppContent fontsLoaded={fontsLoaded} session={session} isOnline={isOnline} />
+      <AppContent
+        fontsLoaded={fontsLoaded}
+        session={session}
+        isOnline={isOnline}
+        passwordRecovery={passwordRecovery}
+        onRecoveryDone={async () => {
+          // Sign out the temporary recovery session before dropping the
+          // `passwordRecovery` gate, so the user never briefly sees the
+          // authenticated app on that session.
+          await signOut();
+          setPasswordRecovery(false);
+        }}
+      />
     </ThemeProvider>
   );
 }

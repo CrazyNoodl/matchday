@@ -24,15 +24,17 @@ export const makeStyles = (colors: AppColors) =>
     },
     title: {
       fontFamily: FontFamily.displayBold,
-      fontSize: 36,
+      fontSize: 28,
       color: colors.text.primary,
-      letterSpacing: 4,
+      letterSpacing: 2,
+      textAlign: 'center',
     },
     sub: {
       fontFamily: FontFamily.body,
       fontSize: FontSize.sm,
       color: colors.text.muted,
       marginTop: Spacing.xs,
+      textAlign: 'center',
     },
     form: {
       gap: Spacing.sm,
@@ -71,23 +73,6 @@ export const makeStyles = (colors: AppColors) =>
       color: colors.bg.base,
       letterSpacing: 1.5,
     },
-    toggleBtn: {
-      alignItems: 'center',
-      paddingVertical: Spacing.sm,
-    },
-    forgotBtn: {
-      alignItems: 'flex-end',
-    },
-    forgotText: {
-      fontFamily: FontFamily.body,
-      fontSize: FontSize.xs,
-      color: colors.text.muted,
-    },
-    toggleText: {
-      fontFamily: FontFamily.body,
-      fontSize: FontSize.sm,
-      color: colors.accent.green,
-    },
     errorBox: {
       backgroundColor: colors.accent.redSubtle,
       borderWidth: 1,
@@ -99,17 +84,5 @@ export const makeStyles = (colors: AppColors) =>
       fontFamily: FontFamily.body,
       fontSize: FontSize.sm,
       color: colors.accent.red,
-    },
-    successBox: {
-      backgroundColor: colors.accent.greenSubtle,
-      borderWidth: 1,
-      borderColor: colors.accent.green + '44',
-      borderRadius: Radius.md,
-      padding: Spacing.sm,
-    },
-    successText: {
-      fontFamily: FontFamily.body,
-      fontSize: FontSize.sm,
-      color: colors.accent.green,
     },
   });
