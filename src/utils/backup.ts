@@ -1,4 +1,5 @@
 import { Platform } from 'react-native';
+import * as Sentry from '@sentry/react-native';
 import { useStore, syncSuppressionRef } from '@/store';
 import type { RootState } from '@/store';
 import { getCurrentUserId } from '@/supabase/auth';
@@ -269,7 +270,9 @@ export async function createBackup(): Promise<
       ok: true,
       meta: { fileName, uri: f.uri, exportedAt: file.exportedAt, sizeBytes: f.size },
     };
-  } catch {
+  } catch (e) {
+    console.warn('[backup] createBackup write failed:', e);
+    Sentry.captureException(e, { tags: { backupOp: 'createBackup' } });
     return { ok: false, reason: 'writeFailed' };
   }
 }
@@ -312,7 +315,9 @@ export async function listBackups(): Promise<BackupMeta[]> {
       });
     }
     return metas.sort((a, b) => (a.fileName < b.fileName ? 1 : -1));
-  } catch {
+  } catch (e) {
+    console.warn('[backup] listBackups failed:', e);
+    Sentry.captureException(e, { tags: { backupOp: 'listBackups' } });
     return [];
   }
 }
@@ -340,7 +345,9 @@ export async function shareBackup(
     if (!(await Sharing.isAvailableAsync())) return { ok: false, reason: 'notAvailable' };
     await Sharing.shareAsync(meta.uri, { mimeType: 'application/json', dialogTitle });
     return { ok: true };
-  } catch {
+  } catch (e) {
+    console.warn('[backup] shareBackup failed:', e);
+    Sentry.captureException(e, { tags: { backupOp: 'shareBackup' } });
     return { ok: false, reason: 'shareFailed' };
   }
 }
@@ -353,8 +360,11 @@ export async function deleteBackup(meta: BackupMeta): Promise<void> {
   try {
     const { File } = (await import('expo-file-system')) as FileSystemModule;
     new File(meta.uri).delete();
-  } catch {
-    // Already gone or inaccessible — nothing further to do.
+  } catch (e) {
+    // Already gone or inaccessible — nothing further to do, but still worth
+    // knowing about if it happens for an unexpected reason (e.g. permissions).
+    console.warn('[backup] deleteBackup failed:', e);
+    Sentry.captureException(e, { tags: { backupOp: 'deleteBackup' } });
   }
 }
 
@@ -374,12 +384,16 @@ export async function readBackupMeta(
       const { File } = (await import('expo-file-system')) as FileSystemModule;
       text = await new File(meta.uri).text();
     }
-  } catch {
+  } catch (e) {
+    console.warn('[backup] readBackupMeta read failed:', e);
+    Sentry.captureException(e, { tags: { backupOp: 'readBackupMeta:read' } });
     return { ok: false, reason: 'readError' };
   }
   try {
     return { ok: true, raw: JSON.parse(text) };
-  } catch {
+  } catch (e) {
+    console.warn('[backup] readBackupMeta parse failed:', e);
+    Sentry.captureException(e, { tags: { backupOp: 'readBackupMeta:parse' } });
     return { ok: false, reason: 'parseError' };
   }
 }
@@ -411,7 +425,9 @@ export async function pickAndReadBackupFile(): Promise<
         reader.onload = () => {
           try {
             resolve({ ok: true, raw: JSON.parse(reader.result as string), fileName: f.name });
-          } catch {
+          } catch (e) {
+            console.warn('[backup] pickAndReadBackupFile web parse failed:', e);
+            Sentry.captureException(e, { tags: { backupOp: 'pickAndReadBackupFile:webParse' } });
             resolve({ ok: false, reason: 'parseError' });
           }
         };
@@ -429,7 +445,9 @@ export async function pickAndReadBackupFile(): Promise<
       type: 'application/json',
       copyToCacheDirectory: true,
     });
-  } catch {
+  } catch (e) {
+    console.warn('[backup] pickAndReadBackupFile document picker failed:', e);
+    Sentry.captureException(e, { tags: { backupOp: 'pickAndReadBackupFile:pick' } });
     return { ok: false, reason: 'readError' };
   }
   if (result.canceled || !result.assets?.[0]) return { ok: false, reason: 'canceled' };
@@ -438,12 +456,16 @@ export async function pickAndReadBackupFile(): Promise<
   try {
     const { File } = (await import('expo-file-system')) as FileSystemModule;
     text = await new File(result.assets[0].uri).text();
-  } catch {
+  } catch (e) {
+    console.warn('[backup] pickAndReadBackupFile native read failed:', e);
+    Sentry.captureException(e, { tags: { backupOp: 'pickAndReadBackupFile:read' } });
     return { ok: false, reason: 'readError' };
   }
   try {
     return { ok: true, raw: JSON.parse(text), fileName: result.assets[0].name };
-  } catch {
+  } catch (e) {
+    console.warn('[backup] pickAndReadBackupFile native parse failed:', e);
+    Sentry.captureException(e, { tags: { backupOp: 'pickAndReadBackupFile:parse' } });
     return { ok: false, reason: 'parseError' };
   }
 }

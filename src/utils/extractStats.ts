@@ -1,4 +1,5 @@
 import { Platform } from 'react-native';
+import * as Sentry from '@sentry/react-native';
 import type { KnownStatKey, StatConfidence, StatKey } from '@/store/types';
 
 export interface ExtractedStat {
@@ -158,7 +159,12 @@ export async function extractStatsFromPhoto(
     let parsed: unknown;
     try {
       parsed = JSON.parse(jsonMatch[0]);
-    } catch {
+    } catch (e) {
+      console.warn('[extractStats] malformed JSON in AI response:', e);
+      Sentry.captureException(e, {
+        tags: { extractStatsOp: 'parseAiResponse' },
+        extra: { rawJson: jsonMatch[0].slice(0, 500) },
+      });
       throw new Error('Malformed JSON in AI response');
     }
 

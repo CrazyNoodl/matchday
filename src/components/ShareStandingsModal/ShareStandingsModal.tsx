@@ -1,4 +1,5 @@
 import React, { useRef, useState, useMemo, useEffect } from 'react';
+import * as Sentry from '@sentry/react-native';
 import {
   View,
   Text,
@@ -290,7 +291,9 @@ export function ShareStandingsModal({
     try {
       const { captureRef } = (await import('react-native-view-shot')) as { captureRef: CaptureRef };
       return await captureRef(cardRef, { format: 'png', quality: 1.0, result: 'tmpfile' });
-    } catch {
+    } catch (e) {
+      console.warn('[ShareStandingsModal] captureNative failed:', e);
+      Sentry.captureException(e, { tags: { shareOp: 'captureNative' } });
       setSaveMessage({ ok: false, text: t('share.captureError') });
       return null;
     }
@@ -310,7 +313,9 @@ export function ShareStandingsModal({
       return new Promise((resolve) => {
         canvas.toBlob((blob) => resolve(blob), 'image/png', 1.0);
       });
-    } catch {
+    } catch (e) {
+      console.warn('[ShareStandingsModal] captureWeb failed:', e);
+      Sentry.captureException(e, { tags: { shareOp: 'captureWeb' } });
       setSaveMessage({ ok: false, text: t('share.captureError') });
       return null;
     }
@@ -342,7 +347,9 @@ export function ShareStandingsModal({
         await MediaLibrary.saveToLibraryAsync(uri);
         setSaveMessage({ ok: true, text: t('share.saved') });
       }
-    } catch {
+    } catch (e) {
+      console.warn('[ShareStandingsModal] handleSave failed:', e);
+      Sentry.captureException(e, { tags: { shareOp: 'handleSave' } });
       setSaveMessage({ ok: false, text: t('share.saveError') });
     } finally {
       setLoading(false);
@@ -378,8 +385,14 @@ export function ShareStandingsModal({
           dialogTitle: t('tournament.shareStandings.dialogTitle'),
         });
       }
-    } catch {
-      // user cancelled share dialog
+    } catch (e) {
+      // navigator.share/Sharing.shareAsync throw AbortError when the user
+      // cancels the share sheet — not a real failure, don't report it.
+      const isUserCancel = e instanceof Error && e.name === 'AbortError';
+      if (!isUserCancel) {
+        console.warn('[ShareStandingsModal] handleShare failed:', e);
+        Sentry.captureException(e, { tags: { shareOp: 'handleShare' } });
+      }
     } finally {
       setLoading(false);
     }

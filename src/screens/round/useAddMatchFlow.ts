@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
+import * as Sentry from '@sentry/react-native';
 import { useTranslation } from 'react-i18next';
 import * as ImagePicker from 'expo-image-picker';
 import { useStore } from '@/store';
@@ -110,7 +111,9 @@ export function useAddMatchFlow({
       });
       closeModal();
       reset();
-    } catch {
+    } catch (e) {
+      console.warn('[useAddMatchFlow] handleSaveMatch failed:', e);
+      Sentry.captureException(e, { tags: { addMatchOp: 'handleSaveMatch' } });
       setShowSaveError(true);
     } finally {
       setIsSavingMatch(false);
@@ -165,8 +168,10 @@ export function useAddMatchFlow({
         updated[i] = { ...p, stats };
       }
       commit('done');
-    } catch {
+    } catch (e) {
       if (ocrCancelledRef.current) return;
+      console.warn('[useAddMatchFlow] runOcr failed:', e);
+      Sentry.captureException(e, { tags: { addMatchOp: 'runOcr' } });
       // A sibling photo's failure must not wipe already-good stats from
       // photos that succeeded — unlike the old flat-scan model, we know
       // exactly which photo failed and leave everything else intact.
@@ -200,11 +205,17 @@ export function useAddMatchFlow({
         if (a.type === 'video') return { asset: a, storageUri: a.uri, ocrBase64: undefined };
 
         const [storageResult, ocrResult] = await Promise.all([
-          resizeImage(a.uri, a, STAT_PHOTO_STORAGE_MAX_DIMENSION).catch(() => ({ uri: a.uri })),
+          resizeImage(a.uri, a, STAT_PHOTO_STORAGE_MAX_DIMENSION).catch((e) => {
+            console.warn('[useAddMatchFlow] resizeImage (storage) failed:', e);
+            Sentry.captureException(e, { tags: { addMatchOp: 'resizeImage:storage' } });
+            return { uri: a.uri };
+          }),
           a.base64
-            ? resizeImage(a.uri, a, OCR_PAYLOAD_MAX_DIMENSION, { base64: true }).catch(() => ({
-                base64: a.base64,
-              }))
+            ? resizeImage(a.uri, a, OCR_PAYLOAD_MAX_DIMENSION, { base64: true }).catch((e) => {
+                console.warn('[useAddMatchFlow] resizeImage (ocr payload) failed:', e);
+                Sentry.captureException(e, { tags: { addMatchOp: 'resizeImage:ocrPayload' } });
+                return { base64: a.base64 };
+              })
             : Promise.resolve({ base64: undefined }),
         ]);
 

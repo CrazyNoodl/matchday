@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { Platform } from 'react-native';
+import * as Sentry from '@sentry/react-native';
 import { type Player, type Team, type Match, type ArchivedRound, type ClosedTournament } from './types';
 import { deleteMediaItem } from '../supabase/storage';
 import { createTournamentSlice, type TournamentSlice } from './slices/tournamentSlice';
@@ -21,19 +22,27 @@ const buildStorage = () => {
       getItem: (name: string): string | null => {
         try {
           return localStorage.getItem(name);
-        } catch {
+        } catch (e) {
+          console.warn('[store] localStorage.getItem failed:', e);
+          Sentry.captureException(e, { tags: { storageOp: 'getItem' } });
           return null;
         }
       },
       setItem: (name: string, value: string): void => {
         try {
           localStorage.setItem(name, value);
-        } catch {}
+        } catch (e) {
+          console.warn('[store] localStorage.setItem failed:', e);
+          Sentry.captureException(e, { tags: { storageOp: 'setItem' } });
+        }
       },
       removeItem: (name: string): void => {
         try {
           localStorage.removeItem(name);
-        } catch {}
+        } catch (e) {
+          console.warn('[store] localStorage.removeItem failed:', e);
+          Sentry.captureException(e, { tags: { storageOp: 'removeItem' } });
+        }
       },
     };
   }
@@ -51,7 +60,9 @@ const buildStorage = () => {
         mmkv.remove(name);
       },
     };
-  } catch {
+  } catch (e) {
+    console.warn('[store] MMKV unavailable, falling back to in-memory storage:', e);
+    Sentry.captureException(e, { tags: { storageOp: 'mmkvInit' } });
     const memory = new Map<string, string>();
     return {
       getItem: (name: string): string | null => memory.get(name) ?? null,

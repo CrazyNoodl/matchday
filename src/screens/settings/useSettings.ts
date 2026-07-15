@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import * as Sentry from '@sentry/react-native';
 import { useRouter } from 'expo-router';
 import { useGoBack } from '@/utils/useGoBack';
 import { useStore } from '@/store';
@@ -80,6 +81,7 @@ export function useSettings() {
       await deleteAllCloudData();
     } catch (e) {
       console.warn('[handleReset] cloud wipe failed', e);
+      Sentry.captureException(e, { tags: { settingsOp: 'deleteAllCloudData' } });
     }
     await store.resetStore({ deleteCloudMedia: true });
     setIsResetting(false);
@@ -118,6 +120,7 @@ export function useSettings() {
       await signOut();
     } catch (e) {
       console.warn('[signOut]', e);
+      Sentry.captureException(e, { tags: { settingsOp: 'signOut' } });
     }
   };
 

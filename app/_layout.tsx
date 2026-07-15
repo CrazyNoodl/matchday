@@ -347,7 +347,10 @@ export default function RootLayout() {
     if (Platform.OS !== 'web' || !('serviceWorker' in navigator)) return;
     navigator.serviceWorker
       .register(`${BASE_URL}/sw.js`, { scope: `${BASE_URL}/` })
-      .catch(() => {});
+      .catch((e) => {
+        console.warn('[_layout] service worker registration failed:', e);
+        Sentry.captureException(e, { tags: { layoutOp: 'serviceWorkerRegister' } });
+      });
   }, []);
 
   return (
