@@ -80,3 +80,58 @@ export const makeWinnerStyles = (colors: AppColors) =>
       letterSpacing: 0.8,
     },
   });
+
+// ---- Leader announcement styles (compact, unlike the full-screen winner
+// celebration — this is a quick toast the user glances at and dismisses) ----
+export const makeLeaderAnnounceStyles = (colors: AppColors) =>
+  StyleSheet.create({
+    overlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0,0,0,0.5)',
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: Spacing['2xl'],
+    },
+    card: {
+      alignItems: 'center',
+      gap: Spacing.sm,
+      backgroundColor: colors.bg.elevated,
+      borderRadius: Radius.lg,
+      borderWidth: 1,
+      borderColor: colors.border.default,
+      paddingHorizontal: Spacing['2xl'],
+      paddingVertical: Spacing.xl,
+      width: '100%',
+      maxWidth: 320,
+    },
+    label: {
+      fontFamily: FontFamily.displayBold,
+      fontSize: FontSize.xs,
+      color: colors.accent.gold,
+      letterSpacing: 2,
+    },
+    name: {
+      fontFamily: FontFamily.displayBold,
+      fontSize: FontSize['2xl'],
+      color: colors.text.primary,
+      textAlign: 'center',
+    },
+    pts: {
+      fontFamily: FontFamily.body,
+      fontSize: FontSize.base,
+      color: colors.text.muted,
+    },
+    doneBtn: {
+      marginTop: Spacing.sm,
+      paddingHorizontal: Spacing.xl,
+      paddingVertical: Spacing.sm,
+      borderRadius: Radius.md,
+      backgroundColor: colors.accent.green,
+    },
+    doneBtnText: {
+      fontFamily: FontFamily.displayBold,
+      fontSize: FontSize.sm,
+      color: colors.accent.greenDark,
+      letterSpacing: 0.6,
+    },
+  });

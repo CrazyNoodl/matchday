@@ -1,4 +1,4 @@
-import { calculateStandings, isTopTied, getFormChips } from '../standings';
+import { calculateStandings, isTopTied, getFormChips, getAnnounceLeaderId } from '../standings';
 import { type Match } from '../../store/types';
 
 const match = (id: string, aId: string, bId: string, aScore: number, bScore: number): Match => ({
@@ -223,5 +223,109 @@ describe('getFormChips', () => {
   it('works correctly when player is side B', () => {
     const matches = [match('m1', 'p2', 'p1', 0, 3)];
     expect(getFormChips(matches, 'p1')).toEqual(['W']);
+  });
+});
+
+describe('getAnnounceLeaderId', () => {
+  // With 2 players a "tour" (round-robin cycle) is exactly 1 match, so these
+  // cases exercise every gate except the tour-boundary check (covered below
+  // with 3 players, where a tour spans multiple matches).
+  const opts = { enabled: true, minPlayers: 0, playerCount: 2 };
+
+  it('returns null when the feature is disabled', () => {
+    const matches = [match('m1', 'p1', 'p2', 2, 0)];
+    const standings = calculateStandings(matches, ['p1', 'p2']);
+    expect(getAnnounceLeaderId(null, standings, matches, { ...opts, enabled: false })).toBeNull();
+  });
+
+  it('returns null when the player count is at or below the threshold', () => {
+    const matches = [match('m1', 'p1', 'p2', 2, 0)];
+    const standings = calculateStandings(matches, ['p1', 'p2']);
+    expect(
+      getAnnounceLeaderId(null, standings, matches, { ...opts, minPlayers: 2 }),
+    ).toBeNull();
+  });
+
+  it('returns null when there are no matches yet', () => {
+    expect(getAnnounceLeaderId(null, [], [], opts)).toBeNull();
+  });
+
+  it('returns null when the top two are still tied after every tiebreaker', () => {
+    const matches = [match('m1', 'p1', 'p2', 1, 1)];
+    const standings = calculateStandings(matches, ['p1', 'p2']);
+    expect(getAnnounceLeaderId(null, standings, matches, opts)).toBeNull();
+  });
+
+  it('returns null when the leader is unchanged from last time', () => {
+    const matches = [match('m1', 'p1', 'p2', 2, 0)];
+    const standings = calculateStandings(matches, ['p1', 'p2']);
+    expect(getAnnounceLeaderId('p1', standings, matches, opts)).toBeNull();
+  });
+
+  it('returns the new leader id when the leader changes', () => {
+    const matches = [match('m1', 'p1', 'p2', 2, 0)];
+    const standings = calculateStandings(matches, ['p1', 'p2']);
+    expect(getAnnounceLeaderId('p2', standings, matches, opts)).toBe('p1');
+  });
+
+  it('returns the leader id on first emergence (prev is null)', () => {
+    const matches = [match('m1', 'p1', 'p2', 2, 0)];
+    const standings = calculateStandings(matches, ['p1', 'p2']);
+    expect(getAnnounceLeaderId(null, standings, matches, opts)).toBe('p1');
+  });
+
+  describe('tour-boundary gate (3 players — a tour is 3 matches)', () => {
+    const tourOpts = { enabled: true, minPlayers: 0, playerCount: 3 };
+    // Tour 1: p1 wins both its matches — clear leader.
+    const m1 = match('m1', 'p1', 'p2', 2, 0);
+    const m2 = match('m2', 'p1', 'p3', 2, 0);
+    const m3 = match('m3', 'p2', 'p3', 2, 0);
+    // Tour 2: p3 wins big enough to overtake p1 on GD despite equal pts.
+    const m4 = match('m4', 'p3', 'p1', 5, 0);
+    const m5 = match('m5', 'p3', 'p2', 5, 0);
+    const m6 = match('m6', 'p2', 'p1', 1, 0);
+
+    it('stays null mid-tour, even if the standings leader has already flipped', () => {
+      const oneMatch = [m1];
+      expect(
+        getAnnounceLeaderId(null, calculateStandings(oneMatch, ['p1', 'p2', 'p3']), oneMatch, tourOpts),
+      ).toBeNull();
+
+      const twoMatches = [m1, m2];
+      expect(
+        getAnnounceLeaderId(
+          null,
+          calculateStandings(twoMatches, ['p1', 'p2', 'p3']),
+          twoMatches,
+          tourOpts,
+        ),
+      ).toBeNull();
+    });
+
+    it('announces the leader once the first tour completes', () => {
+      const tour1 = [m1, m2, m3];
+      const standings = calculateStandings(tour1, ['p1', 'p2', 'p3']);
+      expect(standings[0].playerId).toBe('p1');
+      expect(getAnnounceLeaderId(null, standings, tour1, tourOpts)).toBe('p1');
+    });
+
+    it('stays null mid-second-tour, and null again at the boundary if unchanged', () => {
+      const midTour2 = [m1, m2, m3, m4];
+      expect(
+        getAnnounceLeaderId(
+          'p1',
+          calculateStandings(midTour2, ['p1', 'p2', 'p3']),
+          midTour2,
+          tourOpts,
+        ),
+      ).toBeNull();
+    });
+
+    it('announces the new leader once the second tour completes and the leader changed', () => {
+      const tour2 = [m1, m2, m3, m4, m5, m6];
+      const standings = calculateStandings(tour2, ['p1', 'p2', 'p3']);
+      expect(standings[0].playerId).toBe('p3');
+      expect(getAnnounceLeaderId('p1', standings, tour2, tourOpts)).toBe('p3');
+    });
   });
 });

@@ -1,4 +1,5 @@
 import { type Match, type MatchResult } from '../store/types';
+import { getCurrentTourMatches } from './matchTours';
 
 export interface Standing {
   playerId: string;
@@ -184,6 +185,33 @@ export function isTopTied(standings: Standing[], allMatches: Match[]): boolean {
   const hb = h2hMap.get(b.playerId)!;
 
   return ha.pts === hb.pts && ha.gd === hb.gd && ha.gf === hb.gf;
+}
+
+/**
+ * Decides whether a "leader changed" announcement should fire at the end of
+ * a completed tour (round-robin cycle — every player has played every other
+ * player once; see matchTours.ts). Returns the new leader's playerId when it
+ * should, or null when it shouldn't (feature disabled, too few players, a
+ * tour still in progress, no leader yet, a genuine tie at the top, or the
+ * leader hasn't actually changed since the last completed tour).
+ */
+export function getAnnounceLeaderId(
+  prevLeaderId: string | null,
+  standings: Standing[],
+  matches: Match[],
+  options: { enabled: boolean; minPlayers: number; playerCount: number },
+): string | null {
+  if (!options.enabled) return null;
+  if (options.playerCount <= options.minPlayers) return null;
+  if (matches.length === 0) return null;
+  if (getCurrentTourMatches(matches, options.playerCount).length !== 0) return null;
+  if (standings.length === 0) return null;
+  if (isTopTied(standings, matches)) return null;
+
+  const currentLeaderId = standings[0].playerId;
+  if (currentLeaderId === prevLeaderId) return null;
+
+  return currentLeaderId;
 }
 
 export function getFormChips(matches: Match[], playerId: string, count = 3): MatchResult[] {
