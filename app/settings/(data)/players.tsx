@@ -32,6 +32,7 @@ export default function PlayersScreen() {
     addPlayer,
     updatePlayer,
     defaultTeamCode: useCallback(() => teams[0]?.code ?? '', [teams]),
+    teams,
   });
 
   const handleDelete = useCallback(

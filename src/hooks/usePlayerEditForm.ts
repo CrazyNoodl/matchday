@@ -1,10 +1,12 @@
 import { useCallback, useState } from 'react';
-import { type Player } from '@/store/types';
+import { type Player, type Team } from '@/store/types';
+import { canSavePlayer } from '@/utils/playerForm';
 
 interface UsePlayerEditFormOptions {
   addPlayer: (player: Player) => void;
   updatePlayer: (player: Player) => void;
   defaultTeamCode: () => string;
+  teams: Team[];
 }
 
 // Owns the create/edit form state and save behavior for a player, so every
@@ -14,6 +16,7 @@ export function usePlayerEditForm({
   addPlayer,
   updatePlayer,
   defaultTeamCode,
+  teams,
 }: UsePlayerEditFormOptions) {
   const [visible, setVisible] = useState(false);
   const [editingPlayer, setEditingPlayer] = useState<Player | null>(null);
@@ -40,8 +43,8 @@ export function usePlayerEditForm({
   const close = useCallback(() => setVisible(false), []);
 
   const save = useCallback(() => {
+    if (!canSavePlayer(formName, formTeam, teams)) return;
     const name = formName.trim();
-    if (!name) return;
 
     if (editingPlayer) {
       updatePlayer({
@@ -59,7 +62,7 @@ export function usePlayerEditForm({
       });
     }
     setVisible(false);
-  }, [formName, formNick, formTeam, editingPlayer, addPlayer, updatePlayer]);
+  }, [formName, formNick, formTeam, editingPlayer, addPlayer, updatePlayer, teams]);
 
   return {
     visible,
