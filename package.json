@@ -1,6 +1,6 @@
 {
   "name": "matchday",
-  "version": "1.9.46",
+  "version": "1.9.47",
   "main": "expo-router/entry",
   "dependencies": {
     "@aptabase/react-native": "^0.5.0",
