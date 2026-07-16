@@ -14,6 +14,25 @@ import { initials, patchMatchEverywhere, matchMediaFolder } from '../sliceHelper
 import { buildRoundFolder, deleteStorageFolder } from '@/supabase/storage';
 import type { RootState } from '../index';
 
+function buildArchivedRound(s: RootState): ArchivedRound {
+  const standings = calculateStandings(s.matches, s.roundPlayers);
+  const isTrueDraw = isTopTied(standings, s.matches);
+  const winnerId = isTrueDraw || !standings[0] ? '' : standings[0].playerId;
+
+  return {
+    id: `round-${Date.now()}`,
+    n: s.round,
+    date: new Date().toISOString(),
+    winner: winnerId,
+    games: s.matches.length,
+    ranked: s.tournamentRanked,
+    matches: [...s.matches],
+    name: `Round ${s.round}`,
+    players: [...s.roundPlayers],
+    folder: s.roundFolder || undefined,
+  };
+}
+
 export interface TournamentState {
   tournamentId: string;
   hasTournament: boolean;
@@ -146,22 +165,7 @@ export const createTournamentSlice: StateCreator<RootState, [], [], TournamentSl
 
   finishRound: () => {
     const s = get();
-    const standings = calculateStandings(s.matches, s.roundPlayers);
-    const isTrueDraw = isTopTied(standings, s.matches);
-    const winnerId = isTrueDraw || !standings[0] ? '' : standings[0].playerId;
-
-    const newRound: ArchivedRound = {
-      id: `round-${Date.now()}`,
-      n: s.round,
-      date: new Date().toISOString(),
-      winner: winnerId,
-      games: s.matches.length,
-      ranked: s.tournamentRanked,
-      matches: [...s.matches],
-      name: `Round ${s.round}`,
-      players: [...s.roundPlayers],
-      folder: s.roundFolder || undefined,
-    };
+    const newRound = buildArchivedRound(s);
 
     set({
       archivedRounds: [...s.archivedRounds, newRound],
@@ -219,8 +223,14 @@ export const createTournamentSlice: StateCreator<RootState, [], [], TournamentSl
   closeTournament: () => {
     const s = get();
 
+    // A round can still be open (matches recorded, not yet finished via
+    // finishRound()) when the tournament is closed. Fold it into the archive
+    // first so those matches aren't silently discarded (see #88).
+    const finalRound = s.roundOpen && s.matches.length > 0 ? buildArchivedRound(s) : null;
+    const archivedRounds = finalRound ? [...s.archivedRounds, finalRound] : s.archivedRounds;
+
     // Calculate overall champion from all ranked archived rounds
-    const allMatches = s.archivedRounds.filter((r) => r.ranked).flatMap((r) => r.matches);
+    const allMatches = archivedRounds.filter((r) => r.ranked).flatMap((r) => r.matches);
 
     const standings = calculateStandings(allMatches, s.tournamentPlayers);
     const champId = standings[0]?.playerId ?? '';
@@ -231,7 +241,7 @@ export const createTournamentSlice: StateCreator<RootState, [], [], TournamentSl
       id: s.tournamentId || `tour-${Date.now()}`,
       name: s.tournamentName,
       date: new Date().toISOString(),
-      rounds: [...s.archivedRounds],
+      rounds: [...archivedRounds],
       champId,
       champName: champPlayer?.name ?? '',
       champColor: champTeam?.color ?? Colors.team[0],
