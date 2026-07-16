@@ -6,6 +6,7 @@ import { useStore } from '@/store';
 import { calculateStandings } from '@/utils/standings';
 import { formatShortDate } from '@/utils/dateFormat';
 import { getRankedRoundOrdinals } from '@/utils/roundOrdinals';
+import { hasAnyRecordedMatch } from '@/utils/tournamentGuards';
 import { useColors } from '@/theme';
 import {
   SectionLabel,
@@ -54,6 +55,7 @@ export default function TournamentScreen() {
   const setViewingRound = useStore((s) => s.setViewingRound);
   const renameTournament = useStore((s) => s.renameTournament);
   const closeTournament = useStore((s) => s.closeTournament);
+  const deleteTournament = useStore((s) => s.deleteTournament);
   const showAvgGoals = useStore((s) => s.showAvgGoals);
 
   const colors = useColors();
@@ -63,6 +65,12 @@ export default function TournamentScreen() {
   const [shareStandingsVisible, setShareStandingsVisible] = useState(false);
   const [roundsNewestFirst, setRoundsNewestFirst] = useState(true);
   const { t } = useTranslation();
+
+  // #86: only when this is false is there truly nothing to archive.
+  const hasAnyFinishedMatch = useMemo(
+    () => hasAnyRecordedMatch(matches, archivedRounds),
+    [matches, archivedRounds],
+  );
 
   // All ranked matches across all archived rounds + current open round (if ranked)
   const allRankedMatches = useMemo(
@@ -311,6 +319,7 @@ export default function TournamentScreen() {
           setShareStandingsVisible(true);
         }}
         onCloseTournament={() => setModal('closeTour')}
+        canArchive={hasAnyFinishedMatch}
       />
 
       <EditTournamentNameSheet
@@ -330,9 +339,16 @@ export default function TournamentScreen() {
       <CloseTournamentDialog
         visible={modal === 'closeTour'}
         onClose={() => setModal('tourSettings')}
+        canArchive={hasAnyFinishedMatch}
         onConfirm={() => {
           closeTournament();
           trackEvent('tournament_closed');
+          setModal(null);
+          router.push('/');
+        }}
+        onDelete={() => {
+          deleteTournament();
+          trackEvent('tournament_deleted_empty');
           setModal(null);
           router.push('/');
         }}

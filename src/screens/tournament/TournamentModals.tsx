@@ -17,6 +17,9 @@ interface TourSettingsSheetProps {
   onRename: () => void;
   onShareStandings: () => void;
   onCloseTournament: () => void;
+  // #86: with zero finished rounds, this row leads to a delete confirmation
+  // instead of the archive one — its label/icon reflect that up front.
+  canArchive: boolean;
 }
 
 export function TourSettingsSheet({
@@ -26,6 +29,7 @@ export function TourSettingsSheet({
   onRename,
   onShareStandings,
   onCloseTournament,
+  canArchive,
 }: TourSettingsSheetProps) {
   const { t } = useTranslation();
   const colors = useColors();
@@ -71,14 +75,24 @@ export function TourSettingsSheet({
             <Text style={sheetStyles.rowChevron}>›</Text>
           </TouchableOpacity>
 
-          {/* Close & archive */}
+          {/* Close & archive / Delete (canArchive false — zero finished rounds, #86) */}
           <TouchableOpacity style={sheetStyles.row} onPress={onCloseTournament} activeOpacity={0.8}>
             <View style={[sheetStyles.rowIcon, { backgroundColor: colors.accent.redSubtle }]}>
-              <Text style={[sheetStyles.rowIconText, { color: colors.accent.red }]}>🔒</Text>
+              <Text style={[sheetStyles.rowIconText, { color: colors.accent.red }]}>
+                {canArchive ? '🔒' : '🗑'}
+              </Text>
             </View>
             <View style={sheetStyles.rowLabelBlock}>
-              <Text style={sheetStyles.rowLabel}>{t('tournament.sheet.closeAndArchive')}</Text>
-              <Text style={sheetStyles.rowSubtitle}>{t('tournament.sheet.closeSubtitle')}</Text>
+              <Text style={sheetStyles.rowLabel}>
+                {canArchive
+                  ? t('tournament.sheet.closeAndArchive')
+                  : t('tournament.sheet.closeAndDelete')}
+              </Text>
+              <Text style={sheetStyles.rowSubtitle}>
+                {canArchive
+                  ? t('tournament.sheet.closeSubtitle')
+                  : t('tournament.sheet.deleteSubtitle')}
+              </Text>
             </View>
             <Text style={sheetStyles.rowChevron}>›</Text>
           </TouchableOpacity>
@@ -149,10 +163,35 @@ interface CloseTournamentDialogProps {
   visible: boolean;
   onClose: () => void;
   onConfirm: () => void;
+  // #86: with zero finished rounds there's nothing to archive/crown — the
+  // dialog swaps to a destructive "delete tournament" confirmation instead.
+  canArchive: boolean;
+  onDelete: () => void;
 }
 
-export function CloseTournamentDialog({ visible, onClose, onConfirm }: CloseTournamentDialogProps) {
+export function CloseTournamentDialog({
+  visible,
+  onClose,
+  onConfirm,
+  canArchive,
+  onDelete,
+}: CloseTournamentDialogProps) {
   const { t } = useTranslation();
+
+  if (!canArchive) {
+    return (
+      <ConfirmDialog
+        visible={visible}
+        onRequestClose={onClose}
+        icon="🗑"
+        variant="destructive"
+        title={t('tournament.close.deleteTitle').toUpperCase()}
+        description={t('tournament.close.deleteDesc')}
+        cancel={{ label: t('tournament.close.keepGoing'), onPress: onClose }}
+        confirm={{ label: t('tournament.close.delete'), onPress: onDelete }}
+      />
+    );
+  }
 
   return (
     <ConfirmDialog

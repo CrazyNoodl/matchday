@@ -23,6 +23,8 @@ const tournament = {
     shareStandingsSubtitle: 'Partager le classement actuel en image',
     closeAndArchive: 'Clôturer et archiver',
     closeSubtitle: 'Figer le classement & couronner le vainqueur',
+    closeAndDelete: 'Supprimer le tournoi',
+    deleteSubtitle: 'Aucun match joué — rien à archiver',
   },
   shareStandings: {
     title: 'Partager le classement',
@@ -42,6 +44,9 @@ const tournament = {
     desc: 'Cela figera le classement et couronnera le champion. Le tournoi sera archivé.',
     keepGoing: 'Continuer',
     archive: 'Archiver',
+    deleteTitle: 'Supprimer le tournoi ?',
+    deleteDesc: "Aucun match n'a encore été joué, il n'y a donc rien à archiver. Le tournoi sera plutôt supprimé définitivement.",
+    delete: 'Supprimer',
   },
   newRound: {
     title: 'Nouvelle journée',

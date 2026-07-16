@@ -73,6 +73,7 @@ export interface TournamentActions {
   deleteArchivedRound: (id: string) => void;
   deleteClosedTournament: (id: string) => void;
   closeTournament: () => void;
+  deleteTournament: () => void;
   renameTournament: (name: string) => void;
   updateRoundDate: (id: string, date: string) => void;
   bulkImportMatches: (parsed: ParsedMatch[]) => void;
@@ -251,6 +252,28 @@ export const createTournamentSlice: StateCreator<RootState, [], [], TournamentSl
 
     set({
       closedTournaments: [...s.closedTournaments, closed],
+      tournamentId: '',
+      hasTournament: false,
+      tournamentName: '',
+      roundFolder: '',
+      round: 0,
+      roundOpen: false,
+      tournamentRounds: 0,
+      tournamentPlayers: [],
+      matches: [],
+      archivedRounds: [],
+    });
+  },
+
+  // Discard an open tournament with zero finished rounds (#86) — unlike
+  // closeTournament(), this creates no ClosedTournament entry. Storage
+  // cleanup is a single sweep of the tournament id folder, same rationale
+  // as deleteClosedTournament: every round/match folder lives nested under it.
+  deleteTournament: () => {
+    const s = get();
+    if (s.tournamentId) deleteStorageFolder(s.tournamentId).catch(() => {});
+
+    set({
       tournamentId: '',
       hasTournament: false,
       tournamentName: '',

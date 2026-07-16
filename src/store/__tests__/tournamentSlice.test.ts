@@ -289,6 +289,54 @@ describe('closeTournament — folds an in-progress round instead of discarding i
 
 // ---------------------------------------------------------------------------
 
+describe('deleteTournament — discard an open tournament with zero finished rounds (#86)', () => {
+  beforeEach(() => {
+    useStore.getState().addPlayer(P1);
+    useStore.getState().addPlayer(P2);
+    useStore.getState().startTournament('Empty Cup', ['p1', 'p2'], true);
+  });
+
+  it('clears active tournament state without creating a closed tournament entry', () => {
+    useStore.getState().startRound(true, ['p1', 'p2']);
+    useStore.getState().addMatch(makeMatch('m1'));
+
+    useStore.getState().deleteTournament();
+
+    const s = useStore.getState();
+    expect(s.hasTournament).toBe(false);
+    expect(s.tournamentName).toBe('');
+    expect(s.tournamentId).toBe('');
+    expect(s.matches).toHaveLength(0);
+    expect(s.archivedRounds).toHaveLength(0);
+    expect(s.closedTournaments).toHaveLength(0);
+  });
+
+  it('removes the whole tournament folder in one sweep', () => {
+    const tournamentId = useStore.getState().tournamentId;
+    mockDeleteFolder.mockClear();
+
+    useStore.getState().deleteTournament();
+
+    expect(mockDeleteFolder).toHaveBeenCalledWith(tournamentId);
+    expect(mockDeleteFolder).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not affect other closed tournaments already in the archive', () => {
+    useStore.getState().startRound(true, ['p1', 'p2']);
+    useStore.getState().addMatch(makeMatch('m1', 'p1', 'p2', 3, 0));
+    useStore.getState().finishRound();
+    useStore.getState().closeTournament();
+    expect(useStore.getState().closedTournaments).toHaveLength(1);
+
+    useStore.getState().startTournament('Second Empty Cup', ['p1', 'p2'], true);
+    useStore.getState().deleteTournament();
+
+    expect(useStore.getState().closedTournaments).toHaveLength(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+
 describe('renameTournament', () => {
   it('updates the tournament name', () => {
     useStore.getState().startTournament('Old Name', [], true);
