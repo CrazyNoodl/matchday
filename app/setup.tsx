@@ -52,6 +52,7 @@ export default function SetupScreen() {
     addPlayer,
     updatePlayer,
     defaultTeamCode: useCallback(() => teams[0]?.code ?? '', [teams]),
+    teams,
   });
   const teamForm = useTeamEditForm({ teams, addTeam, updateTeam, demoMode });
 
@@ -212,17 +213,6 @@ export default function SetupScreen() {
               );
             })}
 
-            {/* Add player row */}
-            <TouchableOpacity
-              style={styles.manageTeamsRow}
-              onPress={playerForm.openCreate}
-              activeOpacity={0.75}
-            >
-              <Text style={styles.manageTeamsIcon}>👤</Text>
-              <Text style={styles.manageTeamsText}>{t('setup.addPlayer')}</Text>
-              <Text style={styles.manageTeamsChevron}>›</Text>
-            </TouchableOpacity>
-
             {/* Add team row */}
             <TouchableOpacity
               style={styles.manageTeamsRow}
@@ -231,6 +221,17 @@ export default function SetupScreen() {
             >
               <Text style={styles.manageTeamsIcon}>🛡</Text>
               <Text style={styles.manageTeamsText}>{t('setup.addTeam')}</Text>
+              <Text style={styles.manageTeamsChevron}>›</Text>
+            </TouchableOpacity>
+
+            {/* Add player row */}
+            <TouchableOpacity
+              style={styles.manageTeamsRow}
+              onPress={playerForm.openCreate}
+              activeOpacity={0.75}
+            >
+              <Text style={styles.manageTeamsIcon}>👤</Text>
+              <Text style={styles.manageTeamsText}>{t('setup.addPlayer')}</Text>
               <Text style={styles.manageTeamsChevron}>›</Text>
             </TouchableOpacity>
           </View>
