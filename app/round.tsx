@@ -219,7 +219,7 @@ export default function MatchdayScreen() {
           ) : (
             <TouchableOpacity
               style={styles.statsBtn}
-              onPress={() => router.push('/stats')}
+              onPress={() => router.push({ pathname: '/stats', params: { scope: 'tournament' } })}
               activeOpacity={0.75}
             >
               <Text style={styles.statsBtnIcon}>📊</Text>
@@ -413,7 +413,7 @@ export default function MatchdayScreen() {
             label: t('home.stats').toUpperCase(),
             onPress: () => {
               roundMenu.close();
-              router.push('/stats');
+              router.push({ pathname: '/stats', params: { scope: 'tournament' } });
             },
           },
           {

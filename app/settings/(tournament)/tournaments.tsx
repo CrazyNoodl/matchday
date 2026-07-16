@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '@/store';
 import { useColors } from '@/theme';
+import { hasAnyRecordedMatch } from '@/utils/tournamentGuards';
 import { NavHeader, Avatar, GlowBackground } from '@/components';
 import {
   EditTournamentNameSheet,
@@ -24,13 +25,19 @@ export default function TournamentsScreen() {
   const round = useStore((s) => s.round);
   const closedTournaments = useStore((s) => s.closedTournaments);
   const tournamentPlayers = useStore((s) => s.tournamentPlayers);
+  const archivedRounds = useStore((s) => s.archivedRounds);
+  const matches = useStore((s) => s.matches);
   const modal = useStore((s) => s.modal);
   const setModal = useStore((s) => s.setModal);
   const renameTournament = useStore((s) => s.renameTournament);
   const closeTournament = useStore((s) => s.closeTournament);
+  const deleteTournament = useStore((s) => s.deleteTournament);
   const setViewingTournament = useStore((s) => s.setViewingTournament);
 
   const [renameText, setRenameText] = React.useState('');
+
+  // #86: only offer delete when there truly isn't a single recorded match yet.
+  const hasAnyFinishedMatch = hasAnyRecordedMatch(matches, archivedRounds);
 
   const handleOpenRename = () => {
     setRenameText(tournamentName);
@@ -50,6 +57,12 @@ export default function TournamentsScreen() {
 
   const handleConfirmClose = () => {
     closeTournament();
+    setModal(null);
+    router.push('/');
+  };
+
+  const handleDeleteTournament = () => {
+    deleteTournament();
     setModal(null);
     router.push('/');
   };
@@ -162,7 +175,9 @@ export default function TournamentsScreen() {
       <CloseTournamentDialog
         visible={modal === 'closeTour'}
         onClose={() => setModal(null)}
+        canArchive={hasAnyFinishedMatch}
         onConfirm={handleConfirmClose}
+        onDelete={handleDeleteTournament}
       />
     </SafeAreaView>
   );

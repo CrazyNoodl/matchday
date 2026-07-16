@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import { useLocalSearchParams } from 'expo-router';
 import { useGoBack } from '@/utils/useGoBack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStore } from '@/store';
@@ -37,10 +38,20 @@ export default function StatsScreen() {
   const [activeTab, setActiveTab] = useState<Tab>('ranking');
   const { t } = useTranslation();
 
+  const { scope } = useLocalSearchParams<{ scope?: string }>();
+  // Opened from the round screen mid-tournament (#87): scope to the active
+  // tournament only, same as if closedTournaments were empty — the season-wide
+  // view (default, no param) stays the behavior for the Home > Stats entry.
+  const tournamentOnly = scope === 'tournament';
+
   const tournamentPlayers = useStore((s) => s.tournamentPlayers);
   const archivedRounds = useStore((s) => s.archivedRounds);
   const currentMatches = useStore((s) => s.matches);
-  const closedTournaments = useStore((s) => s.closedTournaments);
+  const allClosedTournaments = useStore((s) => s.closedTournaments);
+  const closedTournaments = useMemo(
+    () => (tournamentOnly ? [] : allClosedTournaments),
+    [tournamentOnly, allClosedTournaments],
+  );
   const players = useStore((s) => s.players);
 
   // Combine all matches: closed tournaments + current tournament archived rounds + current round
