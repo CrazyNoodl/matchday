@@ -5,6 +5,12 @@ const auth = {
   emailLabel: 'Email',
   emailPlaceholder: 'your@email.com',
   passwordLabel: 'Пароль',
+  confirmPasswordLabel: 'Підтвердіть пароль',
+  invalidEmail: 'Введіть коректний email',
+  passwordTooShort: 'Пароль має містити щонайменше 6 символів',
+  passwordMismatch: 'Паролі не збігаються',
+  showPassword: 'Показати',
+  hidePassword: 'Сховати',
   signIn: 'Увійти',
   createAccount: 'Створити акаунт',
   noAccountPrompt: 'Немає акаунта? Зареєструватись',
@@ -17,10 +23,8 @@ const auth = {
   resetPasswordTitle: 'Новий пароль',
   resetPasswordSubtitle: 'Придумайте новий пароль для акаунта',
   newPasswordLabel: 'Новий пароль',
-  confirmPasswordLabel: 'Підтвердіть пароль',
   setNewPassword: 'Встановити пароль',
   missingPassword: 'Введіть та підтвердіть новий пароль',
-  passwordMismatch: 'Паролі не збігаються',
 } as const;
 
 export default auth;

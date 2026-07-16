@@ -10,6 +10,19 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.47',
+    fixed: [
+      'Closing a tournament with no matches played yet now offers to delete it instead of archiving an empty entry with no champion',
+      'The round menu\'s STATISTICS option now shows stats for the current tournament only, instead of every tournament ever played',
+    ],
+  },
+  {
+    version: '1.9.46',
+    added: [
+      'Added an optional "Show leader modal" setting (Settings > Display) that announces the round leader once each completed tour, when it changes — only shown in rounds with more players than a configurable threshold',
+    ],
+  },
+  {
     version: '1.9.45',
     internal: [
       'Internal: extended Sentry error reporting to every remaining previously-silent/console-only catch block outside the sync/storage layer (local storage fallbacks, backup read/write/share/delete, OCR/upload/resize flows, share-capture flows, service worker registration) — no visible change',

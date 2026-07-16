@@ -5,6 +5,12 @@ const auth = {
   emailLabel: 'Email',
   emailPlaceholder: 'your@email.com',
   passwordLabel: 'Password',
+  confirmPasswordLabel: 'Confirm password',
+  invalidEmail: 'Enter a valid email',
+  passwordTooShort: 'Password must be at least 6 characters',
+  passwordMismatch: 'Passwords do not match',
+  showPassword: 'Show',
+  hidePassword: 'Hide',
   signIn: 'Sign in',
   createAccount: 'Create account',
   noAccountPrompt: "Don't have an account? Sign up",
@@ -17,10 +23,8 @@ const auth = {
   resetPasswordTitle: 'Set a new password',
   resetPasswordSubtitle: 'Choose a new password for your account',
   newPasswordLabel: 'New password',
-  confirmPasswordLabel: 'Confirm password',
   setNewPassword: 'Set new password',
   missingPassword: 'Enter and confirm your new password',
-  passwordMismatch: 'Passwords do not match',
 } as const;
 
 export default auth;

@@ -55,6 +55,30 @@ export const makeStyles = (colors: AppColors) =>
       fontSize: FontSize.md,
       color: colors.text.primary,
     },
+    passwordWrapper: {
+      justifyContent: 'center',
+    },
+    passwordInput: {
+      paddingRight: 72,
+    },
+    visibilityToggle: {
+      position: 'absolute',
+      right: Spacing.md,
+      paddingVertical: Spacing.xs,
+      paddingHorizontal: Spacing.xs,
+    },
+    visibilityToggleText: {
+      fontFamily: FontFamily.bodyMedium,
+      fontSize: FontSize.xs,
+      letterSpacing: 0.5,
+      color: colors.accent.green,
+    },
+    fieldHint: {
+      fontFamily: FontFamily.body,
+      fontSize: FontSize.xs,
+      color: colors.accent.red,
+      marginTop: -Spacing.xs / 2,
+    },
     btn: {
       marginTop: Spacing.sm,
       backgroundColor: colors.accent.green,

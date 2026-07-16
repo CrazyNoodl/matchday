@@ -18,6 +18,8 @@ export interface SettingsState {
   demoMode: boolean;
   realDataBackup: RealDataBackup | null;
   hasSeenOnboarding: boolean;
+  leaderModalEnabled: boolean;
+  leaderModalMinPlayers: number;
 }
 
 export interface SettingsActions {
@@ -30,6 +32,8 @@ export interface SettingsActions {
   setLanguage: (lang: Language) => void;
   setDemoMode: (on: boolean) => void;
   setHasSeenOnboarding: (v: boolean) => void;
+  setLeaderModalEnabled: (v: boolean) => void;
+  setLeaderModalMinPlayers: (n: number) => void;
 }
 
 export type SettingsSlice = SettingsState & SettingsActions;
@@ -45,6 +49,8 @@ export const createSettingsSlice: StateCreator<RootState, [], [], SettingsSlice>
   demoMode: false,
   realDataBackup: null,
   hasSeenOnboarding: false,
+  leaderModalEnabled: false,
+  leaderModalMinPlayers: 6,
 
   setShowNick: (v) => set({ showNick: v }),
   setShowTeamLogo: (v) => set({ showTeamLogo: v }),
@@ -54,6 +60,8 @@ export const createSettingsSlice: StateCreator<RootState, [], [], SettingsSlice>
   setColorScheme: (scheme) => set({ colorScheme: scheme }),
   setLanguage: (lang) => set({ language: lang }),
   setHasSeenOnboarding: (v) => set({ hasSeenOnboarding: v }),
+  setLeaderModalEnabled: (v) => set({ leaderModalEnabled: v }),
+  setLeaderModalMinPlayers: (n) => set({ leaderModalMinPlayers: n }),
 
   setDemoMode: (on) => {
     const s = get();

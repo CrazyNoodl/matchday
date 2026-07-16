@@ -5,6 +5,12 @@ const auth = {
   emailLabel: 'Email',
   emailPlaceholder: 'your@email.com',
   passwordLabel: 'Mot de passe',
+  confirmPasswordLabel: 'Confirmez le mot de passe',
+  invalidEmail: 'Entrez un email valide',
+  passwordTooShort: 'Le mot de passe doit contenir au moins 6 caractères',
+  passwordMismatch: 'Les mots de passe ne correspondent pas',
+  showPassword: 'Afficher',
+  hidePassword: 'Masquer',
   signIn: 'Se connecter',
   createAccount: 'Créer un compte',
   noAccountPrompt: "Pas de compte ? S'inscrire",
@@ -18,10 +24,8 @@ const auth = {
   resetPasswordTitle: 'Nouveau mot de passe',
   resetPasswordSubtitle: 'Choisissez un nouveau mot de passe pour votre compte',
   newPasswordLabel: 'Nouveau mot de passe',
-  confirmPasswordLabel: 'Confirmez le mot de passe',
   setNewPassword: 'Définir le mot de passe',
   missingPassword: 'Entrez et confirmez votre nouveau mot de passe',
-  passwordMismatch: 'Les mots de passe ne correspondent pas',
 } as const;
 
 export default auth;

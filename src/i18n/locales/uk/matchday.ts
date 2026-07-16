@@ -59,6 +59,11 @@ const matchday = {
     draw: 'Нічия',
     done: 'Готово',
   },
+  leaderAnnounce: {
+    title: 'Новий лідер',
+    pts: '{{pts}} очок',
+    doneButton: 'ОК',
+  },
   ocr: {
     reading: 'Зчитування статистики з фото...',
     detected: '📊 Знайдено {{count}} показників',

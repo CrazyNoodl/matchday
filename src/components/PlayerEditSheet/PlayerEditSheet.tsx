@@ -6,6 +6,7 @@ import { useColors } from '@/theme';
 import { Sheet } from '@/components/Sheet';
 import { TeamPickerRow } from '@/components/TeamPickerRow';
 import { type Player, type Team } from '@/store/types';
+import { canSavePlayer } from '@/utils/playerForm';
 import { makeStyles } from './PlayerEditSheet.styles';
 
 interface PlayerEditSheetProps {
@@ -40,6 +41,7 @@ export function PlayerEditSheet({
   const { t } = useTranslation();
   const colors = useColors();
   const styles = makeStyles(colors);
+  const isDisabled = !canSavePlayer(formName, formTeam, teams);
 
   return (
     <Sheet visible={visible} onClose={onClose} avoidKeyboard>
@@ -90,12 +92,12 @@ export function PlayerEditSheet({
             <Text style={styles.cancelBtnText}>{t('common.cancel').toUpperCase()}</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.saveBtn, !formName.trim() && styles.saveBtnDisabled]}
+            style={[styles.saveBtn, isDisabled && styles.saveBtnDisabled]}
             onPress={onSave}
-            disabled={!formName.trim()}
+            disabled={isDisabled}
             activeOpacity={0.85}
           >
-            <Text style={[styles.saveBtnText, !formName.trim() && styles.saveBtnTextDisabled]}>
+            <Text style={[styles.saveBtnText, isDisabled && styles.saveBtnTextDisabled]}>
               {editingPlayer
                 ? t('common.save').toUpperCase()
                 : t('setup.addPlayerBtn').toUpperCase()}

@@ -23,6 +23,8 @@ const tournament = {
     shareStandingsSubtitle: 'Share the current table as an image',
     closeAndArchive: 'Close & archive',
     closeSubtitle: 'Lock standings & crown the winner',
+    closeAndDelete: 'Delete tournament',
+    deleteSubtitle: 'No matches played yet — nothing to archive',
   },
   shareStandings: {
     title: 'Share standings',
@@ -42,6 +44,9 @@ const tournament = {
     desc: 'This will lock the standings and crown the overall champion. The tournament will be moved to your archive.',
     keepGoing: 'Keep going',
     archive: 'Archive',
+    deleteTitle: 'Delete tournament?',
+    deleteDesc: 'No matches have been played yet, so there is nothing to archive. This will permanently delete the tournament instead.',
+    delete: 'Delete',
   },
   newRound: {
     title: 'New match day',

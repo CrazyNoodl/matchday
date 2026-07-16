@@ -5,7 +5,7 @@ import { useColors } from '@/theme';
 import { Avatar, ConfettiPiece, ConfirmDialog } from '@/components';
 import { type Player } from '@/store/types';
 import { type Standing } from '@/utils/standings';
-import { makeDialogStyles, makeWinnerStyles } from './RoundDialogs.styles';
+import { makeDialogStyles, makeWinnerStyles, makeLeaderAnnounceStyles } from './RoundDialogs.styles';
 
 interface DiscardMatchDialogProps {
   visible: boolean;
@@ -172,6 +172,58 @@ export function WinnerCelebrationModal({
           </TouchableOpacity>
         </View>
       </View>
+    </Modal>
+  );
+}
+
+interface LeaderAnnounceModalProps {
+  visible: boolean;
+  onClose: () => void;
+  leader: Standing | undefined;
+  leaderName: string;
+}
+
+export function LeaderAnnounceModal({
+  visible,
+  onClose,
+  leader,
+  leaderName,
+}: LeaderAnnounceModalProps) {
+  const { t } = useTranslation();
+  const colors = useColors();
+  const announceStyles = makeLeaderAnnounceStyles(colors);
+
+  if (!leader) return null;
+
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      statusBarTranslucent
+      onRequestClose={onClose}
+    >
+      <TouchableOpacity
+        style={announceStyles.overlay}
+        activeOpacity={1}
+        onPress={onClose}
+      >
+        <View style={announceStyles.card}>
+          <Text style={announceStyles.label}>
+            {t('matchday.leaderAnnounce.title').toUpperCase()}
+          </Text>
+          <Avatar playerId={leader.playerId} size="lg" />
+          <Text style={announceStyles.name}>{leaderName}</Text>
+          <Text style={announceStyles.pts}>
+            {t('matchday.leaderAnnounce.pts', { pts: leader.pts })}
+          </Text>
+          <TouchableOpacity style={announceStyles.doneBtn} onPress={onClose} activeOpacity={0.85}>
+            <Text style={announceStyles.doneBtnText}>
+              {t('matchday.leaderAnnounce.doneButton').toUpperCase()}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </TouchableOpacity>
     </Modal>
   );
 }

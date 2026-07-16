@@ -97,16 +97,16 @@ export default function SettingsScreen() {
             onPress={() => router.push('/settings/tournaments')}
           />
           <SettingsRow
-            icon="👤"
-            label={t('settings.data.players')}
-            sub={t('settings.data.playersCount', { count: players.length })}
-            onPress={() => router.push('/settings/players')}
-          />
-          <SettingsRow
             icon="🛡"
             label={t('settings.data.teams')}
             sub={t('settings.data.teamsCount', { count: teams.length })}
             onPress={() => router.push('/settings/teams')}
+          />
+          <SettingsRow
+            icon="👤"
+            label={t('settings.data.players')}
+            sub={t('settings.data.playersCount', { count: players.length })}
+            onPress={() => router.push('/settings/players')}
           />
         </SettingsSection>
 

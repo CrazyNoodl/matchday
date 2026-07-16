@@ -131,6 +131,7 @@ export type Modal =
   | 'add'
   | 'end'
   | 'winner'
+  | 'leaderAnnounce'
   | 'photo'
   | 'del'
   | 'teams'
