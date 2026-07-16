@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, ScrollView, Switch, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, ScrollView, Switch, TouchableOpacity, TextInput } from 'react-native';
 import { useGoBack } from '@/utils/useGoBack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -22,9 +22,20 @@ export default function DisplaySettingsScreen() {
   const setStandingsViewMode = useStore((s) => s.setStandingsViewMode);
   const colorScheme = useStore((s) => s.colorScheme);
   const setColorScheme = useStore((s) => s.setColorScheme);
+  const leaderModalEnabled = useStore((s) => s.leaderModalEnabled);
+  const setLeaderModalEnabled = useStore((s) => s.setLeaderModalEnabled);
+  const leaderModalMinPlayers = useStore((s) => s.leaderModalMinPlayers);
+  const setLeaderModalMinPlayers = useStore((s) => s.setLeaderModalMinPlayers);
   const colors = useColors();
 
   const styles = makeStyles(colors);
+
+  const MIN_PLAYERS_LOWER_BOUND = 2;
+  const MIN_PLAYERS_UPPER_BOUND = 30;
+  const [minPlayersText, setMinPlayersText] = useState(String(leaderModalMinPlayers));
+  useEffect(() => {
+    setMinPlayersText(String(leaderModalMinPlayers));
+  }, [leaderModalMinPlayers]);
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
@@ -139,6 +150,74 @@ export default function DisplaySettingsScreen() {
               ]}
             />
           </View>
+
+          <View style={styles.divider} />
+
+          <View style={styles.row}>
+            <View style={styles.rowLeft}>
+              <Text style={styles.rowLabel}>{t('settings.display.leaderModal')}</Text>
+              <Text style={styles.rowDesc}>{t('settings.display.leaderModalDesc')}</Text>
+            </View>
+            <Switch
+              value={leaderModalEnabled}
+              onValueChange={(value) => {
+                setLeaderModalEnabled(value);
+                trackEvent('leader_modal_toggle_changed', { enabled: value ? 'true' : 'false' });
+              }}
+              trackColor={{ false: colors.bg.elevated, true: colors.accent.green }}
+              thumbColor="#ffffff"
+            />
+          </View>
+
+          {leaderModalEnabled && (
+            <>
+              <View style={styles.divider} />
+              <View style={styles.row}>
+                <View style={styles.rowLeft}>
+                  <Text style={styles.rowLabel}>
+                    {t('settings.display.leaderModalMinPlayers')}
+                  </Text>
+                  <Text style={styles.rowDesc}>
+                    {t('settings.display.leaderModalMinPlayersDesc')}
+                  </Text>
+                </View>
+                <TextInput
+                  style={styles.numericInput}
+                  keyboardType="number-pad"
+                  value={minPlayersText}
+                  onChangeText={(text) => {
+                    const digitsOnly = text.replace(/[^0-9]/g, '');
+                    setMinPlayersText(digitsOnly);
+                    // Commit every valid keystroke immediately — don't rely on
+                    // onBlur, which may never fire if the user navigates away
+                    // (e.g. taps a nav link) while the field still has focus,
+                    // silently discarding what they just typed.
+                    const parsed = parseInt(digitsOnly, 10);
+                    if (
+                      Number.isFinite(parsed) &&
+                      parsed >= MIN_PLAYERS_LOWER_BOUND &&
+                      parsed <= MIN_PLAYERS_UPPER_BOUND &&
+                      parsed !== leaderModalMinPlayers
+                    ) {
+                      setLeaderModalMinPlayers(parsed);
+                      trackEvent('leader_modal_min_players_changed', { value: parsed });
+                    }
+                  }}
+                  onBlur={() => {
+                    const parsed = parseInt(minPlayersText, 10);
+                    const clamped = Number.isFinite(parsed)
+                      ? Math.min(MIN_PLAYERS_UPPER_BOUND, Math.max(MIN_PLAYERS_LOWER_BOUND, parsed))
+                      : leaderModalMinPlayers;
+                    setMinPlayersText(String(clamped));
+                    if (clamped !== leaderModalMinPlayers) {
+                      setLeaderModalMinPlayers(clamped);
+                      trackEvent('leader_modal_min_players_changed', { value: clamped });
+                    }
+                  }}
+                />
+              </View>
+            </>
+          )}
         </View>
 
         {/* Upcoming options */}

@@ -1,9 +1,9 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStore } from '@/store';
-import { calculateStandings, isTopTied } from '@/utils/standings';
+import { calculateStandings, isTopTied, getAnnounceLeaderId } from '@/utils/standings';
 import { useColors } from '@/theme';
 import { Spacing } from '@/theme/spacing';
 import {
@@ -28,6 +28,7 @@ import {
   EndRoundDialog,
   NeedEqualDialog,
   WinnerCelebrationModal,
+  LeaderAnnounceModal,
 } from '@/screens/round/RoundDialogs';
 
 export default function MatchdayScreen() {
@@ -49,6 +50,8 @@ export default function MatchdayScreen() {
   const groupByTours = useStore((s) => s.groupByTours);
   const showAvgGoals = useStore((s) => s.showAvgGoals);
   const standingsViewMode = useStore((s) => s.standingsViewMode);
+  const leaderModalEnabled = useStore((s) => s.leaderModalEnabled);
+  const leaderModalMinPlayers = useStore((s) => s.leaderModalMinPlayers);
   const setModal = useStore((s) => s.setModal);
   const addMatch = useStore((s) => s.addMatch);
   const setSelectedMatch = useStore((s) => s.setSelectedMatch);
@@ -76,6 +79,35 @@ export default function MatchdayScreen() {
     () => calculateStandings(matches, roundPlayers),
     [matches, roundPlayers],
   );
+
+  // Mid-round leader announcement (#85): fires once per completed tour
+  // (round-robin cycle — see getCurrentTourMatches), only when the leader
+  // actually changed since the previous tour, gated by the Display setting +
+  // player-count threshold. Deliberately not "after every match" — with a
+  // tour still in progress the standings aren't a meaningful checkpoint yet.
+  // Skipped while another modal is already open so it never stacks on top
+  // of e.g. the Add Match sheet. The save flow closes AddMatchSheet
+  // (setModal(null)) in the same tick this effect reacts to the new match —
+  // opening our modal synchronously right then mounts a new RN <Modal>
+  // while the Sheet's bottom-sheet library is still mid close-animation on
+  // web, which leaves its backdrop stuck intercepting clicks. A short delay
+  // lets that animation finish first.
+  const prevLeaderIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    const announceId = getAnnounceLeaderId(prevLeaderIdRef.current, standings, matches, {
+      enabled: leaderModalEnabled,
+      minPlayers: leaderModalMinPlayers,
+      playerCount: roundPlayers.length,
+    });
+    if (!announceId) return;
+    prevLeaderIdRef.current = announceId;
+    if (!roundOpen || modal !== null) return;
+    const timer = setTimeout(() => {
+      setModal('leaderAnnounce');
+      trackEvent('leader_announce_shown', { playerCount: roundPlayers.length });
+    }, 700);
+    return () => clearTimeout(timer);
+  }, [standings, matches, roundOpen, roundPlayers.length, leaderModalEnabled, leaderModalMinPlayers, modal, setModal]);
 
   const tournamentPlayerList = useMemo(
     () => players.filter((p) => roundPlayers.includes(p.id)),
@@ -338,6 +370,13 @@ export default function MatchdayScreen() {
         onDone={handleWinnerDone}
         winnerId={localWinnerId}
         winner={winner}
+      />
+
+      <LeaderAnnounceModal
+        visible={modal === 'leaderAnnounce'}
+        onClose={closeModal}
+        leader={leader}
+        leaderName={leaderName}
       />
 
       <ConfirmDialog

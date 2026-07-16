@@ -10,6 +10,12 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.46',
+    added: [
+      'Added an optional "Show leader modal" setting (Settings > Display) that announces the round leader once each completed tour, when it changes — only shown in rounds with more players than a configurable threshold',
+    ],
+  },
+  {
     version: '1.9.45',
     internal: [
       'Internal: extended Sentry error reporting to every remaining previously-silent/console-only catch block outside the sync/storage layer (local storage fallbacks, backup read/write/share/delete, OCR/upload/resize flows, share-capture flows, service worker registration) — no visible change',

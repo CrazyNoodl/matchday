@@ -119,4 +119,17 @@ export const makeStyles = (colors: AppColors) =>
       backgroundColor: colors.border.default,
       marginHorizontal: Spacing.lg,
     },
+    numericInput: {
+      minWidth: 56,
+      textAlign: 'center',
+      paddingVertical: Spacing.sm,
+      paddingHorizontal: Spacing.md,
+      borderRadius: Radius.md,
+      borderWidth: 1,
+      borderColor: colors.border.default,
+      backgroundColor: colors.bg.elevated,
+      color: colors.text.primary,
+      fontFamily: FontFamily.bodySemiBold,
+      fontSize: FontSize.base,
+    },
   });

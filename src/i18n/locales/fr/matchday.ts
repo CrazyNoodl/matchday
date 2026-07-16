@@ -59,6 +59,11 @@ const matchday = {
     draw: 'Match nul',
     done: 'Terminé',
   },
+  leaderAnnounce: {
+    title: 'Nouveau leader',
+    pts: '{{pts}} pts',
+    doneButton: 'OK',
+  },
   ocr: {
     reading: 'Lecture des statistiques depuis les photos...',
     detected: '📊 {{count}} statistiques détectées',

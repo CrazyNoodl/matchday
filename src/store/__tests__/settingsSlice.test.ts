@@ -67,3 +67,31 @@ describe('hasSeenOnboarding', () => {
     expect(useStore.getState().hasSeenOnboarding).toBe(false);
   });
 });
+
+describe('leaderModalEnabled', () => {
+  it('defaults to false', () => {
+    expect(useStore.getState().leaderModalEnabled).toBe(false);
+  });
+
+  it('setLeaderModalEnabled flips the value', () => {
+    useStore.getState().setLeaderModalEnabled(true);
+    expect(useStore.getState().leaderModalEnabled).toBe(true);
+
+    useStore.getState().setLeaderModalEnabled(false);
+    expect(useStore.getState().leaderModalEnabled).toBe(false);
+  });
+});
+
+describe('leaderModalMinPlayers', () => {
+  it('defaults to 6', () => {
+    expect(useStore.getState().leaderModalMinPlayers).toBe(6);
+  });
+
+  it('setLeaderModalMinPlayers updates the value', () => {
+    useStore.getState().setLeaderModalMinPlayers(10);
+    expect(useStore.getState().leaderModalMinPlayers).toBe(10);
+
+    useStore.getState().setLeaderModalMinPlayers(6);
+    expect(useStore.getState().leaderModalMinPlayers).toBe(6);
+  });
+});
