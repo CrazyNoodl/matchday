@@ -20,8 +20,14 @@
           {
             "type": "command",
             "if": "Bash(./scripts/finish-feature*)",
-            "command": "printf '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"additionalContext\":\"CONTEXT UPDATE REQUIRED before finish-feature.sh runs: Update /Users/artemrudenko/Projects/Match/matchday/docs/CONTEXT.md in the main repo (not the worktree). Add the completed feature to the implemented features table, remove it from the gaps section if listed there, update the GitHub issues list if any were closed, and note any non-obvious implementation details. Do this BEFORE finish-feature.sh — the worktree will be removed after.\"}}'",
-            "statusMessage": "Нагадую оновити CONTEXT.md..."
+            "command": "printf '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"additionalContext\":\"CONTEXT UPDATE REQUIRED before finish-feature.sh runs: Update /Users/artemrudenko/Projects/Match/matchday/docs/CONTEXT.md in the main repo (not the worktree). Add the completed feature to the implemented features table, remove it from the gaps section if listed there, update the GitHub issues list if any were closed, and note any non-obvious implementation details. Do this BEFORE finish-feature.sh — the worktree will be removed after. ALSO CHECK FOR UNCOMMITTED WORKTREES: run git worktree list, then git -C <path> status --short for every entry. If any worktree (including this one) has uncommitted changes, surface that to the user before merging — do not let work sit uncommitted and go stale (see 2026-07-16 incident: feature/register-form-validation had uncommitted work for an unknown time, drifted behind dev, and caused a manual-resolve merge conflict with a parallel feature touching the same file).\"}}'",
+            "statusMessage": "Нагадую оновити CONTEXT.md і перевірити незакомічені ворктрі..."
+          },
+          {
+            "type": "command",
+            "if": "Bash(git merge*)",
+            "command": "printf '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"additionalContext\":\"BEFORE MERGING INTO dev: check for uncommitted worktrees first. Run git worktree list, then git -C <path> status --short for every entry (including the current one). If any worktree has uncommitted changes, tell the user before proceeding with the merge — do not merge past stale/uncommitted work (see 2026-07-16 incident: feature/register-form-validation sat uncommitted, drifted behind dev, and caused a manual-resolve merge conflict).\"}}'",
+            "statusMessage": "Перевіряю незакомічені ворктрі перед мержем..."
           },
           {
             "type": "command",
