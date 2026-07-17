@@ -25,7 +25,7 @@ beforeEach(() => {
 });
 
 describe('Avatar', () => {
-  const player = { id: 'p1', teamCode: 'ARS' };
+  const player = { id: 'p1', name: 'Ada Lovelace', teamCode: 'ARS' };
   const team = { code: 'ARS', short: 'ARS', color: '#ff0000' };
 
   it('renders initials when the team has no logo', async () => {
@@ -44,5 +44,16 @@ describe('Avatar', () => {
     await fireEvent(image, 'onError');
 
     expect(getByText('ARS')).toBeTruthy();
+  });
+
+  it('renders the player initials, not the team, when variant is "player"', async () => {
+    setState([player], [{ ...team, logo: 'https://example.com/logo.png' }]);
+    const { getByText, queryByText, queryByTestId } = await render(
+      <Avatar playerId="p1" variant="player" />,
+    );
+
+    expect(getByText('AL')).toBeTruthy();
+    expect(queryByText('ARS')).toBeNull();
+    expect(queryByTestId('avatar-logo')).toBeNull();
   });
 });
