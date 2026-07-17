@@ -10,6 +10,12 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.48',
+    changed: [
+      'Player avatars in the tournament setup screen now show the player\'s own initials instead of their team\'s badge, so it\'s clearer which row is a player and which is a team',
+    ],
+  },
+  {
     version: '1.9.47',
     fixed: [
       'Closing a tournament with no matches played yet now offers to delete it instead of archiving an empty entry with no champion',
