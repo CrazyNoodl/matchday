@@ -117,6 +117,40 @@ describe('calculateStandings', () => {
     expect(p1idx).toBeLessThan(p2idx);
   });
 
+  it('breaks a pts/GD/GF tie (no mutual match) by total wins', () => {
+    // p1: 2 wins, no draws. p2: 1 win + 3 draws. Same pts/GD/GF, never played
+    // each other, so H2H is empty (tied) and it falls through to win count.
+    const matches = [
+      match('m1', 'p1', 'p3', 2, 0),
+      match('m2', 'p1', 'p4', 1, 0),
+      match('m3', 'p2', 'p3', 3, 0),
+      match('m4', 'p2', 'p4', 0, 0),
+      match('m5', 'p2', 'p5', 0, 0),
+      match('m6', 'p2', 'p6', 0, 0),
+    ];
+    const result = calculateStandings(matches, ['p1', 'p2', 'p3', 'p4', 'p5', 'p6']);
+    const p1 = result.find((s) => s.playerId === 'p1')!;
+    const p2 = result.find((s) => s.playerId === 'p2')!;
+    expect(p1.pts).toBe(p2.pts);
+    expect(p1.gd).toBe(p2.gd);
+    expect(p1.gf).toBe(p2.gf);
+    expect(p1.wins).toBeGreaterThan(p2.wins);
+    expect(result.findIndex((s) => s.playerId === 'p1')).toBeLessThan(
+      result.findIndex((s) => s.playerId === 'p2'),
+    );
+  });
+
+  it('resolves a full tie (pts/GD/GF/H2H/wins all equal) deterministically, so a tournament always has exactly one champion', () => {
+    const matches = [match('m1', 'p1', 'p3', 1, 0), match('m2', 'p2', 'p4', 1, 0)];
+    const playerIds = ['p1', 'p2', 'p3', 'p4'];
+    const first = calculateStandings(matches, playerIds);
+    const second = calculateStandings(matches, playerIds);
+    // Same order on every call — a stable resolution, not a random pick.
+    expect(first.map((s) => s.playerId)).toEqual(second.map((s) => s.playerId));
+    expect(first[0].pts).toBe(3);
+    expect(first[1].pts).toBe(3);
+  });
+
   it('ignores matches for players not in playerIds', () => {
     const matches = [match('m1', 'p1', 'unknown', 3, 0)];
     const result = calculateStandings(matches, ['p1', 'p2']);

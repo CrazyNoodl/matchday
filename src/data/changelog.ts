@@ -10,6 +10,12 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.49',
+    fixed: [
+      'A tournament now always crowns exactly one champion — if the final standings are tied even after every existing tiebreaker (points, goal difference, goals scored, head-to-head), the app now breaks the tie by total wins, then by a stable rule, instead of picking arbitrarily',
+    ],
+  },
+  {
     version: '1.9.48',
     changed: [
       'Player avatars in the tournament setup screen now show the player\'s own initials instead of their team\'s badge, so it\'s clearer which row is a player and which is a team',
