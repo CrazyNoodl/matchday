@@ -45,6 +45,11 @@ const meta = {
       options: ['sm', 'md', 'lg', 'xl'],
       table: { defaultValue: { summary: 'md' } },
     },
+    variant: {
+      control: { type: 'select' },
+      options: ['team', 'player'],
+      table: { defaultValue: { summary: 'team' } },
+    },
   },
   args: { playerId: 'p1', size: 'md' },
 } satisfies Meta<typeof Avatar>;
@@ -82,6 +87,20 @@ export const AllPlayers: Story = {
     <View style={{ flexDirection: 'row', gap: 12 }}>
       {MOCK_PLAYERS.map((p) => (
         <Avatar key={p.id} playerId={p.id} size="lg" />
+      ))}
+    </View>
+  ),
+};
+
+export const PlayerVariant: Story = {
+  name: 'Player initials vs team badge (issue #89)',
+  render: () => (
+    <View style={{ gap: 12 }}>
+      {MOCK_PLAYERS.map((p) => (
+        <View key={p.id} style={{ flexDirection: 'row', gap: 10, alignItems: 'center' }}>
+          <Avatar playerId={p.id} size="md" variant="player" />
+          <Avatar playerId={p.id} size="md" variant="team" />
+        </View>
       ))}
     </View>
   ),

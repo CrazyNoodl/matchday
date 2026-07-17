@@ -189,7 +189,7 @@ export default function SetupScreen() {
                   onPress={() => togglePlayer(player.id)}
                   activeOpacity={0.75}
                 >
-                  <Avatar playerId={player.id} size="md" />
+                  <Avatar playerId={player.id} size="md" variant="player" />
                   <View style={styles.playerInfo}>
                     <Text style={styles.playerName}>{player.name}</Text>
                     {player.nick ? <Text style={styles.playerNick}>@{player.nick}</Text> : null}
