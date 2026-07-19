@@ -1,12 +1,13 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { type Player, type Team } from '@/store/types';
-import { canSavePlayer } from '@/utils/playerForm';
+import { canSavePlayer, isDuplicatePlayerName } from '@/utils/playerForm';
 
 interface UsePlayerEditFormOptions {
   addPlayer: (player: Player) => void;
   updatePlayer: (player: Player) => void;
   defaultTeamCode: () => string;
   teams: Team[];
+  players: Player[];
 }
 
 // Owns the create/edit form state and save behavior for a player, so every
@@ -17,6 +18,7 @@ export function usePlayerEditForm({
   updatePlayer,
   defaultTeamCode,
   teams,
+  players,
 }: UsePlayerEditFormOptions) {
   const [visible, setVisible] = useState(false);
   const [editingPlayer, setEditingPlayer] = useState<Player | null>(null);
@@ -42,8 +44,13 @@ export function usePlayerEditForm({
 
   const close = useCallback(() => setVisible(false), []);
 
+  const isDuplicateName = useMemo(
+    () => isDuplicatePlayerName(formName, players, editingPlayer?.id),
+    [formName, players, editingPlayer]
+  );
+
   const save = useCallback(() => {
-    if (!canSavePlayer(formName, formTeam, teams)) return;
+    if (!canSavePlayer(formName, formTeam, teams, players, editingPlayer?.id)) return;
     const name = formName.trim();
 
     if (editingPlayer) {
@@ -62,7 +69,7 @@ export function usePlayerEditForm({
       });
     }
     setVisible(false);
-  }, [formName, formNick, formTeam, editingPlayer, addPlayer, updatePlayer, teams]);
+  }, [formName, formNick, formTeam, editingPlayer, addPlayer, updatePlayer, teams, players]);
 
   return {
     visible,
@@ -73,6 +80,7 @@ export function usePlayerEditForm({
     setFormNick,
     formTeam,
     setFormTeam,
+    isDuplicateName,
     openCreate,
     openEdit,
     close,

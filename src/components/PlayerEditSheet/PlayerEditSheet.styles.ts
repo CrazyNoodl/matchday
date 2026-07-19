@@ -40,6 +40,11 @@ export const makeStyles = (colors: AppColors) =>
       fontSize: FontSize.base,
       color: colors.text.primary,
     },
+    errorText: {
+      fontFamily: FontFamily.body,
+      fontSize: FontSize.xs,
+      color: colors.accent.red,
+    },
     sheetActions: {
       flexDirection: 'row',
       gap: Spacing.md,

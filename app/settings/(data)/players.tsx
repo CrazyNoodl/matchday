@@ -33,6 +33,7 @@ export default function PlayersScreen() {
     updatePlayer,
     defaultTeamCode: useCallback(() => teams[0]?.code ?? '', [teams]),
     teams,
+    players,
   });
 
   const handleDelete = useCallback(
@@ -122,12 +123,14 @@ export default function PlayersScreen() {
         onClose={playerForm.close}
         editingPlayer={playerForm.editingPlayer}
         teams={teams}
+        players={players}
         formName={playerForm.formName}
         onChangeName={playerForm.setFormName}
         formNick={playerForm.formNick}
         onChangeNick={playerForm.setFormNick}
         formTeam={playerForm.formTeam}
         onChangeTeam={playerForm.setFormTeam}
+        isDuplicateName={playerForm.isDuplicateName}
         onSave={playerForm.save}
       />
 
