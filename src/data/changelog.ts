@@ -10,6 +10,12 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.50',
+    fixed: [
+      'Add Match: photos picked on the "add photos" step could be lost if you tapped Next/Save before the picker finished processing them — the match would save without the photo, which then only showed up the next time you opened Add Match. Next/Back are now disabled (with a spinner on the photo button) until the picked photos are actually attached',
+    ],
+  },
+  {
     version: '1.9.49',
     fixed: [
       'A tournament now always crowns exactly one champion — if the final standings are tied even after every existing tiebreaker (points, goal difference, goals scored, head-to-head), the app now breaks the tie by total wins, then by a stable rule, instead of picking arbitrarily',
