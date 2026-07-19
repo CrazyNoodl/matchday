@@ -3,7 +3,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { uploadMediaItems } from '@/supabase/storage';
 import { extractStatsFromPhoto } from '@/utils/extractStats';
 import { useAddMatchFlow } from '../useAddMatchFlow';
-import { initAddMatch } from '@/utils/addMatchState';
+import { initAddMatch, canAddMatchGoNext } from '@/utils/addMatchState';
 import type { Match, Player } from '@/store/types';
 
 jest.mock('react-i18next', () => ({
@@ -244,6 +244,78 @@ describe('handlePickMedia — video upload disabled (#59)', () => {
       await result.current.handlePickMedia();
     });
     expect(mockPicker).toHaveBeenCalledWith(expect.objectContaining({ mediaTypes: ['images'] }));
+  });
+});
+
+// ---------------------------------------------------------------------------
+// handlePickMedia — isPickingMedia guard closes the window where Next/Save
+// could fire before a picked photo actually lands in `media`, saving the
+// match without it and only having it "appear" on the next Add Match open
+// ---------------------------------------------------------------------------
+
+describe('handlePickMedia — blocks Next/Back until the pick actually resolves', () => {
+  it('sets isPickingMedia synchronously and blocks Next/Back until the picker+resize settle', async () => {
+    let resolvePicker!: (v: { canceled: boolean; assets?: unknown[] }) => void;
+    mockPicker.mockReturnValueOnce(
+      new Promise((res) => {
+        resolvePicker = res;
+      }),
+    );
+
+    const { result } = await makeHook();
+
+    await act(async () => {
+      result.current.setAddMatch({
+        ...initAddMatch(),
+        step: 3,
+        homeId: 'p1',
+        awayId: 'p2',
+      });
+    });
+
+    // Fire the pick — picker promise is still pending
+    await act(async () => {
+      result.current.handlePickMedia();
+    });
+
+    // Guard must be up before the picker (let alone the resize) has resolved
+    expect(result.current.addMatch.isPickingMedia).toBe(true);
+    expect(canAddMatchGoNext(result.current.addMatch, true)).toBe(false);
+
+    // Next/Back must both be no-ops while the pick is in flight
+    await act(async () => {
+      result.current.handleBack();
+    });
+    expect(result.current.addMatch.step).toBe(3);
+
+    // Resolve the picker with a photo and let the resize settle
+    await act(async () => {
+      resolvePicker({
+        canceled: false,
+        assets: [
+          { uri: 'file://slow.jpg', type: 'image', base64: 'slowBase', mimeType: 'image/jpeg' },
+        ],
+      });
+    });
+
+    await waitFor(() => expect(result.current.addMatch.isPickingMedia).toBe(false));
+
+    // Now that the photo actually landed in state, Next is unblocked and the
+    // photo is there to be saved with the match — no more "appears next time"
+    expect(result.current.addMatch.media).toHaveLength(1);
+    expect(canAddMatchGoNext(result.current.addMatch, true)).toBe(true);
+  });
+
+  it('clears isPickingMedia even when the user cancels the picker', async () => {
+    mockPicker.mockResolvedValueOnce({ canceled: true });
+    const { result } = await makeHook();
+
+    await act(async () => {
+      await result.current.handlePickMedia();
+    });
+
+    expect(result.current.addMatch.isPickingMedia).toBe(false);
+    expect(result.current.addMatch.media).toHaveLength(0);
   });
 });
 

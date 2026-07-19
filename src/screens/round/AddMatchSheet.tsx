@@ -220,16 +220,23 @@ export function AddMatchSheet({
             <TouchableOpacity
               style={[
                 sheetStyles.addMediaBtn,
-                (addMatch.ocrStatus === 'scanning' || isOffline) && sheetStyles.nextBtnDisabled,
+                (addMatch.ocrStatus === 'scanning' || addMatch.isPickingMedia || isOffline) &&
+                  sheetStyles.nextBtnDisabled,
               ]}
               onPress={handlePickMedia}
-              disabled={addMatch.ocrStatus === 'scanning' || isOffline}
+              disabled={addMatch.ocrStatus === 'scanning' || addMatch.isPickingMedia || isOffline}
               activeOpacity={0.75}
             >
-              <Text style={sheetStyles.addMediaIcon}>+</Text>
-              <Text style={sheetStyles.addMediaText}>
-                {t('matchday.addMediaBtn').toUpperCase()}
-              </Text>
+              {addMatch.isPickingMedia ? (
+                <ActivityIndicator size="small" color={colors.text.muted} />
+              ) : (
+                <>
+                  <Text style={sheetStyles.addMediaIcon}>+</Text>
+                  <Text style={sheetStyles.addMediaText}>
+                    {t('matchday.addMediaBtn').toUpperCase()}
+                  </Text>
+                </>
+              )}
             </TouchableOpacity>
           )}
         </View>
@@ -331,7 +338,9 @@ export function AddMatchSheet({
       <Sheet
         visible={visible}
         onClose={onClose}
-        disableClose={addMatch.ocrStatus === 'scanning' || isAddMatchDirty(addMatch)}
+        disableClose={
+          addMatch.ocrStatus === 'scanning' || addMatch.isPickingMedia || isAddMatchDirty(addMatch)
+        }
         avoidKeyboard
       >
         <View style={sheetStyles.sheet}>
@@ -371,16 +380,19 @@ export function AddMatchSheet({
             <TouchableOpacity
               style={[
                 sheetStyles.backActionBtn,
-                (addMatch.ocrStatus === 'scanning' || isSavingMatch) && sheetStyles.nextBtnDisabled,
+                (addMatch.ocrStatus === 'scanning' || addMatch.isPickingMedia || isSavingMatch) &&
+                  sheetStyles.nextBtnDisabled,
               ]}
               onPress={handleBack}
-              disabled={addMatch.ocrStatus === 'scanning' || isSavingMatch}
+              disabled={
+                addMatch.ocrStatus === 'scanning' || addMatch.isPickingMedia || isSavingMatch
+              }
               activeOpacity={0.75}
             >
               <Text
                 style={[
                   sheetStyles.backActionText,
-                  (addMatch.ocrStatus === 'scanning' || isSavingMatch) &&
+                  (addMatch.ocrStatus === 'scanning' || addMatch.isPickingMedia || isSavingMatch) &&
                     sheetStyles.nextBtnTextDisabled,
                 ]}
               >
