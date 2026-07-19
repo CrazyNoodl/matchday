@@ -53,6 +53,7 @@ export default function SetupScreen() {
     updatePlayer,
     defaultTeamCode: useCallback(() => teams[0]?.code ?? '', [teams]),
     teams,
+    players,
   });
   const teamForm = useTeamEditForm({ teams, addTeam, updateTeam, demoMode });
 
@@ -259,12 +260,14 @@ export default function SetupScreen() {
         onClose={playerForm.close}
         editingPlayer={playerForm.editingPlayer}
         teams={teams}
+        players={players}
         formName={playerForm.formName}
         onChangeName={playerForm.setFormName}
         formNick={playerForm.formNick}
         onChangeNick={playerForm.setFormNick}
         formTeam={playerForm.formTeam}
         onChangeTeam={playerForm.setFormTeam}
+        isDuplicateName={playerForm.isDuplicateName}
         onSave={playerForm.save}
       />
 

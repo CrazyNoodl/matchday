@@ -6,6 +6,7 @@ const players = {
   deleteConfirm: 'Delete player?',
   deleteDesc: 'This player will be removed.',
   cannotDelete: 'Cannot delete — player has active matches.',
+  duplicateName: 'A player with this name already exists.',
 } as const;
 
 export default players;
