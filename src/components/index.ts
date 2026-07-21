@@ -2,6 +2,7 @@ export * from './Avatar';
 export * from './Button';
 export * from './ConfettiPiece';
 export * from './ConfirmDialog';
+export * from './DraggableMatchBlock';
 export * from './DropdownMenu';
 export * from './EmptyState';
 export * from './ErrorFallback';

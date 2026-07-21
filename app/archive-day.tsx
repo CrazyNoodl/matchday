@@ -19,6 +19,7 @@ import {
   GlowBackground,
   ConfirmDialog,
   DropdownMenu,
+  DraggableMatchBlock,
 } from '@/components';
 import { useDropdownMenu } from '@/hooks/useDropdownMenu';
 import { groupMatchesByTour } from '@/utils/matchTours';
@@ -86,6 +87,8 @@ export default function ArchiveDayScreen() {
       hasTournament && !!viewingRound && s.archivedRounds.some((r) => r.id === viewingRound.id),
   );
   const deleteArchivedRound = useStore((s) => s.deleteArchivedRound);
+  const reorderMatches = useStore((s) => s.reorderMatches);
+  const matchDragReorderEnabled = useStore((s) => s.matchDragReorderEnabled);
   const groupByTours = useStore((s) => s.groupByTours);
   const showAvgGoals = useStore((s) => s.showAvgGoals);
   const roundsForOrdinal = useStore((s) =>
@@ -242,23 +245,23 @@ export default function ArchiveDayScreen() {
                     </Text>
                   )}
                   <View style={styles.matchBlock}>
-                    {reversed.map((m, idx) => (
-                      <TouchableOpacity
-                        key={m.id}
-                        activeOpacity={0.75}
-                        onPress={() => router.push(`/match/${m.id}`)}
-                      >
-                        <MatchCard
-                          match={m}
-                          readonly
-                          style={
-                            idx < reversed.length - 1
-                              ? styles.matchCardInBlock
-                              : styles.matchCardInBlockLast
-                          }
-                        />
-                      </TouchableOpacity>
-                    ))}
+                    <DraggableMatchBlock
+                      matches={reversed}
+                      reorderEnabled={isEditableRound && matchDragReorderEnabled}
+                      onReorder={(newDisplayOrder) =>
+                        reorderMatches([...newDisplayOrder].reverse())
+                      }
+                      itemStyle={styles.matchCardInBlock}
+                      lastItemStyle={styles.matchCardInBlockLast}
+                      renderCard={(m, cardStyle) => (
+                        <TouchableOpacity
+                          activeOpacity={0.75}
+                          onPress={() => router.push(`/match/${m.id}`)}
+                        >
+                          <MatchCard match={m} readonly style={cardStyle} />
+                        </TouchableOpacity>
+                      )}
+                    />
                   </View>
                 </View>
               );

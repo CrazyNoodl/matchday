@@ -85,6 +85,7 @@ export interface Database {
           media: string | null; // JSON
           note: string | null;
           stats_override: string | null; // JSON
+          position: number;
           updated_at: string;
         };
         Insert: Omit<Database['public']['Tables']['matches']['Row'], 'updated_at'> & {

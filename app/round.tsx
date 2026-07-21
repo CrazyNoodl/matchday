@@ -16,6 +16,7 @@ import {
   GlowBackground,
   DropdownMenu,
   ConfirmDialog,
+  DraggableMatchBlock,
 } from '@/components';
 import { useDropdownMenu } from '@/hooks/useDropdownMenu';
 import { groupMatchesByTour } from '@/utils/matchTours';
@@ -57,6 +58,8 @@ export default function MatchdayScreen() {
   const setSelectedMatch = useStore((s) => s.setSelectedMatch);
   const finishRound = useStore((s) => s.finishRound);
   const deleteMatch = useStore((s) => s.deleteMatch);
+  const reorderMatches = useStore((s) => s.reorderMatches);
+  const matchDragReorderEnabled = useStore((s) => s.matchDragReorderEnabled);
   const deleteRound = useStore((s) => s.deleteRound);
 
   const colors = useColors();
@@ -279,18 +282,18 @@ export default function MatchdayScreen() {
                       </Text>
                     )}
                     <View style={styles.matchBlock}>
-                      {reversed.map((m, idx) => (
-                        <MatchCard
-                          key={m.id}
-                          match={m}
-                          style={
-                            idx < reversed.length - 1
-                              ? styles.matchCardInBlock
-                              : styles.matchCardInBlockLast
-                          }
-                          onPress={handleMatchPress}
-                        />
-                      ))}
+                      <DraggableMatchBlock
+                        matches={reversed}
+                        reorderEnabled={matchDragReorderEnabled}
+                        onReorder={(newDisplayOrder) =>
+                          reorderMatches([...newDisplayOrder].reverse())
+                        }
+                        itemStyle={styles.matchCardInBlock}
+                        lastItemStyle={styles.matchCardInBlockLast}
+                        renderCard={(m, cardStyle) => (
+                          <MatchCard match={m} style={cardStyle} onPress={handleMatchPress} />
+                        )}
+                      />
                     </View>
                   </View>
                 );

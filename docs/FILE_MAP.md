@@ -126,6 +126,7 @@ src/components/Sheet/, SheetHeader.tsx, SheetFooter.tsx — bottom-sheet primiti
 src/components/StandingsTable/, StandingCard/    — two standings render modes (table vs. cards)
 src/components/Toggle/                          — shared on/off control (NewRoundModal + ShareRoundModal)
 src/components/NewRoundModal/                   — start-round modal (ranked/friendly toggle)
+src/components/DraggableMatchBlock/             — drag-to-reorder match list (dev-gated, see CONTEXT.md)
 src/components/LoginScreen/, OfflineScreen/, ErrorFallback/ — full-screen states shown from app/_layout.tsx
 ```
 

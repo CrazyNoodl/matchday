@@ -292,9 +292,11 @@ export async function pushState(
         );
       }
 
-      // Upsert matches inside archived rounds
+      // Upsert matches inside archived rounds. `position` is each match's
+      // index within its OWN round's array — computed before flattening, so
+      // reordering one round doesn't shift positions in another.
       const archivedMatches = payload.archivedRounds.flatMap((r) =>
-        r.matches.map((m) => ({ ...m, roundId: r.id })),
+        r.matches.map((m, idx) => ({ ...m, roundId: r.id, position: idx })),
       );
       if (archivedMatches.length > 0) {
         await exec(
@@ -313,6 +315,7 @@ export async function pushState(
               media: m.media ? JSON.stringify(m.media) : null,
               note: m.note ?? null,
               stats_override: m.statsOverride ? JSON.stringify(m.statsOverride) : null,
+              position: m.position,
               updated_at: now,
             })),
             { onConflict: 'id' },
@@ -329,7 +332,7 @@ export async function pushState(
     if (payload.matches.length > 0) {
       await exec(
         db.from('matches').upsert(
-          payload.matches.map((m) => ({
+          payload.matches.map((m, idx) => ({
             id: m.id,
             user_id: userId,
             tournament_id: tournamentId || null,
@@ -343,6 +346,7 @@ export async function pushState(
             media: m.media ? JSON.stringify(m.media) : null,
             note: m.note ?? null,
             stats_override: m.statsOverride ? JSON.stringify(m.statsOverride) : null,
+            position: idx,
             updated_at: now,
           })),
           { onConflict: 'id' },
@@ -427,7 +431,7 @@ export async function pushState(
         );
 
         const closedMatches = ct.rounds.flatMap((r) =>
-          r.matches.map((m) => ({ ...m, roundId: r.id })),
+          r.matches.map((m, idx) => ({ ...m, roundId: r.id, position: idx })),
         );
         if (closedMatches.length > 0) {
           await exec(
@@ -446,6 +450,7 @@ export async function pushState(
                 media: m.media ? JSON.stringify(m.media) : null,
                 note: m.note ?? null,
                 stats_override: m.statsOverride ? JSON.stringify(m.statsOverride) : null,
+                position: m.position,
                 updated_at: now,
               })),
               { onConflict: 'id' },
@@ -577,7 +582,12 @@ export async function pullState(): Promise<PulledState | null> {
     db.from('teams').select('*').eq('user_id', userId),
     db.from('tournaments').select('*').eq('user_id', userId).eq('status', 'active').limit(1),
     db.from('rounds').select('*').eq('user_id', userId).order('n', { ascending: true }),
-    db.from('matches').select('*').eq('user_id', userId).order('id', { ascending: true }),
+    db
+      .from('matches')
+      .select('*')
+      .eq('user_id', userId)
+      .order('position', { ascending: true })
+      .order('id', { ascending: true }),
     db
       .from('closed_tournaments')
       .select('*')
