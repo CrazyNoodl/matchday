@@ -7,6 +7,7 @@ export * from './EmptyState';
 export * from './ErrorFallback';
 export * from './FormChip';
 export * from './GlowBackground';
+export * from './H2HCard';
 export * from './LoginScreen';
 export * from './MatchCard';
 export * from './MediaSlider';

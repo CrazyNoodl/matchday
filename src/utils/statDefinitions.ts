@@ -6,11 +6,13 @@ export interface StatDef {
   isPercent: boolean;
   /** Edit-sheet stepper increment. Defaults to 1 when omitted. */
   step?: number;
+  /** Whether a higher value is the "better" one for this stat. Defaults to true when omitted — only set false for stats where less is better (e.g. time to regain the ball, fouls, cards). */
+  higherIsBetter?: boolean;
 }
 
 export const STAT_DEFINITIONS: StatDef[] = [
   { key: 'possession', labelKey: 'stats.possession', isPercent: true },
-  { key: 'timeToRegain', labelKey: 'stats.timeToRegain', isPercent: false },
+  { key: 'timeToRegain', labelKey: 'stats.timeToRegain', isPercent: false, higherIsBetter: false },
   { key: 'shots', labelKey: 'stats.shots', isPercent: false },
   { key: 'expectedGoals', labelKey: 'stats.expectedGoals', isPercent: false, step: 0.1 },
   { key: 'passes', labelKey: 'stats.passes', isPercent: false },
@@ -18,13 +20,13 @@ export const STAT_DEFINITIONS: StatDef[] = [
   { key: 'successfulTackles', labelKey: 'stats.successfulTackles', isPercent: false },
   { key: 'interceptions', labelKey: 'stats.interceptions', isPercent: false },
   { key: 'saves', labelKey: 'stats.saves', isPercent: false },
-  { key: 'fouls', labelKey: 'stats.fouls', isPercent: false },
-  { key: 'offsides', labelKey: 'stats.offsides', isPercent: false },
+  { key: 'fouls', labelKey: 'stats.fouls', isPercent: false, higherIsBetter: false },
+  { key: 'offsides', labelKey: 'stats.offsides', isPercent: false, higherIsBetter: false },
   { key: 'corners', labelKey: 'stats.corners', isPercent: false },
   { key: 'freekicks', labelKey: 'stats.freekicks', isPercent: false },
   { key: 'penaltyShots', labelKey: 'stats.penaltyShots', isPercent: false },
-  { key: 'yellowCards', labelKey: 'stats.yellowCards', isPercent: false },
-  { key: 'redCards', labelKey: 'stats.redCards', isPercent: false },
+  { key: 'yellowCards', labelKey: 'stats.yellowCards', isPercent: false, higherIsBetter: false },
+  { key: 'redCards', labelKey: 'stats.redCards', isPercent: false, higherIsBetter: false },
   { key: 'breaksThroughCenter', labelKey: 'stats.breaksThroughCenter', isPercent: false },
   { key: 'breaksThroughWing', labelKey: 'stats.breaksThroughWing', isPercent: false },
   { key: 'breaksThroughHigh', labelKey: 'stats.breaksThroughHigh', isPercent: false },

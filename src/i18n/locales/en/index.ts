@@ -25,6 +25,7 @@ import importRound from './importRound';
 import ocrLab from './ocrLab';
 import resizeLab from './resizeLab';
 import welcome from './welcome';
+import rivalry from './rivalry';
 
 const en = {
   common,
@@ -54,6 +55,7 @@ const en = {
   ocrLab,
   resizeLab,
   welcome,
+  rivalry,
 } as const;
 
 export default en;

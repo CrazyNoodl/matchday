@@ -26,6 +26,7 @@ import importRound from './importRound';
 import ocrLab from './ocrLab';
 import resizeLab from './resizeLab';
 import welcome from './welcome';
+import rivalry from './rivalry';
 
 const uk = {
   common,
@@ -55,6 +56,7 @@ const uk = {
   ocrLab,
   resizeLab,
   welcome,
+  rivalry,
 } as const satisfies TranslationSchema;
 
 export default uk;
