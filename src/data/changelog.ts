@@ -10,6 +10,16 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.52',
+    added: [
+      'Added a Rivalry screen for any player pair — biggest win, win streak, highest-scoring match, average goals/game, and per-stat personal bests, opened with a 3-second long-press on a head-to-head card (Stats > Head-to-head)',
+      'Added a Match-Day Stats screen (via the "···" menu on an archived match day) with records and a per-player comparison across all 23 tracked stats for that day',
+    ],
+    internal: [
+      'Internal: experimental drag-and-drop match reordering within a tour, hidden behind a Developer Tools toggle — not yet enabled by default',
+    ],
+  },
+  {
     version: '1.9.51',
     fixed: [
       'Adding or renaming a player to a name that already exists (ignoring case and extra spaces) is now blocked, with an inline error shown in the player editor, instead of letting two indistinguishable players into the picker',
