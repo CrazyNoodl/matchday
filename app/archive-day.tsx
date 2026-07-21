@@ -19,11 +19,11 @@ import {
   GlowBackground,
   ConfirmDialog,
   DropdownMenu,
+  DraggableMatchBlock,
 } from '@/components';
 import { useDropdownMenu } from '@/hooks/useDropdownMenu';
 import { groupMatchesByTour } from '@/utils/matchTours';
 import { getRankedRoundOrdinals, EMPTY_ROUNDS } from '@/utils/roundOrdinals';
-import { type Match } from '@/store/types';
 import { makeStyles } from '@/screens/archive-day/archive-day.styles';
 import { EditRoundDateSheet } from '@/screens/archive-day/ArchiveDayModals';
 
@@ -87,6 +87,8 @@ export default function ArchiveDayScreen() {
       hasTournament && !!viewingRound && s.archivedRounds.some((r) => r.id === viewingRound.id),
   );
   const deleteArchivedRound = useStore((s) => s.deleteArchivedRound);
+  const reorderMatches = useStore((s) => s.reorderMatches);
+  const matchDragReorderEnabled = useStore((s) => s.matchDragReorderEnabled);
   const groupByTours = useStore((s) => s.groupByTours);
   const showAvgGoals = useStore((s) => s.showAvgGoals);
   const roundsForOrdinal = useStore((s) =>
@@ -167,26 +169,15 @@ export default function ArchiveDayScreen() {
         title=""
         onBack={() => goBack()}
         rightElement={
-          isEditableRound ? (
-            <TouchableOpacity
-              ref={roundMenu.anchorRef}
-              style={styles.dotsBtn}
-              onPress={roundMenu.open}
-              activeOpacity={0.7}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            >
-              <Text style={styles.dotsIcon}>···</Text>
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity
-              style={styles.shareBtn}
-              onPress={() => setShareVisible(true)}
-              activeOpacity={0.7}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            >
-              <Text style={styles.shareBtnText}>{t('common.share')}</Text>
-            </TouchableOpacity>
-          )
+          <TouchableOpacity
+            ref={roundMenu.anchorRef}
+            style={styles.dotsBtn}
+            onPress={roundMenu.open}
+            activeOpacity={0.7}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Text style={styles.dotsIcon}>···</Text>
+          </TouchableOpacity>
         }
       />
 
@@ -254,23 +245,23 @@ export default function ArchiveDayScreen() {
                     </Text>
                   )}
                   <View style={styles.matchBlock}>
-                    {reversed.map((m: Match, idx) => (
-                      <TouchableOpacity
-                        key={m.id}
-                        activeOpacity={0.75}
-                        onPress={() => router.push(`/match/${m.id}`)}
-                      >
-                        <MatchCard
-                          match={m}
-                          readonly
-                          style={
-                            idx < reversed.length - 1
-                              ? styles.matchCardInBlock
-                              : styles.matchCardInBlockLast
-                          }
-                        />
-                      </TouchableOpacity>
-                    ))}
+                    <DraggableMatchBlock
+                      matches={reversed}
+                      reorderEnabled={isEditableRound && matchDragReorderEnabled}
+                      onReorder={(newDisplayOrder) =>
+                        reorderMatches([...newDisplayOrder].reverse())
+                      }
+                      itemStyle={styles.matchCardInBlock}
+                      lastItemStyle={styles.matchCardInBlockLast}
+                      renderCard={(m, cardStyle) => (
+                        <TouchableOpacity
+                          activeOpacity={0.75}
+                          onPress={() => router.push(`/match/${m.id}`)}
+                        >
+                          <MatchCard match={m} readonly style={cardStyle} />
+                        </TouchableOpacity>
+                      )}
+                    />
                   </View>
                 </View>
               );
@@ -297,6 +288,14 @@ export default function ArchiveDayScreen() {
         position={roundMenu.position}
         items={[
           {
+            key: 'stats',
+            label: t('home.stats').toUpperCase(),
+            onPress: () => {
+              roundMenu.close();
+              router.push('/matchday-stats');
+            },
+          },
+          {
             key: 'share',
             label: t('common.share'),
             onPress: () => {
@@ -304,15 +303,19 @@ export default function ArchiveDayScreen() {
               setShareVisible(true);
             },
           },
-          {
-            key: 'delete',
-            label: t('archive.deleteRoundConfirm'),
-            destructive: true,
-            onPress: () => {
-              roundMenu.close();
-              setDeleteVisible(true);
-            },
-          },
+          ...(isEditableRound
+            ? [
+                {
+                  key: 'delete',
+                  label: t('archive.deleteRoundConfirm'),
+                  destructive: true,
+                  onPress: () => {
+                    roundMenu.close();
+                    setDeleteVisible(true);
+                  },
+                },
+              ]
+            : []),
         ]}
       />
 

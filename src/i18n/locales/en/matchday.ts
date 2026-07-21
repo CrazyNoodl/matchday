@@ -5,6 +5,7 @@ const matchday = {
   cards: 'Cards',
   matchesSection: 'Matches · {{count}}',
   tour: 'Tour {{n}}',
+  dragToReorder: 'Drag to reorder match',
   addMatch: '+ Add match',
   noMatches: 'No matches yet. Tap + to add the first match.',
   noMatchesAction: 'Add Match',

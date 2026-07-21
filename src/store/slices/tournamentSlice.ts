@@ -14,6 +14,26 @@ import { initials, patchMatchEverywhere, matchMediaFolder } from '../sliceHelper
 import { buildRoundFolder, deleteStorageFolder } from '@/supabase/storage';
 import type { RootState } from '../index';
 
+// Reorders the contiguous slice of `arr` whose ids match the `orderedIds` set
+// (a drag-and-drop tour block is always a contiguous run in the underlying
+// array — see groupMatchesByTour) to the given order. Returns null if this
+// array doesn't contain that exact contiguous slice, so the caller can try
+// the next candidate list (current matches vs. a specific archived round).
+function reorderSlice<T extends { id: string }>(arr: T[], orderedIds: string[]): T[] | null {
+  const idSet = new Set(orderedIds);
+  const start = arr.findIndex((x) => idSet.has(x.id));
+  if (start === -1) return null;
+  const end = start + orderedIds.length;
+  if (end > arr.length) return null;
+  const slice = arr.slice(start, end);
+  if (!slice.every((x) => idSet.has(x.id))) return null;
+  const byId = new Map(slice.map((x) => [x.id, x]));
+  const reordered = orderedIds.map((id) => byId.get(id)!);
+  const next = [...arr];
+  next.splice(start, orderedIds.length, ...reordered);
+  return next;
+}
+
 function buildArchivedRound(s: RootState): ArchivedRound {
   const standings = calculateStandings(s.matches, s.roundPlayers);
   const isTrueDraw = isTopTied(standings, s.matches);
@@ -68,6 +88,11 @@ export interface TournamentActions {
     stats: Record<string, { a: number; b: number; confidence?: StatConfidence }> | undefined,
   ) => void;
   swapMatchSides: (id: string) => void;
+  // Reorders a contiguous tour block (given as its new full id order) within
+  // whichever list holds it (the currently open round's `matches`, or one
+  // specific archived round's `matches`) — display order is derived purely
+  // from array position, there is no separate ordering field.
+  reorderMatches: (orderedIds: string[]) => void;
   finishRound: () => void;
   deleteRound: () => void;
   deleteArchivedRound: (id: string) => void;
@@ -162,6 +187,22 @@ export const createTournamentSlice: StateCreator<RootState, [], [], TournamentSl
         aScore: match.bScore,
         bScore: match.aScore,
       });
+    }),
+
+  reorderMatches: (orderedIds) =>
+    set((s) => {
+      const reorderedMatches = reorderSlice(s.matches, orderedIds);
+      if (reorderedMatches) return { matches: reorderedMatches };
+
+      for (let i = 0; i < s.archivedRounds.length; i++) {
+        const reordered = reorderSlice(s.archivedRounds[i].matches, orderedIds);
+        if (reordered) {
+          const archivedRounds = [...s.archivedRounds];
+          archivedRounds[i] = { ...archivedRounds[i], matches: reordered };
+          return { archivedRounds };
+        }
+      }
+      return s;
     }),
 
   finishRound: () => {

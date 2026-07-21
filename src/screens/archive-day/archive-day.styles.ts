@@ -18,23 +18,7 @@ export const makeStyles = (colors: AppColors) =>
       paddingBottom: 40,
     },
 
-    // ---- Share button ----
-    shareBtn: {
-      paddingHorizontal: Spacing.md,
-      paddingVertical: Spacing.xs,
-      borderRadius: Radius.md,
-      backgroundColor: colors.accent.greenSubtle,
-      borderWidth: 1,
-      borderColor: colors.accent.greenBorder,
-    },
-    shareBtnText: {
-      fontFamily: FontFamily.bodySemiBold,
-      fontSize: FontSize.xs,
-      color: colors.accent.green,
-      letterSpacing: 0.5,
-    },
-
-    // ---- Dots button (editable rounds) ----
+    // ---- Dots button ----
     dotsBtn: {
       width: 32,
       height: 32,

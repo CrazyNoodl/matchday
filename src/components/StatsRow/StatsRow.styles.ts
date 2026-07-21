@@ -11,14 +11,23 @@ export const makeStyles = (colors: AppColors) =>
       gap: Spacing.sm,
       marginBottom: Spacing.sm,
     },
+    valueCol: {
+      minWidth: 28,
+      alignItems: 'center',
+    },
     value: {
       fontFamily: FontFamily.bodySemiBold,
       fontSize: FontSize.base,
-      width: 28,
       textAlign: 'center',
     },
     valueNA: {
       color: colors.text.ghost,
+    },
+    subLabel: {
+      fontFamily: FontFamily.body,
+      fontSize: FontSize.xs,
+      color: colors.text.muted,
+      marginTop: 1,
     },
     barContainer: {
       flex: 1,
@@ -50,11 +59,20 @@ export const makeStyles = (colors: AppColors) =>
       textAlign: 'center',
       minWidth: 60,
     },
+    labelCol: {
+      alignItems: 'center',
+    },
     labelRow: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
       gap: 4,
+    },
+    labelSubText: {
+      fontFamily: FontFamily.body,
+      fontSize: FontSize.xs,
+      color: colors.text.ghost,
+      textAlign: 'center',
     },
     confidenceDot: {
       width: 5,

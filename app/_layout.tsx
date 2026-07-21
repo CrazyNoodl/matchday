@@ -247,8 +247,10 @@ function AppContent({
             <Stack.Screen name="stats" />
             <Stack.Screen name="archive" />
             <Stack.Screen name="archive-day" />
+            <Stack.Screen name="matchday-stats" />
             <Stack.Screen name="season-stats" />
             <Stack.Screen name="match/[id]" />
+            <Stack.Screen name="rivalry/[a]/[b]" />
             <Stack.Screen name="settings/index" />
             <Stack.Screen name="settings/players" />
             <Stack.Screen name="settings/teams" />
