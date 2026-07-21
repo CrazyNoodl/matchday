@@ -26,6 +26,7 @@ import ocrLab from './ocrLab';
 import resizeLab from './resizeLab';
 import welcome from './welcome';
 import rivalry from './rivalry';
+import matchdayStats from './matchdayStats';
 
 const en = {
   common,
@@ -56,6 +57,7 @@ const en = {
   resizeLab,
   welcome,
   rivalry,
+  matchdayStats,
 } as const;
 
 export default en;

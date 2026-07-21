@@ -247,6 +247,7 @@ function AppContent({
             <Stack.Screen name="stats" />
             <Stack.Screen name="archive" />
             <Stack.Screen name="archive-day" />
+            <Stack.Screen name="matchday-stats" />
             <Stack.Screen name="season-stats" />
             <Stack.Screen name="match/[id]" />
             <Stack.Screen name="rivalry/[a]/[b]" />
