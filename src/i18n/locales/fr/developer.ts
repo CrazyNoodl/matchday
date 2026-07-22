@@ -16,6 +16,11 @@ const developer = {
     resizeLab: 'Labo redimensionnement',
     resizeLabSub: 'Comparer la taille avant/après pour chaque préréglage de compression (#62)',
   },
+  experimental: {
+    section: 'Fonctionnalités expérimentales',
+    dragReorder: 'Glisser-déposer pour réordonner les matchs',
+    dragReorderSub: 'Testeurs uniquement — réordonner les matchs d’un tour par glisser-déposer',
+  },
   errorTracking: {
     section: 'Suivi des erreurs',
     sendTestError: 'Envoyer une erreur test',

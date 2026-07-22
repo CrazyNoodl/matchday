@@ -20,6 +20,10 @@ export interface SettingsState {
   hasSeenOnboarding: boolean;
   leaderModalEnabled: boolean;
   leaderModalMinPlayers: number;
+  // Dev-only experimental toggle — drag-to-reorder for matches within a
+  // tour block. Local-only, never synced: this is a tester-facing kill
+  // switch, not user data.
+  matchDragReorderEnabled: boolean;
 }
 
 export interface SettingsActions {
@@ -34,6 +38,7 @@ export interface SettingsActions {
   setHasSeenOnboarding: (v: boolean) => void;
   setLeaderModalEnabled: (v: boolean) => void;
   setLeaderModalMinPlayers: (n: number) => void;
+  setMatchDragReorderEnabled: (v: boolean) => void;
 }
 
 export type SettingsSlice = SettingsState & SettingsActions;
@@ -51,6 +56,7 @@ export const createSettingsSlice: StateCreator<RootState, [], [], SettingsSlice>
   hasSeenOnboarding: false,
   leaderModalEnabled: false,
   leaderModalMinPlayers: 6,
+  matchDragReorderEnabled: false,
 
   setShowNick: (v) => set({ showNick: v }),
   setShowTeamLogo: (v) => set({ showTeamLogo: v }),
@@ -62,6 +68,7 @@ export const createSettingsSlice: StateCreator<RootState, [], [], SettingsSlice>
   setHasSeenOnboarding: (v) => set({ hasSeenOnboarding: v }),
   setLeaderModalEnabled: (v) => set({ leaderModalEnabled: v }),
   setLeaderModalMinPlayers: (n) => set({ leaderModalMinPlayers: n }),
+  setMatchDragReorderEnabled: (v) => set({ matchDragReorderEnabled: v }),
 
   setDemoMode: (on) => {
     const s = get();

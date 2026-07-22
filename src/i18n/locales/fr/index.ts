@@ -26,6 +26,9 @@ import importRound from './importRound';
 import ocrLab from './ocrLab';
 import resizeLab from './resizeLab';
 import welcome from './welcome';
+import rivalry from './rivalry';
+import matchdayStats from './matchdayStats';
+import sharedRound from './sharedRound';
 
 const fr = {
   common,
@@ -55,6 +58,9 @@ const fr = {
   ocrLab,
   resizeLab,
   welcome,
+  rivalry,
+  matchdayStats,
+  sharedRound,
 } as const satisfies TranslationSchema;
 
 export default fr;

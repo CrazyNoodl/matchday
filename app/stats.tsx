@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useGoBack } from '@/utils/useGoBack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStore } from '@/store';
@@ -14,13 +14,12 @@ import {
   type H2HPair,
 } from '@/utils/statsAggregation';
 import { useColors } from '@/theme';
-import { Radius } from '@/theme/spacing';
 import {
-  Avatar,
   SectionLabel,
   GlowBackground,
   SegmentedControl,
   PlayerRankCard,
+  H2HCard,
 } from '@/components';
 import type { Match, Player } from '@/store/types';
 import { useTranslation } from 'react-i18next';
@@ -136,7 +135,7 @@ export default function StatsScreen() {
             matchDaysPlayed={matchDaysPlayed}
           />
         ) : (
-          <H2HTab pairs={h2hPairs} />
+          <H2HTab pairs={h2hPairs} tournamentOnly={tournamentOnly} />
         )}
       </ScrollView>
     </SafeAreaView>
@@ -240,107 +239,33 @@ function RankingTab({ standings, players, totalGoals, matchDaysPlayed }: Ranking
 // ---------------------------------------------------------------------------
 interface H2HTabProps {
   pairs: H2HPair[];
+  tournamentOnly: boolean;
 }
 
-function H2HTab({ pairs }: H2HTabProps) {
+function H2HTab({ pairs, tournamentOnly }: H2HTabProps) {
   const { t } = useTranslation();
   const colors = useColors();
   const styles = makeStyles(colors);
-  const teams = useStore((s) => s.teams);
-  const teamColorFor = (player: Player) =>
-    teams.find((team) => team.code === player.teamCode)?.color ?? colors.text.secondary;
+  const router = useRouter();
+
   return (
     <View style={styles.tabContent}>
       <SectionLabel label={t('stats.rivalries').toUpperCase()} style={styles.sectionLabel} />
 
-      {pairs.map((pair) => {
-        const { playerA, playerB, aWins, bWins, draws, aGoals, bGoals, games } = pair;
-        const totalDecisive = aWins + bWins;
-        const aBarFlex = totalDecisive > 0 ? aWins / totalDecisive : 0.5;
-        const bBarFlex = totalDecisive > 0 ? bWins / totalDecisive : 0.5;
-        const allDraws = totalDecisive === 0;
-
-        return (
-          <View key={`${playerA.id}-${playerB.id}`} style={styles.h2hCard}>
-            {/* Top row: Player A · games · Player B */}
-            <View style={styles.h2hTopRow}>
-              <View style={styles.h2hPlayerLeft}>
-                <Avatar playerId={playerA.id} size="sm" />
-                <Text style={styles.h2hPlayerName} numberOfLines={1}>
-                  {playerA.name}
-                </Text>
-              </View>
-
-              <View style={styles.h2hGamesWrap}>
-                <Text style={styles.h2hGamesText}>{t('stats.h2hGames', { count: games })}</Text>
-              </View>
-
-              <View style={styles.h2hPlayerRight}>
-                <Text style={styles.h2hPlayerName} numberOfLines={1}>
-                  {playerB.name}
-                </Text>
-                <Avatar playerId={playerB.id} size="sm" />
-              </View>
-            </View>
-
-            {/* Wins counts + draws label */}
-            <View style={styles.h2hScoreRow}>
-              <Text style={[styles.h2hWinsCount, { color: teamColorFor(playerA) }]}>{aWins}</Text>
-              <Text style={styles.h2hDrawsLabel}>{t('stats.h2hDraws', { count: draws })}</Text>
-              <Text style={[styles.h2hWinsCount, { color: teamColorFor(playerB) }]}>{bWins}</Text>
-            </View>
-
-            {/* Progress bar */}
-            <View style={styles.h2hBarContainer}>
-              {allDraws ? (
-                <View
-                  style={[
-                    styles.h2hBarSegment,
-                    {
-                      flex: 1,
-                      backgroundColor: colors.border.strong,
-                      borderRadius: Radius.full,
-                    },
-                  ]}
-                />
-              ) : (
-                <>
-                  <View
-                    style={[
-                      styles.h2hBarSegment,
-                      {
-                        flex: aBarFlex,
-                        backgroundColor: teamColorFor(playerA),
-                        borderTopLeftRadius: Radius.full,
-                        borderBottomLeftRadius: Radius.full,
-                        borderTopRightRadius: bWins === 0 ? Radius.full : 0,
-                        borderBottomRightRadius: bWins === 0 ? Radius.full : 0,
-                      },
-                    ]}
-                  />
-                  {aWins > 0 && bWins > 0 && <View style={styles.h2hBarGap} />}
-                  <View
-                    style={[
-                      styles.h2hBarSegment,
-                      {
-                        flex: bBarFlex,
-                        backgroundColor: teamColorFor(playerB),
-                        borderTopRightRadius: Radius.full,
-                        borderBottomRightRadius: Radius.full,
-                        borderTopLeftRadius: aWins === 0 ? Radius.full : 0,
-                        borderBottomLeftRadius: aWins === 0 ? Radius.full : 0,
-                      },
-                    ]}
-                  />
-                </>
-              )}
-            </View>
-
-            {/* Goals line */}
-            <Text style={styles.h2hGoals}>{t('stats.h2hGoals', { a: aGoals, b: bGoals })}</Text>
-          </View>
-        );
-      })}
+      {pairs.map((pair) => (
+        <TouchableOpacity
+          key={`${pair.playerA.id}-${pair.playerB.id}`}
+          activeOpacity={0.85}
+          delayLongPress={3000}
+          onLongPress={() =>
+            router.push(
+              `/rivalry/${pair.playerA.id}/${pair.playerB.id}${tournamentOnly ? '?scope=tournament' : ''}`,
+            )
+          }
+        >
+          <H2HCard pair={pair} />
+        </TouchableOpacity>
+      ))}
 
       {pairs.length === 0 && (
         <View style={styles.emptyWrap}>

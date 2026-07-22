@@ -5,6 +5,7 @@ const matchday = {
   cards: 'Картки',
   matchesSection: 'Матчі · {{count}}',
   tour: 'Тур {{n}}',
+  dragToReorder: 'Перетягніть, щоб змінити порядок матчу',
   addMatch: '+ Додати матч',
   noMatches: 'Ще немає матчів. Натисніть + щоб додати перший.',
   noMatchesAction: 'Додати матч',

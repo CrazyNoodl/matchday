@@ -23,6 +23,11 @@ jobs:
 
   e2e:
     runs-on: ubuntu-latest
+    env:
+      # supabaseConfigured must be true in CI (matching local dev, where a real
+      # .env is present) — see playwright.config.ts's webServer.env comment.
+      EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
     steps:
       - uses: actions/checkout@v4
 

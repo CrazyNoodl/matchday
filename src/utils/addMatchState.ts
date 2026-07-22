@@ -24,6 +24,10 @@ export interface AddMatchState {
   ocrScanning: boolean;
   ocrStatus: 'idle' | 'scanning' | 'done' | 'error' | 'skipped';
   ocrPhotos: OcrPhotoEntry[];
+  // True from the moment "add photo" is pressed until the picked photos (and their
+  // resizes) have actually landed in `media` — closes the window where Next/Save
+  // could fire before the async pick+resize work resolves (#media-race).
+  isPickingMedia: boolean;
 }
 
 export function initAddMatch(): AddMatchState {
@@ -41,6 +45,7 @@ export function initAddMatch(): AddMatchState {
     ocrScanning: false,
     ocrStatus: 'idle',
     ocrPhotos: [],
+    isPickingMedia: false,
   };
 }
 
@@ -87,7 +92,10 @@ export function isAddMatchDirty(state: AddMatchState): boolean {
 export function canAddMatchGoNext(state: AddMatchState, tournamentRanked: boolean): boolean {
   const { step } = state;
   const isMediaStep = tournamentRanked ? step === 3 : step === 4;
-  if (isMediaStep && (state.ocrStatus === 'scanning' || state.ocrStatus === 'error')) {
+  if (
+    isMediaStep &&
+    (state.ocrStatus === 'scanning' || state.ocrStatus === 'error' || state.isPickingMedia)
+  ) {
     return false;
   }
   if (step === 1) return !!state.homeId && !!state.awayId;

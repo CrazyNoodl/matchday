@@ -11,6 +11,19 @@ export default defineConfig({
     baseURL: 'http://localhost:19007',
     trace: 'on',
     screenshot: 'on',
+    // The app registers a Service Worker (`public/sw.js`, see app/_layout.tsx)
+    // for offline caching. Once active, it intercepts fetch() at the SW's own
+    // execution context and re-issues the network request itself — a request
+    // page.route() abort()s never actually reaches the SW's inner fetch, so
+    // blockSupabaseNetwork (e2e/fixtures.ts) silently failed to block anything
+    // whenever the SW was active: every e2e test was making real, live calls
+    // to the production Supabase project with FAKE_SESSION's unsigned JWT
+    // (rejected 401/403, not mutating data, but a genuine live dependency —
+    // and exactly the risk blockSupabaseNetwork's comment already warned
+    // about without actually preventing). Blocking SW registration outright
+    // removes the whole class of bug — no e2e test needs the offline-caching
+    // behavior the SW provides.
+    serviceWorkers: 'block',
   },
 
   projects: [
@@ -23,8 +36,15 @@ export default defineConfig({
     },
   ],
 
-  // Dedicated test server on port 19007 with Supabase disabled.
-  // Empty EXPO_PUBLIC_SUPABASE_* → supabaseConfigured=false → auth guard bypassed.
+  // Dedicated test server on port 19007. EXPO_PUBLIC_SUPABASE_* is NOT forced
+  // empty here — Metro/Expo's env inlining reads .env directly at bundle time
+  // regardless of what's passed to this child process (see blockSupabaseNetwork
+  // in e2e/fixtures.ts), so overriding it here was never actually disabling
+  // Supabase, just hiding that fact locally. CI has no .env file, so it relies
+  // on EXPO_PUBLIC_SUPABASE_URL/ANON_KEY being set at the job level (from repo
+  // secrets — see .github/workflows/test.yml) to keep supabaseConfigured=true
+  // consistent between local dev and CI. All real Supabase network calls are
+  // still hard-blocked per-test via blockSupabaseNetwork, regardless of this.
   webServer: {
     command: 'npx expo start --web --port 19007',
     url: 'http://localhost:19007',
@@ -32,8 +52,6 @@ export default defineConfig({
     reuseExistingServer: !process.env.CI,
     env: {
       EXPO_NO_INTERACTIVE: '1',
-      EXPO_PUBLIC_SUPABASE_URL: '',
-      EXPO_PUBLIC_SUPABASE_ANON_KEY: '',
     },
   },
 });

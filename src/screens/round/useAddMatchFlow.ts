@@ -52,7 +52,7 @@ export function useAddMatchFlow({
   }, [totalSteps]);
 
   const handleBack = useCallback(() => {
-    if (addMatch.ocrStatus === 'scanning' || isSavingMatch) return;
+    if (addMatch.ocrStatus === 'scanning' || addMatch.isPickingMedia || isSavingMatch) return;
     if (addMatch.step <= 1) {
       if (isAddMatchDirty(addMatch)) {
         setShowDiscardDialog(true);
@@ -180,83 +180,102 @@ export function useAddMatchFlow({
   }, []);
 
   const handlePickMedia = useCallback(async () => {
-    if (addMatch.ocrStatus === 'scanning') return;
+    if (addMatch.ocrStatus === 'scanning' || addMatch.isPickingMedia) return;
     const slotsLeft = 5 - addMatch.media.length;
     if (slotsLeft <= 0) return;
 
-    const result = await ImagePicker.launchImageLibraryAsync({
-      // Video temporarily disabled — upload/playback broken, see #59
-      mediaTypes: ['images'],
-      allowsMultipleSelection: true,
-      selectionLimit: slotsLeft,
-      quality: 0.85,
-      base64: true,
-    });
-    if (result.canceled) return;
+    // Set synchronously before the picker even opens (not just once photos come
+    // back) so Next/Save/Back can't fire during the whole pick+resize window —
+    // that gap is what used to let a match save without its just-picked photos,
+    // which then only materialized on the *next* Add Match open (#media-race).
+    setAddMatch((prev) => ({ ...prev, isPickingMedia: true }));
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        // Video temporarily disabled — upload/playback broken, see #59
+        mediaTypes: ['images'],
+        allowsMultipleSelection: true,
+        selectionLimit: slotsLeft,
+        quality: 0.85,
+        base64: true,
+      });
+      if (result.canceled) return;
 
-    // Respect the 5-item cap — only keep assets that actually fit into media
-    const fittingAssets = result.assets.slice(0, slotsLeft);
+      // Respect the 5-item cap — only keep assets that actually fit into media
+      const fittingAssets = result.assets.slice(0, slotsLeft);
 
-    // These photos double as both stored match media and an OCR source — see #62.
-    // The stored copy is compressed hard (nobody zooms into a stat screenshot in the
-    // gallery); the OCR payload gets a lighter downscale so it stays legible.
-    const resizedAssets = await Promise.all(
-      fittingAssets.map(async (a) => {
-        if (a.type === 'video') return { asset: a, storageUri: a.uri, ocrBase64: undefined };
+      // These photos double as both stored match media and an OCR source — see #62.
+      // The stored copy is compressed hard (nobody zooms into a stat screenshot in the
+      // gallery); the OCR payload gets a lighter downscale so it stays legible.
+      const resizedAssets = await Promise.all(
+        fittingAssets.map(async (a) => {
+          if (a.type === 'video') return { asset: a, storageUri: a.uri, ocrBase64: undefined };
 
-        const [storageResult, ocrResult] = await Promise.all([
-          resizeImage(a.uri, a, STAT_PHOTO_STORAGE_MAX_DIMENSION).catch((e) => {
-            console.warn('[useAddMatchFlow] resizeImage (storage) failed:', e);
-            Sentry.captureException(e, { tags: { addMatchOp: 'resizeImage:storage' } });
-            return { uri: a.uri };
-          }),
-          a.base64
-            ? resizeImage(a.uri, a, OCR_PAYLOAD_MAX_DIMENSION, { base64: true }).catch((e) => {
-                console.warn('[useAddMatchFlow] resizeImage (ocr payload) failed:', e);
-                Sentry.captureException(e, { tags: { addMatchOp: 'resizeImage:ocrPayload' } });
-                return { base64: a.base64 };
-              })
-            : Promise.resolve({ base64: undefined }),
-        ]);
+          const [storageResult, ocrResult] = await Promise.all([
+            resizeImage(a.uri, a, STAT_PHOTO_STORAGE_MAX_DIMENSION).catch((e) => {
+              console.warn('[useAddMatchFlow] resizeImage (storage) failed:', e);
+              Sentry.captureException(e, { tags: { addMatchOp: 'resizeImage:storage' } });
+              return { uri: a.uri };
+            }),
+            a.base64
+              ? resizeImage(a.uri, a, OCR_PAYLOAD_MAX_DIMENSION, { base64: true }).catch((e) => {
+                  console.warn('[useAddMatchFlow] resizeImage (ocr payload) failed:', e);
+                  Sentry.captureException(e, { tags: { addMatchOp: 'resizeImage:ocrPayload' } });
+                  return { base64: a.base64 };
+                })
+              : Promise.resolve({ base64: undefined }),
+          ]);
 
-        return { asset: a, storageUri: storageResult.uri, ocrBase64: ocrResult.base64 ?? a.base64 };
-      }),
-    );
+          return {
+            asset: a,
+            storageUri: storageResult.uri,
+            ocrBase64: ocrResult.base64 ?? a.base64,
+          };
+        }),
+      );
 
-    const newItems: MediaItem[] = resizedAssets.map(({ asset, storageUri }) => ({
-      uri: storageUri,
-      type: asset.type === 'video' ? 'video' : 'image',
-    }));
-
-    // Every image gets a slot, even with no usable base64 (asset: null) — this
-    // keeps ocrPhotos indices aligned with media's image-type entries so a
-    // later removal targets the right photo (see handleRemoveMedia).
-    const newOcrPhotos: OcrPhotoEntry[] = resizedAssets
-      .filter(({ asset }) => asset.type !== 'video')
-      .map(({ asset, ocrBase64 }) => ({
-        asset: ocrBase64 ? { base64: ocrBase64, mimeType: asset.mimeType ?? 'image/jpeg' } : null,
-        stats: null,
+      const newItems: MediaItem[] = resizedAssets.map(({ asset, storageUri }) => ({
+        uri: storageUri,
+        type: asset.type === 'video' ? 'video' : 'image',
       }));
 
-    const hasScannableNewPhotos = newOcrPhotos.some((p) => p.asset !== null);
+      // Every image gets a slot, even with no usable base64 (asset: null) — this
+      // keeps ocrPhotos indices aligned with media's image-type entries so a
+      // later removal targets the right photo (see handleRemoveMedia).
+      const newOcrPhotos: OcrPhotoEntry[] = resizedAssets
+        .filter(({ asset }) => asset.type !== 'video')
+        .map(({ asset, ocrBase64 }) => ({
+          asset: ocrBase64 ? { base64: ocrBase64, mimeType: asset.mimeType ?? 'image/jpeg' } : null,
+          stats: null,
+        }));
 
-    // If user already explicitly skipped stats, don't re-enter the OCR flow on
-    // subsequent picks — they've made their decision; don't re-block Next on failure.
-    const userSkippedOcr = addMatch.ocrStatus === 'skipped';
+      const hasScannableNewPhotos = newOcrPhotos.some((p) => p.asset !== null);
 
-    const allOcrPhotos = [...addMatch.ocrPhotos, ...newOcrPhotos];
+      // If user already explicitly skipped stats, don't re-enter the OCR flow on
+      // subsequent picks — they've made their decision; don't re-block Next on failure.
+      const userSkippedOcr = addMatch.ocrStatus === 'skipped';
 
-    setAddMatch((prev) => ({
-      ...prev,
-      media: [...prev.media, ...newItems],
-      ocrPhotos: allOcrPhotos,
-      ocrStatus: hasScannableNewPhotos && !userSkippedOcr ? 'scanning' : prev.ocrStatus,
-    }));
+      const allOcrPhotos = [...addMatch.ocrPhotos, ...newOcrPhotos];
 
-    if (hasScannableNewPhotos && !userSkippedOcr) {
-      runOcr(allOcrPhotos);
+      setAddMatch((prev) => ({
+        ...prev,
+        media: [...prev.media, ...newItems],
+        ocrPhotos: allOcrPhotos,
+        ocrStatus: hasScannableNewPhotos && !userSkippedOcr ? 'scanning' : prev.ocrStatus,
+      }));
+
+      if (hasScannableNewPhotos && !userSkippedOcr) {
+        runOcr(allOcrPhotos);
+      }
+    } finally {
+      setAddMatch((prev) => ({ ...prev, isPickingMedia: false }));
     }
-  }, [addMatch.ocrPhotos, addMatch.ocrStatus, addMatch.media.length, runOcr]);
+  }, [
+    addMatch.ocrPhotos,
+    addMatch.ocrStatus,
+    addMatch.media.length,
+    addMatch.isPickingMedia,
+    runOcr,
+  ]);
 
   // Only the photo(s) still missing stats get rescanned — already-succeeded
   // photos in ocrPhotos are skipped by runOcr, making this a free granular retry.

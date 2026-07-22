@@ -1,7 +1,7 @@
 import { test as base, expect, type Page } from '@playwright/test';
 
 // Supabase project ref from EXPO_PUBLIC_SUPABASE_URL
-const SUPABASE_PROJECT_REF = 'vjivyppkjogpqggnvrvo';
+export const SUPABASE_PROJECT_REF = 'vjivyppkjogpqggnvrvo';
 const SUPABASE_SESSION_KEY = `sb-${SUPABASE_PROJECT_REF}-auth-token`;
 
 // Fake session injected before page scripts run.
@@ -134,18 +134,29 @@ export async function addMatchViaUI(
   await page.getByText('SAVE MATCH', { exact: true }).last().click();
 }
 
-// playwright.config.ts's webServer passes empty EXPO_PUBLIC_SUPABASE_* env
-// vars intending to make supabaseConfigured=false for the whole e2e run, but
-// Expo/Metro's env inlining reads .env directly at bundle time and ignores
-// that override — the real project URL/key still end up baked into the web
-// bundle. Without this block, every e2e test silently makes live network
-// calls to the real (shared dev/prod, see docs/CONTEXT.md's sync incident
-// notes) Supabase project using FAKE_SESSION's unsigned JWT — requests get
-// rejected (401) rather than mutating real data, but it's an unintended live
-// dependency, not the "disabled" behavior the config comment promises.
+// supabaseConfigured is true for the whole e2e run, both locally (via .env)
+// and in CI (via repo secrets — see playwright.config.ts's webServer.env
+// comment and .github/workflows/test.yml), so every test's build has the
+// real project URL/key baked in. Without this block, every e2e test would
+// silently make live network calls to the real (shared dev/prod, see
+// docs/CONTEXT.md's sync incident notes) Supabase project using
+// FAKE_SESSION's unsigned JWT — requests get rejected (401) rather than
+// mutating real data, but it's an unintended live dependency all the same.
 // Blocking the host here is a hard guarantee no e2e run can reach it.
-async function blockSupabaseNetwork(page: Page) {
+export async function blockSupabaseNetwork(page: Page) {
   await page.route(`**://${SUPABASE_PROJECT_REF}.supabase.co/**`, (route) => route.abort());
+
+  // `useIsOnline()`'s reachability ping (`pingSupabase`, src/supabase/health.ts)
+  // hits this same host with no auth/session and no data — it's the one
+  // request the block above shouldn't apply to. Registered after the
+  // wholesale block (route registration is LIFO, so the more specific,
+  // later-registered route wins) so it fulfills instead of aborting. Explicit
+  // offline tests (`page.context().setOffline(true)`) are unaffected: that
+  // flips the browser's own online/offline signal, which useIsOnline()
+  // trusts before it ever gets to the ping.
+  await page.route(`**://${SUPABASE_PROJECT_REF}.supabase.co/auth/v1/health`, (route) =>
+    route.fulfill({ status: 200, contentType: 'application/json', body: '{}' }),
+  );
 }
 
 // Extended test fixture: auto-injects auth + clears app state before each test

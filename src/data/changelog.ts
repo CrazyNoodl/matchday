@@ -10,6 +10,46 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.53',
+    added: [
+      'Share a closed match day via a public link (via the "···" menu\'s Share sheet, new "Copy Link" action) — anyone with the link can view results, standings, stats, media, and commentary without an account, read-only',
+    ],
+  },
+  {
+    version: '1.9.52',
+    added: [
+      'Added a Rivalry screen for any player pair — biggest win, win streak, highest-scoring match, average goals/game, and per-stat personal bests, opened with a 3-second long-press on a head-to-head card (Stats > Head-to-head)',
+      'Added a Match-Day Stats screen (via the "···" menu on an archived match day) with records and a per-player comparison across all 23 tracked stats for that day',
+    ],
+    internal: [
+      'Internal: experimental drag-and-drop match reordering within a tour, hidden behind a Developer Tools toggle — not yet enabled by default',
+    ],
+  },
+  {
+    version: '1.9.51',
+    fixed: [
+      'Adding or renaming a player to a name that already exists (ignoring case and extra spaces) is now blocked, with an inline error shown in the player editor, instead of letting two indistinguishable players into the picker',
+    ],
+  },
+  {
+    version: '1.9.50',
+    fixed: [
+      'Add Match: photos picked on the "add photos" step could be lost if you tapped Next/Save before the picker finished processing them — the match would save without the photo, which then only showed up the next time you opened Add Match. Next/Back are now disabled (with a spinner on the photo button) until the picked photos are actually attached',
+    ],
+  },
+  {
+    version: '1.9.49',
+    fixed: [
+      'A tournament now always crowns exactly one champion — if the final standings are tied even after every existing tiebreaker (points, goal difference, goals scored, head-to-head), the app now breaks the tie by total wins, then by a stable rule, instead of picking arbitrarily',
+    ],
+  },
+  {
+    version: '1.9.48',
+    changed: [
+      'Player avatars in the tournament setup screen now show the player\'s own initials instead of their team\'s badge, so it\'s clearer which row is a player and which is a team',
+    ],
+  },
+  {
     version: '1.9.47',
     fixed: [
       'Closing a tournament with no matches played yet now offers to delete it instead of archiving an empty entry with no champion',

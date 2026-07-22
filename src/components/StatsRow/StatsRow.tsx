@@ -13,9 +13,24 @@ interface StatsRowProps {
   isNA?: boolean;
   /** AI wasn't fully confident about this value — shown as a small dot next to the label. */
   lowConfidence?: boolean;
+  /** Small muted text under each value — e.g. a per-match average when aValue/bValue are totals. */
+  aSubLabel?: string;
+  bSubLabel?: string;
+  /** Small muted text under the centered stat label — e.g. how many matches this row is based on. */
+  labelSubText?: string;
 }
 
-export function StatsRow({ label, aValue, bValue, aWins, isNA, lowConfidence }: StatsRowProps) {
+export function StatsRow({
+  label,
+  aValue,
+  bValue,
+  aWins,
+  isNA,
+  lowConfidence,
+  aSubLabel,
+  bSubLabel,
+  labelSubText,
+}: StatsRowProps) {
   const colors = useColors();
   const styles = makeStyles(colors);
   const total = aValue + bValue;
@@ -28,16 +43,19 @@ export function StatsRow({ label, aValue, bValue, aWins, isNA, lowConfidence }: 
   return (
     <View style={styles.row}>
       {/* A value */}
-      <Text
-        style={[
-          styles.value,
-          isNA
-            ? styles.valueNA
-            : { color: aWins === true ? colors.text.primary : colors.text.muted },
-        ]}
-      >
-        {aValue}
-      </Text>
+      <View style={styles.valueCol}>
+        <Text
+          style={[
+            styles.value,
+            isNA
+              ? styles.valueNA
+              : { color: aWins === true ? colors.text.primary : colors.text.muted },
+          ]}
+        >
+          {aValue}
+        </Text>
+        {aSubLabel ? <Text style={styles.subLabel}>{aSubLabel}</Text> : null}
+      </View>
 
       {/* Dual bar */}
       <View style={styles.barContainer}>
@@ -57,9 +75,12 @@ export function StatsRow({ label, aValue, bValue, aWins, isNA, lowConfidence }: 
         </View>
 
         {/* Label */}
-        <View style={styles.labelRow}>
-          {lowConfidence && <View style={styles.confidenceDot} />}
-          <Text style={styles.label}>{label}</Text>
+        <View style={styles.labelCol}>
+          <View style={styles.labelRow}>
+            {lowConfidence && <View style={styles.confidenceDot} />}
+            <Text style={styles.label}>{label}</Text>
+          </View>
+          {labelSubText ? <Text style={styles.labelSubText}>{labelSubText}</Text> : null}
         </View>
 
         {/* B bar — grows from center to right */}
@@ -77,16 +98,19 @@ export function StatsRow({ label, aValue, bValue, aWins, isNA, lowConfidence }: 
       </View>
 
       {/* B value */}
-      <Text
-        style={[
-          styles.value,
-          isNA
-            ? styles.valueNA
-            : { color: aWins === false ? colors.text.primary : colors.text.muted },
-        ]}
-      >
-        {bValue}
-      </Text>
+      <View style={styles.valueCol}>
+        <Text
+          style={[
+            styles.value,
+            isNA
+              ? styles.valueNA
+              : { color: aWins === false ? colors.text.primary : colors.text.muted },
+          ]}
+        >
+          {bValue}
+        </Text>
+        {bSubLabel ? <Text style={styles.subLabel}>{bSubLabel}</Text> : null}
+      </View>
     </View>
   );
 }

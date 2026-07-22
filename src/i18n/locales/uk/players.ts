@@ -6,6 +6,7 @@ const players = {
   deleteConfirm: 'Видалити гравця?',
   deleteDesc: 'Цього гравця буде видалено.',
   cannotDelete: 'Неможливо видалити — гравець бере участь у матчах.',
+  duplicateName: 'Гравець з таким іменем вже існує.',
 } as const;
 
 export default players;

@@ -6,7 +6,7 @@ import * as Sentry from '@sentry/react-native';
 import { trackEvent } from '@/analytics';
 import { useGoBack } from '@/utils/useGoBack';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { NavHeader } from '@/components';
+import { NavHeader, Toggle } from '@/components';
 import { useColors } from '@/theme';
 import { useStore } from '@/store';
 import { makeStyles } from '@/screens/settings/developer/developer.styles';
@@ -43,6 +43,8 @@ export default function DeveloperScreen() {
   const styles = makeStyles(colors);
   const { t } = useTranslation();
   const demoMode = useStore((s) => s.demoMode);
+  const matchDragReorderEnabled = useStore((s) => s.matchDragReorderEnabled);
+  const setMatchDragReorderEnabled = useStore((s) => s.setMatchDragReorderEnabled);
   const [sentDialog, setSentDialog] = useState<'event' | 'error' | null>(null);
 
   // Dev tools (import round, OCR lab, resize lab) all write into whichever
@@ -108,6 +110,18 @@ export default function DeveloperScreen() {
               onPress={() => router.push('/settings/resize-lab')}
             />
           </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionHeader}>
+            {t('developer.experimental.section').toUpperCase()}
+          </Text>
+          <Toggle
+            label={t('developer.experimental.dragReorder')}
+            subtitle={t('developer.experimental.dragReorderSub')}
+            value={matchDragReorderEnabled}
+            onValueChange={setMatchDragReorderEnabled}
+          />
         </View>
 
         <View style={styles.section}>

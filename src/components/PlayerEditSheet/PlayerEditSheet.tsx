@@ -14,12 +14,14 @@ interface PlayerEditSheetProps {
   onClose: () => void;
   editingPlayer: Player | null;
   teams: Team[];
+  players: Player[];
   formName: string;
   onChangeName: (v: string) => void;
   formNick: string;
   onChangeNick: (v: string) => void;
   formTeam: string;
   onChangeTeam: (v: string) => void;
+  isDuplicateName: boolean;
   onSave: () => void;
 }
 
@@ -30,18 +32,20 @@ export function PlayerEditSheet({
   onClose,
   editingPlayer,
   teams,
+  players,
   formName,
   onChangeName,
   formNick,
   onChangeNick,
   formTeam,
   onChangeTeam,
+  isDuplicateName,
   onSave,
 }: PlayerEditSheetProps) {
   const { t } = useTranslation();
   const colors = useColors();
   const styles = makeStyles(colors);
-  const isDisabled = !canSavePlayer(formName, formTeam, teams);
+  const isDisabled = !canSavePlayer(formName, formTeam, teams, players, editingPlayer?.id);
 
   return (
     <Sheet visible={visible} onClose={onClose} avoidKeyboard>
@@ -67,6 +71,9 @@ export function PlayerEditSheet({
               placeholderTextColor={colors.text.placeholder}
               autoCorrect={false}
             />
+            {isDuplicateName && (
+              <Text style={styles.errorText}>{t('players.duplicateName')}</Text>
+            )}
           </View>
 
           <View style={styles.formGroup}>

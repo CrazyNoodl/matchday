@@ -17,7 +17,6 @@ import {
 import React, { useEffect, useState } from 'react';
 import { Platform, View, ActivityIndicator, Text, TextInput, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Constants from 'expo-constants';
 import { ErrorBoundary } from 'react-error-boundary';
 import * as Sentry from '@sentry/react-native';
 import { ThemeProvider, useColors, useEffectiveColorScheme } from '@/theme';
@@ -36,6 +35,7 @@ import { initAnalytics, trackEvent } from '@/analytics';
 import { parseRecoveryTokens } from '@/utils/authRecovery';
 import * as Linking from 'expo-linking';
 import type { Session } from '@supabase/supabase-js';
+import { BASE_URL } from '@/utils/baseUrl';
 
 initSentry();
 initAnalytics();
@@ -45,9 +45,6 @@ initAnalytics();
   ...((TextInput as any).defaultProps ?? {}),
   allowFontScaling: false,
 };
-
-const BASE_URL: string =
-  (Constants.expoConfig?.experiments as Record<string, string> | undefined)?.baseUrl ?? '';
 
 function AppErrorBoundary({ children }: { children: React.ReactNode }) {
   return (
@@ -161,6 +158,8 @@ function AppContent({
 }) {
   const colors = useColors();
   const colorScheme = useEffectiveColorScheme();
+  const pathname = usePathname();
+  const isSharedRoundRoute = pathname.startsWith('/shared/');
 
   if (!fontsLoaded || session === undefined) {
     return (
@@ -187,7 +186,7 @@ function AppContent({
     );
   }
 
-  if (supabaseConfigured && session === null) {
+  if (supabaseConfigured && session === null && !isSharedRoundRoute) {
     // Signing in requires reaching Supabase — there's no local-first path for an
     // unauthenticated user, so this is the one case where offline fully blocks the app.
     if (!isOnline) {
@@ -247,8 +246,13 @@ function AppContent({
             <Stack.Screen name="stats" />
             <Stack.Screen name="archive" />
             <Stack.Screen name="archive-day" />
+            <Stack.Screen name="matchday-stats" />
             <Stack.Screen name="season-stats" />
             <Stack.Screen name="match/[id]" />
+            <Stack.Screen name="rivalry/[a]/[b]" />
+            <Stack.Screen name="shared/[shareId]/index" />
+            <Stack.Screen name="shared/[shareId]/match/[matchId]" />
+            <Stack.Screen name="shared/[shareId]/stats" />
             <Stack.Screen name="settings/index" />
             <Stack.Screen name="settings/players" />
             <Stack.Screen name="settings/teams" />

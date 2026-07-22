@@ -370,6 +370,71 @@ describe('swapMatchSides', () => {
 });
 
 // ---------------------------------------------------------------------------
+
+describe('reorderMatches', () => {
+  it('reorders the current round matches array to the given order', () => {
+    useStore.setState({
+      matches: [makeMatch('m1'), makeMatch('m2'), makeMatch('m3')],
+    });
+    useStore.getState().reorderMatches(['m3', 'm1', 'm2']);
+    expect(useStore.getState().matches.map((m) => m.id)).toEqual(['m3', 'm1', 'm2']);
+  });
+
+  it('reorders a contiguous slice within a specific archived round without touching others', () => {
+    useStore.setState({
+      archivedRounds: [
+        {
+          id: 'r1',
+          n: 1,
+          date: '',
+          winner: '',
+          games: 3,
+          ranked: true,
+          matches: [makeMatch('m1'), makeMatch('m2'), makeMatch('m3')],
+          name: 'R1',
+        },
+        {
+          id: 'r2',
+          n: 2,
+          date: '',
+          winner: '',
+          games: 1,
+          ranked: true,
+          matches: [makeMatch('m4')],
+          name: 'R2',
+        },
+      ],
+    });
+    useStore.getState().reorderMatches(['m2', 'm3', 'm1']);
+    const s = useStore.getState();
+    expect(s.archivedRounds[0].matches.map((m) => m.id)).toEqual(['m2', 'm3', 'm1']);
+    expect(s.archivedRounds[1].matches.map((m) => m.id)).toEqual(['m4']);
+  });
+
+  it('reorders only the matching tour block, leaving other tours in the same array untouched', () => {
+    useStore.setState({
+      matches: [makeMatch('m1'), makeMatch('m2'), makeMatch('m3'), makeMatch('m4')],
+    });
+    useStore.getState().reorderMatches(['m4', 'm3']);
+    expect(useStore.getState().matches.map((m) => m.id)).toEqual(['m1', 'm2', 'm4', 'm3']);
+  });
+
+  it('is a no-op when the ids do not form a contiguous slice anywhere', () => {
+    const matches = [makeMatch('m1'), makeMatch('m2'), makeMatch('m3')];
+    useStore.setState({ matches });
+    useStore.getState().reorderMatches(['m1', 'm3']);
+    expect(useStore.getState().matches).toEqual(matches);
+  });
+
+  it('is a no-op when an id is unknown', () => {
+    const matches = [makeMatch('m1'), makeMatch('m2')];
+    useStore.setState({ matches });
+    useStore.getState().reorderMatches(['m1', 'unknown']);
+    expect(useStore.getState().matches).toEqual(matches);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // #67 — per-round/per-match storage folder lifecycle + prefix-based cleanup
 // ---------------------------------------------------------------------------
 

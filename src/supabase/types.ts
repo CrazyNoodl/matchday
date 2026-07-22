@@ -85,6 +85,7 @@ export interface Database {
           media: string | null; // JSON
           note: string | null;
           stats_override: string | null; // JSON
+          position: number;
           updated_at: string;
         };
         Insert: Omit<Database['public']['Tables']['matches']['Row'], 'updated_at'> & {
@@ -107,6 +108,12 @@ export interface Database {
           player_ids: string[];
           status: RoundSyncStatus;
           updated_at: string;
+          // Optional here even though the DB column is `not null default
+          // gen_random_uuid()` — the client generates it going forward
+          // (buildArchivedRound), but legacy rows/pushes may omit it and rely
+          // on whatever value is already in the DB (backfilled by the
+          // migration) rather than the app overwriting it.
+          share_id?: string;
         };
         Insert: Omit<Database['public']['Tables']['rounds']['Row'], 'updated_at'> & {
           updated_at?: string;
@@ -153,6 +160,11 @@ export interface Database {
       };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      get_shared_round: {
+        Args: { p_share_id: string };
+        Returns: unknown;
+      };
+    };
   };
 }

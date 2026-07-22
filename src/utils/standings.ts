@@ -53,6 +53,18 @@ function calcH2HGroup(group: Standing[], allMatches: Match[]): Map<string, H2HSt
   return map;
 }
 
+// Final, deterministic tiebreaker once every football criterion (pts, GD,
+// GF, then H2H pts/GD/GF, then total wins) is exhausted — a stable hash of
+// playerId so the same inputs always resolve to the same single winner
+// (never a real draw, and never random from one app open to the next).
+function hashId(id: string): number {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) {
+    hash = (hash * 31 + id.charCodeAt(i)) | 0;
+  }
+  return hash;
+}
+
 // ---------------------------------------------------------------------------
 // Sort a pre-sorted (by pts/gd/gf) standings array applying h2h within
 // tied groups.
@@ -86,7 +98,9 @@ function applyH2HSort(sorted: Standing[], allMatches: Match[]): Standing[] {
         const hb = h2hMap.get(b.playerId)!;
         if (hb.pts !== ha.pts) return hb.pts - ha.pts;
         if (hb.gd !== ha.gd) return hb.gd - ha.gd;
-        return hb.gf - ha.gf;
+        if (hb.gf !== ha.gf) return hb.gf - ha.gf;
+        if (b.wins !== a.wins) return b.wins - a.wins;
+        return hashId(a.playerId) - hashId(b.playerId);
       });
       result.push(...sortedGroup);
     }

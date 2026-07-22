@@ -16,6 +16,11 @@ const developer = {
     resizeLab: 'Resize Lab',
     resizeLabSub: 'See before/after size for each upload resize preset (#62)',
   },
+  experimental: {
+    section: 'Experimental features',
+    dragReorder: 'Drag & drop match reorder',
+    dragReorderSub: 'Testers only — reorder matches within a tour by dragging',
+  },
   errorTracking: {
     section: 'Error tracking',
     sendTestError: 'Send test error',
