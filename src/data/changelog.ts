@@ -10,6 +10,12 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.53',
+    added: [
+      'Share a closed match day via a public link (via the "···" menu\'s Share sheet, new "Copy Link" action) — anyone with the link can view results, standings, stats, media, and commentary without an account, read-only',
+    ],
+  },
+  {
     version: '1.9.52',
     added: [
       'Added a Rivalry screen for any player pair — biggest win, win streak, highest-scoring match, average goals/game, and per-stat personal bests, opened with a 3-second long-press on a head-to-head card (Stats > Head-to-head)',
