@@ -26,7 +26,7 @@ describe('computeDayStatRecords', () => {
     expect(computeDayStatRecords([match('m1', 'p1', 'p2', 1, 0)])).toEqual([]);
   });
 
-  it('picks the single most extreme value across every player in every match, not just two sides', () => {
+  it('picks each distinct player\'s own peak value across every match, ranked first and second, not just two sides', () => {
     const matches: Match[] = [
       match('m1', 'p1', 'p2', 1, 0, { possession: { a: 55, b: 45 } }),
       match('m2', 'p3', 'p1', 2, 1, { possession: { a: 70, b: 30 } }),
@@ -35,7 +35,11 @@ describe('computeDayStatRecords', () => {
 
     const records = computeDayStatRecords(matches);
     const possession = records.find((r) => r.key === 'possession');
-    expect(possession).toEqual({ key: 'possession', value: 70, playerId: 'p3', matchId: 'm2' });
+    expect(possession).toEqual({
+      key: 'possession',
+      first: { value: 70, playerId: 'p3', matchId: 'm2' },
+      second: { value: 55, playerId: 'p1', matchId: 'm1' },
+    });
   });
 
   it('always takes the maximum value regardless of higherIsBetter (e.g. most cards, not fewest)', () => {
@@ -46,7 +50,23 @@ describe('computeDayStatRecords', () => {
 
     const records = computeDayStatRecords(matches);
     const cards = records.find((r) => r.key === 'yellowCards');
-    expect(cards).toEqual({ key: 'yellowCards', value: 3, playerId: 'p2', matchId: 'm2' });
+    expect(cards).toEqual({
+      key: 'yellowCards',
+      first: { value: 3, playerId: 'p2', matchId: 'm2' },
+      second: { value: 0, playerId: 'p1', matchId: 'm1' },
+    });
+  });
+
+  it('returns second: null when only one distinct player recorded a stat that day', () => {
+    const matches: Match[] = [match('m1', 'p1', 'p1', 1, 0, { possession: { a: 55, b: 45 } })];
+
+    const records = computeDayStatRecords(matches);
+    const possession = records.find((r) => r.key === 'possession');
+    expect(possession).toEqual({
+      key: 'possession',
+      first: { value: 55, playerId: 'p1', matchId: 'm1' },
+      second: null,
+    });
   });
 });
 

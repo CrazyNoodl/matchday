@@ -36,32 +36,41 @@ export const makeStyles = (colors: AppColors) =>
       textAlign: 'center',
     },
 
-    // Records tab — one row per stat: label on the left, record holder on the right
+    // Records tab — one row per stat: the day's top two record holders
+    // mirrored left/right around the centered stat label.
     recordRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'space-between',
       backgroundColor: colors.bg.surface,
       borderRadius: Radius.lg,
       borderWidth: 1,
       borderColor: colors.border.default,
       paddingVertical: Spacing.md,
-      paddingHorizontal: Spacing.md,
-      gap: Spacing.sm,
+      paddingHorizontal: Spacing.sm,
     },
-    recordLabel: {
+    recordSide: {
       flex: 1,
-      fontFamily: FontFamily.bodyBold,
-      fontSize: FontSize.xs,
-      color: colors.text.placeholder,
-      letterSpacing: 0.5,
-      textTransform: 'uppercase',
-    },
-    recordHolder: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: Spacing.sm,
-      flexShrink: 0,
+    },
+    recordSideRight: {
+      flexDirection: 'row-reverse',
+    },
+    recordCenter: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: Spacing.xs,
+      maxWidth: 90,
+    },
+    recordLabel: {
+      fontFamily: FontFamily.bodyBold,
+      fontSize: FontSize.xs,
+      lineHeight: 12,
+      color: colors.text.placeholder,
+      letterSpacing: 0.5,
+      textTransform: 'uppercase',
+      textAlign: 'center',
     },
     recordBadge: {
       minWidth: 28,
@@ -70,18 +79,28 @@ export const makeStyles = (colors: AppColors) =>
       borderRadius: Radius.full,
       alignItems: 'center',
       justifyContent: 'center',
+      backgroundColor: colors.bg.elevated,
+      flexShrink: 0,
+    },
+    recordBadgeHighlight: {
       backgroundColor: colors.accent.greenSubtle,
     },
     recordBadgeText: {
       fontFamily: FontFamily.display,
       fontSize: FontSize.sm,
+      color: colors.text.muted,
+    },
+    recordBadgeTextHighlight: {
       color: colors.accent.green,
     },
     recordName: {
       fontFamily: FontFamily.bodySemiBold,
       fontSize: FontSize.sm,
       color: colors.text.primary,
-      maxWidth: 90,
+      flexShrink: 1,
+    },
+    recordNameRight: {
+      textAlign: 'right',
     },
 
     // Comparison tab — one card per stat, one bar row per player

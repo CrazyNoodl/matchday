@@ -74,14 +74,17 @@ export function MatchdayStatsScreen() {
 
         {tab === 'records' &&
           records.map((record) => {
-            const player = findPlayer(record.playerId);
-            if (!player) return null;
+            const firstPlayer = findPlayer(record.first.playerId);
+            if (!firstPlayer) return null;
+            const secondPlayer = record.second ? findPlayer(record.second.playerId) : undefined;
             return (
               <RecordRow
                 key={record.key}
                 record={record}
-                player={player}
-                onPress={() => goToMatch(record.matchId)}
+                firstPlayer={firstPlayer}
+                secondPlayer={secondPlayer ?? null}
+                onPressFirst={() => goToMatch(record.first.matchId)}
+                onPressSecond={record.second ? () => goToMatch(record.second!.matchId) : undefined}
                 styles={styles}
               />
             );
@@ -102,35 +105,92 @@ export function MatchdayStatsScreen() {
 }
 
 // ---------------------------------------------------------------------------
-// Records tab — one row per stat: label on the left, the day's single record
-// holder (badge value + avatar + name) on the right, tappable to their match.
+// Records tab — one row per stat: the day's top two distinct record holders
+// (badge value + avatar + name) mirrored left/right around the stat label,
+// each tappable to their own match. Same layout rivalry.tsx's StatRecordRow
+// uses for its fixed pair, generalized here to the day's best two players.
 // ---------------------------------------------------------------------------
 interface RecordRowProps {
   record: DayStatRecord;
-  player: Player;
-  onPress: () => void;
+  firstPlayer: Player;
+  secondPlayer: Player | null;
+  onPressFirst: () => void;
+  onPressSecond?: () => void;
   styles: ReturnType<typeof makeStyles>;
 }
 
-function RecordRow({ record, player, onPress, styles }: RecordRowProps) {
+function RecordRow({
+  record,
+  firstPlayer,
+  secondPlayer,
+  onPressFirst,
+  onPressSecond,
+  styles,
+}: RecordRowProps) {
   const { t } = useTranslation();
   const def = STAT_DEF_MAP[record.key];
   const label = def ? t(def.labelKey) : record.key;
 
   return (
-    <TouchableOpacity style={styles.recordRow} activeOpacity={0.8} onPress={onPress}>
-      <Text style={styles.recordLabel} numberOfLines={1}>
-        {def?.isPercent ? `${label} %` : label}
-      </Text>
-      <View style={styles.recordHolder}>
-        <View style={styles.recordBadge}>
-          <Text style={styles.recordBadgeText}>{record.value}</Text>
-        </View>
-        <Avatar playerId={player.id} size="sm" />
-        <Text style={styles.recordName} numberOfLines={1}>
-          {player.name}
+    <View style={styles.recordRow}>
+      <RecordSide
+        styles={styles}
+        align="left"
+        value={record.first.value}
+        player={firstPlayer}
+        highlight
+        onPress={onPressFirst}
+      />
+      <View style={styles.recordCenter}>
+        <Text style={styles.recordLabel} numberOfLines={2}>
+          {def?.isPercent ? `${label} %` : label}
         </Text>
       </View>
+      {secondPlayer && record.second ? (
+        <RecordSide
+          styles={styles}
+          align="right"
+          value={record.second.value}
+          player={secondPlayer}
+          highlight={false}
+          onPress={onPressSecond}
+        />
+      ) : (
+        <View style={styles.recordSide} />
+      )}
+    </View>
+  );
+}
+
+interface RecordSideProps {
+  styles: ReturnType<typeof makeStyles>;
+  align: 'left' | 'right';
+  value: number;
+  player: Player;
+  highlight: boolean;
+  onPress?: () => void;
+}
+
+function RecordSide({ styles, align, value, player, highlight, onPress }: RecordSideProps) {
+  return (
+    <TouchableOpacity
+      style={[styles.recordSide, align === 'right' && styles.recordSideRight]}
+      activeOpacity={onPress ? 0.8 : 1}
+      onPress={onPress}
+      disabled={!onPress}
+    >
+      <View style={[styles.recordBadge, highlight && styles.recordBadgeHighlight]}>
+        <Text style={[styles.recordBadgeText, highlight && styles.recordBadgeTextHighlight]}>
+          {value}
+        </Text>
+      </View>
+      <Avatar playerId={player.id} size="sm" />
+      <Text
+        style={[styles.recordName, align === 'right' && styles.recordNameRight]}
+        numberOfLines={1}
+      >
+        {player.name}
+      </Text>
     </TouchableOpacity>
   );
 }
