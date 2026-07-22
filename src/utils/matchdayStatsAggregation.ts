@@ -10,38 +10,51 @@ import { STAT_DEFINITIONS } from './statDefinitions';
 // be 2, 3, or more.
 // ---------------------------------------------------------------------------
 
-export interface DayStatRecord {
-  key: KnownStatKey;
+export interface DayStatRecordEntry {
   value: number;
   playerId: string;
   matchId: string;
 }
 
+export interface DayStatRecord {
+  key: KnownStatKey;
+  first: DayStatRecordEntry;
+  /** Runner-up, i.e. the next distinct player's own peak value that day — null only if a single player recorded this stat. */
+  second: DayStatRecordEntry | null;
+}
+
 /**
- * For each of the 23 stats, the single most extreme value recorded by any
- * player in any match of this match day — regardless of whether higher is
- * generally "better" for that stat (a record is the most notable single-match
- * occurrence, e.g. most cards in a game, same rule rivalryAggregation.ts's
- * computeStatRecords uses for the pair-scoped version).
+ * For each of the 23 stats, the two most extreme values recorded this match
+ * day, one per distinct player (each player's own peak single-match value) —
+ * regardless of whether higher is generally "better" for that stat (a record
+ * is the most notable single-match occurrence, e.g. most cards in a game,
+ * same rule rivalryAggregation.ts's computeStatRecords uses for the
+ * pair-scoped version).
  */
 export function computeDayStatRecords(matches: Match[]): DayStatRecord[] {
   const records: DayStatRecord[] = [];
 
   for (const def of STAT_DEFINITIONS) {
-    let best: DayStatRecord | null = null;
+    const bestByPlayer = new Map<string, DayStatRecordEntry>();
 
     for (const m of matches) {
       const stat = m.statsOverride?.[def.key];
       if (!stat) continue;
-      if (best === null || stat.a > best.value) {
-        best = { key: def.key, value: stat.a, playerId: m.aId, matchId: m.id };
+
+      const a = bestByPlayer.get(m.aId);
+      if (!a || stat.a > a.value) {
+        bestByPlayer.set(m.aId, { value: stat.a, playerId: m.aId, matchId: m.id });
       }
-      if (stat.b > best.value) {
-        best = { key: def.key, value: stat.b, playerId: m.bId, matchId: m.id };
+      const b = bestByPlayer.get(m.bId);
+      if (!b || stat.b > b.value) {
+        bestByPlayer.set(m.bId, { value: stat.b, playerId: m.bId, matchId: m.id });
       }
     }
 
-    if (best) records.push(best);
+    if (bestByPlayer.size === 0) continue;
+
+    const sorted = Array.from(bestByPlayer.values()).sort((x, y) => y.value - x.value);
+    records.push({ key: def.key, first: sorted[0], second: sorted[1] ?? null });
   }
 
   return records;
