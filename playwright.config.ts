@@ -23,8 +23,15 @@ export default defineConfig({
     },
   ],
 
-  // Dedicated test server on port 19007 with Supabase disabled.
-  // Empty EXPO_PUBLIC_SUPABASE_* → supabaseConfigured=false → auth guard bypassed.
+  // Dedicated test server on port 19007. EXPO_PUBLIC_SUPABASE_* is NOT forced
+  // empty here — Metro/Expo's env inlining reads .env directly at bundle time
+  // regardless of what's passed to this child process (see blockSupabaseNetwork
+  // in e2e/fixtures.ts), so overriding it here was never actually disabling
+  // Supabase, just hiding that fact locally. CI has no .env file, so it relies
+  // on EXPO_PUBLIC_SUPABASE_URL/ANON_KEY being set at the job level (from repo
+  // secrets — see .github/workflows/test.yml) to keep supabaseConfigured=true
+  // consistent between local dev and CI. All real Supabase network calls are
+  // still hard-blocked per-test via blockSupabaseNetwork, regardless of this.
   webServer: {
     command: 'npx expo start --web --port 19007',
     url: 'http://localhost:19007',
@@ -32,8 +39,6 @@ export default defineConfig({
     reuseExistingServer: !process.env.CI,
     env: {
       EXPO_NO_INTERACTIVE: '1',
-      EXPO_PUBLIC_SUPABASE_URL: '',
-      EXPO_PUBLIC_SUPABASE_ANON_KEY: '',
     },
   },
 });
