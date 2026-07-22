@@ -11,6 +11,19 @@ export default defineConfig({
     baseURL: 'http://localhost:19007',
     trace: 'on',
     screenshot: 'on',
+    // The app registers a Service Worker (`public/sw.js`, see app/_layout.tsx)
+    // for offline caching. Once active, it intercepts fetch() at the SW's own
+    // execution context and re-issues the network request itself — a request
+    // page.route() abort()s never actually reaches the SW's inner fetch, so
+    // blockSupabaseNetwork (e2e/fixtures.ts) silently failed to block anything
+    // whenever the SW was active: every e2e test was making real, live calls
+    // to the production Supabase project with FAKE_SESSION's unsigned JWT
+    // (rejected 401/403, not mutating data, but a genuine live dependency —
+    // and exactly the risk blockSupabaseNetwork's comment already warned
+    // about without actually preventing). Blocking SW registration outright
+    // removes the whole class of bug — no e2e test needs the offline-caching
+    // behavior the SW provides.
+    serviceWorkers: 'block',
   },
 
   projects: [

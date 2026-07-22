@@ -145,6 +145,18 @@ export async function addMatchViaUI(
 // Blocking the host here is a hard guarantee no e2e run can reach it.
 export async function blockSupabaseNetwork(page: Page) {
   await page.route(`**://${SUPABASE_PROJECT_REF}.supabase.co/**`, (route) => route.abort());
+
+  // `useIsOnline()`'s reachability ping (`pingSupabase`, src/supabase/health.ts)
+  // hits this same host with no auth/session and no data — it's the one
+  // request the block above shouldn't apply to. Registered after the
+  // wholesale block (route registration is LIFO, so the more specific,
+  // later-registered route wins) so it fulfills instead of aborting. Explicit
+  // offline tests (`page.context().setOffline(true)`) are unaffected: that
+  // flips the browser's own online/offline signal, which useIsOnline()
+  // trusts before it ever gets to the ping.
+  await page.route(`**://${SUPABASE_PROJECT_REF}.supabase.co/auth/v1/health`, (route) =>
+    route.fulfill({ status: 200, contentType: 'application/json', body: '{}' }),
+  );
 }
 
 // Extended test fixture: auto-injects auth + clears app state before each test
