@@ -10,6 +10,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { Image } from 'expo-image';
+import * as Clipboard from 'expo-clipboard';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '@/store';
@@ -19,6 +20,8 @@ import { useColors } from '@/theme';
 import { Toggle } from '@/components/Toggle';
 import { FontFamily } from '@/theme/typography';
 import { STANDINGS_NUM_COLS, formatShareCardDate } from '@/utils/shareCard';
+import { BASE_URL } from '@/utils/baseUrl';
+import { buildSharedRoundUrl } from '@/utils/sharedRoundUrl';
 import { makeWinnerStyles, makeModalStyles } from './ShareRoundModal.styles';
 // Native-only modules loaded dynamically so web build doesn't crash
 type CaptureRef = (typeof import('react-native-view-shot'))['captureRef'];
@@ -485,6 +488,18 @@ export function ShareRoundModal({
     }
   };
 
+  const handleCopyLink = async () => {
+    if (!round.shareId) return;
+    try {
+      await Clipboard.setStringAsync(buildSharedRoundUrl(BASE_URL, round.shareId));
+      setSaveMessage({ ok: true, text: t('share.linkCopied') });
+    } catch (e) {
+      console.warn('[ShareRoundModal] handleCopyLink failed:', e);
+      Sentry.captureException(e, { tags: { shareOp: 'handleCopyLink' } });
+      setSaveMessage({ ok: false, text: t('share.saveError') });
+    }
+  };
+
   const handleShare = async () => {
     setLoading(true);
     try {
@@ -572,6 +587,19 @@ export function ShareRoundModal({
             onValueChange={setIncludeMatches}
           />
         </View>
+
+        {/* Copy public link */}
+        {round.shareId && (
+          <View style={modalStyles.copyLinkWrap}>
+            <TouchableOpacity
+              style={modalStyles.copyLinkBtn}
+              onPress={handleCopyLink}
+              activeOpacity={0.8}
+            >
+              <Text style={modalStyles.copyLinkText}>{t('share.copyLink')}</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* Action buttons */}
         {saveMessage && (

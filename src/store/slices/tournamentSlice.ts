@@ -34,6 +34,16 @@ function reorderSlice<T extends { id: string }>(arr: T[], orderedIds: string[]):
   return next;
 }
 
+// Lazy `require()`, not a top-level import: expo-crypto pulls in
+// expo-modules-core's native EventEmitter, which isn't mocked by this
+// project's bare-bones Jest config and crashes any test that transitively
+// imports the store (same fix as src/analytics.ts's expo-constants require).
+function generateShareId(): string {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const Crypto = require('expo-crypto') as typeof import('expo-crypto');
+  return Crypto.randomUUID();
+}
+
 function buildArchivedRound(s: RootState): ArchivedRound {
   const standings = calculateStandings(s.matches, s.roundPlayers);
   const isTrueDraw = isTopTied(standings, s.matches);
@@ -50,6 +60,7 @@ function buildArchivedRound(s: RootState): ArchivedRound {
     name: `Round ${s.round}`,
     players: [...s.roundPlayers],
     folder: s.roundFolder || undefined,
+    shareId: generateShareId(),
   };
 }
 

@@ -3,7 +3,7 @@ import { View, Text, ScrollView, type StyleProp, type ViewStyle } from 'react-na
 import { useColors, type AppColors } from '@/theme';
 import { Avatar } from '@/components/Avatar';
 import { type Standing } from '@/utils/standings';
-import { type Player } from '@/store/types';
+import { type Player, type Team } from '@/store/types';
 import { makeStyles } from './StandingsTable.styles';
 
 export type StandingsColumnKey =
@@ -46,6 +46,13 @@ interface StandingsTableProps {
   /** Single-line "nick or name" instead of name + @nick on two lines. */
   compact?: boolean;
   style?: StyleProp<ViewStyle>;
+  /**
+   * Explicit teams, passed through to each row's Avatar instead of the
+   * Zustand store — for screens rendering data that never lives in the local
+   * store (e.g. a public shared-round page fetched via RPC, see
+   * src/screens/shared/).
+   */
+  teamsOverride?: Team[];
 }
 
 function getColumnValue(
@@ -88,6 +95,7 @@ export function StandingsTable({
   emptyLabel,
   compact,
   style,
+  teamsOverride,
 }: StandingsTableProps) {
   const colors = useColors();
   const styles = makeStyles(colors);
@@ -123,7 +131,12 @@ export function StandingsTable({
                 style={[styles.row, styles.fixedCell, isLeader && styles.rowLeader]}
               >
                 <View style={[styles.playerCol, styles.playerInner]}>
-                  <Avatar playerId={s.playerId} size="sm" />
+                  <Avatar
+                    playerId={s.playerId}
+                    size="sm"
+                    playerOverride={player}
+                    teamOverride={teamsOverride?.find((tm) => tm.code === player?.teamCode)}
+                  />
                   {compact ? (
                     <Text style={styles.playerName} numberOfLines={1}>
                       {player?.nick ?? player?.name ?? '—'}

@@ -268,6 +268,11 @@ export async function pushState(
               name: r.name,
               player_ids: r.players ?? [],
               status: 'archived',
+              // Omitted (undefined) for legacy rounds with no local shareId
+              // yet — JSON.stringify drops undefined keys, so the column is
+              // left untouched (existing DB value, backfilled by the
+              // migration) rather than being overwritten with null.
+              share_id: r.shareId,
               updated_at: now,
             })),
             { onConflict: 'id' },
@@ -424,6 +429,7 @@ export async function pushState(
               name: r.name,
               player_ids: r.players ?? [],
               status: 'archived',
+              share_id: r.shareId,
               updated_at: now,
             })),
             { onConflict: 'id' },
@@ -652,6 +658,7 @@ export async function pullState(): Promise<PulledState | null> {
     name: r.name as string,
     players: r.player_ids as string[],
     matches: (matchesByRound.get(r.id as string) ?? []).map(dbMatchToLocal),
+    shareId: r.share_id as string | undefined,
   });
 
   const archivedRounds: ArchivedRound[] = activeTournament

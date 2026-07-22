@@ -27,6 +27,7 @@ import resizeLab from './resizeLab';
 import welcome from './welcome';
 import rivalry from './rivalry';
 import matchdayStats from './matchdayStats';
+import sharedRound from './sharedRound';
 
 const en = {
   common,
@@ -58,6 +59,7 @@ const en = {
   welcome,
   rivalry,
   matchdayStats,
+  sharedRound,
 } as const;
 
 export default en;

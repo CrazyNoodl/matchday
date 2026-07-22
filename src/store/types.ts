@@ -95,6 +95,9 @@ export interface ArchivedRound {
   // Storage folder name for this round's media (e.g. "matchday-2026-07-03_1430").
   // Absent on rounds started before the per-round/per-match storage layout.
   folder?: string;
+  // Public, unguessable id used in shared read-only links (see get_shared_round
+  // RPC) — distinct from `id`, which is a predictable `round-${Date.now()}` string.
+  shareId?: string;
 }
 
 export interface ClosedTournament {

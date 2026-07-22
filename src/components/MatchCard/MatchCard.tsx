@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, type StyleProp, type ViewStyle } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../../store';
-import { type Match } from '../../store/types';
+import { type Match, type Player, type Team } from '../../store/types';
 import { useColors } from '../../theme';
 import { Avatar } from '../Avatar';
 import { makeStyles } from './MatchCard.styles';
@@ -12,6 +12,13 @@ interface MatchCardProps {
   onPress?: (matchId: string) => void;
   readonly?: boolean;
   style?: StyleProp<ViewStyle>;
+  /**
+   * Explicit players/teams, used instead of the Zustand store — for screens
+   * rendering data that never lives in the local store (e.g. a public
+   * shared-round page fetched via RPC, see src/screens/shared/).
+   */
+  playersOverride?: Player[];
+  teamsOverride?: Team[];
 }
 
 export const MatchCard = React.memo(function MatchCard({
@@ -19,14 +26,19 @@ export const MatchCard = React.memo(function MatchCard({
   onPress,
   readonly = false,
   style,
+  playersOverride,
+  teamsOverride,
 }: MatchCardProps) {
   const { t } = useTranslation();
   const colors = useColors();
   const styles = makeStyles(colors);
-  const players = useStore((s) => s.players);
+  const storePlayers = useStore((s) => s.players);
+  const players = playersOverride ?? storePlayers;
 
   const playerA = players.find((p) => p.id === match.aId);
   const playerB = players.find((p) => p.id === match.bId);
+  const teamA = teamsOverride?.find((tm) => tm.code === playerA?.teamCode);
+  const teamB = teamsOverride?.find((tm) => tm.code === playerB?.teamCode);
 
   const aWins = match.aScore > match.bScore;
   const bWins = match.bScore > match.aScore;
@@ -54,7 +66,7 @@ export const MatchCard = React.memo(function MatchCard({
     <Container {...containerProps} style={[styles.card, style]}>
       {/* Side A */}
       <View style={styles.side}>
-        <Avatar playerId={match.aId} size="md" />
+        <Avatar playerId={match.aId} size="md" playerOverride={playerA} teamOverride={teamA} />
         <Text style={[styles.playerName, { color: aNameColor }]} numberOfLines={1}>
           {playerA?.name ?? t('common.unknown')}
         </Text>
@@ -75,7 +87,7 @@ export const MatchCard = React.memo(function MatchCard({
         >
           {playerB?.name ?? t('common.unknown')}
         </Text>
-        <Avatar playerId={match.bId} size="md" />
+        <Avatar playerId={match.bId} size="md" playerOverride={playerB} teamOverride={teamB} />
       </View>
 
       {/* Media / comment indicators */}

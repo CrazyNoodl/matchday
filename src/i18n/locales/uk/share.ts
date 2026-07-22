@@ -11,6 +11,8 @@ const share = {
   download: '⬇  Завантажити',
   saveToPhotos: '💾  Зберегти у Фото',
   share: '↗  Поділитись',
+  copyLink: '🔗  Копіювати лінк',
+  linkCopied: 'Лінк скопійовано!',
 } as const;
 
 export default share;

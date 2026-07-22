@@ -309,6 +309,26 @@ export const makeModalStyles = (colors: AppColors) =>
       paddingHorizontal: Spacing.xl,
       paddingTop: Spacing.lg,
     },
+    copyLinkWrap: {
+      paddingHorizontal: Spacing.xl,
+      paddingTop: Spacing.lg,
+    },
+    copyLinkBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: Spacing.sm,
+      paddingVertical: Spacing.md,
+      borderRadius: Radius.lg,
+      borderWidth: 1,
+      borderColor: colors.border.strong,
+      minHeight: 48,
+    },
+    copyLinkText: {
+      fontFamily: FontFamily.bodySemiBold,
+      fontSize: FontSize.base,
+      color: colors.text.primary,
+    },
     actions: {
       flexDirection: 'row',
       gap: Spacing.md,

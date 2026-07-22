@@ -1,7 +1,7 @@
 import { test as base, expect, type Page } from '@playwright/test';
 
 // Supabase project ref from EXPO_PUBLIC_SUPABASE_URL
-const SUPABASE_PROJECT_REF = 'vjivyppkjogpqggnvrvo';
+export const SUPABASE_PROJECT_REF = 'vjivyppkjogpqggnvrvo';
 const SUPABASE_SESSION_KEY = `sb-${SUPABASE_PROJECT_REF}-auth-token`;
 
 // Fake session injected before page scripts run.
@@ -144,7 +144,7 @@ export async function addMatchViaUI(
 // rejected (401) rather than mutating real data, but it's an unintended live
 // dependency, not the "disabled" behavior the config comment promises.
 // Blocking the host here is a hard guarantee no e2e run can reach it.
-async function blockSupabaseNetwork(page: Page) {
+export async function blockSupabaseNetwork(page: Page) {
   await page.route(`**://${SUPABASE_PROJECT_REF}.supabase.co/**`, (route) => route.abort());
 }
 
