@@ -62,6 +62,16 @@ export const makeStyles = (colors: AppColors) =>
     matchRowCard: {
       marginBottom: Spacing.sm,
     },
+    tourGroup: {
+      marginBottom: Spacing.lg,
+    },
+    tourLabel: {
+      fontFamily: FontFamily.bodyBold,
+      fontSize: FontSize.xs,
+      color: colors.text.muted,
+      letterSpacing: 1,
+      marginBottom: Spacing.sm,
+    },
 
     // Match detail scoreline hero (mirrors app/match/[id].tsx's scoreHero
     // markup/styles, minus the swap-sides control — this view is read-only)
