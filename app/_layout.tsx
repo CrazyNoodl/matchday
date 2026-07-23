@@ -135,7 +135,12 @@ function DemoBanner() {
           <Text style={bannerStyles.title}>{t('demo.banner').toUpperCase()}</Text>
           <Text style={bannerStyles.sub}>{t('demo.bannerSub')}</Text>
         </View>
-        <TouchableOpacity style={bannerStyles.exitBtn} onPress={handleExit} activeOpacity={0.8}>
+        <TouchableOpacity
+          testID="demo-banner-exit-button"
+          style={bannerStyles.exitBtn}
+          onPress={handleExit}
+          activeOpacity={0.8}
+        >
           <Text style={bannerStyles.exitText}>{t('demo.exit')}</Text>
         </TouchableOpacity>
       </View>

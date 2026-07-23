@@ -309,6 +309,7 @@ export default function MatchdayScreen() {
       {roundOpen && (
         <View style={styles.fab}>
           <TouchableOpacity
+            testID="add-match-fab-button"
             style={styles.fabBtn}
             onPress={handleOpenAddMatch}
             activeOpacity={0.85}

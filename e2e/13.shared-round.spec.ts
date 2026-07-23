@@ -66,10 +66,7 @@ test.describe('Shared round (public link)', () => {
     await mockSharedRoundRpc(page, MOCK_ROUND);
     await page.goto('/shared/abc-123');
 
-    // "Artem" also appears in the day-winner banner and the standings table,
-    // both above the (non-pressable) match list in render order — the match
-    // card's own occurrence is the last one on the page.
-    await page.getByText('Artem').last().click();
+    await page.getByTestId('shared-round-match-row-m1').click();
 
     await expect(page).toHaveURL(/\/shared\/abc-123\/match\/m1/);
     await expect(page.getByText('Great match!')).toBeVisible();
@@ -82,8 +79,8 @@ test.describe('Shared round (public link)', () => {
     await mockSharedRoundRpc(page, MOCK_ROUND);
     await page.goto('/shared/abc-123');
 
-    await page.getByText('···').click();
-    await page.getByText('STATS', { exact: true }).click();
+    await page.getByTestId('shared-round-menu-button').click();
+    await page.getByTestId('shared-round-menu-stats-item').click();
 
     await expect(page).toHaveURL(/\/shared\/abc-123\/stats/);
   });

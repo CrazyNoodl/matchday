@@ -52,6 +52,10 @@ export default defineConfig({
     reuseExistingServer: !process.env.CI,
     env: {
       EXPO_NO_INTERACTIVE: '1',
+      // Makes `Sheet`'s open/close animations instant (see Sheet.tsx) — removes
+      // the animation-completion race that caused stuck-backdrop flakiness
+      // under parallel workers (docs/CONTEXT.md, 2026-07-23).
+      EXPO_PUBLIC_E2E: '1',
     },
   },
 });

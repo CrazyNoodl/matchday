@@ -86,6 +86,7 @@ export function AddMatchSheet({
           return (
             <TouchableOpacity
               key={p.id}
+              testID={`player-chip-${p.name}`}
               style={[
                 sheetStyles.playerChip,
                 isHome && sheetStyles.playerChipHome,
@@ -174,6 +175,7 @@ export function AddMatchSheet({
       <View style={sheetStyles.stepContent}>
         <View style={sheetStyles.scoreRow}>
           <ScoreCounter
+            testID="score-counter-home"
             playerId={addMatch.homeId ?? ''}
             teamCode={hTeam}
             score={hScore}
@@ -189,6 +191,7 @@ export function AddMatchSheet({
             </View>
           </View>
           <ScoreCounter
+            testID="score-counter-away"
             playerId={addMatch.awayId ?? ''}
             teamCode={aTeam}
             score={aScore}
@@ -403,6 +406,7 @@ export function AddMatchSheet({
             </TouchableOpacity>
             {addMatch.step < totalSteps ? (
               <TouchableOpacity
+                testID="add-match-next-button"
                 style={[
                   sheetStyles.nextBtn,
                   !canAddMatchGoNext(addMatch, tournamentRanked) && sheetStyles.nextBtnDisabled,
@@ -423,6 +427,7 @@ export function AddMatchSheet({
               </TouchableOpacity>
             ) : (
               <TouchableOpacity
+                testID="add-match-save-button"
                 style={[sheetStyles.nextBtn, isSavingMatch && sheetStyles.nextBtnDisabled]}
                 onPress={handleSaveMatch}
                 disabled={isSavingMatch}

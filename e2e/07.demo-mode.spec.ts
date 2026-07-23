@@ -22,7 +22,7 @@ test.describe('Demo mode', () => {
     await expect(page.getByText('LIVE TOURNAMENT').last()).toBeVisible();
 
     // Exit via the banner button.
-    await page.getByText('Exit', { exact: true }).click();
+    await page.getByTestId('demo-banner-exit-button').click();
     await expect(page).toHaveURL('/');
     await expect(page.getByText('DEMO MODE', { exact: true })).not.toBeVisible();
     await expect(page.getByText('NO ACTIVE TOURNAMENT', { exact: true })).toBeVisible();
@@ -42,11 +42,11 @@ test.describe('Demo mode', () => {
 
     await page.goto('/');
     await page.waitForLoadState('networkidle');
-    await page.getByText('START NEW TOURNAMENT').click();
-    await page.getByPlaceholder('e.g. FC26 · Round 10').fill('Real Cup');
-    await page.getByText('Alice', { exact: true }).click();
-    await page.getByText('Bob', { exact: true }).click();
-    await page.getByText('START TOURNAMENT').click();
+    await page.getByTestId('start-new-tournament-button').click();
+    await page.getByTestId('setup-tournament-name-input').fill('Real Cup');
+    await page.getByTestId('player-row-Alice').click();
+    await page.getByTestId('player-row-Bob').click();
+    await page.getByTestId('start-tournament-button').click();
     await expect(page).toHaveURL('/');
     await expect(page.getByText('Real Cup', { exact: true }).last()).toBeVisible();
 
@@ -62,13 +62,13 @@ test.describe('Demo mode', () => {
     await expect(page.getByText(/temporarily replaced by demo data/)).toBeVisible();
     await expect(demoSwitch).not.toBeChecked(); // not yet enabled — awaiting confirmation
 
-    await page.getByText('ENABLE', { exact: true }).click();
+    await page.getByTestId('demo-confirm-enable-button').click();
     await expect(page).toHaveURL('/');
     await expect(page.getByText('Premier League S2', { exact: true }).last()).toBeVisible();
     await expect(page.getByText('Real Cup', { exact: true })).not.toBeVisible();
 
     // Exit demo mode — the real tournament must come back untouched.
-    await page.getByText('Exit', { exact: true }).click();
+    await page.getByTestId('demo-banner-exit-button').click();
     await expect(page).toHaveURL('/');
     await expect(page.getByText('Real Cup', { exact: true }).last()).toBeVisible();
     await expect(page.getByText('Premier League S2', { exact: true })).not.toBeVisible();

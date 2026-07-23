@@ -121,6 +121,7 @@ export default function SetupScreen() {
             style={styles.sectionGap}
           />
           <TextInput
+            testID="setup-tournament-name-input"
             style={styles.input}
             value={tournamentName}
             onChangeText={setTournamentName}
@@ -186,6 +187,7 @@ export default function SetupScreen() {
               return (
                 <TouchableOpacity
                   key={player.id}
+                  testID={`player-row-${player.name}`}
                   style={[styles.playerRow, isSelected && styles.playerRowSelected]}
                   onPress={() => togglePlayer(player.id)}
                   activeOpacity={0.75}
@@ -227,6 +229,7 @@ export default function SetupScreen() {
 
             {/* Add player row */}
             <TouchableOpacity
+              testID="setup-add-player-row"
               style={styles.manageTeamsRow}
               onPress={playerForm.openCreate}
               activeOpacity={0.75}
@@ -244,6 +247,7 @@ export default function SetupScreen() {
       {/* Bottom CTA */}
       <View style={styles.bottomBar}>
         <TouchableOpacity
+          testID="start-tournament-button"
           style={[styles.startBtn, !canStart && styles.startBtnDisabled]}
           onPress={handleStart}
           disabled={!canStart}

@@ -12,6 +12,7 @@ interface ScoreCounterProps {
   score: number;
   onIncrement: () => void;
   onDecrement: () => void;
+  testID?: string;
 }
 
 export function ScoreCounter({
@@ -20,6 +21,7 @@ export function ScoreCounter({
   score,
   onIncrement,
   onDecrement,
+  testID,
 }: ScoreCounterProps) {
   const colors = useColors();
   const styles = makeStyles(colors);
@@ -42,6 +44,7 @@ export function ScoreCounter({
       {/* Controls */}
       <View style={styles.controls}>
         <TouchableOpacity
+          testID={testID && `${testID}-decrement`}
           style={[styles.btn, score <= 0 && styles.btnDisabled]}
           onPress={onDecrement}
           disabled={score <= 0}
@@ -50,7 +53,12 @@ export function ScoreCounter({
           <Text style={[styles.btnText, score <= 0 && styles.btnTextDisabled]}>−</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.btn} onPress={onIncrement} activeOpacity={0.7}>
+        <TouchableOpacity
+          testID={testID && `${testID}-increment`}
+          style={styles.btn}
+          onPress={onIncrement}
+          activeOpacity={0.7}
+        >
           <Text style={styles.btnText}>+</Text>
         </TouchableOpacity>
       </View>

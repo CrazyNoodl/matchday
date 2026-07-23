@@ -166,6 +166,7 @@ export default function SettingsScreen() {
         </SettingsSection>
 
         <DangerZoneCard
+          testID="reset-all-data-button"
           title={t('settings.danger.section')}
           label={t('settings.danger.resetAll')}
           description={

@@ -61,11 +61,11 @@ async function clearAppState(page: Page) {
 export async function createTeamViaUI(page: Page, name: string, short: string) {
   await page.goto('/settings/teams');
   await page.waitForLoadState('networkidle');
-  await page.getByText('+ ADD').click();
+  await page.getByTestId('teams-add-button').click();
   await expect(page.getByText('NEW TEAM')).toBeVisible();
-  await page.getByPlaceholder('e.g. Manchester City').fill(name);
-  await page.getByPlaceholder('e.g. MCI').fill(short);
-  await page.getByText('ADD TEAM', { exact: true }).click();
+  await page.getByTestId('team-edit-name-input').fill(name);
+  await page.getByTestId('team-edit-short-input').fill(short);
+  await page.getByTestId('team-edit-save-button').click();
   await expect(page.getByText(name, { exact: true })).toBeVisible();
 }
 
@@ -75,16 +75,15 @@ export async function createTeamViaUI(page: Page, name: string, short: string) {
 export async function createPlayerViaUI(page: Page, name: string, teamShort?: string) {
   await page.goto('/settings/players');
   await page.waitForLoadState('networkidle');
-  await page.getByText('+ ADD').click();
-  await expect(page.getByPlaceholder('Player name')).toBeVisible();
-  await page.getByPlaceholder('Player name').fill(name);
+  await page.getByTestId('players-add-button').click();
+  await expect(page.getByTestId('player-edit-name-input')).toBeVisible();
+  await page.getByTestId('player-edit-name-input').fill(name);
   if (teamShort) {
-    await expect(page.getByText(teamShort, { exact: true }).first()).toBeVisible({
-      timeout: 15_000,
-    });
-    await page.getByText(teamShort, { exact: true }).first().click();
+    const teamChip = page.getByTestId(`team-picker-item-${teamShort}`);
+    await expect(teamChip).toBeVisible({ timeout: 15_000 });
+    await teamChip.click();
   }
-  await page.getByText('ADD PLAYER', { exact: true }).click();
+  await page.getByTestId('player-edit-save-button').click();
   await expect(page.getByText(name, { exact: true }).last()).toBeVisible();
 }
 
@@ -108,30 +107,57 @@ export async function addMatchViaUI(
   homeScore: number,
   awayScore: number,
 ) {
-  await page.getByText('+ ADD MATCH', { exact: true }).last().click();
+  await page.getByTestId('add-match-fab-button').click();
 
   // Step 1 — players
-  await page.getByText(homeName, { exact: true }).last().click();
-  await page.getByText(awayName, { exact: true }).last().click();
-  await page.getByText('NEXT', { exact: true }).last().click();
+  await page.getByTestId(`player-chip-${homeName}`).click();
+  await page.getByTestId(`player-chip-${awayName}`).click();
+  await page.getByTestId('add-match-next-button').click();
 
-  // Step 2 — score. Background screens (see note above) can contribute their
-  // own stray "+" icons (e.g. Home's big "+" tile, Setup's rounds stepper),
-  // but the live ScoreCounter pair is always the last two "+" buttons on the
-  // page, in home-then-away order — verified against this app's build.
-  const plus = page.getByText('+', { exact: true });
-  const total = await plus.count();
-  const homeIncrement = plus.nth(total - 2);
-  const awayIncrement = plus.nth(total - 1);
+  // Step 2 — score
+  const homeIncrement = page.getByTestId('score-counter-home-increment');
+  const awayIncrement = page.getByTestId('score-counter-away-increment');
   for (let i = 0; i < homeScore; i++) await homeIncrement.click();
   for (let i = 0; i < awayScore; i++) await awayIncrement.click();
-  await page.getByText('NEXT', { exact: true }).last().click();
+  await page.getByTestId('add-match-next-button').click();
 
   // Step 3 — media (skip)
-  await page.getByText('NEXT', { exact: true }).last().click();
+  await page.getByTestId('add-match-next-button').click();
 
   // Step 4 — commentary (skip) -> save
-  await page.getByText('SAVE MATCH', { exact: true }).last().click();
+  await page.getByTestId('add-match-save-button').click();
+}
+
+// Reusable UI helper: creates a tournament from Home, selecting the given
+// (already-existing) players by name. Leaves the browser on Home with the
+// tournament live. Assumes players/teams were already created (e.g. via
+// createTeamViaUI/createPlayerViaUI) before calling this.
+export async function startTournamentViaUI(page: Page, name: string, playerNames: string[]) {
+  await page.goto('/');
+  await page.waitForLoadState('networkidle');
+  await page.getByTestId('start-new-tournament-button').click();
+  await expect(page).toHaveURL(/.*setup/);
+  await page.getByTestId('setup-tournament-name-input').fill(name);
+  for (const playerName of playerNames) {
+    await page.getByTestId(`player-row-${playerName}`).click();
+  }
+  await page.getByTestId('start-tournament-button').click();
+  await expect(page).toHaveURL('/');
+
+  // expo-router keeps the pre-tournament Home + Setup screens mounted
+  // underneath this one (see the note above) — reload to get a single clean
+  // Home instance before driving the rest of the flow.
+  await page.goto('/');
+  await page.waitForLoadState('networkidle');
+}
+
+// Reusable UI helper: starts the first (or next) match day from Home and
+// opens the New Round modal's confirm, landing on /round.
+export async function startMatchDayViaUI(page: Page) {
+  await page.getByTestId('new-match-day-button').click();
+  await expect(page.getByTestId('new-round-start-button')).toBeVisible();
+  await page.getByTestId('new-round-start-button').click();
+  await expect(page).toHaveURL(/.*round/);
 }
 
 // supabaseConfigured is true for the whole e2e run, both locally (via .env)

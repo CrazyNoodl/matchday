@@ -66,6 +66,7 @@ export function TeamEditSheet({
           <View style={styles.formGroup}>
             <Text style={styles.formLabel}>{t('teams.form.name').toUpperCase()}</Text>
             <TextInput
+              testID="team-edit-name-input"
               style={styles.input}
               value={formName}
               onChangeText={onChangeName}
@@ -78,6 +79,7 @@ export function TeamEditSheet({
           <View style={styles.formGroup}>
             <Text style={styles.formLabel}>{t('teams.form.shortCode').toUpperCase()}</Text>
             <TextInput
+              testID="team-edit-short-input"
               style={styles.input}
               value={formShort}
               onChangeText={(v) => onChangeShort(v.slice(0, 3).toUpperCase())}
@@ -142,6 +144,7 @@ export function TeamEditSheet({
             <Text style={styles.cancelBtnText}>{t('common.cancel').toUpperCase()}</Text>
           </TouchableOpacity>
           <TouchableOpacity
+            testID="team-edit-save-button"
             style={[styles.saveBtn, !canSave && styles.saveBtnDisabled]}
             onPress={onSave}
             disabled={!canSave}

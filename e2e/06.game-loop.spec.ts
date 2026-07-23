@@ -1,4 +1,12 @@
-import { test, expect, createTeamViaUI, createPlayerViaUI, addMatchViaUI } from './fixtures';
+import {
+  test,
+  expect,
+  createTeamViaUI,
+  createPlayerViaUI,
+  addMatchViaUI,
+  startTournamentViaUI,
+  startMatchDayViaUI,
+} from './fixtures';
 
 test.describe('Main game loop', () => {
   test('play a full round with the equal-games rule, finish it, and crown a tournament champion @smoke', async ({
@@ -13,28 +21,10 @@ test.describe('Main game loop', () => {
     await createPlayerViaUI(page, 'Cara', 'CHE');
 
     // ---- Create the tournament with all 3 players ----
-    await page.goto('/');
-    await page.waitForLoadState('networkidle');
-    await page.getByText('START NEW TOURNAMENT').click();
-    await expect(page).toHaveURL(/.*setup/);
-    await page.getByPlaceholder('e.g. FC26 · Round 10').fill('Game Loop Cup');
-    await page.getByText('Alice', { exact: true }).click();
-    await page.getByText('Bob', { exact: true }).click();
-    await page.getByText('Cara', { exact: true }).click();
-    await page.getByText('START TOURNAMENT').click();
-    await expect(page).toHaveURL('/');
-
-    // expo-router keeps the pre-tournament Home + Setup screens mounted
-    // underneath this one (see the note in e2e/fixtures.ts) — reload to get
-    // a single clean Home instance before driving the rest of the flow.
-    await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await startTournamentViaUI(page, 'Game Loop Cup', ['Alice', 'Bob', 'Cara']);
 
     // ---- Start the first match day (all 3 players pre-selected, ranked) ----
-    await page.getByText('NEW MATCH DAY', { exact: true }).click();
-    await expect(page.getByText('START ROUND', { exact: true })).toBeVisible();
-    await page.getByText('START ROUND', { exact: true }).click();
-    await expect(page).toHaveURL(/.*round/);
+    await startMatchDayViaUI(page);
 
     // ---- Match 1: Alice 2-0 Bob — standings update ----
     await addMatchViaUI(page, 'Alice', 'Bob', 2, 0);

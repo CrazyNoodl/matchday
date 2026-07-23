@@ -64,6 +64,7 @@ export function SharedRoundScreen({ shareId }: { shareId: string }) {
         subtitle={formatShortDate(round.date)}
         rightElement={
           <TouchableOpacity
+            testID="shared-round-menu-button"
             ref={roundMenu.anchorRef}
             style={styles.dotsBtn}
             onPress={roundMenu.open}
@@ -114,6 +115,7 @@ export function SharedRoundScreen({ shareId }: { shareId: string }) {
         {matches.map((m) => (
           <TouchableOpacity
             key={m.id}
+            testID={`shared-round-match-row-${m.id}`}
             activeOpacity={0.75}
             onPress={() => router.push(`/shared/${shareId}/match/${m.id}`)}
           >
@@ -137,6 +139,7 @@ export function SharedRoundScreen({ shareId }: { shareId: string }) {
         items={[
           {
             key: 'stats',
+            testID: 'shared-round-menu-stats-item',
             label: t('home.stats').toUpperCase(),
             onPress: () => {
               roundMenu.close();
