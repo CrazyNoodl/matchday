@@ -19,6 +19,7 @@ export function TeamPickerRow({ teams, selectedCode, onSelect }: TeamPickerRowPr
       {teams.map((t) => (
         <TouchableOpacity
           key={t.code}
+          testID={`team-picker-item-${t.short}`}
           style={[
             styles.item,
             selectedCode === t.code && {

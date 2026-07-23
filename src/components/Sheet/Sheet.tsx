@@ -15,6 +15,28 @@ import { useColors } from '@/theme';
 // animation and looks like it never opened at all.
 const ANIMATION_CONFIGS = { reduceMotion: ReduceMotion.Never };
 
+// Under Playwright only (`EXPO_PUBLIC_E2E`, set in playwright.config.ts's
+// webServer.env), the CLOSE animation specifically is made instant. Its
+// completion callback (`onClose` below) is what unmounts the backdrop and
+// content — under a CPU-starved parallel test run that callback can stall
+// indefinitely, leaving the backdrop mounted and blocking clicks on whatever
+// is underneath for the rest of the test (see docs/CONTEXT.md's
+// `02.setup.spec.ts` flakiness notes — this reproduces on unmodified `dev`
+// too, so it's a real risk for slow real devices, not just a test artifact).
+//
+// Deliberately NOT applied to opening (`snapToIndex`, below) too — doing
+// that once caused a *worse* regression: with the backdrop appearing fully
+// interactive on the very same synchronous tick as the click that opened the
+// sheet, Playwright's mousedown/mouseup pair for that click could land back
+// on the now-instantly-present backdrop and immediately close the sheet it
+// had just opened (confirmed via instrumented logging — `visible` flipping
+// true→false within ~2ms of the open, with `onClose` firing before any
+// content ever rendered). Leaving open at normal speed keeps a small buffer
+// between "sheet opens" and "backdrop becomes clickable".
+const CLOSE_ANIMATION_CONFIGS = process.env.EXPO_PUBLIC_E2E
+  ? { reduceMotion: ReduceMotion.Always }
+  : undefined;
+
 const MIN_HEIGHT = 280;
 const MAX_HEIGHT = Dimensions.get('window').height * 0.85;
 
@@ -74,7 +96,7 @@ export function Sheet({
       ref.current?.snapToIndex(0);
     } else {
       closedExternallyRef.current = true;
-      ref.current?.close();
+      ref.current?.close(CLOSE_ANIMATION_CONFIGS);
     }
   }, [visible]);
 

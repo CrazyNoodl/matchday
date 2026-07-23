@@ -227,6 +227,7 @@ export function MatchModals({ d }: MatchModalsProps) {
           />
           <View style={styles.noteEditBody}>
             <BottomSheetTextInput
+              testID="match-edit-note-input"
               style={styles.noteInput}
               value={d.editNoteValue}
               onChangeText={d.setEditNoteValue}

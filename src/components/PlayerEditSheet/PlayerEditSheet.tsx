@@ -64,6 +64,7 @@ export function PlayerEditSheet({
           <View style={styles.formGroup}>
             <Text style={styles.formLabel}>{t('setup.form.name').toUpperCase()}</Text>
             <TextInput
+              testID="player-edit-name-input"
               style={styles.input}
               value={formName}
               onChangeText={onChangeName}
@@ -99,6 +100,7 @@ export function PlayerEditSheet({
             <Text style={styles.cancelBtnText}>{t('common.cancel').toUpperCase()}</Text>
           </TouchableOpacity>
           <TouchableOpacity
+            testID="player-edit-save-button"
             style={[styles.saveBtn, isDisabled && styles.saveBtnDisabled]}
             onPress={onSave}
             disabled={isDisabled}

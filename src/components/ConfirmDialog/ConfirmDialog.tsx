@@ -18,6 +18,7 @@ export interface ConfirmDialogAction {
   onPress: () => void;
   loading?: boolean;
   disabled?: boolean;
+  testID?: string;
 }
 
 export type ConfirmDialogVariant = 'default' | 'destructive' | 'gold' | 'neutral';
@@ -90,6 +91,7 @@ function ConfirmButton({
 }) {
   return (
     <TouchableOpacity
+      testID={action.testID}
       style={[
         styles.confirmBtn,
         variantBtnStyle(styles, variant),
@@ -147,6 +149,7 @@ export function ConfirmDialog({
           <View style={styles.actions}>
             {cancel && (
               <TouchableOpacity
+                testID={cancel.testID}
                 style={styles.cancelBtn}
                 onPress={cancel.onPress}
                 disabled={cancel.disabled}

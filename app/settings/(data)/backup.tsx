@@ -230,6 +230,7 @@ export default function BackupScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionHeader}>{t('backup.createSection').toUpperCase()}</Text>
           <TouchableOpacity
+            testID="create-backup-button"
             style={[styles.primaryBtn, (actionsDisabled || creating) && styles.primaryBtnDisabled]}
             onPress={handleCreateBackup}
             disabled={actionsDisabled || creating}
@@ -269,6 +270,7 @@ export default function BackupScreen() {
                     </View>
                     <View style={styles.backupActions}>
                       <TouchableOpacity
+                        testID={`backup-restore-button-${i}`}
                         style={styles.backupActionBtn}
                         onPress={() => handleRestoreFromList(meta)}
                         disabled={actionsDisabled || busy}
@@ -304,6 +306,7 @@ export default function BackupScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionHeader}>{t('backup.importSection').toUpperCase()}</Text>
           <TouchableOpacity
+            testID="import-from-file-button"
             style={[styles.secondaryBtn, actionsDisabled && styles.primaryBtnDisabled]}
             onPress={handleImportFromFile}
             disabled={actionsDisabled}
