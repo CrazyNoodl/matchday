@@ -1,9 +1,9 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, ScrollView, ActivityIndicator, Modal } from 'react-native';
-import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useColors } from '@/theme';
+import { useGoBack } from '@/utils/useGoBack';
 import {
   GlowBackground,
   SectionLabel,
@@ -29,7 +29,7 @@ export function SharedMatchDetailScreen({
   const colors = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
-  const router = useRouter();
+  const goBack = useGoBack(`/shared/${shareId}`);
   const state = useSharedRound(shareId);
   const [viewerItems, setViewerItems] = useState<MediaSliderItem[] | null>(null);
   const [viewerIndex, setViewerIndex] = useState(0);
@@ -50,7 +50,7 @@ export function SharedMatchDetailScreen({
     return (
       <SafeAreaView style={styles.root} edges={['top']}>
         <GlowBackground />
-        <NavHeader title={t('matchDetail.title').toUpperCase()} onBack={() => router.back()} />
+        <NavHeader title={t('matchDetail.title').toUpperCase()} onBack={goBack} />
         <View style={styles.center}>
           <EmptyState message={t('sharedRound.notFound')} />
         </View>
@@ -75,7 +75,7 @@ export function SharedMatchDetailScreen({
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
       <GlowBackground />
-      <NavHeader title={t('matchDetail.title').toUpperCase()} onBack={() => router.back()} />
+      <NavHeader title={t('matchDetail.title').toUpperCase()} onBack={goBack} />
 
       <ScrollView
         style={styles.scroll}
