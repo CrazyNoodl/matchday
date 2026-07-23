@@ -10,6 +10,12 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.55',
+    fixed: [
+      'Shared match-day links were missing meta description, viewport, and canonical tags on the static preview page GitHub Pages serves for them, which some link/SEO checkers flagged \u2014 added to match the tags already present on the main app page',
+    ],
+  },
+  {
     version: '1.9.54',
     fixed: [
       'Copying a match day\'s share link now copies a full working URL instead of a path with no domain — and the link now shows a Matchday preview card (title, description, icon) when pasted into WhatsApp, Telegram, Slack, or similar apps, instead of plain text',
