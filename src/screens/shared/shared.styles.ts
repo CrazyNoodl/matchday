@@ -28,6 +28,7 @@ export const makeStyles = (colors: AppColors) =>
     },
     scrollContent: {
       paddingHorizontal: Spacing.lg,
+      paddingTop: Spacing.md,
       paddingBottom: Spacing['3xl'],
       gap: Spacing.lg,
     },
@@ -62,33 +63,74 @@ export const makeStyles = (colors: AppColors) =>
     matchRowCard: {
       marginBottom: Spacing.sm,
     },
-
-    // Match detail scoreline hero
-    matchRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
+    tourGroup: {
+      marginBottom: Spacing.lg,
     },
-    matchSide: {
-      flex: 1,
+    tourLabel: {
+      fontFamily: FontFamily.bodyBold,
+      fontSize: FontSize.xs,
+      color: colors.text.muted,
+      letterSpacing: 1,
+      marginBottom: Spacing.sm,
+    },
+
+    // Match detail scoreline hero (mirrors app/match/[id].tsx's scoreHero
+    // markup/styles, minus the swap-sides control — this view is read-only)
+    scoreHero: {
       flexDirection: 'row',
       alignItems: 'center',
+      backgroundColor: colors.bg.surface,
+      borderRadius: Radius.xl,
+      borderWidth: 1,
+      borderColor: colors.accent.greenBorder,
+      padding: Spacing.xl,
+      marginTop: Spacing.lg,
       gap: Spacing.sm,
     },
-    matchSideRight: {
-      justifyContent: 'flex-end',
+    heroSide: {
+      flex: 1,
+      alignItems: 'center',
+      gap: 6,
     },
-    matchName: {
-      fontFamily: FontFamily.bodySemiBold,
-      fontSize: FontSize.sm,
+    heroName: {
+      fontFamily: FontFamily.display,
+      fontSize: FontSize.base,
       color: colors.text.primary,
-      flexShrink: 1,
+      textAlign: 'center',
+      letterSpacing: 0.3,
     },
-    matchScore: {
+    heroNameLoser: {
+      color: colors.text.muted,
+    },
+    heroCenter: {
+      alignItems: 'center',
+      gap: 6,
+      paddingHorizontal: Spacing.sm,
+    },
+    heroScoreRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+    },
+    heroScoreNum: {
       fontFamily: FontFamily.displayBold,
-      fontSize: FontSize.lg,
-      color: colors.text.primary,
-      paddingHorizontal: Spacing.md,
+      fontSize: FontSize['5xl'],
+      color: colors.text.secondary,
+      lineHeight: FontSize['5xl'] + 8,
+      minWidth: 36,
+      textAlign: 'center',
+    },
+    heroColon: {
+      fontFamily: FontFamily.displayBold,
+      fontSize: 30,
+      color: colors.text.placeholder,
+      lineHeight: 40,
+    },
+    heroResult: {
+      fontFamily: FontFamily.body,
+      fontSize: FontSize.sm,
+      color: colors.accent.green,
+      textAlign: 'center',
     },
     matchNote: {
       fontFamily: FontFamily.body,

@@ -1,6 +1,6 @@
-import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useMemo, useEffect, useLayoutEffect, useRef } from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useNavigation } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStore } from '@/store';
 import { calculateStandings, isTopTied, getAnnounceLeaderId } from '@/utils/standings';
@@ -34,6 +34,7 @@ import {
 
 export default function MatchdayScreen() {
   const router = useRouter();
+  const navigation = useNavigation();
   const { t } = useTranslation();
 
   const tournamentName = useStore((s) => s.tournamentName);
@@ -61,6 +62,7 @@ export default function MatchdayScreen() {
   const reorderMatches = useStore((s) => s.reorderMatches);
   const matchDragReorderEnabled = useStore((s) => s.matchDragReorderEnabled);
   const deleteRound = useStore((s) => s.deleteRound);
+  const setViewingRound = useStore((s) => s.setViewingRound);
 
   const colors = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
@@ -77,6 +79,20 @@ export default function MatchdayScreen() {
     addMatchToStore: addMatch,
     closeModal,
   });
+
+  // Swiping back while the Add Match sheet is open unmounts this screen and
+  // silently destroys the whole in-progress addMatch state (media, score,
+  // note) — there's no persisted draft to recover it from. Disable the
+  // native edge-swipe-back gesture for the sheet's entire lifetime, not just
+  // its busy sub-states — the sheet already has its own Back/Cancel button
+  // for a deliberate, non-destructive exit.
+  const isAddMatchOpen = modal === 'add';
+  useLayoutEffect(() => {
+    navigation.setOptions({ gestureEnabled: !isAddMatchOpen });
+    return () => {
+      navigation.setOptions({ gestureEnabled: true });
+    };
+  }, [navigation, isAddMatchOpen]);
 
   const standings = useMemo(
     () => calculateStandings(matches, roundPlayers),
@@ -417,7 +433,12 @@ export default function MatchdayScreen() {
             label: t('home.stats').toUpperCase(),
             onPress: () => {
               roundMenu.close();
-              router.push({ pathname: '/stats', params: { scope: 'tournament' } });
+              // Null out `viewingRound` — it's session UI state that can be
+              // left over from a previous archive-day visit, and would
+              // otherwise shadow the live round's own stats (see
+              // useMatchdayStatsData's fallback for the no-viewingRound case).
+              setViewingRound(null);
+              router.push('/matchday-stats');
             },
           },
           {

@@ -1,5 +1,6 @@
 import React, { type ReactNode } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColors } from '../../theme';
 import { makeStyles } from './NavHeader.styles';
 
@@ -13,40 +14,44 @@ interface NavHeaderProps {
 export function NavHeader({ title, subtitle, onBack, rightElement }: NavHeaderProps) {
   const colors = useColors();
   const styles = makeStyles(colors);
+  const insets = useSafeAreaInsets();
   return (
-    <View style={styles.header}>
-      {/* Left: back button or spacer */}
-      <View style={styles.side}>
-        {onBack ? (
-          <TouchableOpacity
-            style={styles.backBtn}
-            onPress={onBack}
-            activeOpacity={0.7}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          >
-            <Text style={styles.chevron}>‹</Text>
-          </TouchableOpacity>
-        ) : (
-          <View style={styles.spacer} />
-        )}
-      </View>
+    <>
+      <View style={[styles.statusBarFill, { height: insets.top }]} />
+      <View style={styles.header}>
+        {/* Left: back button or spacer */}
+        <View style={styles.side}>
+          {onBack ? (
+            <TouchableOpacity
+              style={styles.backBtn}
+              onPress={onBack}
+              activeOpacity={0.7}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Text style={styles.chevron}>‹</Text>
+            </TouchableOpacity>
+          ) : (
+            <View style={styles.spacer} />
+          )}
+        </View>
 
-      {/* Center: title + subtitle */}
-      <View style={styles.center}>
-        <Text style={styles.title} numberOfLines={1}>
-          {title}
-        </Text>
-        {subtitle ? (
-          <Text style={styles.subtitle} numberOfLines={1}>
-            {subtitle}
+        {/* Center: title + subtitle */}
+        <View style={styles.center}>
+          <Text style={styles.title} numberOfLines={1}>
+            {title}
           </Text>
-        ) : null}
-      </View>
+          {subtitle ? (
+            <Text style={styles.subtitle} numberOfLines={1}>
+              {subtitle}
+            </Text>
+          ) : null}
+        </View>
 
-      {/* Right: optional element or spacer */}
-      <View style={[styles.side, styles.sideRight]}>
-        {rightElement ?? <View style={styles.spacer} />}
+        {/* Right: optional element or spacer */}
+        <View style={[styles.side, styles.sideRight]}>
+          {rightElement ?? <View style={styles.spacer} />}
+        </View>
       </View>
-    </View>
+    </>
   );
 }

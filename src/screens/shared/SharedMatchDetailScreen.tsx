@@ -1,9 +1,9 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, ScrollView, ActivityIndicator } from 'react-native';
-import { useRouter } from 'expo-router';
+import { View, Text, ScrollView, ActivityIndicator, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useColors } from '@/theme';
+import { useGoBack } from '@/utils/useGoBack';
 import {
   GlowBackground,
   SectionLabel,
@@ -29,7 +29,7 @@ export function SharedMatchDetailScreen({
   const colors = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
-  const router = useRouter();
+  const goBack = useGoBack(`/shared/${shareId}`);
   const state = useSharedRound(shareId);
   const [viewerItems, setViewerItems] = useState<MediaSliderItem[] | null>(null);
   const [viewerIndex, setViewerIndex] = useState(0);
@@ -50,7 +50,7 @@ export function SharedMatchDetailScreen({
     return (
       <SafeAreaView style={styles.root} edges={['top']}>
         <GlowBackground />
-        <NavHeader title={t('matchDetail.title').toUpperCase()} onBack={() => router.back()} />
+        <NavHeader title={t('matchDetail.title').toUpperCase()} onBack={goBack} />
         <View style={styles.center}>
           <EmptyState message={t('sharedRound.notFound')} />
         </View>
@@ -75,7 +75,7 @@ export function SharedMatchDetailScreen({
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
       <GlowBackground />
-      <NavHeader title={t('matchDetail.title').toUpperCase()} onBack={() => router.back()} />
+      <NavHeader title={t('matchDetail.title').toUpperCase()} onBack={goBack} />
 
       <ScrollView
         style={styles.scroll}
@@ -83,37 +83,56 @@ export function SharedMatchDetailScreen({
         showsVerticalScrollIndicator={false}
       >
         {/* Scoreline hero */}
-        <View style={styles.matchRow}>
-          <View style={styles.matchSide}>
+        <View style={styles.scoreHero}>
+          <View style={styles.heroSide}>
             <Avatar playerId={match.aId} size="xl" playerOverride={playerA} teamOverride={teamA} />
             <Text
-              style={[styles.matchName, { color: bWins ? colors.text.muted : colors.text.primary }]}
+              style={[styles.heroName, !aWins && !isDraw && styles.heroNameLoser]}
               numberOfLines={1}
             >
               {playerA?.name ?? t('common.unknown')}
             </Text>
           </View>
-          <Text style={styles.matchScore}>
-            {match.aScore} : {match.bScore}
-          </Text>
-          <View style={[styles.matchSide, styles.matchSideRight]}>
+
+          <View style={styles.heroCenter}>
+            <View style={styles.heroScoreRow}>
+              <Text
+                style={[
+                  styles.heroScoreNum,
+                  aWins && { color: colors.accent.green },
+                  !aWins && !isDraw && { color: colors.text.ghost },
+                ]}
+              >
+                {match.aScore}
+              </Text>
+              <Text style={styles.heroColon}>:</Text>
+              <Text
+                style={[
+                  styles.heroScoreNum,
+                  bWins && { color: colors.accent.green },
+                  !bWins && !isDraw && { color: colors.text.ghost },
+                ]}
+              >
+                {match.bScore}
+              </Text>
+            </View>
+            <Text style={styles.heroResult}>
+              {isDraw
+                ? t('matchday.draw')
+                : t('matchDetail.wonBy', { name: aWins ? playerA?.name : playerB?.name })}
+            </Text>
+          </View>
+
+          <View style={styles.heroSide}>
+            <Avatar playerId={match.bId} size="xl" playerOverride={playerB} teamOverride={teamB} />
             <Text
-              style={[
-                styles.matchName,
-                { textAlign: 'right', color: aWins ? colors.text.muted : colors.text.primary },
-              ]}
+              style={[styles.heroName, !bWins && !isDraw && styles.heroNameLoser]}
               numberOfLines={1}
             >
               {playerB?.name ?? t('common.unknown')}
             </Text>
-            <Avatar playerId={match.bId} size="xl" playerOverride={playerB} teamOverride={teamB} />
           </View>
         </View>
-        {!isDraw && (
-          <Text style={styles.matchNote}>
-            {t('matchDetail.wonBy', { name: aWins ? playerA?.name : playerB?.name })}
-          </Text>
-        )}
 
         {statRows.length > 0 && (
           <>
@@ -175,13 +194,21 @@ export function SharedMatchDetailScreen({
         <View style={{ height: 48 }} />
       </ScrollView>
 
-      {viewerItems && (
-        <MediaSlider
-          items={viewerItems}
-          initialIndex={viewerIndex}
-          onClose={() => setViewerItems(null)}
-        />
-      )}
+      <Modal
+        visible={viewerItems !== null}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setViewerItems(null)}
+        statusBarTranslucent
+      >
+        {viewerItems && (
+          <MediaSlider
+            items={viewerItems}
+            initialIndex={viewerIndex}
+            onClose={() => setViewerItems(null)}
+          />
+        )}
+      </Modal>
     </SafeAreaView>
   );
 }

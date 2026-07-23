@@ -38,12 +38,51 @@ introducing a serverless layer in front of GitHub Pages or moving the `/shared/*
 to a hosting platform with API routes (e.g. EAS Hosting), both out of scope here. Instead:
 one static, branded preview (app name + description + icon) for every `/shared/*` link.
 
-**Known limitation accepted with this choice:** Facebook's link crawler sometimes
-declines to render a preview for a non-200 HTTP response. Every direct request to
-`/shared/<id>` is served by GitHub Pages' `public/404.html` (see below) with an HTTP 404
-status, since no static file exists at that exact path. WhatsApp, Telegram, Slack, and
-iMessage's unfurlers are not known to be status-code-sensitive and will render the
-preview regardless; Facebook is the one exception this design does not solve for.
+**Known limitation accepted with this choice (superseded — see "Update" below):**
+Facebook's link crawler sometimes declines to render a preview for a non-200 HTTP
+response. Every direct request to `/shared/<id>` is served by GitHub Pages'
+`public/404.html` (see below) with an HTTP 404 status, since no static file exists at
+that exact path. WhatsApp, Telegram, Slack, and iMessage's unfurlers are not known to be
+status-code-sensitive and will render the preview regardless; Facebook is the one
+exception this design does not solve for.
+
+## Update — 2026-07-23, same day: two follow-up fixes after real-world testing
+
+Both assumptions above turned out wrong once an actual shared link was tested against a
+live SEO checker and Telegram.
+
+**Follow-up 1 — missing standard SEO tags.** An SEO audit of a live `/shared/<id>` link
+flagged `<meta name="description">`, `<meta name="viewport">`, and
+`<link rel="canonical">` as missing. `public/404.html` never goes through
+`@expo/cli`'s template engine (it's a hand-authored static file, unlike `index.html`
+which gets those tags auto-injected from `app.config.js`'s `web.description` at export
+time), so it never had them. `og:*`/`twitter:*` tags were confirmed present and correct
+via `curl` — this fix only added the generic tags. Shipped as v1.9.55.
+
+**Follow-up 2 — the actual root cause of "Telegram still shows nothing".** The "known
+limitation" above was backwards: Telegram's link-preview bot is exactly as
+status-code-sensitive as Facebook's, if not more so — it refuses to generate a preview
+for a non-200 response regardless of body content. Facebook's Sharing Debugger tolerates
+the 404 and renders from the body anyway (which is why the "Facebook is the one
+exception" framing seemed right at the time), but real testing showed Telegram does not.
+Since every `/shared/<id>` path request is a genuine 404 by construction (no static file
+exists at that path), no amount of tag-fixing on `404.html` could ever produce a Telegram
+preview.
+
+Fixed by changing what "Copy Link" builds, not what `404.html` contains:
+`buildSharedRoundUrl()` now returns `<baseUrl>/?shared=<id>` (a query string on the site
+root) instead of `<baseUrl>/shared/<id>`. The root path always resolves to the real,
+200-status `index.html` carrying the same OG tags. `public/index.html` gained a small
+synchronous inline `<script>` — runs during HTML parsing, before Expo Router's bundle
+loads — that rewrites `?shared=<id>` into the internal `/shared/<id>` path via
+`history.replaceState`, so a human visitor still lands on the shared-round screen.
+Direct/bookmarked `/shared/<id>` path links are untouched and keep working via the
+existing `404.html` SPA-redirect fallback. Shipped as v1.9.56. Confirmed live via `curl`
+(`/?shared=<id>` → HTTP 200, all tags present) after deploy.
+
+Files touched: `src/utils/sharedRoundUrl.ts`, `src/utils/__tests__/sharedRoundUrl.test.ts`,
+`public/index.html`, `e2e/13.shared-round.spec.ts` (new test covering the
+`?shared=<id>` → `/shared/<id>` redirect end-to-end).
 
 ## Why GitHub Pages serves `404.html` for `/shared/*`
 

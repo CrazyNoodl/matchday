@@ -356,11 +356,11 @@ export const makeStyles = (colors: AppColors) =>
       fontSize: FontSize.md,
       color: colors.text.primary,
       letterSpacing: 0.5,
+      marginBottom: 4,
     },
     quickCardSub: {
       fontFamily: FontFamily.body,
       fontSize: FontSize.xs,
       color: colors.text.muted,
-      marginTop: 2,
     },
   });

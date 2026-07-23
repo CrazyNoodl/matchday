@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useGoBack } from '@/utils/useGoBack';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '@/store';
 import { calculateStandings } from '@/utils/standings';
 import {
@@ -36,6 +36,7 @@ export default function StatsScreen() {
   const styles = makeStyles(colors);
   const [activeTab, setActiveTab] = useState<Tab>('ranking');
   const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
 
   const { scope } = useLocalSearchParams<{ scope?: string }>();
   // Opened from the round screen mid-tournament (#87): scope to the active
@@ -85,6 +86,7 @@ export default function StatsScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       <GlowBackground />
+      <View style={[styles.statusBarFill, { height: insets.top }]} />
 
       {/* Custom two-line header */}
       <View style={styles.headerContainer}>

@@ -14,6 +14,7 @@ import {
   H2HCard,
   SegmentedControl,
   StatsRow,
+  Toggle,
 } from '@/components';
 import { STAT_DEF_MAP } from '@/utils/statDefinitions';
 import { formatShortDate } from '@/utils/dateFormat';
@@ -41,12 +42,14 @@ export function RivalryScreen({ playerIdA, playerIdB, tournamentOnly }: RivalryS
   const teams = useStore((s) => s.teams);
   const teamColorFor = (player: Player) =>
     teams.find((team) => team.code === player.teamCode)?.color ?? colors.text.primary;
+  const [statsTab, setStatsTab] = useState<StatsTab>('records');
+  const [excludeFriendly, setExcludeFriendly] = useState(false);
   const { playerA, playerB, records, totals, pair, avgGoalsPerGame } = useRivalryData(
     playerIdA,
     playerIdB,
     tournamentOnly,
+    excludeFriendly,
   );
-  const [statsTab, setStatsTab] = useState<StatsTab>('records');
 
   if (!playerA || !playerB || !pair) {
     return (
@@ -89,6 +92,14 @@ export function RivalryScreen({ playerIdA, playerIdB, tournamentOnly }: RivalryS
             </Text>
           </View>
         </View>
+
+        {/* Friendly-matches filter */}
+        <Toggle
+          label={t('rivalry.excludeFriendly')}
+          subtitle={t('rivalry.excludeFriendlyDesc')}
+          value={excludeFriendly}
+          onValueChange={setExcludeFriendly}
+        />
 
         {/* Summary */}
         <H2HCard pair={pair} />

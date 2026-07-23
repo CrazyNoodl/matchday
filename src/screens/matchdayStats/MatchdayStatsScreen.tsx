@@ -23,10 +23,10 @@ export function MatchdayStatsScreen() {
   const styles = makeStyles(colors);
   const router = useRouter();
   const goBack = useGoBack();
-  const { round, players, records, comparisons } = useMatchdayStatsData();
+  const { hasRound, date, players, records, comparisons } = useMatchdayStatsData();
   const [tab, setTab] = useState<Tab>('records');
 
-  if (!round) {
+  if (!hasRound) {
     return (
       <SafeAreaView style={styles.root} edges={['top']}>
         <GlowBackground />
@@ -47,7 +47,7 @@ export function MatchdayStatsScreen() {
       <GlowBackground />
       <NavHeader
         title={t('matchdayStats.title').toUpperCase()}
-        subtitle={formatShortDate(round.date)}
+        subtitle={formatShortDate(date ?? new Date().toISOString())}
         onBack={goBack}
       />
 

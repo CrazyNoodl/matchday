@@ -18,6 +18,7 @@ import {
 import { useDropdownMenu } from '@/hooks/useDropdownMenu';
 import { calculateStandings } from '@/utils/standings';
 import { formatShortDate } from '@/utils/dateFormat';
+import { groupMatchesByTour } from '@/utils/matchTours';
 import { useSharedRound } from './useSharedRound';
 import { makeStyles } from './shared.styles';
 
@@ -112,22 +113,33 @@ export function SharedRoundScreen({ shareId }: { shareId: string }) {
         <View style={styles.sectionLabelRow}>
           <SectionLabel label={t('archive.allMatches').toUpperCase()} />
         </View>
-        {matches.map((m) => (
-          <TouchableOpacity
-            key={m.id}
-            testID={`shared-round-match-row-${m.id}`}
-            activeOpacity={0.75}
-            onPress={() => router.push(`/shared/${shareId}/match/${m.id}`)}
-          >
-            <MatchCard
-              match={m}
-              readonly
-              playersOverride={players}
-              teamsOverride={teams}
-              style={styles.matchRowCard}
-            />
-          </TouchableOpacity>
-        ))}
+        {(playerIds.length > 2 ? groupMatchesByTour(matches, playerIds.length) : [{ tourNumber: 1, matches }]).map(
+          (tour) => (
+            <View key={tour.tourNumber} style={styles.tourGroup}>
+              {playerIds.length > 2 && (
+                <Text style={styles.tourLabel}>
+                  {t('matchday.tour', { n: tour.tourNumber }).toUpperCase()}
+                </Text>
+              )}
+              {tour.matches.map((m) => (
+                <TouchableOpacity
+                  key={m.id}
+                  testID={`shared-round-match-row-${m.id}`}
+                  activeOpacity={0.75}
+                  onPress={() => router.push(`/shared/${shareId}/match/${m.id}`)}
+                >
+                  <MatchCard
+                    match={m}
+                    readonly
+                    playersOverride={players}
+                    teamsOverride={teams}
+                    style={styles.matchRowCard}
+                  />
+                </TouchableOpacity>
+              ))}
+            </View>
+          )
+        )}
 
         <View style={{ height: 48 }} />
       </ScrollView>

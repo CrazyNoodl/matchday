@@ -10,6 +10,31 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.58',
+    added: [
+      'Added an "Exclude friendly matches" toggle on the Rivalry screen to see head-to-head stats for ranked rounds only',
+    ],
+    changed: [
+      'The still-open matchday\'s "···" menu now opens that day\'s own stats (records + comparison) instead of the whole tournament\'s stats',
+      'Home\'s Archive card now shows tournament count and games count on their own lines, with correct singular/plural wording',
+    ],
+    fixed: [
+      'Swiping back on iOS while adding a match (mid photo upload/scan/save) could silently lose the score and photos already entered — the back gesture is now disabled for as long as the Add Match sheet is open',
+      'Creating a player without picking a team is no longer possible — closes a gap where a fresh install with no teams yet let a team-less player through, which then never showed a badge/logo color anywhere',
+      'Fixed a status bar gap showing the wrong background color on the header, Tournament, and Stats screens',
+    ],
+  },
+  {
+    version: '1.9.57',
+    fixed: [
+      'Fixed the media viewer on a shared match page opening cropped and misaligned instead of full-screen',
+      'Opening a shared match link directly with no back-navigation history (e.g. tapping a link pasted into Telegram) now returns to the match day overview instead of a dead back button',
+      'The shared match page now shows the same score card design as the app’s own match detail screen',
+      'Shared match-day pages with more than two players now group matches by tour instead of one long list',
+      'Fixed a shared match page layout issue where the header and the score card had no spacing between them',
+    ],
+  },
+  {
     version: '1.9.56',
     fixed: [
       'A copied match-day share link now resolves with a real HTTP 200 (GitHub Pages was returning 404 for every direct /shared/<id> request) — Telegram and other link-preview bots that refuse to render a preview for a non-200 response now show the Matchday card correctly',
