@@ -32,6 +32,22 @@
     <meta name="twitter:title" content="Matchday" />
     <meta name="twitter:description" content="Tournament & match tracker" />
     <meta name="twitter:image" content="https://crazynoodl.github.io/matchday/og-image.png" />
+    <script>
+      // A shared-round link is copied as "<origin>/?shared=<id>" instead of
+      // "<origin>/shared/<id>" so that GitHub Pages serves it as the real index.html
+      // (HTTP 200, with the Open Graph tags above) instead of 404.html — some link
+      // preview crawlers (e.g. Telegram) refuse to render a preview for a non-200
+      // response even when its body has valid tags. Rewrite the URL to the path form
+      // here, synchronously, before Expo Router's bundle loads and reads the pathname.
+      (function () {
+        var s = window.location.search;
+        if (s.indexOf('?shared=') === 0) {
+          var id = decodeURIComponent(s.slice('?shared='.length).split('&')[0]);
+          var path = window.location.pathname.replace(/\/$/, '') + '/shared/' + id;
+          window.history.replaceState(null, '', path + window.location.hash);
+        }
+      })();
+    </script>
   </head>
 
   <body>

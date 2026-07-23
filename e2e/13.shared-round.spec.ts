@@ -91,4 +91,15 @@ test.describe('Shared round (public link)', () => {
 
     await expect(page.getByText(/could not be found|не знайдено/i)).toBeVisible();
   });
+
+  test('a copied ?shared=<id> link (what "Copy Link" actually produces) resolves to the same read-only overview', async ({
+    page,
+  }) => {
+    await mockSharedRoundRpc(page, MOCK_ROUND);
+    await page.goto('/?shared=abc-123');
+
+    await expect(page).toHaveURL(/\/shared\/abc-123$/);
+    await expect(page.getByText('Artem').first()).toBeVisible();
+    await expect(page.getByText('Danylo').first()).toBeVisible();
+  });
 });
