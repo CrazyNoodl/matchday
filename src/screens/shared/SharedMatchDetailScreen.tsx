@@ -83,37 +83,56 @@ export function SharedMatchDetailScreen({
         showsVerticalScrollIndicator={false}
       >
         {/* Scoreline hero */}
-        <View style={styles.matchRow}>
-          <View style={styles.matchSide}>
+        <View style={styles.scoreHero}>
+          <View style={styles.heroSide}>
             <Avatar playerId={match.aId} size="xl" playerOverride={playerA} teamOverride={teamA} />
             <Text
-              style={[styles.matchName, { color: bWins ? colors.text.muted : colors.text.primary }]}
+              style={[styles.heroName, !aWins && !isDraw && styles.heroNameLoser]}
               numberOfLines={1}
             >
               {playerA?.name ?? t('common.unknown')}
             </Text>
           </View>
-          <Text style={styles.matchScore}>
-            {match.aScore} : {match.bScore}
-          </Text>
-          <View style={[styles.matchSide, styles.matchSideRight]}>
+
+          <View style={styles.heroCenter}>
+            <View style={styles.heroScoreRow}>
+              <Text
+                style={[
+                  styles.heroScoreNum,
+                  aWins && { color: colors.accent.green },
+                  !aWins && !isDraw && { color: colors.text.ghost },
+                ]}
+              >
+                {match.aScore}
+              </Text>
+              <Text style={styles.heroColon}>:</Text>
+              <Text
+                style={[
+                  styles.heroScoreNum,
+                  bWins && { color: colors.accent.green },
+                  !bWins && !isDraw && { color: colors.text.ghost },
+                ]}
+              >
+                {match.bScore}
+              </Text>
+            </View>
+            <Text style={styles.heroResult}>
+              {isDraw
+                ? t('matchday.draw')
+                : t('matchDetail.wonBy', { name: aWins ? playerA?.name : playerB?.name })}
+            </Text>
+          </View>
+
+          <View style={styles.heroSide}>
+            <Avatar playerId={match.bId} size="xl" playerOverride={playerB} teamOverride={teamB} />
             <Text
-              style={[
-                styles.matchName,
-                { textAlign: 'right', color: aWins ? colors.text.muted : colors.text.primary },
-              ]}
+              style={[styles.heroName, !bWins && !isDraw && styles.heroNameLoser]}
               numberOfLines={1}
             >
               {playerB?.name ?? t('common.unknown')}
             </Text>
-            <Avatar playerId={match.bId} size="xl" playerOverride={playerB} teamOverride={teamB} />
           </View>
         </View>
-        {!isDraw && (
-          <Text style={styles.matchNote}>
-            {t('matchDetail.wonBy', { name: aWins ? playerA?.name : playerB?.name })}
-          </Text>
-        )}
 
         {statRows.length > 0 && (
           <>
