@@ -61,20 +61,25 @@ meta tags.
 
 ## Changes
 
-### 1. New absolute-URL constant — `src/utils/baseUrl.ts`
+### 1. New absolute-URL constant — `src/utils/shareBaseUrl.ts` (new file)
 
 ```ts
 export const SHARE_BASE_URL = 'https://crazynoodl.github.io/matchday';
 ```
 
-Added alongside the existing `BASE_URL` export, which is **not** changed or removed —
-`app/_layout.tsx` uses `BASE_URL` for the apple-touch-icon `<link>` and the service
-worker's registration URL/scope, both of which must stay relative to whatever origin is
-actually serving the page (`''` in local dev, `/matchday` in the deployed build) so they
-keep working in local web dev and any non-production origin. `SHARE_BASE_URL` is a
-different kind of value on purpose: a link that must resolve correctly no matter where
-it's opened, including outside the app entirely, so it's hardcoded to the real production
-origin regardless of environment.
+Deviates from the original plan of adding this to the existing `src/utils/baseUrl.ts`:
+that file's top-level scope reads `Constants.expoConfig` from `expo-constants`, which
+throws under this repo's Jest config (`testEnvironment: "node"`, no RN/native mocks) —
+any test importing anything from `baseUrl.ts` fails at import time regardless of what it
+actually asserts. Since `SHARE_BASE_URL` has to be importable from `app/+html.tsx`-style
+Node-only build contexts too (see below) with zero native dependency, it gets its own
+file. `BASE_URL` in `baseUrl.ts` is untouched — `app/_layout.tsx` still uses it for the
+apple-touch-icon `<link>` and the service worker's registration URL/scope, both of which
+must stay relative to whatever origin is actually serving the page (`''` in local dev,
+`/matchday` in the deployed build). `SHARE_BASE_URL` is a different kind of value on
+purpose: a link that must resolve correctly no matter where it's opened, including
+outside the app entirely, so it's hardcoded to the real production origin regardless of
+environment.
 
 ### 2. `ShareRoundModal.tsx:494`
 
@@ -88,14 +93,21 @@ origin regardless of environment.
 with literal strings. This is the only call site in the app that copies a shared-round
 link to the clipboard (`ShareStandingsModal` shares a rendered image only, no URL).
 
-### 3. `app/+html.tsx` (new)
+### 3. `public/index.html` (new) — not `app/+html.tsx`
 
-Expo Router's root-HTML-document override, read at web-export time
-(`npm run build:web`) for the single exported `index.html`
-(`web.output: 'single'`). Starts from Expo Router's default SDK 56 template (viewport
-meta, `ScrollViewStyleReset`, etc. — verified against the versioned docs before writing,
-per `CLAUDE.md`) so nothing existing regresses, and adds the meta-tag block from
-"Meta tag content" below inside `<head>`.
+Expo Router's `app/+html.tsx` root-document override only applies to
+`web.output: 'static'` (full static rendering); this project uses
+`web.output: 'single'` (SPA), a different export code path
+(`@expo/cli`'s `createTemplateHtmlAsync`) that ignores `+html.tsx` entirely — confirmed
+by building with a `+html.tsx` present and finding zero trace of it in `dist/index.html`.
+That code path instead looks for `public/index.html` first, falling back to its own
+built-in template (`@expo/cli`'s `static/template/index.html`) only if the project has
+none. `public/index.html` is the built-in template's exact contents (`%LANG_ISO_CODE%`
+and `%WEB_TITLE%` placeholders preserved — the CLI string-replaces them regardless of
+which template file it read) plus the meta-tag block from "Meta tag content" below,
+added inside `<head>`. The CLI still appends its own `theme-color`/`description`/favicon
+tags after ours automatically (same `createTemplateHtmlAsync` step, unaffected by using a
+custom template file) — verified in the exported `dist/index.html`.
 
 ### 4. `public/404.html`
 
@@ -136,25 +148,27 @@ once deployed; no crawler will ever fetch a `localhost` URL.
 
 ## Testing
 
-- **Unit (Jest)**: new `src/utils/__tests__/baseUrl.test.ts` asserting `SHARE_BASE_URL`
-  is an absolute URL (starts with `https://`) and matches the expected production
-  domain — a cheap regression guard against this exact bug recurring (someone later
-  changing it back to a relative/env-derived value).
-- **`app/+html.tsx` / `public/404.html`**: no automated test — after
-  `npm run build:web`, manually inspect `dist/index.html` and `dist/404.html` for the
-  meta-tag block. Real messenger-preview verification can only happen after deploying to
-  GitHub Pages (out of scope for local verification).
+- **Unit (Jest)**: new `src/utils/__tests__/shareBaseUrl.test.ts` asserting
+  `SHARE_BASE_URL` is an absolute URL and matches the expected production domain — a
+  cheap regression guard against this exact bug recurring (someone later changing it
+  back to a relative/env-derived value).
+- **`public/index.html` / `public/404.html`**: no automated test — after
+  `EXPO_WEB_BUILD=true npx expo export --platform web`, manually inspected
+  `dist/index.html` and `dist/404.html` for the meta-tag block (done during
+  implementation — both present, `dist/og-image.png` present). Real messenger-preview
+  verification can only happen after deploying to GitHub Pages (out of scope for local
+  verification).
 - **`ShareRoundModal`**: no existing test file for this component; not adding one now —
   `handleCopyLink`'s only change is which constant it passes to an already-tested pure
-  function, covered indirectly by the new `baseUrl.test.ts`.
+  function, covered indirectly by the new `shareBaseUrl.test.ts`.
 
 ## Files touched
 
-- `src/utils/baseUrl.ts` — add `SHARE_BASE_URL`
-- `src/utils/__tests__/baseUrl.test.ts` (new)
+- `src/utils/shareBaseUrl.ts` (new) — `SHARE_BASE_URL`
+- `src/utils/__tests__/shareBaseUrl.test.ts` (new)
 - `src/components/ShareRoundModal/ShareRoundModal.tsx` — use `SHARE_BASE_URL` in
   `handleCopyLink`
-- `app/+html.tsx` (new)
+- `public/index.html` (new)
 - `public/404.html` — add meta-tag block
 - `public/og-image.png` (new — copy of `assets/icon.png`)
 - `docs/CONTEXT.md` — update before `finish-feature.sh`, per project workflow
