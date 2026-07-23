@@ -28,6 +28,7 @@ export const makeStyles = (colors: AppColors) =>
     },
     scrollContent: {
       paddingHorizontal: Spacing.lg,
+      paddingTop: Spacing.md,
       paddingBottom: Spacing['3xl'],
       gap: Spacing.lg,
     },
