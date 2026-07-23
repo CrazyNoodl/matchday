@@ -20,7 +20,7 @@ import { useColors } from '@/theme';
 import { Toggle } from '@/components/Toggle';
 import { FontFamily } from '@/theme/typography';
 import { STANDINGS_NUM_COLS, formatShareCardDate } from '@/utils/shareCard';
-import { BASE_URL } from '@/utils/baseUrl';
+import { SHARE_BASE_URL } from '@/utils/shareBaseUrl';
 import { buildSharedRoundUrl } from '@/utils/sharedRoundUrl';
 import { makeWinnerStyles, makeModalStyles } from './ShareRoundModal.styles';
 // Native-only modules loaded dynamically so web build doesn't crash
@@ -491,7 +491,7 @@ export function ShareRoundModal({
   const handleCopyLink = async () => {
     if (!round.shareId) return;
     try {
-      await Clipboard.setStringAsync(buildSharedRoundUrl(BASE_URL, round.shareId));
+      await Clipboard.setStringAsync(buildSharedRoundUrl(SHARE_BASE_URL, round.shareId));
       setSaveMessage({ ok: true, text: t('share.linkCopied') });
     } catch (e) {
       console.warn('[ShareRoundModal] handleCopyLink failed:', e);
