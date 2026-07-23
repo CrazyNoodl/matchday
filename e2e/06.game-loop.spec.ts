@@ -34,7 +34,7 @@ test.describe('Main game loop', () => {
     await page.getByText('···', { exact: true }).last().click();
     await page.getByText('FINISH', { exact: true }).last().click();
     await expect(page.getByText('EVEN OUT THE GAMES', { exact: true })).toBeVisible();
-    await expect(page.getByText(/^0 games$/)).toBeVisible();
+    await expect(page.getByText(/^0 games$/).last()).toBeVisible();
     await page.getByText('Got it', { exact: true }).last().click();
 
     // Known bug: after FINISH -> EVEN OUT THE GAMES -> Got it, the round
