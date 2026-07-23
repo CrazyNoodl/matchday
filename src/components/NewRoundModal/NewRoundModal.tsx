@@ -133,6 +133,7 @@ export function NewRoundModal() {
             <Text style={styles.cancelText}>{t('tournament.newRound.cancel')}</Text>
           </TouchableOpacity>
           <TouchableOpacity
+            testID="new-round-start-button"
             style={[styles.startBtn, newRoundPlayerIds.size < 2 && styles.startBtnDisabled]}
             onPress={handleStart}
             activeOpacity={0.85}

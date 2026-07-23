@@ -191,6 +191,7 @@ export default function HomeScreen() {
             </Text>
             <Text style={styles.noTournamentDesc}>{t('home.noActiveTournamentDesc')}</Text>
             <TouchableOpacity
+              testID="start-new-tournament-button"
               style={styles.startTournamentBtn}
               onPress={() => router.push('/setup')}
               activeOpacity={0.8}
@@ -204,6 +205,7 @@ export default function HomeScreen() {
 
         {/* NEW MATCH DAY button */}
         <TouchableOpacity
+          testID="new-match-day-button"
           style={[styles.newMatchDayBtn, matchDayDisabled && styles.newMatchDayBtnDisabled]}
           onPress={handleNewMatchDay}
           activeOpacity={matchDayDisabled ? 1 : 0.8}

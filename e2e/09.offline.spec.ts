@@ -14,7 +14,7 @@ test.describe('Offline handling', () => {
     // Regression check: the banner must never intercept taps on the UI beneath it
     // (previously position:absolute + no pointerEvents="none" swallowed clicks on
     // bottom-anchored buttons like "START TOURNAMENT").
-    await page.getByText('START NEW TOURNAMENT').click();
+    await page.getByTestId('start-new-tournament-button').click();
     await expect(page).toHaveURL(/.*setup/);
 
     await page.context().setOffline(false);

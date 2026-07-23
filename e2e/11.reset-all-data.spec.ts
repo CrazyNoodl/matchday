@@ -14,12 +14,12 @@ test.describe('Reset All Data', () => {
     await page.goto('/settings');
     await page.waitForLoadState('networkidle');
 
-    await page.getByText('Reset', { exact: true }).first().click();
+    await page.getByTestId('reset-all-data-button').click();
     await expect(page.getByText('Reset All Data? (5)', { exact: true })).toBeVisible();
 
     // Confirm is disabled while the countdown is running — clicking it must
     // not trigger the reset (RN's TouchableOpacity `disabled` guards onPress).
-    await page.getByText('Reset', { exact: true }).last().click();
+    await page.getByTestId('reset-confirm-button').click();
     await expect(page).toHaveURL(/.*settings/);
     await expect(page.getByText(/Reset All Data\? \(\d\)/)).toBeVisible();
   });
@@ -38,7 +38,7 @@ test.describe('Reset All Data', () => {
     await expect(page.getByText('Turn off Demo Mode to reset your data.')).toBeVisible();
 
     // Disabled TouchableOpacity must not open the confirm dialog.
-    await page.getByText('Reset', { exact: true }).first().click();
+    await page.getByTestId('reset-all-data-button').click();
     await expect(page.getByText(/Reset All Data\? \(\d\)/)).not.toBeVisible();
     await expect(page).toHaveURL(/.*settings/);
   });
@@ -53,7 +53,7 @@ test.describe('Reset All Data', () => {
     await expect(page.getByText('You need to be online to reset your data.')).toBeVisible();
 
     // Disabled TouchableOpacity must not open the confirm dialog.
-    await page.getByText('Reset', { exact: true }).first().click();
+    await page.getByTestId('reset-all-data-button').click();
     await expect(page.getByText(/Reset All Data\? \(\d\)/)).not.toBeVisible();
     await expect(page).toHaveURL(/.*settings/);
 
@@ -67,10 +67,10 @@ test.describe('Reset All Data', () => {
     await page.goto('/settings');
     await page.waitForLoadState('networkidle');
 
-    await page.getByText('Reset', { exact: true }).first().click();
+    await page.getByTestId('reset-all-data-button').click();
     await expect(page.getByText(/Reset All Data\? \(\d\)/)).toBeVisible();
 
-    await page.getByText('Backup My Data First', { exact: true }).click();
+    await page.getByTestId('reset-backup-first-button').click();
     await expect(page).toHaveURL(/.*backup/);
     await expect(page.getByText('Backup & Restore', { exact: true }).last()).toBeVisible();
     await expect(page.getByText(/Reset All Data\? \(\d\)/)).not.toBeVisible();
@@ -85,13 +85,13 @@ test.describe('Reset All Data', () => {
     await page.goto('/settings');
     await page.waitForLoadState('networkidle');
 
-    await page.getByText('Reset', { exact: true }).first().click();
+    await page.getByTestId('reset-all-data-button').click();
     await expect(page.getByText('Reset All Data? (5)', { exact: true })).toBeVisible();
 
     // Let the 5s cooldown fully elapse.
     await expect(page.getByText('Reset All Data?', { exact: true })).toBeVisible({ timeout: 7000 });
 
-    await page.getByText('Reset', { exact: true }).last().click();
+    await page.getByTestId('reset-confirm-button').click();
     await expect(page).toHaveURL('/');
 
     const state = await page.evaluate(() => {

@@ -10,6 +10,7 @@ interface DangerZoneCardProps {
   buttonLabel: string;
   disabled?: boolean;
   onPress: () => void;
+  testID?: string;
 }
 
 export function DangerZoneCard({
@@ -19,6 +20,7 @@ export function DangerZoneCard({
   buttonLabel,
   disabled,
   onPress,
+  testID,
 }: DangerZoneCardProps) {
   const colors = useColors();
   const styles = makeStyles(colors);
@@ -33,6 +35,7 @@ export function DangerZoneCard({
             <Text style={styles.dangerRowSub}>{description}</Text>
           </View>
           <TouchableOpacity
+            testID={testID}
             style={[styles.resetBtn, disabled && styles.resetBtnDisabled]}
             onPress={() => !disabled && onPress()}
             activeOpacity={disabled ? 1 : 0.8}

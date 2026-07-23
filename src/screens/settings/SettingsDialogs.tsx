@@ -39,7 +39,11 @@ export function SettingsDialogs({ d }: SettingsDialogsProps) {
           label: t('common.cancel').toUpperCase(),
           onPress: () => d.setShowDemoConfirm(false),
         }}
-        confirm={{ label: t('demo.enable').toUpperCase(), onPress: d.confirmEnableDemo }}
+        confirm={{
+          label: t('demo.enable').toUpperCase(),
+          onPress: d.confirmEnableDemo,
+          testID: 'demo-confirm-enable-button',
+        }}
       />
 
       <ConfirmDialog
@@ -54,9 +58,11 @@ export function SettingsDialogs({ d }: SettingsDialogsProps) {
           label: t('settings.danger.reset'),
           onPress: d.handleReset,
           disabled: d.isResetting || d.resetCountdown > 0,
+          testID: 'reset-confirm-button',
         }}
       >
         <TouchableOpacity
+          testID="reset-backup-first-button"
           style={styles.dialogBackupBtn}
           onPress={d.handleGoToBackup}
           activeOpacity={0.8}

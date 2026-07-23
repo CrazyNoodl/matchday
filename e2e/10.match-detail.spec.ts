@@ -1,4 +1,12 @@
-import { test, expect, createTeamViaUI, createPlayerViaUI, addMatchViaUI } from './fixtures';
+import {
+  test,
+  expect,
+  createTeamViaUI,
+  createPlayerViaUI,
+  addMatchViaUI,
+  startTournamentViaUI,
+  startMatchDayViaUI,
+} from './fixtures';
 import type { Page } from '@playwright/test';
 
 // Shared setup: one match (Alice 2-0 Bob) in an open round, landing on its
@@ -11,21 +19,8 @@ async function setupMatchDetail(page: Page): Promise<string> {
   await createPlayerViaUI(page, 'Alice', 'LIV');
   await createPlayerViaUI(page, 'Bob', 'ARS');
 
-  await page.goto('/');
-  await page.waitForLoadState('networkidle');
-  await page.getByText('START NEW TOURNAMENT').click();
-  await page.getByPlaceholder('e.g. FC26 · Round 10').fill('Match Detail Cup');
-  await page.getByText('Alice', { exact: true }).click();
-  await page.getByText('Bob', { exact: true }).click();
-  await page.getByText('START TOURNAMENT').click();
-
-  // See e2e/fixtures.ts — reload to drop the stale pre-tournament screens.
-  await page.goto('/');
-  await page.waitForLoadState('networkidle');
-
-  await page.getByText('NEW MATCH DAY', { exact: true }).click();
-  await page.getByText('START ROUND', { exact: true }).click();
-  await expect(page).toHaveURL(/.*round/);
+  await startTournamentViaUI(page, 'Match Detail Cup', ['Alice', 'Bob']);
+  await startMatchDayViaUI(page);
 
   await addMatchViaUI(page, 'Alice', 'Bob', 2, 0);
 
@@ -73,9 +68,7 @@ test.describe('Match detail screen', () => {
     // behind it, and the sheet's own header title — the header is the last
     // of the two in DOM order.
     await expect(page.getByText('COMMENTARY', { exact: true }).last()).toBeVisible();
-    await page
-      .getByPlaceholder('Write something about this match...')
-      .fill('Alice dominated the midfield.');
+    await page.getByTestId('match-edit-note-input').fill('Alice dominated the midfield.');
     await page.getByText('Save', { exact: true }).last().click();
 
     // The sheet's own textarea keeps the same value mounted behind it, so

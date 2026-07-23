@@ -15,18 +15,18 @@ test.describe('Full tournament flow', () => {
     // Navigate home and start tournament setup
     await page.goto('/');
     await page.waitForLoadState('networkidle');
-    await page.getByText('START NEW TOURNAMENT').click();
+    await page.getByTestId('start-new-tournament-button').click();
     await expect(page).toHaveURL(/.*setup/);
 
     // Fill tournament name
-    await page.getByPlaceholder('e.g. FC26 · Round 10').fill('Test Cup');
+    await page.getByTestId('setup-tournament-name-input').fill('Test Cup');
 
     // Alice and Bob are pre-existing — click to select them from the list
-    await page.getByText('Alice', { exact: true }).click();
-    await page.getByText('Bob', { exact: true }).click();
+    await page.getByTestId('player-row-Alice').click();
+    await page.getByTestId('player-row-Bob').click();
 
     // Both selected — start
-    await page.getByText('START TOURNAMENT').click();
+    await page.getByTestId('start-tournament-button').click();
 
     // Home screen shows live tournament
     await expect(page).toHaveURL('/');

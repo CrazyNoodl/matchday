@@ -20,22 +20,23 @@ test.describe('Players screen', () => {
     await page.waitForLoadState('networkidle');
 
     // Open create form
-    await page.getByText('+ ADD').click();
+    await page.getByTestId('players-add-button').click();
 
     // Wait for the form inputs to be ready (not just the header)
-    await expect(page.getByPlaceholder('Player name')).toBeVisible();
+    await expect(page.getByTestId('player-edit-name-input')).toBeVisible();
 
     // Fill name
-    await page.getByPlaceholder('Player name').fill('Alice');
+    await page.getByTestId('player-edit-name-input').fill('Alice');
 
     // Wait for the team picker to show LIV (store may hydrate async after page reload)
-    await expect(page.getByText('LIV', { exact: true }).first()).toBeVisible({ timeout: 15_000 });
+    const teamChip = page.getByTestId('team-picker-item-LIV');
+    await expect(teamChip).toBeVisible({ timeout: 15_000 });
 
     // Select Liverpool team from the team picker
-    await page.getByText('LIV', { exact: true }).first().click();
+    await teamChip.click();
 
     // Save
-    await page.getByText('ADD PLAYER', { exact: true }).click();
+    await page.getByTestId('player-edit-save-button').click();
 
     // Alice appears in the list
     await expect(page.getByText('Alice', { exact: true }).last()).toBeVisible();

@@ -69,7 +69,12 @@ export default function PlayersScreen() {
         subtitle={t('settings.data.playersCount', { count: players.length })}
         onBack={() => goBack()}
         rightElement={
-          <TouchableOpacity style={styles.addBtn} onPress={playerForm.openCreate} activeOpacity={0.8}>
+          <TouchableOpacity
+            testID="players-add-button"
+            style={styles.addBtn}
+            onPress={playerForm.openCreate}
+            activeOpacity={0.8}
+          >
             <Text style={styles.addBtnText}>{'+ ' + t('common.add').toUpperCase()}</Text>
           </TouchableOpacity>
         }

@@ -27,7 +27,7 @@ test.describe('Backup & Restore', () => {
     await page.waitForLoadState('networkidle');
     await expect(page.getByText('No backups yet.', { exact: true })).toBeVisible();
 
-    await page.getByText('CREATE BACKUP', { exact: true }).click();
+    await page.getByTestId('create-backup-button').click();
     await expect(page.getByText('Backup created.', { exact: true })).toBeVisible();
     await expect(page.getByText('No backups yet.', { exact: true })).not.toBeVisible();
 
@@ -36,9 +36,9 @@ test.describe('Backup & Restore', () => {
 
     await page.goto('/settings/backup');
     await page.waitForLoadState('networkidle');
-    await page.getByText('↺', { exact: true }).first().click();
+    await page.getByTestId('backup-restore-button-0').click();
     await expect(page.getByText('REPLACE ALL LOCAL DATA?', { exact: true })).toBeVisible();
-    await page.getByText('Replace', { exact: true }).last().click();
+    await page.getByTestId('backup-replace-confirm-button').click();
 
     await expect(page.getByText(RESTORED_LOCALLY)).toBeVisible();
 
@@ -55,12 +55,12 @@ test.describe('Backup & Restore', () => {
     await page.waitForLoadState('networkidle');
 
     const fileChooserPromise = page.waitForEvent('filechooser');
-    await page.getByText('IMPORT FROM FILE', { exact: true }).click();
+    await page.getByTestId('import-from-file-button').click();
     const fileChooser = await fileChooserPromise;
     await fileChooser.setFiles(BACKUP_FIXTURE);
 
     await expect(page.getByText('REPLACE ALL LOCAL DATA?', { exact: true })).toBeVisible();
-    await page.getByText('Replace', { exact: true }).last().click();
+    await page.getByTestId('backup-replace-confirm-button').click();
     await expect(page.getByText(RESTORED_LOCALLY)).toBeVisible();
 
     await page.goto('/settings/teams');

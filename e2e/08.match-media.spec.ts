@@ -1,5 +1,13 @@
 import path from 'path';
-import { test, expect, createTeamViaUI, createPlayerViaUI, addMatchViaUI } from './fixtures';
+import {
+  test,
+  expect,
+  createTeamViaUI,
+  createPlayerViaUI,
+  addMatchViaUI,
+  startTournamentViaUI,
+  startMatchDayViaUI,
+} from './fixtures';
 
 // Supabase is disabled in the e2e web server (see playwright.config.ts), so uploads
 // fail and media items stay in `pendingUpload` state — that's fine here since this
@@ -15,23 +23,8 @@ test.describe('Match media', () => {
     await createPlayerViaUI(page, 'Alice', 'LIV');
     await createPlayerViaUI(page, 'Bob', 'ARS');
 
-    await page.goto('/');
-    await page.waitForLoadState('networkidle');
-    await page.getByText('START NEW TOURNAMENT').click();
-    await page.getByPlaceholder('e.g. FC26 · Round 10').fill('Media Cup');
-    await page.getByText('Alice', { exact: true }).click();
-    await page.getByText('Bob', { exact: true }).click();
-    await page.getByText('START TOURNAMENT').click();
-
-    // expo-router keeps the pre-tournament Home + Setup screens mounted
-    // underneath this one (see the note in e2e/fixtures.ts) — reload to get
-    // a single clean Home instance before driving the rest of the flow.
-    await page.goto('/');
-    await page.waitForLoadState('networkidle');
-
-    await page.getByText('NEW MATCH DAY', { exact: true }).click();
-    await page.getByText('START ROUND', { exact: true }).click();
-    await expect(page).toHaveURL(/.*round/);
+    await startTournamentViaUI(page, 'Media Cup', ['Alice', 'Bob']);
+    await startMatchDayViaUI(page);
 
     await addMatchViaUI(page, 'Alice', 'Bob', 2, 0);
 

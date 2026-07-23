@@ -65,7 +65,12 @@ export default function TeamsScreen() {
         subtitle={t('settings.data.teamsCount', { count: teams.length })}
         onBack={() => goBack()}
         rightElement={
-          <TouchableOpacity style={styles.addBtn} onPress={teamForm.openCreate} activeOpacity={0.8}>
+          <TouchableOpacity
+            testID="teams-add-button"
+            style={styles.addBtn}
+            onPress={teamForm.openCreate}
+            activeOpacity={0.8}
+          >
             <Text style={styles.addBtnText}>{'+ ' + t('common.add').toUpperCase()}</Text>
           </TouchableOpacity>
         }

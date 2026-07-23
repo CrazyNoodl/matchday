@@ -18,6 +18,7 @@ export interface DropdownMenuItem {
   destructive?: boolean;
   disabled?: boolean;
   loading?: boolean;
+  testID?: string;
 }
 
 interface DropdownMenuProps {
@@ -60,7 +61,12 @@ export function DropdownMenu({ visible, onClose, position, items, onDismiss }: D
         {items.map((item, idx) => (
           <Fragment key={item.key}>
             {idx > 0 && <View style={styles.sep} />}
-            <TouchableOpacity style={styles.item} disabled={item.disabled} onPress={item.onPress}>
+            <TouchableOpacity
+              testID={item.testID}
+              style={styles.item}
+              disabled={item.disabled}
+              onPress={item.onPress}
+            >
               {item.loading ? (
                 <ActivityIndicator size="small" color={colors.text.muted} />
               ) : (

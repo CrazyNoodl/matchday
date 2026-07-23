@@ -41,7 +41,11 @@ export function BackupDialogs({
         title={t('backup.importConfirmTitle').toUpperCase()}
         description={t('backup.importConfirmDesc')}
         cancel={{ label: t('matchday.dialogs.cancel'), onPress: onCloseImportConfirm }}
-        confirm={{ label: t('backup.importConfirmBtn'), onPress: onConfirmImport }}
+        confirm={{
+          label: t('backup.importConfirmBtn'),
+          onPress: onConfirmImport,
+          testID: 'backup-replace-confirm-button',
+        }}
       />
     </>
   );

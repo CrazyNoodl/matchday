@@ -10,6 +10,12 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.54',
+    fixed: [
+      'Copying a match day\'s share link now copies a full working URL instead of a path with no domain — and the link now shows a Matchday preview card (title, description, icon) when pasted into WhatsApp, Telegram, Slack, or similar apps, instead of plain text',
+    ],
+  },
+  {
     version: '1.9.53',
     added: [
       'Share a closed match day via a public link (via the "···" menu\'s Share sheet, new "Copy Link" action) — anyone with the link can view results, standings, stats, media, and commentary without an account, read-only',
