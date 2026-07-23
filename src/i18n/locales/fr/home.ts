@@ -18,7 +18,8 @@ const home = {
   stats: 'Stats',
   gamesCount: '{{count}} matchs',
   archive: 'Archives',
-  archiveCount: '{{tournaments}} tournois · {{games}} matchs',
+  archiveTournaments: '{{count}} tournoi',
+  archiveTournamentsPlural: '{{count}} tournois',
   sheet: {
     title: 'Nouvelle journée',
     subtitle: '{{name}} · Tour {{round}}',

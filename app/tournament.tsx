@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '@/store';
 import { calculateStandings } from '@/utils/standings';
 import { formatShortDate } from '@/utils/dateFormat';
@@ -26,18 +26,6 @@ import {
 } from '@/screens/tournament/TournamentModals';
 import { trackEvent } from '@/analytics';
 import type { ArchivedRound } from '@/store/types';
-
-// ---------------------------------------------------------------------------
-// Column definitions (outside component to avoid recreation on every render)
-// ---------------------------------------------------------------------------
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-// ---------------------------------------------------------------------------
-// Screen
-// ---------------------------------------------------------------------------
 
 export default function TournamentScreen() {
   const router = useRouter();
@@ -96,6 +84,7 @@ export default function TournamentScreen() {
     [allRankedMatches, tournamentPlayers],
   );
   const leader = standings[0] ? players.find((p) => p.id === standings[0].playerId) : null;
+  const insets = useSafeAreaInsets();
 
   const roundOrdinals = getRankedRoundOrdinals(archivedRounds);
   const rankedCompleted = archivedRounds.filter((r) => r.ranked).length;
@@ -128,6 +117,7 @@ export default function TournamentScreen() {
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
       <GlowBackground />
+      <View style={[styles.statusBarFill, { height: insets.top }]} />
 
       {/* Header */}
       <View style={styles.header}>

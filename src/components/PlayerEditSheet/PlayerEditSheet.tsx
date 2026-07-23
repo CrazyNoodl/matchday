@@ -91,7 +91,11 @@ export function PlayerEditSheet({
 
           <View style={styles.formGroup}>
             <Text style={styles.formLabel}>{t('setup.form.defaultTeam').toUpperCase()}</Text>
-            <TeamPickerRow teams={teams} selectedCode={formTeam} onSelect={onChangeTeam} />
+            {teams.length > 0 ? (
+              <TeamPickerRow teams={teams} selectedCode={formTeam} onSelect={onChangeTeam} />
+            ) : (
+              <Text style={styles.errorText}>{t('players.teamRequired')}</Text>
+            )}
           </View>
         </BottomSheetScrollView>
 

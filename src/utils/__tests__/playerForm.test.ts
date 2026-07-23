@@ -17,8 +17,8 @@ describe('canSavePlayer', () => {
     expect(canSavePlayer('Artem', 'AAA', [team('AAA')], [])).toBe(true);
   });
 
-  it('does not require a team when no teams exist yet (fresh install, no dead-end)', () => {
-    expect(canSavePlayer('Artem', '', [], [])).toBe(true);
+  it('is false when no teams exist yet — must add a team before adding a player', () => {
+    expect(canSavePlayer('Artem', '', [], [])).toBe(false);
   });
 
   it('is false when another player already has that name', () => {

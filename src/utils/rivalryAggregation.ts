@@ -42,6 +42,13 @@ function normalizeMatch(match: Match, playerIdA: string): Match {
   };
 }
 
+export interface RivalryMatchFilterOptions {
+  /** When true, only matches from ranked rounds are included — friendly rounds are dropped. */
+  rankedOnly?: boolean;
+  /** Whether the in-progress round (currentMatches) is ranked — only consulted when rankedOnly is set. */
+  currentRoundRanked?: boolean;
+}
+
 /**
  * Collects every match between playerIdA and playerIdB across all three store
  * layers, in chronological order, each paired with the date it was played
@@ -53,28 +60,33 @@ export function collectRivalryMatches(
   closedTournaments: ClosedTournament[],
   archivedRounds: ArchivedRound[],
   currentMatches: Match[],
+  options: RivalryMatchFilterOptions = {},
 ): RivalryMatchEntry[] {
+  const { rankedOnly = false, currentRoundRanked = false } = options;
   const isPair = (m: Match) =>
     (m.aId === playerIdA && m.bId === playerIdB) || (m.aId === playerIdB && m.bId === playerIdA);
+  const keepRound = (r: ArchivedRound) => !rankedOnly || r.ranked;
 
   const entries: RivalryMatchEntry[] = [];
 
   for (const t of closedTournaments) {
-    for (const r of t.rounds) {
+    for (const r of t.rounds.filter(keepRound)) {
       for (const m of r.matches) {
         if (isPair(m)) entries.push({ match: normalizeMatch(m, playerIdA), date: r.date });
       }
     }
   }
 
-  for (const r of archivedRounds) {
+  for (const r of archivedRounds.filter(keepRound)) {
     for (const m of r.matches) {
       if (isPair(m)) entries.push({ match: normalizeMatch(m, playerIdA), date: r.date });
     }
   }
 
-  for (const m of currentMatches) {
-    if (isPair(m)) entries.push({ match: normalizeMatch(m, playerIdA), date: null });
+  if (!rankedOnly || currentRoundRanked) {
+    for (const m of currentMatches) {
+      if (isPair(m)) entries.push({ match: normalizeMatch(m, playerIdA), date: null });
+    }
   }
 
   return entries;

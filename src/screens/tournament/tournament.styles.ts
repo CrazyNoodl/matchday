@@ -9,6 +9,13 @@ export const makeStyles = (colors: AppColors) =>
       flex: 1,
       backgroundColor: colors.bg.base,
     },
+    statusBarFill: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      backgroundColor: colors.bg.surface,
+    },
     // ---- Header ----
     header: {
       flexDirection: 'row',

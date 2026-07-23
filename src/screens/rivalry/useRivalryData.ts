@@ -7,10 +7,17 @@ import {
 } from '@/utils/rivalryAggregation';
 import { buildH2HPairs, type H2HPair } from '@/utils/statsAggregation';
 
-export function useRivalryData(playerIdA: string, playerIdB: string, tournamentOnly: boolean) {
+export function useRivalryData(
+  playerIdA: string,
+  playerIdB: string,
+  tournamentOnly: boolean,
+  excludeFriendly = false,
+) {
   const players = useStore((s) => s.players);
   const archivedRounds = useStore((s) => s.archivedRounds);
   const currentMatches = useStore((s) => s.matches);
+  const roundOpen = useStore((s) => s.roundOpen);
+  const tournamentRanked = useStore((s) => s.tournamentRanked);
   const allClosedTournaments = useStore((s) => s.closedTournaments);
   const closedTournaments = useMemo(
     () => (tournamentOnly ? [] : allClosedTournaments),
@@ -22,8 +29,20 @@ export function useRivalryData(playerIdA: string, playerIdB: string, tournamentO
 
   const entries = useMemo(
     () =>
-      collectRivalryMatches(playerIdA, playerIdB, closedTournaments, archivedRounds, currentMatches),
-    [playerIdA, playerIdB, closedTournaments, archivedRounds, currentMatches],
+      collectRivalryMatches(playerIdA, playerIdB, closedTournaments, archivedRounds, currentMatches, {
+        rankedOnly: excludeFriendly,
+        currentRoundRanked: roundOpen && tournamentRanked,
+      }),
+    [
+      playerIdA,
+      playerIdB,
+      closedTournaments,
+      archivedRounds,
+      currentMatches,
+      excludeFriendly,
+      roundOpen,
+      tournamentRanked,
+    ],
   );
 
   const records = useMemo(() => computeRivalryRecords(entries), [entries]);

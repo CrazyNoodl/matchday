@@ -275,11 +275,11 @@ export default function HomeScreen() {
             <View>
               <Text style={styles.quickCardTitle}>{t('home.archive').toUpperCase()}</Text>
               <Text style={styles.quickCardSub}>
-                {t('home.archiveCount', {
-                  tournaments: closedTournaments.length,
-                  games: closedGames,
-                })}
+                {closedTournaments.length === 1
+                  ? t('home.archiveTournaments', { count: closedTournaments.length })
+                  : t('home.archiveTournamentsPlural', { count: closedTournaments.length })}
               </Text>
+              <Text style={styles.quickCardSub}>{t('home.gamesCount', { count: closedGames })}</Text>
             </View>
           </TouchableOpacity>
         </View>

@@ -218,6 +218,7 @@ export default function SetupScreen() {
 
             {/* Add team row */}
             <TouchableOpacity
+              testID="setup-add-team-row"
               style={styles.manageTeamsRow}
               onPress={teamForm.openCreate}
               activeOpacity={0.75}

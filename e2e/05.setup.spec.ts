@@ -15,11 +15,25 @@ test.describe('Create tournament', () => {
     await expect(page).toHaveURL(/.*setup/);
   });
 
+  // A player always needs a team assigned, so every player-creation flow
+  // here creates one team first via setup.tsx's own "Add team" row.
+  async function addTeamViaSetup(page: import('@playwright/test').Page, name: string, short: string) {
+    await page.getByTestId('setup-add-team-row').click();
+    await expect(page.getByText('NEW TEAM')).toBeVisible();
+    await page.getByTestId('team-edit-name-input').fill(name);
+    await page.getByTestId('team-edit-short-input').fill(short);
+    await page.getByTestId('team-edit-save-button').click();
+    await expect(page.getByText('NEW TEAM')).not.toBeVisible();
+  }
+
   test('can add a player via the modal', async ({ authedPage: page }) => {
+    await addTeamViaSetup(page, 'Reds', 'RED');
+
     await page.getByTestId('setup-add-player-row').click();
     await expect(page.getByText('NEW PLAYER')).toBeVisible();
 
     await page.getByTestId('player-edit-name-input').fill('Alice');
+    await page.getByTestId('team-picker-item-RED').click();
     await page.getByTestId('player-edit-save-button').click();
 
     // Modal closed and player appears in list
@@ -31,10 +45,13 @@ test.describe('Create tournament', () => {
     // Fill tournament name
     await page.getByTestId('setup-tournament-name-input').fill('Test Cup');
 
+    await addTeamViaSetup(page, 'Reds', 'RED');
+
     // Add Alice — wait for her name in the list to confirm modal is fully gone
     await page.getByTestId('setup-add-player-row').click();
     await expect(page.getByText('NEW PLAYER')).toBeVisible();
     await page.getByTestId('player-edit-name-input').fill('Alice');
+    await page.getByTestId('team-picker-item-RED').click();
     await page.getByTestId('player-edit-save-button').click();
     await expect(page.getByText('Alice', { exact: true })).toBeVisible();
 
@@ -42,6 +59,7 @@ test.describe('Create tournament', () => {
     await page.getByTestId('setup-add-player-row').click();
     await expect(page.getByText('NEW PLAYER')).toBeVisible();
     await page.getByTestId('player-edit-name-input').fill('Bob');
+    await page.getByTestId('team-picker-item-RED').click();
     await page.getByTestId('player-edit-save-button').click();
     await expect(page.getByText('Bob', { exact: true })).toBeVisible();
 

@@ -17,7 +17,8 @@ const home = {
   stats: 'Статистика',
   gamesCount: '{{count}} ігор',
   archive: 'Архів',
-  archiveCount: '{{tournaments}} турнірів · {{games}} ігор',
+  archiveTournaments: '{{count}} турнір',
+  archiveTournamentsPlural: '{{count}} турнірів',
   sheet: {
     title: 'Новий ігровий день',
     subtitle: '{{name}} · Раунд {{round}}',

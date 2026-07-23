@@ -7,6 +7,7 @@ const players = {
   deleteDesc: 'Ce joueur sera supprimé.',
   cannotDelete: 'Impossible de supprimer — le joueur a des matchs actifs.',
   duplicateName: 'Un joueur avec ce nom existe déjà.',
+  teamRequired: "Aucune équipe pour l'instant — créez-en une pour assigner ce joueur.",
 } as const;
 
 export default players;

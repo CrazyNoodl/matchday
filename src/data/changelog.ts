@@ -10,6 +10,21 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.58',
+    added: [
+      'Added an "Exclude friendly matches" toggle on the Rivalry screen to see head-to-head stats for ranked rounds only',
+    ],
+    changed: [
+      'The still-open matchday\'s "···" menu now opens that day\'s own stats (records + comparison) instead of the whole tournament\'s stats',
+      'Home\'s Archive card now shows tournament count and games count on their own lines, with correct singular/plural wording',
+    ],
+    fixed: [
+      'Swiping back on iOS while adding a match (mid photo upload/scan/save) could silently lose the score and photos already entered — the back gesture is now disabled for as long as the Add Match sheet is open',
+      'Creating a player without picking a team is no longer possible — closes a gap where a fresh install with no teams yet let a team-less player through, which then never showed a badge/logo color anywhere',
+      'Fixed a status bar gap showing the wrong background color on the header, Tournament, and Stats screens',
+    ],
+  },
+  {
     version: '1.9.57',
     fixed: [
       'Fixed the media viewer on a shared match page opening cropped and misaligned instead of full-screen',

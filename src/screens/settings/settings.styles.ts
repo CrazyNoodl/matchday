@@ -176,6 +176,7 @@ export const makeStyles = (colors: AppColors) =>
       color: colors.text.ghost,
     },
     dialogBackupBtn: {
+      alignSelf: 'stretch',
       paddingVertical: Spacing.md,
       borderRadius: Radius.md,
       borderWidth: 1,

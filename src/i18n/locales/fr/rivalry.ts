@@ -1,6 +1,8 @@
 const rivalry = {
   title: 'Rivalité',
   vs: 'vs',
+  excludeFriendly: 'Exclure les matchs amicaux',
+  excludeFriendlyDesc: 'Ne compter que les tours classés ci-dessous',
   recordsSection: 'Records',
   statsSection: 'Statistiques des matchs',
   biggestWin: 'Plus large victoire',
