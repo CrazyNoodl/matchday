@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, ActivityIndicator, Modal } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -175,13 +175,21 @@ export function SharedMatchDetailScreen({
         <View style={{ height: 48 }} />
       </ScrollView>
 
-      {viewerItems && (
-        <MediaSlider
-          items={viewerItems}
-          initialIndex={viewerIndex}
-          onClose={() => setViewerItems(null)}
-        />
-      )}
+      <Modal
+        visible={viewerItems !== null}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setViewerItems(null)}
+        statusBarTranslucent
+      >
+        {viewerItems && (
+          <MediaSlider
+            items={viewerItems}
+            initialIndex={viewerIndex}
+            onClose={() => setViewerItems(null)}
+          />
+        )}
+      </Modal>
     </SafeAreaView>
   );
 }
