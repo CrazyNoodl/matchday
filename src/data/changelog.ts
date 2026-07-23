@@ -10,6 +10,12 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.56',
+    fixed: [
+      'A copied match-day share link now resolves with a real HTTP 200 (GitHub Pages was returning 404 for every direct /shared/<id> request) — Telegram and other link-preview bots that refuse to render a preview for a non-200 response now show the Matchday card correctly',
+    ],
+  },
+  {
     version: '1.9.55',
     fixed: [
       'Shared match-day links were missing meta description, viewport, and canonical tags on the static preview page GitHub Pages serves for them, which some link/SEO checkers flagged \u2014 added to match the tags already present on the main app page',
