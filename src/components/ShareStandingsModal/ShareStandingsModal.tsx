@@ -399,11 +399,11 @@ export function ShareStandingsModal({
   };
 
   return (
-    <Modal visible={visible} animationType="slide" statusBarTranslucent onRequestClose={onClose}>
+    <Modal visible={visible} presentationStyle="pageSheet" onRequestClose={onClose}>
       <SafeAreaView style={modalStyles.root} edges={['top', 'bottom']}>
         {/* Header */}
         <View style={modalStyles.header}>
-          <Text style={modalStyles.title}>
+          <Text style={modalStyles.title} numberOfLines={1}>
             {t('tournament.shareStandings.title').toUpperCase()}
           </Text>
           <TouchableOpacity onPress={onClose} style={modalStyles.closeBtn} activeOpacity={0.7}>

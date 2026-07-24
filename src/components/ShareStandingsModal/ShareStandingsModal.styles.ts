@@ -227,6 +227,8 @@ export const makeModalStyles = (colors: AppColors) =>
       borderBottomColor: colors.border.default,
     },
     title: {
+      flexShrink: 1,
+      marginRight: Spacing.md,
       fontFamily: FontFamily.displayBold,
       fontSize: FontSize.xl,
       color: colors.text.primary,
