@@ -18,6 +18,39 @@ export const makeStyles = (colors: AppColors) =>
       paddingBottom: 40,
     },
 
+    // ---- Header ----
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: Spacing.lg,
+      paddingVertical: Spacing.md,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border.default,
+    },
+    backBtn: {
+      width: 40,
+      height: 40,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    backChevron: {
+      fontFamily: FontFamily.display,
+      fontSize: FontSize['2xl'],
+      color: colors.text.secondary,
+      lineHeight: 28,
+    },
+    headerCenter: {
+      flex: 1,
+      alignItems: 'center',
+      gap: Spacing.xs,
+    },
+    headerTitle: {
+      fontFamily: FontFamily.displayBold,
+      fontSize: FontSize.xl,
+      color: colors.text.primary,
+      letterSpacing: 0.3,
+    },
+
     // ---- Dots button ----
     dotsBtn: {
       width: 32,
@@ -136,11 +169,7 @@ export const makeStyles = (colors: AppColors) =>
       color: colors.text.muted,
     },
 
-    // ---- Round date (now lives inside ScrollView) ----
-    dateRow: {
-      alignItems: 'flex-start',
-      marginBottom: Spacing.lg,
-    },
+    // ---- Round date (second line of the header) ----
     datePill: {
       flexDirection: 'row',
       alignItems: 'center',

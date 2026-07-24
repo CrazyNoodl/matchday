@@ -165,29 +165,20 @@ export default function ArchiveDayScreen() {
       <GlowBackground />
 
       {/* Header */}
-      <NavHeader
-        title=""
-        onBack={() => goBack()}
-        rightElement={
-          <TouchableOpacity
-            ref={roundMenu.anchorRef}
-            style={styles.dotsBtn}
-            onPress={roundMenu.open}
-            activeOpacity={0.7}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          >
-            <Text style={styles.dotsIcon}>···</Text>
-          </TouchableOpacity>
-        }
-      />
+      <View style={styles.header}>
+        <TouchableOpacity
+          style={styles.backBtn}
+          onPress={() => goBack()}
+          activeOpacity={0.7}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <Text style={styles.backChevron}>‹</Text>
+        </TouchableOpacity>
 
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Round date */}
-        <View style={styles.dateRow}>
+        <View style={styles.headerCenter}>
+          <Text style={styles.headerTitle} numberOfLines={1}>
+            {t('matchday.round', { n: roundNumber }).toUpperCase()}
+          </Text>
           {isEditableRound ? (
             <TouchableOpacity style={styles.datePill} onPress={openDateEditor} activeOpacity={0.7}>
               <Text style={styles.datePillText}>{formatShortDate(date)}</Text>
@@ -198,6 +189,22 @@ export default function ArchiveDayScreen() {
           )}
         </View>
 
+        <TouchableOpacity
+          ref={roundMenu.anchorRef}
+          style={styles.dotsBtn}
+          onPress={roundMenu.open}
+          activeOpacity={0.7}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <Text style={styles.dotsIcon}>···</Text>
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Day Winner Banner */}
         {winner ? <DayWinnerBanner winnerId={winner} matchCount={matches.length} /> : null}
 
