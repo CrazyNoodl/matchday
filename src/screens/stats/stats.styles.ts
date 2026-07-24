@@ -12,53 +12,6 @@ export const makeStyles = (colors: AppColors) =>
       flex: 1,
       backgroundColor: colors.bg.base,
     },
-    statusBarFill: {
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      right: 0,
-      backgroundColor: colors.bg.surface,
-    },
-    // Header
-    headerContainer: {
-      flexDirection: 'row',
-      alignItems: 'flex-start',
-      paddingHorizontal: Spacing.lg,
-      paddingTop: Spacing.md,
-      paddingBottom: Spacing.lg,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.border.default,
-      backgroundColor: colors.bg.surface,
-    },
-    backBtn: {
-      width: 36,
-      height: 36,
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginTop: 4,
-    },
-    chevron: {
-      fontFamily: FontFamily.display,
-      fontSize: FontSize['2xl'],
-      color: colors.text.secondary,
-      lineHeight: 28,
-      marginTop: -2,
-    },
-    headerTitleWrap: {
-      flex: 1,
-      alignItems: 'center',
-    },
-    headerTitle: {
-      fontFamily: FontFamily.displayBold,
-      fontSize: FontSize['3xl'],
-      color: colors.text.primary,
-      letterSpacing: 0.5,
-      lineHeight: 34,
-      textAlign: 'center',
-    },
-    headerRight: {
-      width: 36,
-    },
 
     // Tab pills
     tabRow: {
