@@ -31,6 +31,7 @@ export default function MatchDetailScreen() {
     mergedStats,
     isCurrentRoundMatch,
     isEditableMatch,
+    canAddMedia,
     syncStatus,
     remoteLoading,
     importingStats,
@@ -212,7 +213,7 @@ export default function MatchDetailScreen() {
         {/* ── MEDIA ── */}
         <View style={styles.sectionHeader}>
           <SectionLabel label={t('matchDetail.media.sectionTitle').toUpperCase()} />
-          {isEditableMatch && (
+          {canAddMedia && (
             <View style={styles.mediaActions}>
               {!hasStatsOverride && (
                 <TouchableOpacity
@@ -328,11 +329,11 @@ export default function MatchDetailScreen() {
         ) : (
           <TouchableOpacity
             style={styles.mediaEmpty}
-            onPress={isEditableMatch && !isOffline ? d.handleAddMedia : undefined}
-            activeOpacity={isEditableMatch && !isOffline ? 0.7 : 1}
+            onPress={canAddMedia && !isOffline ? d.handleAddMedia : undefined}
+            activeOpacity={canAddMedia && !isOffline ? 0.7 : 1}
           >
             <Text style={styles.mediaEmptyText}>
-              {isEditableMatch && !isOffline
+              {canAddMedia && !isOffline
                 ? t('matchDetail.media.tapToAdd')
                 : t('matchDetail.media.empty')}
             </Text>

@@ -131,9 +131,10 @@ function DemoBanner() {
   return (
     <View style={[bannerStyles.root, { paddingBottom: insets.bottom > 0 ? insets.bottom : 8 }]}>
       <View style={bannerStyles.inner}>
-        <View>
+        <View style={bannerStyles.textBlock}>
           <Text style={bannerStyles.title}>{t('demo.banner').toUpperCase()}</Text>
           <Text style={bannerStyles.sub}>{t('demo.bannerSub')}</Text>
+          <Text style={bannerStyles.note}>{t('demo.bannerNote')}</Text>
         </View>
         <TouchableOpacity
           testID="demo-banner-exit-button"

@@ -67,6 +67,26 @@ describe('demo mode — store isolation', () => {
     expect(s.tournamentId).toBe('demo-tour-pl-s2');
   });
 
+  // Regression: Rivalry Records/Comparison and Match-day Stats Records both
+  // read match.statsOverride directly (no fallback) — if a future edit to
+  // src/demo/data.ts drops it from a match, those screens go silently blank
+  // in demo mode again.
+  it('every demo match carries a full statsOverride', () => {
+    useStore.getState().setDemoMode(true);
+    const s = useStore.getState();
+
+    const allMatches = [
+      ...s.matches,
+      ...s.archivedRounds.flatMap((r) => r.matches),
+      ...s.closedTournaments.flatMap((t) => t.rounds.flatMap((r) => r.matches)),
+    ];
+
+    expect(allMatches.length).toBeGreaterThan(0);
+    for (const m of allMatches) {
+      expect(Object.keys(m.statsOverride ?? {}).length).toBeGreaterThan(0);
+    }
+  });
+
   it('saves real data (including tournamentId) in backup when demo mode is enabled', () => {
     const realTournamentId = useStore.getState().tournamentId;
 

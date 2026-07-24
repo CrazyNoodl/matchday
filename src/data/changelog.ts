@@ -10,6 +10,15 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.60',
+    fixed: [
+      'Demo mode matches now carry full match stats, so Rivalry\'s Records/Comparison and Match-day Stats Records no longer show empty while browsing the demo tournament',
+    ],
+    changed: [
+      'Adding photos/videos is now disabled in demo mode (match detail\'s media button, stats re-scan, and the Add Match sheet) — the demo banner explains why',
+    ],
+  },
+  {
     version: '1.9.59',
     added: [
       'Added a Best/Worst toggle to the Rivalry screen\'s Match stats Records tab, to see each side\'s worst single-match value per stat, not just their best',

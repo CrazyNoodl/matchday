@@ -54,6 +54,16 @@ export const bannerStyles = StyleSheet.create({
     color: Colors.accent.yellow + 'aa',
     marginTop: 1,
   },
+  textBlock: {
+    flex: 1,
+    marginRight: Spacing.md,
+  },
+  note: {
+    fontFamily: FontFamily.body,
+    fontSize: 10,
+    color: Colors.accent.yellow + '88',
+    marginTop: 4,
+  },
   exitBtn: {
     paddingHorizontal: 14,
     paddingVertical: 6,
