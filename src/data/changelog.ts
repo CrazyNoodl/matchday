@@ -10,6 +10,12 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.62',
+    changed: [
+      'Round "···" menu now lists Share before Stats, and menu item labels use normal casing instead of all-caps',
+    ],
+  },
+  {
     version: '1.9.61',
     added: [
       'Added a Best/Worst toggle to the Match-day Stats screen\'s Records tab, matching the one already on the Rivalry screen',
