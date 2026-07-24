@@ -10,6 +10,17 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.59',
+    added: [
+      'Added a Best/Worst toggle to the Rivalry screen\'s Match stats Records tab, to see each side\'s worst single-match value per stat, not just their best',
+    ],
+    fixed: [
+      'Fixed the Stats screen header — was oversized and misaligned compared to every other screen',
+      'Archive-day header now shows the round number and date together, instead of a blank header with the date pill floating in the content below it',
+      'Fixed the Share Standings sheet rendering full-screen instead of as a bottom sheet, and its title wrapping onto the close button',
+    ],
+  },
+  {
     version: '1.9.58',
     added: [
       'Added an "Exclude friendly matches" toggle on the Rivalry screen to see head-to-head stats for ranked rounds only',
