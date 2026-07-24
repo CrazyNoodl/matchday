@@ -180,6 +180,10 @@ export function useAddMatchFlow({
   }, []);
 
   const handlePickMedia = useCallback(async () => {
+    // Demo matches are fake and discarded on exit — opening the real device
+    // photo library to attach/OCR-scan a photo would be pointless and
+    // confusing, so this is disabled entirely while demoMode is on.
+    if (demoMode) return;
     if (addMatch.ocrStatus === 'scanning' || addMatch.isPickingMedia) return;
     const slotsLeft = 5 - addMatch.media.length;
     if (slotsLeft <= 0) return;
@@ -340,6 +344,7 @@ export function useAddMatchFlow({
     addMatch,
     setAddMatch,
     isSavingMatch,
+    demoMode,
     showDiscardDialog,
     setShowDiscardDialog,
     showSaveError,

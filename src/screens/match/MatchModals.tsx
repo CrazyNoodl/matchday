@@ -260,16 +260,23 @@ export function MatchModals({ d }: MatchModalsProps) {
           }
         }}
         items={[
-          {
-            key: 'rescan',
-            label: t('matchDetail.statsMenu.rescan'),
-            loading: d.importingStats,
-            disabled: d.importingStats,
-            onPress: () => {
-              rescanAfterClose.current = true;
-              d.statsMenu.close();
-            },
-          },
+          // Re-scan opens the real device photo library — pointless (and
+          // confusing) against a fake demo match, so it's left out entirely
+          // in demo mode rather than shown disabled.
+          ...(d.store.demoMode
+            ? []
+            : [
+                {
+                  key: 'rescan',
+                  label: t('matchDetail.statsMenu.rescan'),
+                  loading: d.importingStats,
+                  disabled: d.importingStats,
+                  onPress: () => {
+                    rescanAfterClose.current = true;
+                    d.statsMenu.close();
+                  },
+                },
+              ]),
           {
             key: 'edit',
             label: t('common.edit'),

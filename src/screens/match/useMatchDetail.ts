@@ -35,6 +35,11 @@ export function useMatchDetail() {
   const isEditableMatch =
     isCurrentRoundMatch ||
     (store.hasTournament && archivedRounds.flatMap((r) => r.matches).some((m) => m.id === id));
+  // Demo mode ships matches with hand-authored stats already filled in, and
+  // opening the real device photo library from a fake match would be
+  // confusing (and pointless, since it's never uploaded) — media add/import
+  // is disabled entirely while demoMode is on, independent of isEditableMatch.
+  const canAddMedia = isEditableMatch && !store.demoMode;
 
   // Storage folder for a match's media — live matches use the currently open
   // round's folder, archived-round matches use their round's stored folder.
@@ -193,7 +198,7 @@ export function useMatchDetail() {
   }, [match, store, router]);
 
   const handleAddMedia = useCallback(async () => {
-    if (!match) return;
+    if (!match || store.demoMode) return;
     if (uploadingMediaRef.current || importingStatsRef.current) return;
 
     const slotsLeft = 5 - (match.media?.length ?? 0);
@@ -296,7 +301,7 @@ export function useMatchDetail() {
   }, [match, store, getMediaFolder]);
 
   const handleImportStats = useCallback(async () => {
-    if (!match) return;
+    if (!match || store.demoMode) return;
     // Bug 6 fix: ref guard is synchronously updated — prevents concurrent invocations
     // even when state batching would give a stale importingStats value in the closure
     if (importingStatsRef.current || uploadingMediaRef.current) return;
@@ -607,6 +612,7 @@ export function useMatchDetail() {
     playerB,
     isCurrentRoundMatch,
     isEditableMatch,
+    canAddMedia,
     aWins,
     bWins,
     isDraw,

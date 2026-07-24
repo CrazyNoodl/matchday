@@ -50,6 +50,7 @@ export function AddMatchSheet({
     addMatch,
     setAddMatch,
     isSavingMatch,
+    demoMode,
     totalSteps,
     handleNext,
     handleBack,
@@ -219,7 +220,7 @@ export function AddMatchSheet({
               }
             />
           ))}
-          {addMatch.media.length < 7 && (
+          {addMatch.media.length < 7 && !demoMode && (
             <TouchableOpacity
               style={[
                 sheetStyles.addMediaBtn,
