@@ -128,7 +128,8 @@ export interface RivalryRecords {
   highestScoring: HighestScoringRecord | null;
   winStreakA: number;
   winStreakB: number;
-  statRecords: StatRecord[];
+  bestStatRecords: StatRecord[];
+  worstStatRecords: StatRecord[];
 }
 
 /** Longest run of consecutive entries decided in the given side's favor; a draw or a loss resets it. */
@@ -143,31 +144,45 @@ function longestWinStreak(entries: RivalryMatchEntry[], side: 'a' | 'b'): number
   return longest;
 }
 
-function computeStatRecords(entries: RivalryMatchEntry[]): StatRecord[] {
+/**
+ * Shared by best/worst: for each stat key, finds each side's own most extreme
+ * single-match value — `isMoreExtreme` decides the direction (`>` for best,
+ * `<` for worst). A "record" is always the most extreme value in that
+ * direction, regardless of whether higher is generally the "better" outcome
+ * for this stat (that flag only drives which side is highlighted in the
+ * Comparison tab) — e.g. "most yellow cards in a match" is the best-record,
+ * "fewest" is the worst-record, neither is about "good discipline".
+ */
+function computeExtremeStatRecords(
+  entries: RivalryMatchEntry[],
+  isMoreExtreme: (candidate: number, current: number) => boolean,
+): StatRecord[] {
   const records: StatRecord[] = [];
 
   for (const def of STAT_DEFINITIONS) {
-    // A "record" is always the most extreme single-match value, regardless of
-    // whether higher is generally the "better" outcome for this stat (that
-    // flag only drives which side is highlighted in the Comparison tab) —
-    // e.g. "most yellow cards in a match" is the notable record, not "fewest".
-    let bestA: StatSide | null = null;
-    let bestB: StatSide | null = null;
+    let extremeA: StatSide | null = null;
+    let extremeB: StatSide | null = null;
 
     for (const entry of entries) {
       const stat = entry.match.statsOverride?.[def.key];
       if (!stat) continue;
-      if (bestA === null || stat.a > bestA.value) bestA = { value: stat.a, entry };
-      if (bestB === null || stat.b > bestB.value) bestB = { value: stat.b, entry };
+      if (extremeA === null || isMoreExtreme(stat.a, extremeA.value)) extremeA = { value: stat.a, entry };
+      if (extremeB === null || isMoreExtreme(stat.b, extremeB.value)) extremeB = { value: stat.b, entry };
     }
 
     // Both sides always end up set together: whenever any entry has this key,
     // it carries both a and b values (they're recorded as a pair per match).
-    if (bestA && bestB) records.push({ key: def.key, a: bestA, b: bestB });
+    if (extremeA && extremeB) records.push({ key: def.key, a: extremeA, b: extremeB });
   }
 
   return records;
 }
+
+const computeBestStatRecords = (entries: RivalryMatchEntry[]) =>
+  computeExtremeStatRecords(entries, (candidate, current) => candidate > current);
+
+const computeWorstStatRecords = (entries: RivalryMatchEntry[]) =>
+  computeExtremeStatRecords(entries, (candidate, current) => candidate < current);
 
 export interface RivalryTotalRow {
   key: KnownStatKey;
@@ -246,6 +261,7 @@ export function computeRivalryRecords(entries: RivalryMatchEntry[]): RivalryReco
     highestScoring,
     winStreakA: longestWinStreak(entries, 'a'),
     winStreakB: longestWinStreak(entries, 'b'),
-    statRecords: computeStatRecords(entries),
+    bestStatRecords: computeBestStatRecords(entries),
+    worstStatRecords: computeWorstStatRecords(entries),
   };
 }

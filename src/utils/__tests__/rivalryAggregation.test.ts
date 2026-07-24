@@ -109,7 +109,8 @@ describe('computeRivalryRecords', () => {
     expect(records.highestScoring).toBeNull();
     expect(records.winStreakA).toBe(0);
     expect(records.winStreakB).toBe(0);
-    expect(records.statRecords).toEqual([]);
+    expect(records.bestStatRecords).toEqual([]);
+    expect(records.worstStatRecords).toEqual([]);
   });
 
   it('both biggestWinA and biggestWinB are null when every match was a draw', () => {
@@ -168,7 +169,7 @@ describe('computeRivalryRecords', () => {
   it('omits a stat key entirely when no match in the pair recorded it', () => {
     const entries = [entry(match('m1', 'p1', 'p2', 1, 0, { possession: { a: 55, b: 45 } }))];
     const records = computeRivalryRecords(entries);
-    const keys = records.statRecords.map((r) => r.key);
+    const keys = records.bestStatRecords.map((r) => r.key);
     expect(keys).toEqual(['possession']);
   });
 
@@ -178,7 +179,7 @@ describe('computeRivalryRecords', () => {
       entry(match('m2', 'p1', 'p2', 0, 1, { shots: { a: 9, b: 2 } })),
     ];
     const records = computeRivalryRecords(entries);
-    const shotsRecord = records.statRecords.find((r) => r.key === 'shots');
+    const shotsRecord = records.bestStatRecords.find((r) => r.key === 'shots');
     // a's best (9) comes from m2, b's best (8) comes from m1 — independent matches.
     expect(shotsRecord?.a).toMatchObject({ value: 9 });
     expect(shotsRecord?.a.entry.match.id).toBe('m2');
@@ -189,7 +190,7 @@ describe('computeRivalryRecords', () => {
   it('gives both sides the same value (from the same match) when they tied on their best', () => {
     const entries = [entry(match('m1', 'p1', 'p2', 1, 1, { possession: { a: 50, b: 50 } }))];
     const records = computeRivalryRecords(entries);
-    const possessionRecord = records.statRecords.find((r) => r.key === 'possession');
+    const possessionRecord = records.bestStatRecords.find((r) => r.key === 'possession');
     expect(possessionRecord?.a.value).toBe(50);
     expect(possessionRecord?.b.value).toBe(50);
   });
@@ -200,12 +201,51 @@ describe('computeRivalryRecords', () => {
       entry(match('m2', 'p1', 'p2', 0, 1, { yellowCards: { a: 2, b: 0 } })),
     ];
     const records = computeRivalryRecords(entries);
-    const record = records.statRecords.find((r) => r.key === 'yellowCards');
+    const record = records.bestStatRecords.find((r) => r.key === 'yellowCards');
     // a's record (most) is 2 from m2; b's record (most) is 3 from m1.
     expect(record?.a).toMatchObject({ value: 2 });
     expect(record?.a.entry.match.id).toBe('m2');
     expect(record?.b).toMatchObject({ value: 3 });
     expect(record?.b.entry.match.id).toBe('m1');
+  });
+
+  it('computes each side’s own worst value independently, even from different matches', () => {
+    const entries = [
+      entry(match('m1', 'p1', 'p2', 1, 0, { shots: { a: 5, b: 8 } })),
+      entry(match('m2', 'p1', 'p2', 0, 1, { shots: { a: 9, b: 2 } })),
+    ];
+    const records = computeRivalryRecords(entries);
+    const shotsRecord = records.worstStatRecords.find((r) => r.key === 'shots');
+    // a's worst (5) comes from m1, b's worst (2) comes from m2 — independent matches.
+    expect(shotsRecord?.a).toMatchObject({ value: 5 });
+    expect(shotsRecord?.a.entry.match.id).toBe('m1');
+    expect(shotsRecord?.b).toMatchObject({ value: 2 });
+    expect(shotsRecord?.b.entry.match.id).toBe('m2');
+  });
+
+  it('picks the minimum even for a higher-is-better stat like shots — the worst-record mirrors the best-record\'s "most extreme value" rule', () => {
+    const entries = [
+      entry(match('m1', 'p1', 'p2', 1, 0, { yellowCards: { a: 1, b: 3 } })),
+      entry(match('m2', 'p1', 'p2', 0, 1, { yellowCards: { a: 2, b: 0 } })),
+    ];
+    const records = computeRivalryRecords(entries);
+    const record = records.worstStatRecords.find((r) => r.key === 'yellowCards');
+    // a's worst-record (fewest) is 1 from m1; b's worst-record (fewest) is 0 from m2.
+    expect(record?.a).toMatchObject({ value: 1 });
+    expect(record?.a.entry.match.id).toBe('m1');
+    expect(record?.b).toMatchObject({ value: 0 });
+    expect(record?.b.entry.match.id).toBe('m2');
+  });
+
+  it('bestStatRecords and worstStatRecords always cover the same set of keys', () => {
+    const entries = [
+      entry(match('m1', 'p1', 'p2', 1, 0, { possession: { a: 55, b: 45 }, shots: { a: 5, b: 8 } })),
+      entry(match('m2', 'p1', 'p2', 0, 1, { shots: { a: 9, b: 2 } })),
+    ];
+    const records = computeRivalryRecords(entries);
+    const bestKeys = records.bestStatRecords.map((r) => r.key).sort();
+    const worstKeys = records.worstStatRecords.map((r) => r.key).sort();
+    expect(worstKeys).toEqual(bestKeys);
   });
 });
 

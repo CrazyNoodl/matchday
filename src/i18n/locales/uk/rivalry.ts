@@ -15,6 +15,8 @@ const rivalry = {
   noData: 'Дані протистояння не знайдено.',
   tabRecords: 'Рекорди',
   tabComparison: 'Порівняння',
+  best: 'Найкращі',
+  worst: 'Найгірші',
   perMatchSuffix: '/матч',
   gamesCount: '{{count}} матчів',
 } as const;

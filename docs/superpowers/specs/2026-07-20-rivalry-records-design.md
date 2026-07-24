@@ -221,3 +221,42 @@ information.)
   picking (`timeToRegain` picks the minimum) and `computeRivalryTotals` (sum+avg,
   percent-only-average, per-key omission, average denominator excludes matches
   missing that specific key).
+
+## Addendum (2026-07-24): Best/Worst toggle on the Records tab
+
+The Records tab only ever showed each side's **best** (most extreme, direction-
+aware) single-match value per stat. This adds a second mode, **Worst** — the
+single most extreme value in the *other* direction — switchable via a nested
+toggle, scoped only to this tab (the top "Records" section — biggest win,
+highest-scoring match, win streaks, avg goals/game — is untouched).
+
+- **Data layer** (`rivalryAggregation.ts`): `RivalryRecords.statRecords` is
+  renamed to `bestStatRecords`; a new sibling field `worstStatRecords:
+  StatRecord[]` is added, same `StatRecord` shape. Both are produced by a single
+  new private helper, `computeExtremeStatRecords(entries, isMoreExtreme)`,
+  parameterized by a comparator (`(candidate, current) => candidate > current`
+  for best, `<` for worst) — replaces the existing `computeStatRecords` loop
+  body, called twice. "Worst" mirrors "best" exactly: the minimum raw value per
+  side, independent of `higherIsBetter` — e.g. worst `yellowCards` is the
+  *fewest* cards in a single match, not the most, matching the existing
+  "a record is the most extreme value, not the best performance" rule already
+  documented for `bestStatRecords`. Both arrays always cover the same set of
+  keys (both computed from the same `entries`).
+- **Highlight logic**: unchanged — `StatRecordRow`'s `aWins`/`bWins` comparison
+  (using `STAT_DEFINITIONS[key].higherIsBetter`) is applied verbatim to
+  whichever array is active, no new "worst" semantics.
+- **UI** (`RivalryScreen.tsx`): new local state `recordsMode: 'best' | 'worst'`
+  (default `'best'`). When the outer tab is `'records'`, a second
+  `SegmentedControl` (`variant="boxed"` — the compact, content-hugging style,
+  distinct from the full-width `variant="pill"` used for the outer
+  Records/Comparison tabs) renders above the stat rows, switching which array
+  feeds `StatRecordRow`. `StatRecordRow` itself is unchanged.
+- **i18n**: new keys in all 3 locales — `rivalry.best` ("Best"/"Найкращі"/"Le
+  meilleur" — exact `fr`/`uk` wording to match existing tone) and
+  `rivalry.worst`.
+- **Tests**: existing `bestStatRecords`-shaped cases in
+  `rivalryAggregation.test.ts` are renamed (`records.statRecords` →
+  `records.bestStatRecords`); new mirrored cases for `worstStatRecords` —
+  independent-per-side minimum from different matches, minimum-is-the-record
+  even for a higher-is-better stat like `shots`, and a same-keys-in-both-arrays
+  check.

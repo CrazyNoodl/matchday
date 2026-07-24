@@ -24,6 +24,7 @@ import { useRivalryData } from './useRivalryData';
 import { makeStyles } from './rivalry.styles';
 
 type StatsTab = 'records' | 'comparison';
+type RecordsMode = 'best' | 'worst';
 
 interface RivalryScreenProps {
   playerIdA: string;
@@ -43,6 +44,7 @@ export function RivalryScreen({ playerIdA, playerIdB, tournamentOnly }: RivalryS
   const teamColorFor = (player: Player) =>
     teams.find((team) => team.code === player.teamCode)?.color ?? colors.text.primary;
   const [statsTab, setStatsTab] = useState<StatsTab>('records');
+  const [recordsMode, setRecordsMode] = useState<RecordsMode>('best');
   const [excludeFriendly, setExcludeFriendly] = useState(false);
   const { playerA, playerB, records, totals, pair, avgGoalsPerGame } = useRivalryData(
     playerIdA,
@@ -64,7 +66,9 @@ export function RivalryScreen({ playerIdA, playerIdB, tournamentOnly }: RivalryS
   }
 
   const goToMatch = (matchId: string) => router.push(`/match/${matchId}`);
-  const { biggestWinA, biggestWinB, highestScoring, winStreakA, winStreakB, statRecords } = records;
+  const { biggestWinA, biggestWinB, highestScoring, winStreakA, winStreakB, bestStatRecords, worstStatRecords } =
+    records;
+  const activeStatRecords = recordsMode === 'best' ? bestStatRecords : worstStatRecords;
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
@@ -186,7 +190,7 @@ export function RivalryScreen({ playerIdA, playerIdB, tournamentOnly }: RivalryS
         </View>
 
         {/* Match stats */}
-        {(statRecords.length > 0 || totals.length > 0) && (
+        {(bestStatRecords.length > 0 || totals.length > 0) && (
           <View style={styles.section}>
             <SectionLabel label={t('rivalry.statsSection')} style={styles.sectionLabel} />
 
@@ -200,22 +204,34 @@ export function RivalryScreen({ playerIdA, playerIdB, tournamentOnly }: RivalryS
               ]}
             />
 
-            {statsTab === 'records' &&
-              statRecords.map((record) => (
-                <StatRecordRow
-                  key={record.key}
-                  record={record}
-                  playerA={playerA}
-                  playerB={playerB}
-                  onPressA={
-                    record.a.entry.date ? () => goToMatch(record.a.entry.match.id) : undefined
-                  }
-                  onPressB={
-                    record.b.entry.date ? () => goToMatch(record.b.entry.match.id) : undefined
-                  }
-                  styles={styles}
+            {statsTab === 'records' && (
+              <>
+                <SegmentedControl
+                  variant="boxed"
+                  value={recordsMode}
+                  onChange={setRecordsMode}
+                  options={[
+                    { value: 'best', label: t('rivalry.best') },
+                    { value: 'worst', label: t('rivalry.worst') },
+                  ]}
                 />
-              ))}
+                {activeStatRecords.map((record) => (
+                  <StatRecordRow
+                    key={record.key}
+                    record={record}
+                    playerA={playerA}
+                    playerB={playerB}
+                    onPressA={
+                      record.a.entry.date ? () => goToMatch(record.a.entry.match.id) : undefined
+                    }
+                    onPressB={
+                      record.b.entry.date ? () => goToMatch(record.b.entry.match.id) : undefined
+                    }
+                    styles={styles}
+                  />
+                ))}
+              </>
+            )}
 
             {statsTab === 'comparison' &&
               totals.map((row) => <ComparisonRow key={row.key} row={row} />)}

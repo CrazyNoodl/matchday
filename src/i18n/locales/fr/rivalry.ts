@@ -15,6 +15,8 @@ const rivalry = {
   noData: 'Aucune donnée de rivalité trouvée.',
   tabRecords: 'Records',
   tabComparison: 'Comparaison',
+  best: 'Meilleur',
+  worst: 'Pire',
   perMatchSuffix: '/match',
   gamesCount: '{{count}} matchs',
 } as const;
