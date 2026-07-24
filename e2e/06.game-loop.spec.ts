@@ -9,7 +9,7 @@ import {
 } from './fixtures';
 
 test.describe('Main game loop', () => {
-  test('play a full round with the equal-games rule, finish it, and crown a tournament champion @smoke', async ({
+  test('play a full round with the equal-games rule, Finish it, and crown a tournament champion @smoke', async ({
     authedPage: page,
   }) => {
     // ---- Setup: 3 teams, 3 players ----
@@ -30,14 +30,14 @@ test.describe('Main game loop', () => {
     await addMatchViaUI(page, 'Alice', 'Bob', 2, 0);
     await expect(page.getByText('MATCHES · 1', { exact: true })).toBeVisible();
 
-    // ---- Equal games rule: Cara hasn't played yet — finishing must be blocked ----
+    // ---- Equal games rule: Cara hasn't played yet — Finishing must be blocked ----
     await page.getByText('···', { exact: true }).last().click();
-    await page.getByText('FINISH', { exact: true }).last().click();
+    await page.getByText('Finish', { exact: true }).last().click();
     await expect(page.getByText('EVEN OUT THE GAMES', { exact: true })).toBeVisible();
     await expect(page.getByText(/^0 games$/).last()).toBeVisible();
     await page.getByText('Got it', { exact: true }).last().click();
 
-    // Known bug: after FINISH -> EVEN OUT THE GAMES -> Got it, the round
+    // Known bug: after Finish -> EVEN OUT THE GAMES -> Got it, the round
     // options sheet stays stuck open and covers the "+ ADD MATCH" FAB
     // (Sheet doesn't retract when its `visible` prop flips true -> false in
     // the same batch as opening the needEqual dialog). Reload /round as a
@@ -48,7 +48,7 @@ test.describe('Main game loop', () => {
     // ---- Match 2: Alice 3-1 Cara — still unequal (Bob: 1, Cara: 1, Alice: 2) ----
     await addMatchViaUI(page, 'Alice', 'Cara', 3, 1);
     await page.getByText('···', { exact: true }).last().click();
-    await page.getByText('FINISH', { exact: true }).last().click();
+    await page.getByText('Finish', { exact: true }).last().click();
     await expect(page.getByText('EVEN OUT THE GAMES', { exact: true })).toBeVisible();
     await page.getByText('Got it', { exact: true }).last().click();
     await page.goto('/round');
@@ -60,7 +60,7 @@ test.describe('Main game loop', () => {
 
     // ---- Finish round: equal games now — crown the winner ----
     await page.getByText('···', { exact: true }).last().click();
-    await page.getByText('FINISH', { exact: true }).last().click();
+    await page.getByText('Finish', { exact: true }).last().click();
     await expect(page.getByText('FINISH ROUND?', { exact: true })).toBeVisible();
     await page.getByText('Crown winner', { exact: true }).last().click();
 

@@ -27,7 +27,7 @@ test.describe('Stats, archive and rivalry screens', () => {
 
     // Equal games (both played once) — finish straight away and crown Alice.
     await page.getByText('···', { exact: true }).last().click();
-    await page.getByText('FINISH', { exact: true }).last().click();
+    await page.getByText('Finish', { exact: true }).last().click();
     await expect(page.getByText('FINISH ROUND?', { exact: true })).toBeVisible();
     await page.getByText('Crown winner', { exact: true }).last().click();
     await expect(page.getByText('MATCH DAY WINNER', { exact: true })).toBeVisible();
@@ -82,7 +82,7 @@ test.describe('Stats, archive and rivalry screens', () => {
 
     // ---- archive-day "···" menu -> Stats -> /matchday-stats ----
     await page.getByText('···', { exact: true }).last().click();
-    await page.getByText('STATS', { exact: true }).last().click();
+    await page.getByText('Stats', { exact: true }).last().click();
     await expect(page).toHaveURL(/.*matchday-stats/);
     await expect(page.getByText('MATCH DAY STATS', { exact: true }).last()).toBeVisible();
   });

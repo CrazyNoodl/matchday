@@ -422,7 +422,7 @@ export default function MatchdayScreen() {
         items={[
           {
             key: 'finish',
-            label: t('matchday.finish').toUpperCase(),
+            label: t('matchday.finish'),
             onPress: () => {
               roundMenu.close();
               handleFinishPress();
@@ -430,7 +430,7 @@ export default function MatchdayScreen() {
           },
           {
             key: 'stats',
-            label: t('home.stats').toUpperCase(),
+            label: t('home.stats'),
             onPress: () => {
               roundMenu.close();
               // Null out `viewingRound` — it's session UI state that can be

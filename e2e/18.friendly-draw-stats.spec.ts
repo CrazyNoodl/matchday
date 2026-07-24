@@ -36,7 +36,7 @@ test.describe('Friendly round', () => {
     await addMatchViaUI(page, 'Alice', 'Bob', 2, 1);
 
     await page.getByText('···', { exact: true }).last().click();
-    await page.getByText('FINISH', { exact: true }).last().click();
+    await page.getByText('Finish', { exact: true }).last().click();
     await expect(page.getByText('FINISH ROUND?', { exact: true })).toBeVisible();
     await page.getByText('Crown winner', { exact: true }).last().click();
     await expect(page.getByText('MATCH DAY WINNER', { exact: true })).toBeVisible();
@@ -63,7 +63,7 @@ test.describe('Tied round', () => {
     await addMatchViaUI(page, 'Alice', 'Bob', 1, 1);
 
     await page.getByText('···', { exact: true }).last().click();
-    await page.getByText('FINISH', { exact: true }).last().click();
+    await page.getByText('Finish', { exact: true }).last().click();
     await expect(page.getByText('FINISH ROUND?', { exact: true })).toBeVisible();
     await page.getByText('Crown winner', { exact: true }).last().click();
 

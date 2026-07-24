@@ -24,7 +24,7 @@ test.describe('Delete round', () => {
 
     // Equal games (both played once) — finish and crown Alice, tournament stays open.
     await page.getByText('···', { exact: true }).last().click();
-    await page.getByText('FINISH', { exact: true }).last().click();
+    await page.getByText('Finish', { exact: true }).last().click();
     await expect(page.getByText('FINISH ROUND?', { exact: true })).toBeVisible();
     await page.getByText('Crown winner', { exact: true }).last().click();
     await expect(page.getByText('MATCH DAY WINNER', { exact: true })).toBeVisible();

@@ -319,19 +319,19 @@ export default function ArchiveDayScreen() {
         position={roundMenu.position}
         items={[
           {
-            key: 'stats',
-            label: t('home.stats').toUpperCase(),
-            onPress: () => {
-              roundMenu.close();
-              router.push('/matchday-stats');
-            },
-          },
-          {
             key: 'share',
             label: t('common.share'),
             onPress: () => {
               roundMenu.close();
               setShareVisible(true);
+            },
+          },
+          {
+            key: 'stats',
+            label: t('home.stats'),
+            onPress: () => {
+              roundMenu.close();
+              router.push('/matchday-stats');
             },
           },
           ...(isEditableRound

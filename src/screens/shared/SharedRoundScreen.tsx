@@ -152,7 +152,7 @@ export function SharedRoundScreen({ shareId }: { shareId: string }) {
           {
             key: 'stats',
             testID: 'shared-round-menu-stats-item',
-            label: t('home.stats').toUpperCase(),
+            label: t('home.stats'),
             onPress: () => {
               roundMenu.close();
               router.push(`/shared/${shareId}/stats`);
