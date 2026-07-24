@@ -24,41 +24,54 @@ export interface DayStatRecord {
 }
 
 /**
- * For each of the 23 stats, the two most extreme values recorded this match
- * day, one per distinct player (each player's own peak single-match value) —
+ * Shared by best/worst: for each of the 23 stats, finds each distinct
+ * player's own most extreme single-match value this match day —
+ * `isMoreExtreme` decides the direction (`>` for best, `<` for worst),
  * regardless of whether higher is generally "better" for that stat (a record
- * is the most notable single-match occurrence, e.g. most cards in a game,
- * same rule rivalryAggregation.ts's computeStatRecords uses for the
- * pair-scoped version).
+ * is the most notable single-match occurrence, e.g. most cards in a game is
+ * the best-record, fewest is the worst-record — same rule
+ * rivalryAggregation.ts's computeExtremeStatRecords uses for the pair-scoped
+ * version). Returns the top two distinct record holders, ranked by extremity.
  */
-export function computeDayStatRecords(matches: Match[]): DayStatRecord[] {
+function computeExtremeDayStatRecords(
+  matches: Match[],
+  isMoreExtreme: (candidate: number, current: number) => boolean,
+): DayStatRecord[] {
   const records: DayStatRecord[] = [];
 
   for (const def of STAT_DEFINITIONS) {
-    const bestByPlayer = new Map<string, DayStatRecordEntry>();
+    const extremeByPlayer = new Map<string, DayStatRecordEntry>();
 
     for (const m of matches) {
       const stat = m.statsOverride?.[def.key];
       if (!stat) continue;
 
-      const a = bestByPlayer.get(m.aId);
-      if (!a || stat.a > a.value) {
-        bestByPlayer.set(m.aId, { value: stat.a, playerId: m.aId, matchId: m.id });
+      const a = extremeByPlayer.get(m.aId);
+      if (!a || isMoreExtreme(stat.a, a.value)) {
+        extremeByPlayer.set(m.aId, { value: stat.a, playerId: m.aId, matchId: m.id });
       }
-      const b = bestByPlayer.get(m.bId);
-      if (!b || stat.b > b.value) {
-        bestByPlayer.set(m.bId, { value: stat.b, playerId: m.bId, matchId: m.id });
+      const b = extremeByPlayer.get(m.bId);
+      if (!b || isMoreExtreme(stat.b, b.value)) {
+        extremeByPlayer.set(m.bId, { value: stat.b, playerId: m.bId, matchId: m.id });
       }
     }
 
-    if (bestByPlayer.size === 0) continue;
+    if (extremeByPlayer.size === 0) continue;
 
-    const sorted = Array.from(bestByPlayer.values()).sort((x, y) => y.value - x.value);
+    const sorted = Array.from(extremeByPlayer.values()).sort((x, y) =>
+      isMoreExtreme(y.value, x.value) ? 1 : isMoreExtreme(x.value, y.value) ? -1 : 0,
+    );
     records.push({ key: def.key, first: sorted[0], second: sorted[1] ?? null });
   }
 
   return records;
 }
+
+export const computeDayStatBestRecords = (matches: Match[]): DayStatRecord[] =>
+  computeExtremeDayStatRecords(matches, (candidate, current) => candidate > current);
+
+export const computeDayStatWorstRecords = (matches: Match[]): DayStatRecord[] =>
+  computeExtremeDayStatRecords(matches, (candidate, current) => candidate < current);
 
 export interface DayPlayerStatValue {
   playerId: string;

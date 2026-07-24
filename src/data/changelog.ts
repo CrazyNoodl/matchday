@@ -10,6 +10,12 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.61',
+    added: [
+      'Added a Best/Worst toggle to the Match-day Stats screen\'s Records tab, matching the one already on the Rivalry screen',
+    ],
+  },
+  {
     version: '1.9.60',
     fixed: [
       'Demo mode matches now carry full match stats, so Rivalry\'s Records/Comparison and Match-day Stats Records no longer show empty while browsing the demo tournament',

@@ -1,7 +1,11 @@
 import { useMemo } from 'react';
 import { useStore } from '@/store';
 import type { Match } from '@/store/types';
-import { computeDayStatRecords, computeDayStatComparisons } from '@/utils/matchdayStatsAggregation';
+import {
+  computeDayStatBestRecords,
+  computeDayStatWorstRecords,
+  computeDayStatComparisons,
+} from '@/utils/matchdayStatsAggregation';
 
 const EMPTY_MATCHES: Match[] = [];
 
@@ -29,8 +33,9 @@ export function useMatchdayStatsData() {
   const matches = archivedRound?.matches ?? (isLiveRound ? liveMatches : EMPTY_MATCHES);
   const date = archivedRound?.date ?? null;
 
-  const records = useMemo(() => computeDayStatRecords(matches), [matches]);
+  const bestRecords = useMemo(() => computeDayStatBestRecords(matches), [matches]);
+  const worstRecords = useMemo(() => computeDayStatWorstRecords(matches), [matches]);
   const comparisons = useMemo(() => computeDayStatComparisons(matches), [matches]);
 
-  return { hasRound, date, players, records, comparisons };
+  return { hasRound, date, players, bestRecords, worstRecords, comparisons };
 }

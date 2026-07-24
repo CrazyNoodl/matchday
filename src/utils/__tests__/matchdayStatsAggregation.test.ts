@@ -1,4 +1,8 @@
-import { computeDayStatRecords, computeDayStatComparisons } from '../matchdayStatsAggregation';
+import {
+  computeDayStatBestRecords,
+  computeDayStatWorstRecords,
+  computeDayStatComparisons,
+} from '../matchdayStatsAggregation';
 import { type Match } from '../../store/types';
 
 const match = (
@@ -21,9 +25,9 @@ const match = (
 
 // ---------------------------------------------------------------------------
 
-describe('computeDayStatRecords', () => {
+describe('computeDayStatBestRecords', () => {
   it('returns an empty array when no match has any stats', () => {
-    expect(computeDayStatRecords([match('m1', 'p1', 'p2', 1, 0)])).toEqual([]);
+    expect(computeDayStatBestRecords([match('m1', 'p1', 'p2', 1, 0)])).toEqual([]);
   });
 
   it('picks each distinct player\'s own peak value across every match, ranked first and second, not just two sides', () => {
@@ -33,7 +37,7 @@ describe('computeDayStatRecords', () => {
       match('m3', 'p2', 'p3', 0, 0, { possession: { a: 40, b: 60 } }),
     ];
 
-    const records = computeDayStatRecords(matches);
+    const records = computeDayStatBestRecords(matches);
     const possession = records.find((r) => r.key === 'possession');
     expect(possession).toEqual({
       key: 'possession',
@@ -48,7 +52,7 @@ describe('computeDayStatRecords', () => {
       match('m2', 'p2', 'p3', 1, 1, { yellowCards: { a: 3, b: 0 } }),
     ];
 
-    const records = computeDayStatRecords(matches);
+    const records = computeDayStatBestRecords(matches);
     const cards = records.find((r) => r.key === 'yellowCards');
     expect(cards).toEqual({
       key: 'yellowCards',
@@ -60,11 +64,60 @@ describe('computeDayStatRecords', () => {
   it('returns second: null when only one distinct player recorded a stat that day', () => {
     const matches: Match[] = [match('m1', 'p1', 'p1', 1, 0, { possession: { a: 55, b: 45 } })];
 
-    const records = computeDayStatRecords(matches);
+    const records = computeDayStatBestRecords(matches);
     const possession = records.find((r) => r.key === 'possession');
     expect(possession).toEqual({
       key: 'possession',
       first: { value: 55, playerId: 'p1', matchId: 'm1' },
+      second: null,
+    });
+  });
+});
+
+describe('computeDayStatWorstRecords', () => {
+  it('returns an empty array when no match has any stats', () => {
+    expect(computeDayStatWorstRecords([match('m1', 'p1', 'p2', 1, 0)])).toEqual([]);
+  });
+
+  it("picks each distinct player's own lowest value across every match, ranked first and second by lowest-first", () => {
+    const matches: Match[] = [
+      match('m1', 'p1', 'p2', 1, 0, { possession: { a: 55, b: 45 } }),
+      match('m2', 'p3', 'p1', 2, 1, { possession: { a: 70, b: 30 } }),
+      match('m3', 'p2', 'p3', 0, 0, { possession: { a: 40, b: 60 } }),
+    ];
+
+    const records = computeDayStatWorstRecords(matches);
+    const possession = records.find((r) => r.key === 'possession');
+    expect(possession).toEqual({
+      key: 'possession',
+      first: { value: 30, playerId: 'p1', matchId: 'm2' },
+      second: { value: 40, playerId: 'p2', matchId: 'm3' },
+    });
+  });
+
+  it('always takes the minimum value regardless of higherIsBetter (e.g. fewest cards, not most)', () => {
+    const matches: Match[] = [
+      match('m1', 'p1', 'p2', 1, 0, { yellowCards: { a: 0, b: 1 } }),
+      match('m2', 'p2', 'p3', 1, 1, { yellowCards: { a: 3, b: 0 } }),
+    ];
+
+    const records = computeDayStatWorstRecords(matches);
+    const cards = records.find((r) => r.key === 'yellowCards');
+    expect(cards).toEqual({
+      key: 'yellowCards',
+      first: { value: 0, playerId: 'p1', matchId: 'm1' },
+      second: { value: 0, playerId: 'p3', matchId: 'm2' },
+    });
+  });
+
+  it('returns second: null when only one distinct player recorded a stat that day', () => {
+    const matches: Match[] = [match('m1', 'p1', 'p1', 1, 0, { possession: { a: 55, b: 45 } })];
+
+    const records = computeDayStatWorstRecords(matches);
+    const possession = records.find((r) => r.key === 'possession');
+    expect(possession).toEqual({
+      key: 'possession',
+      first: { value: 45, playerId: 'p1', matchId: 'm1' },
       second: null,
     });
   });

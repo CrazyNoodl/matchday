@@ -14,6 +14,7 @@ import { useMatchdayStatsData } from './useMatchdayStatsData';
 import { makeStyles } from './matchdayStats.styles';
 
 type Tab = 'records' | 'comparison';
+type RecordsMode = 'best' | 'worst';
 
 const roundNum = (n: number) => Math.round(n * 10) / 10;
 
@@ -23,8 +24,11 @@ export function MatchdayStatsScreen() {
   const styles = makeStyles(colors);
   const router = useRouter();
   const goBack = useGoBack();
-  const { hasRound, date, players, records, comparisons } = useMatchdayStatsData();
+  const { hasRound, date, players, bestRecords, worstRecords, comparisons } =
+    useMatchdayStatsData();
   const [tab, setTab] = useState<Tab>('records');
+  const [recordsMode, setRecordsMode] = useState<RecordsMode>('best');
+  const records = recordsMode === 'best' ? bestRecords : worstRecords;
 
   if (!hasRound) {
     return (
@@ -72,23 +76,37 @@ export function MatchdayStatsScreen() {
           </View>
         )}
 
-        {tab === 'records' &&
-          records.map((record) => {
-            const firstPlayer = findPlayer(record.first.playerId);
-            if (!firstPlayer) return null;
-            const secondPlayer = record.second ? findPlayer(record.second.playerId) : undefined;
-            return (
-              <RecordRow
-                key={record.key}
-                record={record}
-                firstPlayer={firstPlayer}
-                secondPlayer={secondPlayer ?? null}
-                onPressFirst={() => goToMatch(record.first.matchId)}
-                onPressSecond={record.second ? () => goToMatch(record.second!.matchId) : undefined}
-                styles={styles}
-              />
-            );
-          })}
+        {tab === 'records' && (
+          <>
+            <SegmentedControl
+              variant="boxed"
+              value={recordsMode}
+              onChange={setRecordsMode}
+              options={[
+                { value: 'best', label: t('matchdayStats.best') },
+                { value: 'worst', label: t('matchdayStats.worst') },
+              ]}
+            />
+            {records.map((record) => {
+              const firstPlayer = findPlayer(record.first.playerId);
+              if (!firstPlayer) return null;
+              const secondPlayer = record.second ? findPlayer(record.second.playerId) : undefined;
+              return (
+                <RecordRow
+                  key={record.key}
+                  record={record}
+                  firstPlayer={firstPlayer}
+                  secondPlayer={secondPlayer ?? null}
+                  onPressFirst={() => goToMatch(record.first.matchId)}
+                  onPressSecond={
+                    record.second ? () => goToMatch(record.second!.matchId) : undefined
+                  }
+                  styles={styles}
+                />
+              );
+            })}
+          </>
+        )}
 
         {tab === 'comparison' &&
           comparisons.map((comparison) => (
