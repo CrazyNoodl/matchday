@@ -4,7 +4,10 @@ export default defineConfig({
   testDir: './e2e',
   timeout: 90_000,
   expect: { timeout: 10_000 },
-  retries: process.env.CI ? 2 : 0,
+  // Local runs get 1 retry too (CI already had 2) — the shared dev server
+  // handling all parallel workers occasionally causes a transient action
+  // timeout under load; a stable failure still fails after the retry.
+  retries: process.env.CI ? 2 : 1,
   reporter: process.env.CI ? 'github' : 'list',
 
   use: {
