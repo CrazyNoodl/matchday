@@ -66,6 +66,8 @@ const settings = {
     leaderModalDesc: 'Annoncer le leader à la fin de chaque tour, quand il change',
     leaderModalMinPlayers: 'Nombre minimum de joueurs',
     leaderModalMinPlayersDesc: 'Annoncer uniquement au-delà de ce nombre de joueurs dans le round',
+    dayWinnerBanner: 'Afficher le bandeau du vainqueur du jour',
+    dayWinnerBannerDesc: 'Afficher la carte du vainqueur du jour en haut d\'un round archivé',
     upcoming: 'Bientôt disponible',
     inDevelopment: 'En développement',
   },

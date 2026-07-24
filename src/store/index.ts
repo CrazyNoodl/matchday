@@ -331,6 +331,7 @@ export const useStore = create<RootState>()(
         hasSeenOnboarding: state.hasSeenOnboarding,
         leaderModalEnabled: state.leaderModalEnabled,
         leaderModalMinPlayers: state.leaderModalMinPlayers,
+        dayWinnerBannerEnabled: state.dayWinnerBannerEnabled,
         matchDragReorderEnabled: state.matchDragReorderEnabled,
       }),
     },

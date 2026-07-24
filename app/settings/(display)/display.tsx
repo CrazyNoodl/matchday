@@ -26,6 +26,8 @@ export default function DisplaySettingsScreen() {
   const setLeaderModalEnabled = useStore((s) => s.setLeaderModalEnabled);
   const leaderModalMinPlayers = useStore((s) => s.leaderModalMinPlayers);
   const setLeaderModalMinPlayers = useStore((s) => s.setLeaderModalMinPlayers);
+  const dayWinnerBannerEnabled = useStore((s) => s.dayWinnerBannerEnabled);
+  const setDayWinnerBannerEnabled = useStore((s) => s.setDayWinnerBannerEnabled);
   const colors = useColors();
 
   const styles = makeStyles(colors);
@@ -218,6 +220,26 @@ export default function DisplaySettingsScreen() {
               </View>
             </>
           )}
+
+          <View style={styles.divider} />
+
+          <View style={styles.row}>
+            <View style={styles.rowLeft}>
+              <Text style={styles.rowLabel}>{t('settings.display.dayWinnerBanner')}</Text>
+              <Text style={styles.rowDesc}>{t('settings.display.dayWinnerBannerDesc')}</Text>
+            </View>
+            <Switch
+              value={dayWinnerBannerEnabled}
+              onValueChange={(value) => {
+                setDayWinnerBannerEnabled(value);
+                trackEvent('day_winner_banner_toggle_changed', {
+                  enabled: value ? 'true' : 'false',
+                });
+              }}
+              trackColor={{ false: colors.bg.elevated, true: colors.accent.green }}
+              thumbColor="#ffffff"
+            />
+          </View>
         </View>
 
         {/* Upcoming options */}

@@ -41,6 +41,7 @@ function DayWinnerBanner({ winnerId, matchCount }: DayWinnerBannerProps) {
   const styles = makeStyles(colors);
   const { t } = useTranslation();
   const player = useStore((s) => s.players.find((p) => p.id === winnerId));
+  const team = useStore((s) => s.teams.find((tm) => tm.code === player?.teamCode));
   const name = player?.name ?? '—';
 
   return (
@@ -50,6 +51,12 @@ function DayWinnerBanner({ winnerId, matchCount }: DayWinnerBannerProps) {
         {t('archive.matchCount', { count: matchCount }).toUpperCase()}
       </Text>
       <View style={styles.winnerLogoWrap}>
+        <View
+          style={[
+            styles.winnerCircle,
+            { backgroundColor: (team?.color ?? colors.accent.gold) + '26' },
+          ]}
+        />
         <CardAvatar teamCode={player?.teamCode} size={56} />
       </View>
       <Text style={styles.winnerName} numberOfLines={1}>
@@ -91,6 +98,7 @@ export default function ArchiveDayScreen() {
   const matchDragReorderEnabled = useStore((s) => s.matchDragReorderEnabled);
   const groupByTours = useStore((s) => s.groupByTours);
   const showAvgGoals = useStore((s) => s.showAvgGoals);
+  const dayWinnerBannerEnabled = useStore((s) => s.dayWinnerBannerEnabled);
   const roundsForOrdinal = useStore((s) =>
     viewingRound && s.archivedRounds.some((r) => r.id === viewingRound.id)
       ? s.archivedRounds
@@ -206,7 +214,9 @@ export default function ArchiveDayScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Day Winner Banner */}
-        {winner ? <DayWinnerBanner winnerId={winner} matchCount={matches.length} /> : null}
+        {winner && dayWinnerBannerEnabled ? (
+          <DayWinnerBanner winnerId={winner} matchCount={matches.length} />
+        ) : null}
 
         {/* Round standings table */}
         {standings.length > 0 && (

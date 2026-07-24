@@ -97,6 +97,14 @@ export const makeStyles = (colors: AppColors) =>
     },
     winnerLogoWrap: {
       marginVertical: Spacing.sm,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    winnerCircle: {
+      position: 'absolute',
+      width: 104,
+      height: 104,
+      borderRadius: 52,
     },
     winnerName: {
       fontFamily: FontFamily.displayBold,
