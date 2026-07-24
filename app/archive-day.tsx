@@ -36,6 +36,8 @@ interface DayWinnerBannerProps {
   matchCount: number;
 }
 
+const WINNER_CIRCLE_CARD_RATIO = 0.45;
+
 function DayWinnerBanner({ winnerId, matchCount }: DayWinnerBannerProps) {
   const colors = useColors();
   const styles = makeStyles(colors);
@@ -43,20 +45,32 @@ function DayWinnerBanner({ winnerId, matchCount }: DayWinnerBannerProps) {
   const player = useStore((s) => s.players.find((p) => p.id === winnerId));
   const team = useStore((s) => s.teams.find((tm) => tm.code === player?.teamCode));
   const name = player?.name ?? '—';
+  const [cardWidth, setCardWidth] = useState(0);
+  const circleSize = cardWidth * WINNER_CIRCLE_CARD_RATIO;
 
   return (
-    <View style={styles.winnerCard}>
+    <View
+      style={styles.winnerCard}
+      onLayout={(e) => setCardWidth(e.nativeEvent.layout.width)}
+    >
       <Text style={styles.winnerLabel}>♦ {t('archive.dayWinner').toUpperCase()} ♦</Text>
       <Text style={styles.winnerMatchCount}>
         {t('archive.matchCount', { count: matchCount }).toUpperCase()}
       </Text>
       <View style={styles.winnerLogoWrap}>
-        <View
-          style={[
-            styles.winnerCircle,
-            { backgroundColor: (team?.color ?? colors.accent.gold) + '26' },
-          ]}
-        />
+        {cardWidth > 0 && (
+          <View
+            style={[
+              styles.winnerCircle,
+              {
+                width: circleSize,
+                height: circleSize,
+                borderRadius: circleSize / 2,
+                backgroundColor: (team?.color ?? colors.accent.gold) + '26',
+              },
+            ]}
+          />
+        )}
         <CardAvatar teamCode={player?.teamCode} size={56} />
       </View>
       <Text style={styles.winnerName} numberOfLines={1}>

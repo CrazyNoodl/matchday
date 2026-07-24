@@ -80,6 +80,7 @@ export const makeStyles = (colors: AppColors) =>
       paddingVertical: Spacing.xl,
       gap: Spacing.xs,
       marginBottom: Spacing.xl,
+      overflow: 'hidden',
     },
     winnerLabel: {
       fontFamily: FontFamily.bodyBold,
@@ -102,9 +103,6 @@ export const makeStyles = (colors: AppColors) =>
     },
     winnerCircle: {
       position: 'absolute',
-      width: 104,
-      height: 104,
-      borderRadius: 52,
     },
     winnerName: {
       fontFamily: FontFamily.displayBold,
