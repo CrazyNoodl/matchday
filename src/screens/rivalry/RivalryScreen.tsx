@@ -15,6 +15,7 @@ import {
   SegmentedControl,
   StatsRow,
   Toggle,
+  EmptyState,
 } from '@/components';
 import { STAT_DEF_MAP } from '@/utils/statDefinitions';
 import { formatShortDate } from '@/utils/dateFormat';
@@ -59,7 +60,7 @@ export function RivalryScreen({ playerIdA, playerIdB, tournamentOnly }: RivalryS
         <GlowBackground />
         <NavHeader title={t('rivalry.title').toUpperCase()} onBack={goBack} />
         <View style={styles.center}>
-          <Text style={styles.emptyText}>{t('rivalry.noData')}</Text>
+          <EmptyState message={t('rivalry.noData')} />
         </View>
       </SafeAreaView>
     );

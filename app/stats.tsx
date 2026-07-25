@@ -21,6 +21,8 @@ import {
   SegmentedControl,
   PlayerRankCard,
   H2HCard,
+  EmptyState,
+  StatTile,
 } from '@/components';
 import type { Match, Player } from '@/store/types';
 import { useTranslation } from 'react-i18next';
@@ -192,22 +194,16 @@ function RankingTab({ standings, players, totalGoals, matchDaysPlayed }: Ranking
         );
       })}
 
-      {standings.length === 0 && (
-        <View style={styles.emptyWrap}>
-          <Text style={styles.emptyText}>{t('stats.noMatches')}</Text>
-        </View>
-      )}
+      {standings.length === 0 && <EmptyState message={t('stats.noMatches')} />}
 
       {/* Stat tiles */}
       <View style={styles.tilesRow}>
-        <View style={styles.statTile}>
-          <Text style={styles.statTileLabel}>{t('stats.matchDaysPlayed').toUpperCase()}</Text>
-          <Text style={styles.statTileValue}>{matchDaysPlayed}</Text>
-        </View>
-        <View style={styles.statTile}>
-          <Text style={styles.statTileLabel}>{t('stats.goalsScored').toUpperCase()}</Text>
-          <Text style={[styles.statTileValue, styles.statTileValueGreen]}>{totalGoals}</Text>
-        </View>
+        <StatTile label={t('stats.matchDaysPlayed').toUpperCase()} value={matchDaysPlayed} />
+        <StatTile
+          label={t('stats.goalsScored').toUpperCase()}
+          value={totalGoals}
+          highlight
+        />
       </View>
     </View>
   );
@@ -246,11 +242,7 @@ function H2HTab({ pairs, tournamentOnly }: H2HTabProps) {
         </TouchableOpacity>
       ))}
 
-      {pairs.length === 0 && (
-        <View style={styles.emptyWrap}>
-          <Text style={styles.emptyText}>{t('stats.noRivalries')}</Text>
-        </View>
-      )}
+      {pairs.length === 0 && <EmptyState message={t('stats.noRivalries')} />}
     </View>
   );
 }

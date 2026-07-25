@@ -17,6 +17,7 @@ import {
   DropdownMenu,
   ConfirmDialog,
   DraggableMatchBlock,
+  NavHeader,
 } from '@/components';
 import { useDropdownMenu } from '@/hooks/useDropdownMenu';
 import { groupMatchesByTour } from '@/utils/matchTours';
@@ -206,27 +207,14 @@ export default function MatchdayScreen() {
       <GlowBackground />
 
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backBtn}
-          onPress={() => router.push('/')}
-          activeOpacity={0.7}
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-        >
-          <Text style={styles.backChevron}>‹</Text>
-        </TouchableOpacity>
-        <View style={styles.headerCenter}>
-          <Text style={styles.headerTitle} numberOfLines={1} ellipsizeMode="tail">
-            {tournamentName}
-          </Text>
-          <Text style={styles.headerSubtitle}>
-            {tournamentRanked
-              ? t('matchday.round', { n: round })
-              : t('common.friendly').toUpperCase()}
-          </Text>
-        </View>
-        <View style={styles.headerRight}>
-          {roundOpen ? (
+      <NavHeader
+        title={tournamentName}
+        subtitle={
+          tournamentRanked ? t('matchday.round', { n: round }) : t('common.friendly').toUpperCase()
+        }
+        onBack={() => router.push('/')}
+        rightElement={
+          roundOpen ? (
             <TouchableOpacity
               ref={roundMenu.anchorRef}
               style={styles.dotsBtn}
@@ -243,9 +231,9 @@ export default function MatchdayScreen() {
             >
               <Text style={styles.statsBtnIcon}>📊</Text>
             </TouchableOpacity>
-          )}
-        </View>
-      </View>
+          )
+        }
+      />
 
       <ScrollView
         style={styles.scroll}

@@ -1,11 +1,11 @@
 import React, { useCallback, useRef, useState } from 'react';
-import { View, Text, Image, ScrollView, Switch, TouchableOpacity, type NativeSyntheticEvent, type NativeScrollEvent } from 'react-native';
+import { View, Text, Image, ScrollView, TouchableOpacity, type NativeSyntheticEvent, type NativeScrollEvent } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '@/store';
 import { useColors } from '@/theme';
-import { Button } from '@/components';
+import { Button, Toggle } from '@/components';
 import { makeStyles, SCREEN_WIDTH } from '@/screens/welcome/welcome.styles';
 
 const SLIDES = [
@@ -86,18 +86,13 @@ export default function WelcomeScreen() {
             <Text style={styles.title}>{t(`welcome.${slide.key}.title`)}</Text>
             <Text style={styles.desc}>{t(`welcome.${slide.key}.desc`)}</Text>
             {slide.key === 'slide5' && (
-              <View style={styles.toggleRow}>
-                <View style={styles.toggleLabelBlock}>
-                  <Text style={styles.toggleLabel}>{t('demo.label')}</Text>
-                  <Text style={styles.toggleHint}>{t('welcome.demoToggleHint')}</Text>
-                </View>
-                <Switch
-                  value={demoEnabled}
-                  onValueChange={setDemoEnabled}
-                  trackColor={{ false: colors.bg.elevated, true: colors.accent.yellow }}
-                  thumbColor={colors.text.primary}
-                />
-              </View>
+              <Toggle
+                label={t('demo.label')}
+                subtitle={t('welcome.demoToggleHint')}
+                value={demoEnabled}
+                onValueChange={setDemoEnabled}
+                accentColor={colors.accent.yellow}
+              />
             )}
           </View>
         ))}

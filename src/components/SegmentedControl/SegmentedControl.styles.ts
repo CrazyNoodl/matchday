@@ -62,4 +62,36 @@ export const makeStyles = (colors: AppColors) =>
     textPillInactive: {
       color: colors.text.muted,
     },
+
+    trackChip: {
+      flexDirection: 'row',
+      gap: Spacing.sm,
+    },
+    segChip: {
+      backgroundColor: colors.bg.surface,
+      borderRadius: Radius.full,
+      borderWidth: 1,
+      borderColor: colors.border.default,
+      paddingHorizontal: Spacing.md,
+      paddingVertical: 5,
+    },
+    segChipActiveSolid: {
+      backgroundColor: colors.accent.green,
+      borderColor: colors.accent.green,
+    },
+    segChipActiveSubtle: {
+      borderColor: colors.accent.greenBorder,
+      backgroundColor: colors.accent.greenSubtle,
+    },
+    textChip: {
+      fontFamily: FontFamily.bodySemiBold,
+      fontSize: FontSize.sm,
+      color: colors.text.muted,
+    },
+    textChipActiveSolid: {
+      color: colors.accent.greenDark,
+    },
+    textChipActiveSubtle: {
+      color: colors.accent.green,
+    },
   });

@@ -180,15 +180,4 @@ export const makeStyles = (colors: AppColors) =>
       textTransform: 'uppercase',
       textAlign: 'center',
     },
-
-    // Empty
-    emptyWrap: {
-      paddingVertical: Spacing['2xl'],
-      alignItems: 'center',
-    },
-    emptyText: {
-      fontFamily: FontFamily.body,
-      fontSize: FontSize.base,
-      color: colors.text.placeholder,
-    },
   });

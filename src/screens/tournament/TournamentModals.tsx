@@ -1,10 +1,9 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, Platform } from 'react-native';
-import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { useTranslation } from 'react-i18next';
 import { useColors } from '@/theme';
-import { Sheet, SheetHeader, SheetFooter, ConfirmDialog } from '@/components';
-import { makeSheetStyles, makeInputStyles } from './tournament.styles';
+import { Sheet, ConfirmDialog, TextInputEditSheet } from '@/components';
+import { makeSheetStyles } from './tournament.styles';
 
 // ---------------------------------------------------------------------------
 // Tour settings sheet
@@ -124,34 +123,20 @@ export function EditTournamentNameSheet({
   onSave,
 }: EditTournamentNameSheetProps) {
   const { t } = useTranslation();
-  const colors = useColors();
-  const sheetStyles = makeSheetStyles(colors);
-  const inputStyles = makeInputStyles(colors);
 
   return (
-    <Sheet visible={visible} onClose={onClose} avoidKeyboard>
-      <View style={sheetStyles.sheet}>
-        <SheetHeader title={t('tournament.rename.title').toUpperCase()} />
-        <BottomSheetTextInput
-          style={inputStyles.input}
-          value={value}
-          onChangeText={onChangeValue}
-          placeholder={t('tournament.rename.placeholder')}
-          placeholderTextColor={colors.text.placeholder}
-          autoFocus
-          returnKeyType="done"
-          onSubmitEditing={onSave}
-        />
-        <SheetFooter
-          cancelLabel={t('tournament.rename.cancel')}
-          onCancel={onClose}
-          confirmLabel={t('tournament.rename.save')}
-          onConfirm={onSave}
-          confirmDisabled={!value.trim()}
-        />
-        {Platform.OS === 'ios' && <View style={{ height: 16 }} />}
-      </View>
-    </Sheet>
+    <TextInputEditSheet
+      visible={visible}
+      onClose={onClose}
+      title={t('tournament.rename.title').toUpperCase()}
+      value={value}
+      onChangeValue={onChangeValue}
+      onSave={onSave}
+      placeholder={t('tournament.rename.placeholder')}
+      confirmDisabled={!value.trim()}
+      cancelLabel={t('tournament.rename.cancel')}
+      confirmLabel={t('tournament.rename.save')}
+    />
   );
 }
 

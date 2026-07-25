@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useColors } from '@/theme';
 import { useIsOnline } from '@/hooks/useIsOnline';
-import { NavHeader, Avatar, SectionLabel, StatsRow, GlowBackground } from '@/components';
+import { NavHeader, Avatar, SectionLabel, StatsRow, GlowBackground, EmptyState } from '@/components';
 import { makeStyles } from '@/screens/match/match.styles';
 import { useMatchDetail } from '@/screens/match/useMatchDetail';
 import { MatchModals } from '@/screens/match/MatchModals';
@@ -60,7 +60,7 @@ export default function MatchDetailScreen() {
           {isLoading ? (
             <ActivityIndicator color={colors.accent.green} size="large" />
           ) : (
-            <Text style={styles.emptyText}>{t('matchDetail.noData')}</Text>
+            <EmptyState message={t('matchDetail.noData')} />
           )}
         </View>
       </SafeAreaView>

@@ -77,11 +77,7 @@ export function SharedMatchdayStatsScreen({ shareId }: { shareId: string }) {
           ]}
         />
 
-        {isEmpty && (
-          <View style={styles.emptyWrap}>
-            <Text style={styles.emptyText}>{t('matchdayStats.noStats')}</Text>
-          </View>
-        )}
+        {isEmpty && <EmptyState message={t('matchdayStats.noStats')} />}
 
         {tab === 'records' &&
           records.map((record) => {

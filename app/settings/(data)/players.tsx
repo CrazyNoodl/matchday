@@ -1,14 +1,23 @@
-import React, { useState, useCallback } from 'react';
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useCallback } from 'react';
+import { View, ScrollView } from 'react-native';
 import { useGoBack } from '@/utils/useGoBack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStore } from '@/store';
 import { useColors } from '@/theme';
-import { NavHeader, Avatar, EmptyState, GlowBackground, PlayerEditSheet } from '@/components';
+import {
+  NavHeader,
+  Avatar,
+  EmptyState,
+  GlowBackground,
+  PlayerEditSheet,
+  EditableEntityRow,
+  AddEntityButton,
+  DeleteGuardDialogs,
+} from '@/components';
 import { useTranslation } from 'react-i18next';
 import { makeStyles } from '@/screens/settings/players/players.styles';
-import { PlayerDialogs } from '@/screens/settings/players/PlayerDialogs';
 import { usePlayerEditForm } from '@/hooks/usePlayerEditForm';
+import { useDeleteGuard } from '@/hooks/useDeleteGuard';
 
 export default function PlayersScreen() {
   const goBack = useGoBack();
@@ -24,10 +33,6 @@ export default function PlayersScreen() {
   const updatePlayer = useStore((s) => s.updatePlayer);
   const deletePlayer = useStore((s) => s.deletePlayer);
 
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [showCannotDelete, setShowCannotDelete] = useState(false);
-  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
-
   const playerForm = usePlayerEditForm({
     addPlayer,
     updatePlayer,
@@ -36,30 +41,13 @@ export default function PlayersScreen() {
     players,
   });
 
-  const handleDelete = useCallback(
-    (id: string) => {
-      const allMatches = [
-        ...matches,
-        ...archivedRounds.flatMap((r) => r.matches),
-        ...closedTournaments.flatMap((t) => t.rounds.flatMap((r) => r.matches)),
-      ];
-      if (allMatches.some((m) => m.aId === id || m.bId === id)) {
-        setShowCannotDelete(true);
-        return;
-      }
-      setPendingDeleteId(id);
-      setShowDeleteConfirm(true);
-    },
-    [matches, archivedRounds, closedTournaments],
-  );
-
-  const confirmDelete = useCallback(() => {
-    if (pendingDeleteId) {
-      deletePlayer(pendingDeleteId);
-    }
-    setShowDeleteConfirm(false);
-    setPendingDeleteId(null);
-  }, [pendingDeleteId, deletePlayer]);
+  const deleteGuard = useDeleteGuard({
+    matches,
+    archivedRounds,
+    closedTournaments,
+    isReferencedBy: (m, id) => m.aId === id || m.bId === id,
+    onDelete: deletePlayer,
+  });
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
@@ -69,14 +57,11 @@ export default function PlayersScreen() {
         subtitle={t('settings.data.playersCount', { count: players.length })}
         onBack={() => goBack()}
         rightElement={
-          <TouchableOpacity
+          <AddEntityButton
             testID="players-add-button"
-            style={styles.addBtn}
+            label={'+ ' + t('common.add').toUpperCase()}
             onPress={playerForm.openCreate}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.addBtnText}>{'+ ' + t('common.add').toUpperCase()}</Text>
-          </TouchableOpacity>
+          />
         }
       />
 
@@ -93,31 +78,14 @@ export default function PlayersScreen() {
           />
         ) : (
           players.map((player) => (
-            <View key={player.id} style={styles.playerRow}>
-              <Avatar playerId={player.id} size="md" />
-              <View style={styles.playerInfo}>
-                <Text style={styles.playerName}>{player.name}</Text>
-                {player.nick && <Text style={styles.playerNick}>@{player.nick}</Text>}
-              </View>
-              <View style={styles.playerActions}>
-                <TouchableOpacity
-                  style={styles.actionBtn}
-                  onPress={() => playerForm.openEdit(player)}
-                  activeOpacity={0.75}
-                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                >
-                  <Text style={styles.editIcon}>✏️</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.actionBtn, styles.deleteBtn]}
-                  onPress={() => handleDelete(player.id)}
-                  activeOpacity={0.75}
-                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                >
-                  <Text style={styles.deleteIcon}>×</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
+            <EditableEntityRow
+              key={player.id}
+              leading={<Avatar playerId={player.id} size="md" />}
+              title={player.name}
+              subtitle={player.nick ? `@${player.nick}` : undefined}
+              onEdit={() => playerForm.openEdit(player)}
+              onDelete={() => deleteGuard.requestDelete(player.id)}
+            />
           ))
         )}
         <View style={{ height: 40 }} />
@@ -139,12 +107,15 @@ export default function PlayersScreen() {
         onSave={playerForm.save}
       />
 
-      <PlayerDialogs
-        showCannotDelete={showCannotDelete}
-        onCloseCannotDelete={() => setShowCannotDelete(false)}
-        showDeleteConfirm={showDeleteConfirm}
-        onCloseDeleteConfirm={() => setShowDeleteConfirm(false)}
-        onConfirmDelete={confirmDelete}
+      <DeleteGuardDialogs
+        cannotDeleteDescription={t('players.cannotDelete')}
+        deleteConfirmTitle={t('players.deleteConfirm').toUpperCase()}
+        deleteConfirmDescription={t('players.deleteDesc')}
+        showCannotDelete={deleteGuard.showCannotDelete}
+        onCloseCannotDelete={deleteGuard.closeCannotDelete}
+        showDeleteConfirm={deleteGuard.showDeleteConfirm}
+        onCloseDeleteConfirm={deleteGuard.closeDeleteConfirm}
+        onConfirmDelete={deleteGuard.confirmDelete}
       />
     </SafeAreaView>
   );

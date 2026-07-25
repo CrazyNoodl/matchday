@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useGoBack } from '@/utils/useGoBack';
 import { useColors } from '@/theme';
-import { NavHeader, Avatar, GlowBackground, SegmentedControl } from '@/components';
+import { NavHeader, Avatar, GlowBackground, SegmentedControl, EmptyState } from '@/components';
 import { STAT_DEF_MAP } from '@/utils/statDefinitions';
 import { formatShortDate } from '@/utils/dateFormat';
 import type { DayStatRecord, DayStatComparison } from '@/utils/matchdayStatsAggregation';
@@ -36,7 +36,7 @@ export function MatchdayStatsScreen() {
         <GlowBackground />
         <NavHeader title={t('matchdayStats.title').toUpperCase()} onBack={goBack} />
         <View style={styles.center}>
-          <Text style={styles.emptyText}>{t('matchdayStats.noStats')}</Text>
+          <EmptyState message={t('matchdayStats.noStats')} />
         </View>
       </SafeAreaView>
     );
@@ -70,11 +70,7 @@ export function MatchdayStatsScreen() {
           ]}
         />
 
-        {isEmpty && (
-          <View style={styles.emptyWrap}>
-            <Text style={styles.emptyText}>{t('matchdayStats.noStats')}</Text>
-          </View>
-        )}
+        {isEmpty && <EmptyState message={t('matchdayStats.noStats')} />}
 
         {tab === 'records' && (
           <>

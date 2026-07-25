@@ -19,38 +19,6 @@ export const makeStyles = (colors: AppColors) =>
     },
 
     // ---- Header ----
-    header: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingHorizontal: Spacing.lg,
-      paddingVertical: Spacing.md,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.border.default,
-    },
-    backBtn: {
-      width: 40,
-      height: 40,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    backChevron: {
-      fontFamily: FontFamily.display,
-      fontSize: FontSize['2xl'],
-      color: colors.text.secondary,
-      lineHeight: 28,
-    },
-    headerCenter: {
-      flex: 1,
-      alignItems: 'center',
-      gap: Spacing.xs,
-    },
-    headerTitle: {
-      fontFamily: FontFamily.displayBold,
-      fontSize: FontSize.xl,
-      color: colors.text.primary,
-      letterSpacing: 0.3,
-    },
-
     // ---- Dots button ----
     dotsBtn: {
       width: 32,
@@ -200,23 +168,5 @@ export const makeStyles = (colors: AppColors) =>
       fontFamily: FontFamily.body,
       fontSize: FontSize.sm,
       color: colors.text.muted,
-    },
-
-    // ---- Edit date sheet ----
-    dateSheet: {
-      backgroundColor: colors.bg.sheet,
-      paddingHorizontal: Spacing.xl,
-      paddingTop: Spacing.lg,
-      paddingBottom: Spacing['2xl'],
-    },
-    dateInputError: {
-      borderColor: colors.accent.red,
-    },
-    dateErrorText: {
-      fontFamily: FontFamily.body,
-      fontSize: FontSize.xs,
-      color: colors.accent.red,
-      marginTop: -Spacing.sm,
-      marginBottom: Spacing.md,
     },
   });

@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStore } from '@/store';
 import { calculateStandings } from '@/utils/standings';
 import { formatShortDate } from '@/utils/dateFormat';
@@ -16,6 +16,7 @@ import {
   NewRoundModal,
   StandingsTable,
   getStandingsTableColumns,
+  NavHeader,
 } from '@/components';
 import { useTranslation } from 'react-i18next';
 import { makeStyles } from '@/screens/tournament/tournament.styles';
@@ -84,7 +85,6 @@ export default function TournamentScreen() {
     [allRankedMatches, tournamentPlayers],
   );
   const leader = standings[0] ? players.find((p) => p.id === standings[0].playerId) : null;
-  const insets = useSafeAreaInsets();
 
   const roundOrdinals = getRankedRoundOrdinals(archivedRounds);
   const rankedCompleted = archivedRounds.filter((r) => r.ranked).length;
@@ -117,36 +117,22 @@ export default function TournamentScreen() {
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
       <GlowBackground />
-      <View style={[styles.statusBarFill, { height: insets.top }]} />
 
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backBtn}
-          onPress={() => router.push('/')}
-          activeOpacity={0.7}
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-        >
-          <Text style={styles.backChevron}>‹</Text>
-        </TouchableOpacity>
-
-        <View style={styles.headerCenter}>
-          <Text style={styles.headerTitle} numberOfLines={1}>
-            {tournamentName || t('tournament.sheet.title').toUpperCase()}
-          </Text>
-          <Text style={styles.headerSubtitle} numberOfLines={1}>
-            {headerSubtitle}
-          </Text>
-        </View>
-
-        <TouchableOpacity
-          style={styles.dotsBtn}
-          onPress={() => setModal('tourSettings')}
-          activeOpacity={0.75}
-        >
-          <Text style={styles.dotsIcon}>···</Text>
-        </TouchableOpacity>
-      </View>
+      <NavHeader
+        title={tournamentName || t('tournament.sheet.title').toUpperCase()}
+        subtitle={headerSubtitle}
+        onBack={() => router.push('/')}
+        rightElement={
+          <TouchableOpacity
+            style={styles.dotsBtn}
+            onPress={() => setModal('tourSettings')}
+            activeOpacity={0.75}
+          >
+            <Text style={styles.dotsIcon}>···</Text>
+          </TouchableOpacity>
+        }
+      />
 
       <ScrollView
         style={styles.scroll}

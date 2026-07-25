@@ -9,54 +9,6 @@ export const makeStyles = (colors: AppColors) =>
       flex: 1,
       backgroundColor: colors.bg.base,
     },
-    statusBarFill: {
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      right: 0,
-      backgroundColor: colors.bg.surface,
-    },
-    // ---- Header ----
-    header: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingHorizontal: Spacing.lg,
-      paddingVertical: Spacing.md,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.border.default,
-      backgroundColor: colors.bg.surface,
-    },
-    backBtn: {
-      width: 40,
-      height: 40,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    backChevron: {
-      fontFamily: FontFamily.display,
-      fontSize: FontSize['2xl'],
-      color: colors.text.secondary,
-      lineHeight: 28,
-    },
-    headerCenter: {
-      flex: 1,
-      alignItems: 'center',
-      gap: 2,
-      paddingHorizontal: Spacing.sm,
-    },
-    headerTitle: {
-      fontFamily: FontFamily.display,
-      fontSize: 21,
-      color: colors.text.primary,
-      letterSpacing: 0.3,
-      textAlign: 'center',
-    },
-    headerSubtitle: {
-      fontFamily: FontFamily.body,
-      fontSize: FontSize.xs,
-      color: colors.text.muted,
-      textAlign: 'center',
-    },
     dotsBtn: {
       width: 32,
       height: 32,
@@ -336,26 +288,5 @@ export const makeSheetStyles = (colors: AppColors) =>
       fontSize: FontSize.xl,
       color: colors.text.muted,
       lineHeight: 24,
-    },
-  });
-
-// ---------------------------------------------------------------------------
-// Input sheet styles (rename modal)
-// ---------------------------------------------------------------------------
-
-export const makeInputStyles = (colors: AppColors) =>
-  StyleSheet.create({
-    input: {
-      backgroundColor: colors.bg.elevated,
-      borderRadius: Radius.md,
-      borderWidth: 1,
-      borderColor: colors.border.medium,
-      paddingHorizontal: Spacing.lg,
-      paddingVertical: Spacing.md,
-      fontFamily: FontFamily.body,
-      fontSize: FontSize.md,
-      color: colors.text.primary,
-      marginTop: Spacing.lg,
-      marginBottom: Spacing.lg,
     },
   });
