@@ -38,6 +38,22 @@ export function patchMatchEverywhere(
   };
 }
 
+// Bumps backupStaleEditCount when a store update edits a match whose
+// matchday is already archived and a backup already exists to be stale
+// relative to — i.e. this edit won't be reflected until the next backup is
+// made. Editing the still-open round's own matches is normal, expected
+// churn and never counts (there's no "closed matchday" for it to be stale
+// against yet).
+export function noteBackupStaleness(
+  s: { archivedRounds: ArchivedRound[]; lastBackupAt: string | null; backupStaleEditCount: number },
+  id: string,
+): { backupStaleEditCount: number } | Record<string, never> {
+  if (!s.lastBackupAt) return {};
+  const isArchivedMatch = s.archivedRounds.some((r) => r.matches.some((m) => m.id === id));
+  if (!isArchivedMatch) return {};
+  return { backupStaleEditCount: s.backupStaleEditCount + 1 };
+}
+
 // The relative storage path segment holding a match's media, nested under the
 // tournament id. New-layout matches (created after #67) carry their own
 // `mediaFolder` (the match folder name) — prefixed with the round folder when

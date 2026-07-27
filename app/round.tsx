@@ -26,6 +26,7 @@ import { makeStyles } from '@/screens/round/round.styles';
 import { useAddMatchFlow } from '@/screens/round/useAddMatchFlow';
 import { AddMatchSheet } from '@/screens/round/AddMatchSheet';
 import { trackEvent } from '@/analytics';
+import { createBackup } from '@/utils/backup';
 import {
   EndRoundDialog,
   NeedEqualDialog,
@@ -164,6 +165,9 @@ export default function MatchdayScreen() {
     const winnerId = isTrueDraw || !s[0] ? null : s[0].playerId;
     setLocalWinnerId(winnerId);
     finishRound();
+    // Fire-and-forget: createBackup() never throws (it catches + reports
+    // internally), and shouldn't block or delay the winner celebration.
+    void createBackup('auto');
     trackEvent('round_finished', { matchCount: matches.length });
     setModal('winner');
   }, [matches, roundPlayers, finishRound, setModal]);

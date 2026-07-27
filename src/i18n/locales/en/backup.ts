@@ -2,9 +2,18 @@ const backup = {
   title: 'Backup & Restore',
   infoTitle: 'Local JSON backup',
   infoDesc:
-    'Creates a snapshot of your players, teams, and tournaments as a file on this device — independent of cloud sync.',
+    'Creates a snapshot of your players, teams, and tournaments as a file on this device — independent of cloud sync. Tap Create Backup below to make one manually, anytime.',
+  autoBackupDesc:
+    'A backup is also created automatically every time you finish a matchday. The last {{count}} automatic backups are kept — older ones are removed automatically; backups you create manually are never deleted this way.',
   mediaLimitationNote:
     'Player photos, team logos, and match photos/videos are not included in this backup.',
+  origin: {
+    auto: 'Auto',
+    manual: 'Manual',
+  },
+  staleNotice:
+    "{{count}} change(s) made after the matchday closed aren't in your last backup yet.",
+  staleUpdateBtn: 'Update Backup Now',
   demoModeWarning: 'Exit Demo Mode in Settings before creating or restoring a backup.',
   createSection: 'Create',
   createBtn: 'Create Backup',

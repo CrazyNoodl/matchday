@@ -10,7 +10,7 @@ import {
 import { type ParsedMatch } from '@/utils/importRound';
 import { calculateStandings, isTopTied } from '@/utils/standings';
 import { Colors } from '@/theme/colors';
-import { initials, patchMatchEverywhere, matchMediaFolder } from '../sliceHelpers';
+import { initials, patchMatchEverywhere, matchMediaFolder, noteBackupStaleness } from '../sliceHelpers';
 import { buildRoundFolder, deleteStorageFolder } from '@/supabase/storage';
 import type { RootState } from '../index';
 
@@ -175,14 +175,19 @@ export const createTournamentSlice: StateCreator<RootState, [], [], TournamentSl
   },
 
   updateMatchScore: (id, aScore, bScore) =>
-    set((s) => patchMatchEverywhere(s, id, { aScore, bScore })),
+    set((s) => ({ ...patchMatchEverywhere(s, id, { aScore, bScore }), ...noteBackupStaleness(s, id) })),
 
-  updateMatchMedia: (id, media) => set((s) => patchMatchEverywhere(s, id, { media })),
+  updateMatchMedia: (id, media) =>
+    set((s) => ({ ...patchMatchEverywhere(s, id, { media }), ...noteBackupStaleness(s, id) })),
 
-  updateMatchNote: (id, note) => set((s) => patchMatchEverywhere(s, id, { note })),
+  updateMatchNote: (id, note) =>
+    set((s) => ({ ...patchMatchEverywhere(s, id, { note }), ...noteBackupStaleness(s, id) })),
 
   updateMatchStats: (id, stats) =>
-    set((s) => patchMatchEverywhere(s, id, { statsOverride: stats })),
+    set((s) => ({
+      ...patchMatchEverywhere(s, id, { statsOverride: stats }),
+      ...noteBackupStaleness(s, id),
+    })),
 
   swapMatchSides: (id) =>
     set((s) => {
