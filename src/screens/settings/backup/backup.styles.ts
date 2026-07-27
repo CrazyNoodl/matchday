@@ -51,6 +51,37 @@ export const makeStyles = (colors: AppColors) =>
       paddingLeft: Spacing.xs,
     },
 
+    // Stale-backup notice — edits made to an already-closed matchday since
+    // the last backup, which that backup doesn't cover yet
+    staleCard: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: Spacing.md,
+      backgroundColor: colors.accent.blueSubtle,
+      borderWidth: 1,
+      borderColor: 'rgba(106,166,255,0.28)',
+      borderRadius: Radius.xl,
+      padding: Spacing.lg,
+    },
+    staleText: {
+      flex: 1,
+      fontFamily: FontFamily.body,
+      fontSize: FontSize.sm,
+      color: colors.text.primary,
+      lineHeight: 18,
+    },
+    staleBtn: {
+      backgroundColor: colors.accent.blue,
+      borderRadius: Radius.md,
+      paddingVertical: Spacing.sm,
+      paddingHorizontal: Spacing.md,
+    },
+    staleBtnText: {
+      fontFamily: FontFamily.bodySemiBold,
+      fontSize: FontSize.xs,
+      color: '#fff',
+    },
+
     // Demo-mode guard
     warnCard: {
       flexDirection: 'row',

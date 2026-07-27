@@ -18,6 +18,7 @@ import {
   pickAndReadBackupFile,
   validateBackupFile,
   applyBackupLocally,
+  AUTO_BACKUP_RETENTION,
   type BackupMeta,
   type BackupFile,
 } from '@/utils/backup';
@@ -45,6 +46,7 @@ export default function BackupScreen() {
   const styles = makeStyles(colors);
   const { t } = useTranslation();
   const demoMode = useStore((s) => s.demoMode);
+  const backupStaleEditCount = useStore((s) => s.backupStaleEditCount);
 
   const [backups, setBackups] = useState<BackupMeta[]>([]);
   const [loadingList, setLoadingList] = useState(true);
@@ -161,12 +163,13 @@ export default function BackupScreen() {
   const handleConfirmImport = async () => {
     if (!pickedFile) return;
     const data = pickedFile.data;
+    const exportedAt = pickedFile.exportedAt;
     setShowImportConfirm(false);
     setPickedFile(null);
     setStatus(null);
     setSyncFailed(false);
     setRestoring(true);
-    applyBackupLocally(data);
+    applyBackupLocally(data, exportedAt);
 
     if (supabaseConfigured && !useStore.getState().demoMode) {
       const ok = await pushToCloud();
@@ -206,8 +209,29 @@ export default function BackupScreen() {
         <View style={styles.infoCard}>
           <Text style={styles.infoTitle}>{t('backup.infoTitle')}</Text>
           <Text style={styles.infoDesc}>{t('backup.infoDesc')}</Text>
+          <Text style={styles.infoDesc}>
+            {t('backup.autoBackupDesc', { count: AUTO_BACKUP_RETENTION })}
+          </Text>
           <Text style={styles.infoNote}>{t('backup.mediaLimitationNote')}</Text>
         </View>
+
+        {/* Stale-backup notice — edits made to an already-closed matchday
+            since the last backup, which that backup doesn't cover yet */}
+        {backupStaleEditCount > 0 && (
+          <View style={styles.staleCard}>
+            <Text style={styles.staleText}>
+              {t('backup.staleNotice', { count: backupStaleEditCount })}
+            </Text>
+            <TouchableOpacity
+              style={styles.staleBtn}
+              onPress={handleCreateBackup}
+              disabled={actionsDisabled || creating}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.staleBtnText}>{t('backup.staleUpdateBtn').toUpperCase()}</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* Demo mode guard */}
         {demoMode && (
@@ -266,7 +290,9 @@ export default function BackupScreen() {
                   >
                     <View style={styles.backupInfo}>
                       <Text style={styles.backupDate}>{formatBackupDate(meta.exportedAt)}</Text>
-                      <Text style={styles.backupSize}>{formatBytes(meta.sizeBytes)}</Text>
+                      <Text style={styles.backupSize}>
+                        {formatBytes(meta.sizeBytes)} · {t(`backup.origin.${meta.origin}`)}
+                      </Text>
                     </View>
                     <View style={styles.backupActions}>
                       <TouchableOpacity
