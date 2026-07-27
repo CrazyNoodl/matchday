@@ -84,6 +84,12 @@ export default function TournamentScreen() {
 
   const hasFriendlyMatches = allFriendlyMatches.length > 0;
 
+  const friendlyRoundsCount = useMemo(
+    () =>
+      archivedRounds.filter((r) => !r.ranked).length + (!tournamentRanked && roundOpen ? 1 : 0),
+    [archivedRounds, tournamentRanked, roundOpen],
+  );
+
   const standingsMatches = useMemo(
     () => (includeFriendly ? [...allRankedMatches, ...allFriendlyMatches] : allRankedMatches),
     [includeFriendly, allRankedMatches, allFriendlyMatches],
@@ -166,7 +172,7 @@ export default function TournamentScreen() {
           <Toggle
             label={
               hasFriendlyMatches
-                ? t('tournament.includeFriendlyCount', { count: allFriendlyMatches.length })
+                ? t('tournament.includeFriendlyCount', { count: friendlyRoundsCount })
                 : t('tournament.includeFriendly')
             }
             subtitle={

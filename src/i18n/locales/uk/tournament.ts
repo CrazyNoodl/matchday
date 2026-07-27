@@ -1,7 +1,7 @@
 const tournament = {
   standings: 'Таблиця турніру',
   includeFriendly: 'Включити усі товариські матчі',
-  includeFriendlyCount: 'Включити товариські матчі ({{count}})',
+  includeFriendlyCount: 'Включити товариські матчдеї ({{count}})',
   includeFriendlyDesc: 'Враховувати також товариські раунди в таблиці та списку нижче',
   includeFriendlyEmpty: 'У цьому турнірі ще немає товариських матчів',
   headerSubtitle: 'Раунд {{round}} / {{total}} · {{date}} · {{played}} раундів зіграно',
