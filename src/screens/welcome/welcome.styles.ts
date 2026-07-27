@@ -32,7 +32,6 @@ export const makeStyles = (colors: AppColors) =>
       gap: Spacing.lg,
     },
     screenshotWrap: {
-      flex: 1,
       width: '100%',
       maxWidth: '100%',
       aspectRatio: SCREENSHOT_ASPECT_RATIO,
@@ -48,7 +47,6 @@ export const makeStyles = (colors: AppColors) =>
       height: '100%',
     },
     iconWrap: {
-      flex: 1,
       width: '100%',
       maxWidth: '100%',
       aspectRatio: SCREENSHOT_ASPECT_RATIO,
