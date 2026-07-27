@@ -81,7 +81,15 @@ const API_ENDPOINT =
 
 const ANTHROPIC_API_KEY = process.env.EXPO_PUBLIC_ANTHROPIC_API_KEY ?? '';
 
-const PROMPT = `This is a screenshot of a football/soccer match statistics screen (EA FC, FIFA, or similar). The image may be rotated or photographed at an angle — extract what you can see.
+const PROMPT = `This is a screenshot of a football/soccer match statistics screen (EA FC26). The image may be rotated or photographed at an angle — extract what you can see.
+
+CRITICAL - avoid row misalignment from perspective distortion:
+When a photo is taken at an angle, rows of text can appear vertically shifted relative to each other, causing a label to visually line up with numbers from the row above or below its true row. Before assigning values, treat each stat row as a single horizontal band: the label and its two numbers (home/away) must belong together based on the overall row spacing pattern of the table, not just which pixels look closest. If perspective tilt makes a row look shifted, use the spacing of neighboring rows to infer the correct grouping rather than the nearest visual match.
+
+Self-check before finalizing your answer:
+- Count the visible stat rows in the image, and make sure your output has exactly that many entries, in the same top-to-bottom order shown.
+- Sanity-check pairs against what's plausible for that stat: possession home+away should sum close to 100; cards/fouls/offsides/corners are small integers, not decimals; percentage-based stats (possession, accuracy, dribbles) stay within 0-100.
+- If any row's values seem implausible for that stat label (e.g. a "possession" row showing values typical of a "cards" row), you have likely shifted by one row — re-check against the row above and below and correct it.
 
 Return ONLY raw JSON, no markdown:
 {
@@ -103,7 +111,7 @@ Rules:
 - "label": short English name for the stat
 - "home": LEFT team value as number only (strip % sign, keep decimals like 4.4)
 - "away": RIGHT team value as number only
-- "confidence": "high" = clearly readable, "medium" = slightly unclear, "low" = guessed or blurry
+- "confidence": "high" = clearly readable, "medium" = slightly unclear or row alignment was ambiguous, "low" = guessed or blurry
 - Include EVERY stat row visible, even if uncertain
 - For percentage stats (possession, accuracy, dribbles): store the number without % sign
 - Do NOT include "goals"/"score"/"result" — that's the match score, not a stat row`;
