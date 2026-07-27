@@ -642,9 +642,14 @@ export function useMatchDetail() {
   const endStatHold = useCallback(
     (key: string, side: 'a' | 'b', sign: 1 | -1, isPercent: boolean, step: number) => {
       const wasHolding = isHoldingRef.current;
+      // If the hold threshold fired but the repeat interval never ticked (e.g.
+      // released right on the 350ms edge, or main-thread jank delayed the
+      // pointer-up), no step has been applied yet — treat it as a tap so the
+      // press isn't silently swallowed.
+      const ticked = holdTicksRef.current > 0;
       clearStatHold();
       isHoldingRef.current = false;
-      if (!wasHolding) {
+      if (!wasHolding || !ticked) {
         adjustStat(key, side, sign * step, isPercent);
       }
     },
