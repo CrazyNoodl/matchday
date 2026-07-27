@@ -146,20 +146,27 @@ function longestWinStreak(entries: RivalryMatchEntry[], side: 'a' | 'b'): number
 
 /**
  * Shared by best/worst: for each stat key, finds each side's own most extreme
- * single-match value — `isMoreExtreme` decides the direction (`>` for best,
- * `<` for worst). A "record" is always the most extreme value in that
- * direction, regardless of whether higher is generally the "better" outcome
- * for this stat (that flag only drives which side is highlighted in the
- * Comparison tab) — e.g. "most yellow cards in a match" is the best-record,
- * "fewest" is the worst-record, neither is about "good discipline".
+ * single-match value in the given direction (`wantHighest`). A "record" is
+ * normally the most extreme raw value in that direction, regardless of
+ * whether higher is generally the "better" outcome for this stat (that flag
+ * only drives which side is highlighted in the Comparison tab) — e.g. "most
+ * yellow cards in a match" is the best-record, "fewest" is the worst-record,
+ * neither is about "good discipline".
+ *
+ * `timeToRegain` is the one exception: unlike the other lower-is-better
+ * stats, a slow (high) recovery time reading as the "Best" record is
+ * actively confusing (a high number can't be anyone's best game), so its
+ * best/worst buckets are flipped to pick the opposite raw extreme.
  */
-function computeExtremeStatRecords(
-  entries: RivalryMatchEntry[],
-  isMoreExtreme: (candidate: number, current: number) => boolean,
-): StatRecord[] {
+function computeExtremeStatRecords(entries: RivalryMatchEntry[], wantHighest: boolean): StatRecord[] {
   const records: StatRecord[] = [];
 
   for (const def of STAT_DEFINITIONS) {
+    const pickHighest = def.key === 'timeToRegain' ? !wantHighest : wantHighest;
+    const isMoreExtreme = pickHighest
+      ? (candidate: number, current: number) => candidate > current
+      : (candidate: number, current: number) => candidate < current;
+
     let extremeA: StatSide | null = null;
     let extremeB: StatSide | null = null;
 
@@ -178,21 +185,19 @@ function computeExtremeStatRecords(
   return records;
 }
 
-const computeBestStatRecords = (entries: RivalryMatchEntry[]) =>
-  computeExtremeStatRecords(entries, (candidate, current) => candidate > current);
+const computeBestStatRecords = (entries: RivalryMatchEntry[]) => computeExtremeStatRecords(entries, true);
 
-const computeWorstStatRecords = (entries: RivalryMatchEntry[]) =>
-  computeExtremeStatRecords(entries, (candidate, current) => candidate < current);
+const computeWorstStatRecords = (entries: RivalryMatchEntry[]) => computeExtremeStatRecords(entries, false);
 
 export interface RivalryTotalRow {
   key: KnownStatKey;
   isPercent: boolean;
   /** Number of matches (in this pair, real stats only) that recorded this key. */
   games: number;
-  /** Sum across all recorded matches — omitted for percent stats, where a sum is meaningless. */
+  /** Sum across all recorded matches — omitted when `sumMeaningful` is false for this stat def (percent stats, or rate-like stats such as time to regain). */
   aSum?: number;
   bSum?: number;
-  /** Average per match — always present, this is the only figure shown for percent stats. */
+  /** Average per match — always present, this is the only figure shown when the sum is omitted. */
   aAvg: number;
   bAvg: number;
 }
@@ -221,12 +226,14 @@ export function computeRivalryTotals(entries: RivalryMatchEntry[]): RivalryTotal
 
     if (games === 0) continue;
 
+    const noSum = def.isPercent || def.sumMeaningful === false;
+
     rows.push({
       key: def.key,
       isPercent: def.isPercent,
       games,
-      aSum: def.isPercent ? undefined : aSum,
-      bSum: def.isPercent ? undefined : bSum,
+      aSum: noSum ? undefined : aSum,
+      bSum: noSum ? undefined : bSum,
       aAvg: aSum / games,
       bAvg: bSum / games,
     });

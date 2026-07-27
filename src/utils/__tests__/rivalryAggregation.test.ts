@@ -209,6 +209,28 @@ describe('computeRivalryRecords', () => {
     expect(record?.b.entry.match.id).toBe('m1');
   });
 
+  it('flips the extreme direction for timeToRegain — Best picks the fastest (lowest) recovery, Worst picks the slowest (highest)', () => {
+    const entries = [
+      entry(match('m1', 'p1', 'p2', 1, 0, { timeToRegain: { a: 10, b: 14 } })),
+      entry(match('m2', 'p1', 'p2', 0, 1, { timeToRegain: { a: 4, b: 9 } })),
+    ];
+    const records = computeRivalryRecords(entries);
+
+    const best = records.bestStatRecords.find((r) => r.key === 'timeToRegain');
+    // a's best (fastest) is 4 from m2; b's best (fastest) is 9 from m2.
+    expect(best?.a).toMatchObject({ value: 4 });
+    expect(best?.a.entry.match.id).toBe('m2');
+    expect(best?.b).toMatchObject({ value: 9 });
+    expect(best?.b.entry.match.id).toBe('m2');
+
+    const worst = records.worstStatRecords.find((r) => r.key === 'timeToRegain');
+    // a's worst (slowest) is 10 from m1; b's worst (slowest) is 14 from m1.
+    expect(worst?.a).toMatchObject({ value: 10 });
+    expect(worst?.a.entry.match.id).toBe('m1');
+    expect(worst?.b).toMatchObject({ value: 14 });
+    expect(worst?.b.entry.match.id).toBe('m1');
+  });
+
   it('computes each side’s own worst value independently, even from different matches', () => {
     const entries = [
       entry(match('m1', 'p1', 'p2', 1, 0, { shots: { a: 5, b: 8 } })),
@@ -290,6 +312,20 @@ describe('computeRivalryTotals', () => {
     expect(row.bSum).toBeUndefined();
     expect(row.aAvg).toBe(55);
     expect(row.bAvg).toBe(45);
+  });
+
+  it('gives timeToRegain only an average — no sum field, even though it is not a percent stat', () => {
+    const entries = [
+      entry(match('m1', 'p1', 'p2', 1, 0, { timeToRegain: { a: 10, b: 14 } })),
+      entry(match('m2', 'p1', 'p2', 0, 1, { timeToRegain: { a: 4, b: 9 } })),
+    ];
+    const [row] = computeRivalryTotals(entries);
+    expect(row.key).toBe('timeToRegain');
+    expect(row.isPercent).toBe(false);
+    expect(row.aSum).toBeUndefined();
+    expect(row.bSum).toBeUndefined();
+    expect(row.aAvg).toBe(7);
+    expect(row.bAvg).toBe(11.5);
   });
 
   it('only counts matches that actually recorded the key in the average denominator', () => {

@@ -388,9 +388,10 @@ function ComparisonRow({ row }: { row: RivalryTotalRow }) {
   const label = def ? t(def.labelKey) : row.key;
   const suffix = t('rivalry.perMatchSuffix');
   const higherIsBetter = def?.higherIsBetter ?? true;
+  const avgOnly = row.isPercent || def?.sumMeaningful === false;
 
-  const aValue = row.isPercent ? row.aAvg : (row.aSum ?? 0);
-  const bValue = row.isPercent ? row.bAvg : (row.bSum ?? 0);
+  const aValue = avgOnly ? row.aAvg : (row.aSum ?? 0);
+  const bValue = avgOnly ? row.bAvg : (row.bSum ?? 0);
   const aWins = aValue === bValue ? null : higherIsBetter ? aValue > bValue : aValue < bValue;
 
   return (
@@ -399,8 +400,8 @@ function ComparisonRow({ row }: { row: RivalryTotalRow }) {
       aValue={roundNum(aValue)}
       bValue={roundNum(bValue)}
       aWins={aWins}
-      aSubLabel={row.isPercent ? undefined : `${roundNum(row.aAvg)}${suffix}`}
-      bSubLabel={row.isPercent ? undefined : `${roundNum(row.bAvg)}${suffix}`}
+      aSubLabel={avgOnly ? undefined : `${roundNum(row.aAvg)}${suffix}`}
+      bSubLabel={avgOnly ? undefined : `${roundNum(row.bAvg)}${suffix}`}
       labelSubText={t('rivalry.gamesCount', { count: row.games })}
     />
   );

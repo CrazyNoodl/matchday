@@ -8,11 +8,13 @@ export interface StatDef {
   step?: number;
   /** Whether a higher value is the "better" one for this stat. Defaults to true when omitted — only set false for stats where less is better (e.g. time to regain the ball, fouls, cards). */
   higherIsBetter?: boolean;
+  /** Whether summing this stat across matches is meaningful. Defaults to true when omitted — set false for rate-like non-percent stats (e.g. time to regain, a per-event average) where only the average is worth showing. */
+  sumMeaningful?: boolean;
 }
 
 export const STAT_DEFINITIONS: StatDef[] = [
   { key: 'possession', labelKey: 'stats.possession', isPercent: true },
-  { key: 'timeToRegain', labelKey: 'stats.timeToRegain', isPercent: false, higherIsBetter: false },
+  { key: 'timeToRegain', labelKey: 'stats.timeToRegain', isPercent: false, higherIsBetter: false, sumMeaningful: false },
   { key: 'shots', labelKey: 'stats.shots', isPercent: false },
   { key: 'expectedGoals', labelKey: 'stats.expectedGoals', isPercent: false, step: 0.1 },
   { key: 'passes', labelKey: 'stats.passes', isPercent: false },
