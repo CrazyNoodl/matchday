@@ -142,7 +142,10 @@ export function MatchModals({ d }: MatchModalsProps) {
                     <View style={styles.editSideControls}>
                       <TouchableOpacity
                         style={styles.stepBtn}
-                        onPress={() => d.adjustStat(stat.key, 'a', -stat.step, stat.isPercent)}
+                        onPressIn={() => d.startStatHold(stat.key, 'a', -1, stat.isPercent)}
+                        onPressOut={() =>
+                          d.endStatHold(stat.key, 'a', -1, stat.isPercent, stat.step)
+                        }
                         activeOpacity={0.75}
                       >
                         <Text style={styles.stepBtnText}>−</Text>
@@ -152,7 +155,10 @@ export function MatchModals({ d }: MatchModalsProps) {
                       </Text>
                       <TouchableOpacity
                         style={styles.stepBtn}
-                        onPress={() => d.adjustStat(stat.key, 'a', stat.step, stat.isPercent)}
+                        onPressIn={() => d.startStatHold(stat.key, 'a', 1, stat.isPercent)}
+                        onPressOut={() =>
+                          d.endStatHold(stat.key, 'a', 1, stat.isPercent, stat.step)
+                        }
                         activeOpacity={0.75}
                       >
                         <Text style={styles.stepBtnText}>+</Text>
@@ -176,7 +182,10 @@ export function MatchModals({ d }: MatchModalsProps) {
                     <View style={styles.editSideControls}>
                       <TouchableOpacity
                         style={styles.stepBtn}
-                        onPress={() => d.adjustStat(stat.key, 'b', -stat.step, stat.isPercent)}
+                        onPressIn={() => d.startStatHold(stat.key, 'b', -1, stat.isPercent)}
+                        onPressOut={() =>
+                          d.endStatHold(stat.key, 'b', -1, stat.isPercent, stat.step)
+                        }
                         activeOpacity={0.75}
                       >
                         <Text style={styles.stepBtnText}>−</Text>
@@ -186,7 +195,10 @@ export function MatchModals({ d }: MatchModalsProps) {
                       </Text>
                       <TouchableOpacity
                         style={styles.stepBtn}
-                        onPress={() => d.adjustStat(stat.key, 'b', stat.step, stat.isPercent)}
+                        onPressIn={() => d.startStatHold(stat.key, 'b', 1, stat.isPercent)}
+                        onPressOut={() =>
+                          d.endStatHold(stat.key, 'b', 1, stat.isPercent, stat.step)
+                        }
                         activeOpacity={0.75}
                       >
                         <Text style={styles.stepBtnText}>+</Text>

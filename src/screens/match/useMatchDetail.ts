@@ -18,6 +18,7 @@ import { fetchMatchById } from '@/supabase/sync';
 import { uploadMediaItem, deleteMediaItem } from '@/supabase/storage';
 import { buildMergedStats } from '@/utils/mergedStats';
 import { STAT_DEF_MAP } from '@/utils/statDefinitions';
+import { getHoldStep, HOLD_START_DELAY_MS, HOLD_REPEAT_INTERVAL_MS } from '@/utils/statStepAcceleration';
 
 // A photo must recognize at least this many of the 23 canonical stat params
 // to be treated as a genuine stats screenshot rather than the wrong photo.
@@ -605,6 +606,51 @@ export function useMatchDetail() {
     setTouchedStats((prev) => (prev.has(key) ? prev : new Set(prev).add(key)));
   }, []);
 
+  // Press-and-hold on a stat +/- button repeats with an accelerating step
+  // (1 → 5 → 10) so a badly OCR'd value (e.g. 4 instead of 94) doesn't need
+  // 90 taps. A quick tap (released before the hold kicks in) instead applies
+  // the stat's own step once — 0.1 for xG, so the fraction stays reachable.
+  const holdTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const holdIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const holdTicksRef = useRef(0);
+  const isHoldingRef = useRef(false);
+
+  const clearStatHold = useCallback(() => {
+    if (holdTimeoutRef.current) clearTimeout(holdTimeoutRef.current);
+    if (holdIntervalRef.current) clearInterval(holdIntervalRef.current);
+    holdTimeoutRef.current = null;
+    holdIntervalRef.current = null;
+    holdTicksRef.current = 0;
+  }, []);
+
+  useEffect(() => clearStatHold, [clearStatHold]);
+
+  const startStatHold = useCallback(
+    (key: string, side: 'a' | 'b', sign: 1 | -1, isPercent: boolean) => {
+      isHoldingRef.current = false;
+      holdTimeoutRef.current = setTimeout(() => {
+        isHoldingRef.current = true;
+        holdIntervalRef.current = setInterval(() => {
+          holdTicksRef.current += 1;
+          adjustStat(key, side, sign * getHoldStep(holdTicksRef.current), isPercent);
+        }, HOLD_REPEAT_INTERVAL_MS);
+      }, HOLD_START_DELAY_MS);
+    },
+    [adjustStat],
+  );
+
+  const endStatHold = useCallback(
+    (key: string, side: 'a' | 'b', sign: 1 | -1, isPercent: boolean, step: number) => {
+      const wasHolding = isHoldingRef.current;
+      clearStatHold();
+      isHoldingRef.current = false;
+      if (!wasHolding) {
+        adjustStat(key, side, sign * step, isPercent);
+      }
+    },
+    [adjustStat, clearStatHold],
+  );
+
   return {
     id,
     match,
@@ -666,6 +712,8 @@ export function useMatchDetail() {
     openEditNote,
     handleSaveNote,
     adjustStat,
+    startStatHold,
+    endStatHold,
     confirmStat,
     deleteStat,
   };
