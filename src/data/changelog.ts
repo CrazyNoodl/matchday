@@ -10,6 +10,12 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.64',
+    fixed: [
+      'Tournament screen\'s "Include friendly match days" toggle now shows the number of friendly rounds it would fold in, instead of the total number of individual matches inside them',
+    ],
+  },
+  {
     version: '1.9.63',
     added: [
       'Tournament screen gained an "Include all friendly matches" toggle under the standings table, so friendly rounds can be folded into (or kept out of) the tournament standings and played-rounds list',
