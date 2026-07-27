@@ -252,8 +252,7 @@ export function ShareStandingsModal({
   archivedRounds,
 }: ShareStandingsModalProps) {
   const [loading, setLoading] = useState(false);
-  const [includeRanked, setIncludeRanked] = useState(true);
-  const [includeFriendly, setIncludeFriendly] = useState(false);
+  const [includeFriendly, setIncludeFriendly] = useState(true);
   const [saveMessage, setSaveMessage] = useState<{ ok: boolean; text: string } | null>(null);
   const cardRef = useRef<View>(null);
   const colors = useColors();
@@ -263,21 +262,18 @@ export function ShareStandingsModal({
   const standings = useMemo(
     () =>
       calculateStandings(
-        [...(includeRanked ? rankedMatches : []), ...(includeFriendly ? friendlyMatches : [])],
+        [...rankedMatches, ...(includeFriendly ? friendlyMatches : [])],
         tournamentPlayers,
       ),
-    [includeRanked, includeFriendly, rankedMatches, friendlyMatches, tournamentPlayers],
+    [includeFriendly, rankedMatches, friendlyMatches, tournamentPlayers],
   );
 
   const roundOrdinals = useMemo(() => getRankedRoundOrdinals(archivedRounds), [archivedRounds]);
 
-  // Newest first, same set of rounds the toggles above already apply to the standings.
+  // Newest first, same set of rounds the toggle above already applies to the standings.
   const includedRounds = useMemo(
-    () =>
-      archivedRounds
-        .filter((r) => (r.ranked && includeRanked) || (!r.ranked && includeFriendly))
-        .reverse(),
-    [archivedRounds, includeRanked, includeFriendly],
+    () => archivedRounds.filter((r) => r.ranked || includeFriendly).reverse(),
+    [archivedRounds, includeFriendly],
   );
 
   useEffect(() => {
@@ -431,11 +427,6 @@ export function ShareStandingsModal({
 
         {/* Options */}
         <View style={modalStyles.optionsWrap}>
-          <Toggle
-            label={t('share.includeRankedMatches')}
-            value={includeRanked}
-            onValueChange={setIncludeRanked}
-          />
           <Toggle
             label={t('share.includeFriendlyMatches')}
             value={includeFriendly}

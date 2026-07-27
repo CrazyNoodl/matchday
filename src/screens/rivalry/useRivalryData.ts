@@ -11,7 +11,7 @@ export function useRivalryData(
   playerIdA: string,
   playerIdB: string,
   tournamentOnly: boolean,
-  excludeFriendly = false,
+  includeFriendly = true,
 ) {
   const players = useStore((s) => s.players);
   const archivedRounds = useStore((s) => s.archivedRounds);
@@ -30,7 +30,7 @@ export function useRivalryData(
   const entries = useMemo(
     () =>
       collectRivalryMatches(playerIdA, playerIdB, closedTournaments, archivedRounds, currentMatches, {
-        rankedOnly: excludeFriendly,
+        rankedOnly: !includeFriendly,
         currentRoundRanked: roundOpen && tournamentRanked,
       }),
     [
@@ -39,7 +39,7 @@ export function useRivalryData(
       closedTournaments,
       archivedRounds,
       currentMatches,
-      excludeFriendly,
+      includeFriendly,
       roundOpen,
       tournamentRanked,
     ],

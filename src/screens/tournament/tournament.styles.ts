@@ -39,6 +39,9 @@ export const makeStyles = (colors: AppColors) =>
       marginBottom: Spacing.md,
       marginTop: Spacing.xl,
     },
+    friendlyToggleWrap: {
+      marginTop: Spacing.md,
+    },
 
     // ---- Current Match Day Card ----
     matchDayCard: {

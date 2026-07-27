@@ -10,6 +10,18 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.63',
+    added: [
+      'Tournament screen gained an "Include all friendly matches" toggle under the standings table, so friendly rounds can be folded into (or kept out of) the tournament standings and played-rounds list',
+    ],
+    changed: [
+      'Standardized the friendly-matches toggle across Share Standings, Rivalry, and Tournament screens: same wording, same on-by-default behavior; Share Standings dropped its separate "Include all ranked matches" toggle since ranked matches are always counted now',
+    ],
+    fixed: [
+      'The friendly-matches toggle now disables itself with an explanatory note when a tournament has no friendly matches yet, instead of silently doing nothing when tapped',
+    ],
+  },
+  {
     version: '1.9.62',
     changed: [
       'Round "···" menu now lists Share before Stats, and menu item labels use normal casing instead of all-caps',

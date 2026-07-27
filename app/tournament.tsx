@@ -17,6 +17,7 @@ import {
   StandingsTable,
   getStandingsTableColumns,
   NavHeader,
+  Toggle,
 } from '@/components';
 import { useTranslation } from 'react-i18next';
 import { makeStyles } from '@/screens/tournament/tournament.styles';
@@ -53,6 +54,7 @@ export default function TournamentScreen() {
   const [renameValue, setRenameValue] = useState('');
   const [shareStandingsVisible, setShareStandingsVisible] = useState(false);
   const [roundsNewestFirst, setRoundsNewestFirst] = useState(true);
+  const [includeFriendly, setIncludeFriendly] = useState(true);
   const { t } = useTranslation();
 
   // #86: only when this is false is there truly nothing to archive.
@@ -71,7 +73,7 @@ export default function TournamentScreen() {
   );
 
   // All friendly matches across all archived rounds + current open round (if not ranked) —
-  // only used by ShareStandingsModal's own include toggles, not the on-screen standings above.
+  // folded into the standings/rounds list below when includeFriendly is on.
   const allFriendlyMatches = useMemo(
     () => [
       ...archivedRounds.filter((r) => !r.ranked).flatMap((r) => r.matches),
@@ -80,9 +82,15 @@ export default function TournamentScreen() {
     [archivedRounds, tournamentRanked, roundOpen, matches],
   );
 
+  const hasFriendlyMatches = allFriendlyMatches.length > 0;
+
+  const standingsMatches = useMemo(
+    () => (includeFriendly ? [...allRankedMatches, ...allFriendlyMatches] : allRankedMatches),
+    [includeFriendly, allRankedMatches, allFriendlyMatches],
+  );
   const standings = useMemo(
-    () => calculateStandings(allRankedMatches, tournamentPlayers),
-    [allRankedMatches, tournamentPlayers],
+    () => calculateStandings(standingsMatches, tournamentPlayers),
+    [standingsMatches, tournamentPlayers],
   );
   const leader = standings[0] ? players.find((p) => p.id === standings[0].playerId) : null;
 
@@ -101,9 +109,13 @@ export default function TournamentScreen() {
     round: rankedTotal,
     total: roundsTarget,
   });
+  const visibleArchivedRounds = useMemo(
+    () => (includeFriendly ? archivedRounds : archivedRounds.filter((r) => r.ranked)),
+    [archivedRounds, includeFriendly],
+  );
   const sortedArchivedRounds = useMemo(
-    () => (roundsNewestFirst ? [...archivedRounds].reverse() : archivedRounds),
-    [archivedRounds, roundsNewestFirst],
+    () => (roundsNewestFirst ? [...visibleArchivedRounds].reverse() : visibleArchivedRounds),
+    [visibleArchivedRounds, roundsNewestFirst],
   );
 
   const handleRoundPress = useCallback(
@@ -149,6 +161,24 @@ export default function TournamentScreen() {
           emptyLabel={t('tournament.noMatches')}
           columns={getStandingsTableColumns(t, showAvgGoals)}
         />
+
+        <View style={styles.friendlyToggleWrap}>
+          <Toggle
+            label={
+              hasFriendlyMatches
+                ? t('tournament.includeFriendlyCount', { count: allFriendlyMatches.length })
+                : t('tournament.includeFriendly')
+            }
+            subtitle={
+              hasFriendlyMatches
+                ? t('tournament.includeFriendlyDesc')
+                : t('tournament.includeFriendlyEmpty')
+            }
+            value={includeFriendly}
+            onValueChange={setIncludeFriendly}
+            disabled={!hasFriendlyMatches}
+          />
+        </View>
 
         {/* ---- CURRENT MATCH DAY (only if roundOpen) ---- */}
         {roundOpen && (
@@ -205,10 +235,10 @@ export default function TournamentScreen() {
         {/* ---- PLAYED ROUNDS ---- */}
         <View style={styles.playedRoundsHeader}>
           <SectionLabel
-            label={t('tournament.playedRounds', { count: archivedRounds.length }).toUpperCase()}
+            label={t('tournament.playedRounds', { count: visibleArchivedRounds.length }).toUpperCase()}
           />
 
-          {archivedRounds.length > 1 && (
+          {visibleArchivedRounds.length > 1 && (
             <TouchableOpacity
               style={styles.sortToggleBtn}
               onPress={() => setRoundsNewestFirst((v) => !v)}
@@ -232,7 +262,7 @@ export default function TournamentScreen() {
           )}
         </View>
 
-        {archivedRounds.length === 0 ? (
+        {visibleArchivedRounds.length === 0 ? (
           <View style={styles.emptyRounds}>
             <Text style={styles.emptyRoundsText}>{t('tournament.noRounds')}</Text>
           </View>

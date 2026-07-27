@@ -46,12 +46,12 @@ export function RivalryScreen({ playerIdA, playerIdB, tournamentOnly }: RivalryS
     teams.find((team) => team.code === player.teamCode)?.color ?? colors.text.primary;
   const [statsTab, setStatsTab] = useState<StatsTab>('records');
   const [recordsMode, setRecordsMode] = useState<RecordsMode>('best');
-  const [excludeFriendly, setExcludeFriendly] = useState(false);
+  const [includeFriendly, setIncludeFriendly] = useState(true);
   const { playerA, playerB, records, totals, pair, avgGoalsPerGame } = useRivalryData(
     playerIdA,
     playerIdB,
     tournamentOnly,
-    excludeFriendly,
+    includeFriendly,
   );
 
   if (!playerA || !playerB || !pair) {
@@ -100,10 +100,10 @@ export function RivalryScreen({ playerIdA, playerIdB, tournamentOnly }: RivalryS
 
         {/* Friendly-matches filter */}
         <Toggle
-          label={t('rivalry.excludeFriendly')}
-          subtitle={t('rivalry.excludeFriendlyDesc')}
-          value={excludeFriendly}
-          onValueChange={setExcludeFriendly}
+          label={t('rivalry.includeFriendly')}
+          subtitle={t('rivalry.includeFriendlyDesc')}
+          value={includeFriendly}
+          onValueChange={setIncludeFriendly}
         />
 
         {/* Summary */}
