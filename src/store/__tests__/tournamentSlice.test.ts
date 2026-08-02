@@ -149,6 +149,73 @@ describe('finishRound', () => {
 
 // ---------------------------------------------------------------------------
 
+describe('reopenRound', () => {
+  beforeEach(() => {
+    useStore.getState().addPlayer(P1);
+    useStore.getState().addPlayer(P2);
+    useStore.getState().startTournament('Cup', ['p1', 'p2'], true);
+    useStore.getState().startRound(true, ['p1', 'p2']);
+    useStore.getState().addMatch(makeMatch('m1'));
+    useStore.getState().finishRound();
+  });
+
+  it('moves the last archived round back into matches and reopens it', () => {
+    const archivedId = useStore.getState().archivedRounds[0].id;
+    const ok = useStore.getState().reopenRound(archivedId);
+    const s = useStore.getState();
+    expect(ok).toBe(true);
+    expect(s.archivedRounds).toHaveLength(0);
+    expect(s.matches.map((m) => m.id)).toEqual(['m1']);
+    expect(s.roundOpen).toBe(true);
+    expect(s.roundPlayers).toEqual(['p1', 'p2']);
+    expect(s.round).toBe(1);
+  });
+
+  it('allows adding a match to the reopened round, then re-finishing it', () => {
+    const archivedId = useStore.getState().archivedRounds[0].id;
+    useStore.getState().reopenRound(archivedId);
+    useStore.getState().addMatch(makeMatch('m2'));
+    useStore.getState().finishRound();
+    const s = useStore.getState();
+    expect(s.archivedRounds).toHaveLength(1);
+    expect(s.archivedRounds[0].matches.map((m) => m.id)).toEqual(['m1', 'm2']);
+  });
+
+  it('refuses to reopen a round that is not the last one', () => {
+    useStore.getState().startRound(true, ['p1', 'p2']);
+    useStore.getState().addMatch(makeMatch('m2'));
+    useStore.getState().finishRound();
+    const firstRoundId = useStore.getState().archivedRounds[0].id;
+
+    const ok = useStore.getState().reopenRound(firstRoundId);
+    const s = useStore.getState();
+    expect(ok).toBe(false);
+    expect(s.archivedRounds).toHaveLength(2);
+    expect(s.matches).toHaveLength(0);
+  });
+
+  it('refuses to reopen while a round is already open live', () => {
+    const archivedId = useStore.getState().archivedRounds[0].id;
+    useStore.getState().startRound(true, ['p1', 'p2']);
+
+    const ok = useStore.getState().reopenRound(archivedId);
+    const s = useStore.getState();
+    expect(ok).toBe(false);
+    expect(s.archivedRounds).toHaveLength(1);
+  });
+
+  it('refuses to reopen once the tournament is closed', () => {
+    const archivedId = useStore.getState().archivedRounds[0].id;
+    useStore.getState().closeTournament();
+
+    const ok = useStore.getState().reopenRound(archivedId);
+    expect(ok).toBe(false);
+    expect(useStore.getState().hasTournament).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+
 describe('startRound — ranked-only ordinal numbering', () => {
   beforeEach(() => {
     useStore.getState().addPlayer(P1);

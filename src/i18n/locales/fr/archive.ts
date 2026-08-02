@@ -21,6 +21,10 @@ const archive = {
   deleteRoundTitle: 'Supprimer le tour ?',
   deleteRoundDesc: 'Tous les matchs de ce tour seront définitivement supprimés.',
   deleteRoundConfirm: 'Supprimer le tour',
+  reopenRoundMenu: 'Rouvrir le tour',
+  reopenRoundTitle: 'Rouvrir ce tour ?',
+  reopenRoundDesc: 'Le tour reviendra à la journée en cours pour ajouter ou modifier des matchs. Terminez-le à nouveau une fois fait.',
+  reopenRoundConfirm: 'Rouvrir le tour',
   championDaysWon: 'champion · {{count}} journées gagnées',
 } as const;
 
