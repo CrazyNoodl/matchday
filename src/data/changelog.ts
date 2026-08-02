@@ -10,6 +10,12 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.65',
+    added: [
+      'Archived round\'s "···" menu now has a "Reopen round" action for the most recently finished round of an open tournament, so a missed match can be added before finishing it again',
+    ],
+  },
+  {
     version: '1.9.64',
     fixed: [
       'Tournament screen\'s "Include friendly match days" toggle now shows the number of friendly rounds it would fold in, instead of the total number of individual matches inside them',
