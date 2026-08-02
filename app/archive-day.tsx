@@ -107,7 +107,18 @@ export default function ArchiveDayScreen() {
     (s) =>
       hasTournament && !!viewingRound && s.archivedRounds.some((r) => r.id === viewingRound.id),
   );
+  // Reopening is only safe for the most recently finished round — see
+  // reopenRound()'s doc comment in tournamentSlice.ts for why.
+  const isLastRound = useStore(
+    (s) =>
+      !!viewingRound &&
+      s.archivedRounds.length > 0 &&
+      s.archivedRounds[s.archivedRounds.length - 1].id === viewingRound.id,
+  );
+  const roundOpen = useStore((s) => s.roundOpen);
+  const canReopen = isEditableRound && isLastRound && !roundOpen;
   const deleteArchivedRound = useStore((s) => s.deleteArchivedRound);
+  const reopenRound = useStore((s) => s.reopenRound);
   const reorderMatches = useStore((s) => s.reorderMatches);
   const matchDragReorderEnabled = useStore((s) => s.matchDragReorderEnabled);
   const groupByTours = useStore((s) => s.groupByTours);
@@ -128,6 +139,7 @@ export default function ArchiveDayScreen() {
   const [dateValue, setDateValue] = useState('');
   const [dateError, setDateError] = useState(false);
   const [deleteVisible, setDeleteVisible] = useState(false);
+  const [reopenVisible, setReopenVisible] = useState(false);
   const roundMenu = useDropdownMenu();
 
   const handleConfirmDelete = useCallback(() => {
@@ -136,6 +148,14 @@ export default function ArchiveDayScreen() {
     setDeleteVisible(false);
     goBack();
   }, [liveRound, deleteArchivedRound, goBack]);
+
+  const handleConfirmReopen = useCallback(() => {
+    if (!liveRound) return;
+    setReopenVisible(false);
+    if (reopenRound(liveRound.id)) {
+      router.replace('/round');
+    }
+  }, [liveRound, reopenRound, router]);
 
   const playerIds = useMemo(() => {
     if (!liveRound) return [];
@@ -325,6 +345,18 @@ export default function ArchiveDayScreen() {
               router.push('/matchday-stats');
             },
           },
+          ...(canReopen
+            ? [
+                {
+                  key: 'reopen',
+                  label: t('archive.reopenRoundMenu'),
+                  onPress: () => {
+                    roundMenu.close();
+                    setReopenVisible(true);
+                  },
+                },
+              ]
+            : []),
           ...(isEditableRound
             ? [
                 {
@@ -351,6 +383,18 @@ export default function ArchiveDayScreen() {
         description={t('archive.deleteRoundDesc')}
         cancel={{ label: t('matchday.dialogs.cancel'), onPress: () => setDeleteVisible(false) }}
         confirm={{ label: t('archive.deleteRoundConfirm'), onPress: handleConfirmDelete }}
+      />
+
+      <ConfirmDialog
+        visible={reopenVisible}
+        onRequestClose={() => setReopenVisible(false)}
+        icon="↺"
+        iconColor={colors.accent.gold}
+        variant="gold"
+        title={t('archive.reopenRoundTitle').toUpperCase()}
+        description={t('archive.reopenRoundDesc')}
+        cancel={{ label: t('matchday.dialogs.cancel'), onPress: () => setReopenVisible(false) }}
+        confirm={{ label: t('archive.reopenRoundConfirm'), onPress: handleConfirmReopen }}
       />
 
       <EditRoundDateSheet
