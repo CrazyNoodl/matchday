@@ -33,12 +33,6 @@ jest.mock('react-native', () => ({
   Platform: { OS: 'web' },
 }));
 
-// Stub connectivity as always-online — this suite is about pull-failure/
-// bootstrap-push logic, not reconnect behavior (see useSyncManager.reconnect.test.ts).
-jest.mock('@/hooks/useIsOnline', () => ({
-  useIsOnline: () => true,
-}));
-
 jest.mock('../sync', () => ({
   ...jest.requireActual('../sync'),
   pushState: jest.fn().mockResolvedValue(undefined),
@@ -71,7 +65,7 @@ it('never bootstraps a push when the initial pull fails, even with local data pr
 
   mockPullState.mockRejectedValue(new Error('network error'));
 
-  renderHook(() => useSyncManager());
+  renderHook(() => useSyncManager(true));
 
   await waitFor(() => {
     expect(mockPullState).toHaveBeenCalled();
@@ -91,7 +85,7 @@ it('does bootstrap a push when the pull genuinely succeeds with an empty cloud',
 
   mockPullState.mockResolvedValue(null);
 
-  renderHook(() => useSyncManager());
+  renderHook(() => useSyncManager(true));
 
   await waitFor(() => {
     expect(mockPushState).toHaveBeenCalledTimes(1);

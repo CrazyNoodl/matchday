@@ -3,7 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, Image, ActivityIndicator } fr
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useColors } from '@/theme';
-import { useIsOnline } from '@/hooks/useIsOnline';
+import { useIsOnline } from '@/hooks/IsOnlineProvider';
 import { NavHeader, Avatar, SectionLabel, StatsRow, GlowBackground, EmptyState } from '@/components';
 import { makeStyles } from '@/screens/match/match.styles';
 import { useMatchDetail } from '@/screens/match/useMatchDetail';

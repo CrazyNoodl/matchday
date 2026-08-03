@@ -9,7 +9,7 @@
 import { act, renderHook } from '@testing-library/react-native';
 
 import { pingSupabase } from '@/supabase/health';
-import { useIsOnline, HEALTH_CHECK_INTERVAL_MS } from '../useIsOnline';
+import { useIsOnline, HEALTH_CHECK_INTERVAL_MS, RESUME_RETRY_DELAY_MS } from '../useIsOnline';
 
 type NetInfoListener = (state: {
   isConnected: boolean | null;
@@ -110,6 +110,8 @@ describe('useIsOnline health-check corroboration', () => {
     });
     expect(result.current).toBe(true);
 
+    // Resume-triggered check: a real outage means both the first ping and its
+    // retry fail — see RESUME_RETRY_DELAY_MS in useIsOnline.ts.
     mockedPing.mockResolvedValue(false);
     await act(async () => {
       mockAppStateListener?.('active');
@@ -117,7 +119,37 @@ describe('useIsOnline health-check corroboration', () => {
     await act(async () => {
       await jest.advanceTimersByTimeAsync(0);
     });
+    expect(result.current).toBe(true); // first ping failed but the retry hasn't run yet
+    await act(async () => {
+      await jest.advanceTimersByTimeAsync(RESUME_RETRY_DELAY_MS);
+    });
     expect(result.current).toBe(false);
+  });
+
+  it('does not flip offline on resume when a single ping times out but the retry succeeds', async () => {
+    // Simulates the network radio still waking up from a long background
+    // period: the first ping right on resume fails, but the connection is
+    // actually fine and the retry a moment later succeeds.
+    const { result } = await renderHook(() => useIsOnline());
+    await act(async () => {
+      await jest.advanceTimersByTimeAsync(0);
+    });
+    expect(result.current).toBe(true);
+
+    mockedPing.mockResolvedValueOnce(false);
+    mockedPing.mockResolvedValueOnce(true);
+    await act(async () => {
+      mockAppStateListener?.('active');
+    });
+    await act(async () => {
+      await jest.advanceTimersByTimeAsync(0);
+    });
+    expect(result.current).toBe(true); // no flash while the retry is pending
+
+    await act(async () => {
+      await jest.advanceTimersByTimeAsync(RESUME_RETRY_DELAY_MS);
+    });
+    expect(result.current).toBe(true); // retry succeeded — banner never showed
   });
 
   it('does not ping Supabase while NetInfo already reports offline', async () => {

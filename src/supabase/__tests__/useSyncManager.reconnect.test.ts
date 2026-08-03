@@ -42,9 +42,6 @@ jest.mock('react-native', () => ({
 }));
 
 let mockIsOnline = true;
-jest.mock('@/hooks/useIsOnline', () => ({
-  useIsOnline: () => mockIsOnline,
-}));
 
 jest.mock('../sync', () => ({
   ...jest.requireActual('../sync'),
@@ -74,7 +71,7 @@ beforeEach(() => {
 it('flushes edits made while offline as soon as connectivity returns, with no further local change', async () => {
   mockPullState.mockResolvedValue(null);
 
-  const { rerender } = await renderHook(() => useSyncManager());
+  const { rerender } = await renderHook(() => useSyncManager(mockIsOnline));
 
   await waitFor(() => {
     expect(mockPullState).toHaveBeenCalledTimes(1);
@@ -114,7 +111,7 @@ it('flushes edits made while offline as soon as connectivity returns, with no fu
 it('pulls (does not push) on reconnect when nothing local changed while offline', async () => {
   mockPullState.mockResolvedValue(null);
 
-  const { rerender } = await renderHook(() => useSyncManager());
+  const { rerender } = await renderHook(() => useSyncManager(mockIsOnline));
 
   await waitFor(() => {
     expect(mockPullState).toHaveBeenCalledTimes(1);

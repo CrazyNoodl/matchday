@@ -37,10 +37,6 @@ jest.mock('react-native', () => ({
   Platform: { OS: 'web' },
 }));
 
-jest.mock('@/hooks/useIsOnline', () => ({
-  useIsOnline: () => true,
-}));
-
 jest.mock('../sync', () => ({
   ...jest.requireActual('../sync'),
   pushState: jest.fn().mockResolvedValue(undefined),
@@ -86,7 +82,7 @@ beforeEach(() => {
 it('pushes leftover unsynced edits before pulling on the next cold start, instead of losing them', async () => {
   // --- Session 1: make an offline edit, its push fails, then the app dies ---
   mockPullState.mockResolvedValue(null); // empty cloud, first ever sync
-  const { unmount } = await renderHook(() => useSyncManager());
+  const { unmount } = await renderHook(() => useSyncManager(true));
   await waitFor(() => expect(mockPullState).toHaveBeenCalledTimes(1));
 
   mockPushState.mockRejectedValueOnce(new Error('network down'));
@@ -107,7 +103,7 @@ it('pushes leftover unsynced edits before pulling on the next cold start, instea
   mockPushState.mockResolvedValue(undefined);
   mockPullState.mockResolvedValue(stalePulledState);
 
-  const { unmount: unmountSession2 } = await renderHook(() => useSyncManager());
+  const { unmount: unmountSession2 } = await renderHook(() => useSyncManager(true));
 
   await waitFor(() => expect(mockPushState).toHaveBeenCalledTimes(1));
 

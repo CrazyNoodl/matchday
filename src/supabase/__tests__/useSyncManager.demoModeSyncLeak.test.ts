@@ -39,10 +39,6 @@ jest.mock('react-native', () => ({
   Platform: { OS: 'web' },
 }));
 
-jest.mock('@/hooks/useIsOnline', () => ({
-  useIsOnline: () => true,
-}));
-
 jest.mock('../sync', () => ({
   ...jest.requireActual('../sync'),
   pushState: jest.fn().mockResolvedValue(undefined),
@@ -96,7 +92,7 @@ it('never pushes demo data left over from a force-quit while Demo Mode was still
 
   mockPullState.mockResolvedValue(null);
 
-  await renderHook(() => useSyncManager());
+  await renderHook(() => useSyncManager(true));
 
   // Give the leftover-dirty flush a chance to run.
   await new Promise((resolve) => setTimeout(resolve, 50));
@@ -110,7 +106,7 @@ it('never pushes demo data left over from a force-quit while Demo Mode was still
 
 it('applies a newer cloud pull on exiting Demo Mode instead of always short-circuiting', async () => {
   mockPullState.mockResolvedValue(null); // empty cloud on first mount
-  await renderHook(() => useSyncManager());
+  await renderHook(() => useSyncManager(true));
   await waitFor(() => expect(mockPullState).toHaveBeenCalledTimes(1));
 
   act(() => {

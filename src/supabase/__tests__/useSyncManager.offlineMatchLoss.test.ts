@@ -28,10 +28,6 @@ jest.mock('react-native', () => ({
   Platform: { OS: 'web' },
 }));
 
-jest.mock('@/hooks/useIsOnline', () => ({
-  useIsOnline: () => true,
-}));
-
 jest.mock('../auth', () => ({
   getCurrentUserId: jest.fn().mockResolvedValue('test-user-id'),
 }));
@@ -194,7 +190,7 @@ it('does not let a reconnect pull wipe out matches added while fully offline', a
 
   // --- Session 1: app opens fully offline, user adds matches, then force-quits ---
   networkUp = false;
-  const { unmount } = await renderHook(() => useSyncManager());
+  const { unmount } = await renderHook(() => useSyncManager(true));
   await waitFor(() => expect(useStore.getState().syncStatus).toBe('error'));
 
   const offlineMatch: Match = {
@@ -214,7 +210,7 @@ it('does not let a reconnect pull wipe out matches added while fully offline', a
 
   // --- Session 2: connectivity is back, app relaunches ---
   networkUp = true;
-  await renderHook(() => useSyncManager());
+  await renderHook(() => useSyncManager(true));
 
   await waitFor(() => expect(useStore.getState().pendingSyncTables).toEqual([]));
   await waitFor(() => expect(useStore.getState().syncStatus).toBe('idle'));
