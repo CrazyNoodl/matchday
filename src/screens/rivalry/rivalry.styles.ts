@@ -165,6 +165,9 @@ export const makeStyles = (colors: AppColors) =>
       fontSize: FontSize.xs,
       color: colors.text.muted,
     },
+    statDateNew: {
+      color: colors.accent.gold,
+    },
     statCenter: {
       alignItems: 'center',
       justifyContent: 'center',

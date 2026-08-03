@@ -4,6 +4,7 @@ import {
   collectRivalryMatches,
   computeRivalryRecords,
   computeRivalryTotals,
+  getLastMatchdayDate,
 } from '@/utils/rivalryAggregation';
 import { buildH2HPairs, type H2HPair } from '@/utils/statsAggregation';
 
@@ -47,6 +48,7 @@ export function useRivalryData(
 
   const records = useMemo(() => computeRivalryRecords(entries), [entries]);
   const totals = useMemo(() => computeRivalryTotals(entries), [entries]);
+  const lastMatchdayDate = useMemo(() => getLastMatchdayDate(entries), [entries]);
 
   // Reuses buildH2HPairs for the summary card at the top of the screen — entries'
   // matches are already perspective-normalized to aId === playerIdA, so this just
@@ -58,5 +60,5 @@ export function useRivalryData(
 
   const avgGoalsPerGame = pair && pair.games > 0 ? (pair.aGoals + pair.bGoals) / pair.games : 0;
 
-  return { playerA, playerB, entries, records, totals, pair, avgGoalsPerGame };
+  return { playerA, playerB, entries, records, totals, pair, avgGoalsPerGame, lastMatchdayDate };
 }

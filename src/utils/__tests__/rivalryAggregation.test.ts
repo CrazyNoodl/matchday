@@ -2,6 +2,7 @@ import {
   collectRivalryMatches,
   computeRivalryRecords,
   computeRivalryTotals,
+  getLastMatchdayDate,
 } from '../rivalryAggregation';
 import { type ArchivedRound, type ClosedTournament, type Match } from '../../store/types';
 
@@ -336,5 +337,38 @@ describe('computeRivalryTotals', () => {
     const [row] = computeRivalryTotals(entries);
     expect(row.games).toBe(1);
     expect(row.aAvg).toBe(10);
+  });
+});
+
+describe('getLastMatchdayDate', () => {
+  const entry = (m: Match, date: string | null) => ({ match: m, date });
+
+  it('returns the max date among several archived entries, regardless of array order', () => {
+    const entries = [
+      entry(match('m1', 'p1', 'p2', 1, 0), '2026-02-01'),
+      entry(match('m2', 'p1', 'p2', 0, 1), '2026-01-01'),
+      entry(match('m3', 'p1', 'p2', 1, 1), '2026-03-15'),
+    ];
+    expect(getLastMatchdayDate(entries)).toBe('2026-03-15');
+  });
+
+  it('returns null when every entry is still in the current open round', () => {
+    const entries = [
+      entry(match('m1', 'p1', 'p2', 1, 0), null),
+      entry(match('m2', 'p1', 'p2', 0, 1), null),
+    ];
+    expect(getLastMatchdayDate(entries)).toBeNull();
+  });
+
+  it('ignores null entries mixed in with archived ones', () => {
+    const entries = [
+      entry(match('m1', 'p1', 'p2', 1, 0), '2026-01-01'),
+      entry(match('m2', 'p1', 'p2', 0, 1), null), // current open round
+    ];
+    expect(getLastMatchdayDate(entries)).toBe('2026-01-01');
+  });
+
+  it('returns null for an empty list', () => {
+    expect(getLastMatchdayDate([])).toBeNull();
   });
 });

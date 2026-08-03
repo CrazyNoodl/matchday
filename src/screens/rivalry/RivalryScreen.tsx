@@ -47,7 +47,7 @@ export function RivalryScreen({ playerIdA, playerIdB, tournamentOnly }: RivalryS
   const [statsTab, setStatsTab] = useState<StatsTab>('records');
   const [recordsMode, setRecordsMode] = useState<RecordsMode>('best');
   const [includeFriendly, setIncludeFriendly] = useState(true);
-  const { playerA, playerB, records, totals, pair, avgGoalsPerGame } = useRivalryData(
+  const { playerA, playerB, records, totals, pair, avgGoalsPerGame, lastMatchdayDate } = useRivalryData(
     playerIdA,
     playerIdB,
     tournamentOnly,
@@ -228,6 +228,7 @@ export function RivalryScreen({ playerIdA, playerIdB, tournamentOnly }: RivalryS
                     onPressB={
                       record.b.entry.date ? () => goToMatch(record.b.entry.match.id) : undefined
                     }
+                    lastMatchdayDate={lastMatchdayDate}
                     styles={styles}
                   />
                 ))}
@@ -295,10 +296,19 @@ interface StatRecordRowProps {
   playerB: Player;
   onPressA?: () => void;
   onPressB?: () => void;
+  lastMatchdayDate: string | null;
   styles: ReturnType<typeof makeStyles>;
 }
 
-function StatRecordRow({ record, playerA, playerB, onPressA, onPressB, styles }: StatRecordRowProps) {
+function StatRecordRow({
+  record,
+  playerA,
+  playerB,
+  onPressA,
+  onPressB,
+  lastMatchdayDate,
+  styles,
+}: StatRecordRowProps) {
   const { t } = useTranslation();
   const def = STAT_DEF_MAP[record.key];
   const label = def ? t(def.labelKey) : record.key;
@@ -309,6 +319,8 @@ function StatRecordRow({ record, playerA, playerB, onPressA, onPressB, styles }:
   const bWins = higherIsBetter
     ? record.b.value > record.a.value
     : record.b.value < record.a.value;
+  const isNewA = !!lastMatchdayDate && record.a.entry.date === lastMatchdayDate;
+  const isNewB = !!lastMatchdayDate && record.b.entry.date === lastMatchdayDate;
 
   return (
     <View style={styles.statRow}>
@@ -319,6 +331,7 @@ function StatRecordRow({ record, playerA, playerB, onPressA, onPressB, styles }:
         player={playerA}
         date={formatDate(record.a.entry.date)}
         highlight={aWins}
+        isNew={isNewA}
         onPress={onPressA}
       />
       <View style={styles.statCenter}>
@@ -331,6 +344,7 @@ function StatRecordRow({ record, playerA, playerB, onPressA, onPressB, styles }:
         player={playerB}
         date={formatDate(record.b.entry.date)}
         highlight={bWins}
+        isNew={isNewB}
         onPress={onPressB}
       />
     </View>
@@ -344,10 +358,20 @@ interface StatRecordSideProps {
   player: Player;
   date: string | null;
   highlight: boolean;
+  isNew: boolean;
   onPress?: () => void;
 }
 
-function StatRecordSide({ styles, align, value, player, date, highlight, onPress }: StatRecordSideProps) {
+function StatRecordSide({
+  styles,
+  align,
+  value,
+  player,
+  date,
+  highlight,
+  isNew,
+  onPress,
+}: StatRecordSideProps) {
   return (
     <TouchableOpacity
       style={[styles.statSide, align === 'right' && styles.statSideRight]}
@@ -366,7 +390,7 @@ function StatRecordSide({ styles, align, value, player, date, highlight, onPress
           {player.name}
         </Text>
         {date ? (
-          <Text style={styles.statDate} numberOfLines={1}>
+          <Text style={[styles.statDate, isNew && styles.statDateNew]} numberOfLines={1}>
             {date}
           </Text>
         ) : null}
