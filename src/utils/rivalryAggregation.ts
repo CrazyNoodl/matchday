@@ -92,6 +92,19 @@ export function collectRivalryMatches(
   return entries;
 }
 
+/**
+ * The most recent date this specific pair actually played each other —
+ * `null` if every entry is still in the current open round (no archived
+ * meeting yet). Used to flag which stat records were set in that matchday.
+ */
+export function getLastMatchdayDate(entries: RivalryMatchEntry[]): string | null {
+  let latest: string | null = null;
+  for (const entry of entries) {
+    if (entry.date && (!latest || entry.date > latest)) latest = entry.date;
+  }
+  return latest;
+}
+
 export interface RivalryRecordMatch {
   entry: RivalryMatchEntry;
 }
