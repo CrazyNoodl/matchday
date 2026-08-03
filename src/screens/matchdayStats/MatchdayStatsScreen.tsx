@@ -224,8 +224,8 @@ function ComparisonGroup({ comparison, players, styles }: ComparisonGroupProps) 
   const { t } = useTranslation();
   const def = STAT_DEF_MAP[comparison.key];
   const label = def ? t(def.labelKey) : comparison.key;
-  const rowValue = (row: DayStatComparison['rows'][number]) =>
-    comparison.isPercent ? row.avg : row.sum;
+  const avgOnly = comparison.isPercent || def?.sumMeaningful === false;
+  const rowValue = (row: DayStatComparison['rows'][number]) => (avgOnly ? row.avg : row.sum);
   const maxValue = Math.max(...comparison.rows.map(rowValue), 1);
   const maxGames = Math.max(...comparison.rows.map((r) => r.games));
 
@@ -262,9 +262,9 @@ function ComparisonGroup({ comparison, players, styles }: ComparisonGroupProps) 
             </View>
             <View style={styles.compareValueWrap}>
               <Text style={[styles.compareValue, isTop && styles.compareValueTop]}>
-                {comparison.isPercent ? `${roundNum(row.avg)}%` : roundNum(row.sum)}
+                {comparison.isPercent ? `${roundNum(row.avg)}%` : roundNum(value)}
               </Text>
-              {!comparison.isPercent && row.games > 1 && (
+              {!avgOnly && row.games > 1 && (
                 <Text style={styles.compareValueSub}>
                   {roundNum(row.avg)}
                   {t('matchdayStats.perMatchSuffix')}

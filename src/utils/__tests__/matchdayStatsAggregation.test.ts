@@ -170,4 +170,17 @@ describe('computeDayStatComparisons', () => {
     expect(possession.rows[0]).toEqual({ playerId: 'p1', sum: 50, avg: 50, games: 1 });
     expect(possession.rows.map((r) => r.playerId)).toEqual(['p1', 'p2', 'p3']);
   });
+
+  it('sorts non-percent stats with sumMeaningful: false by average, not sum (timeToRegain)', () => {
+    // p1 plays one game at 10s (sum 10, avg 10). p2 plays two games at 5s and
+    // 7s (sum 12, avg 6). Lower is better: sorting by sum would wrongly rank
+    // p1 first (10 < 12); sorting by average correctly ranks p2 first (6 < 10).
+    const matches: Match[] = [
+      match('m1', 'p1', 'p2', 1, 0, { timeToRegain: { a: 10, b: 5 } }),
+      match('m2', 'p3', 'p2', 1, 0, { timeToRegain: { a: 0, b: 7 } }),
+    ];
+
+    const [timeToRegain] = computeDayStatComparisons(matches);
+    expect(timeToRegain.rows.map((r) => r.playerId)).toEqual(['p3', 'p2', 'p1']);
+  });
 });

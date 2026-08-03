@@ -119,7 +119,8 @@ export function computeDayStatComparisons(matches: Match[]): DayStatComparison[]
       ([playerId, { sum, games }]) => ({ playerId, sum, games, avg: sum / games }),
     );
 
-    const sortValue = (r: DayPlayerStatValue) => (def.isPercent ? r.avg : r.sum);
+    const sortValue = (r: DayPlayerStatValue) =>
+      def.isPercent || def.sumMeaningful === false ? r.avg : r.sum;
     const higherIsBetter = def.higherIsBetter ?? true;
     rows.sort((x, y) =>
       higherIsBetter ? sortValue(y) - sortValue(x) : sortValue(x) - sortValue(y),
