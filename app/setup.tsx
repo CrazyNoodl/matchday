@@ -22,7 +22,7 @@ import {
   TeamEditSheet,
   TeamAssignSheet,
 } from '@/components';
-import { useIsOnline } from '@/hooks/useIsOnline';
+import { useIsOnline } from '@/hooks/IsOnlineProvider';
 import { usePlayerEditForm } from '@/hooks/usePlayerEditForm';
 import { useTeamEditForm } from '@/hooks/useTeamEditForm';
 import { makeStyles } from '@/screens/setup/setup.styles';

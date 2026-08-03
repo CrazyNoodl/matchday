@@ -4,7 +4,7 @@ import { useGoBack } from '@/utils/useGoBack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStore } from '@/store';
 import { useColors } from '@/theme';
-import { useIsOnline } from '@/hooks/useIsOnline';
+import { useIsOnline } from '@/hooks/IsOnlineProvider';
 import { useTeamEditForm } from '@/hooks/useTeamEditForm';
 import { useDeleteGuard } from '@/hooks/useDeleteGuard';
 import {

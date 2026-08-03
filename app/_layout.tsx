@@ -29,7 +29,7 @@ import { resolveOfflineBannerVariant } from '@/utils/offlineBanner';
 import { supabase, supabaseConfigured } from '@/supabase/client';
 import { signOut } from '@/supabase/auth';
 import { LoginScreen, OfflineScreen, ErrorFallback, ResetPasswordScreen } from '@/components';
-import { useIsOnline } from '@/hooks/useIsOnline';
+import { IsOnlineProvider, useIsOnline } from '@/hooks/IsOnlineProvider';
 import { initSentry } from '@/sentry';
 import { initAnalytics, trackEvent } from '@/analytics';
 import { parseRecoveryTokens } from '@/utils/authRecovery';
@@ -60,8 +60,8 @@ function AppErrorBoundary({ children }: { children: React.ReactNode }) {
   );
 }
 
-function SyncManager() {
-  useSyncManager();
+function SyncManager({ isOnline }: { isOnline: boolean }) {
+  useSyncManager(isOnline);
   return null;
 }
 
@@ -152,13 +152,11 @@ function DemoBanner() {
 function AppContent({
   fontsLoaded,
   session,
-  isOnline,
   passwordRecovery,
   onRecoveryDone,
 }: {
   fontsLoaded: boolean;
   session: Session | null | undefined;
-  isOnline: boolean;
   passwordRecovery: boolean;
   onRecoveryDone: () => void;
 }) {
@@ -166,6 +164,7 @@ function AppContent({
   const colorScheme = useEffectiveColorScheme();
   const pathname = usePathname();
   const isSharedRoundRoute = pathname.startsWith('/shared/');
+  const isOnline = useIsOnline();
 
   if (!fontsLoaded || session === undefined) {
     return (
@@ -228,7 +227,7 @@ function AppContent({
             />
           </Head>
         )}
-        <SyncManager />
+        <SyncManager isOnline={isOnline} />
         <MediaRetryManager isOnline={isOnline} />
         <LanguageSync />
         <ScreenViewTracker />
@@ -286,8 +285,6 @@ export default function RootLayout() {
     Sora_600SemiBold,
     Sora_700Bold,
   });
-
-  const isOnline = useIsOnline();
 
   // undefined = still checking, null = not logged in, Session = logged in
   const [session, setSession] = useState<Session | null | undefined>(
@@ -364,20 +361,21 @@ export default function RootLayout() {
   }, []);
 
   return (
-    <ThemeProvider>
-      <AppContent
-        fontsLoaded={fontsLoaded}
-        session={session}
-        isOnline={isOnline}
-        passwordRecovery={passwordRecovery}
-        onRecoveryDone={async () => {
-          // Sign out the temporary recovery session before dropping the
-          // `passwordRecovery` gate, so the user never briefly sees the
-          // authenticated app on that session.
-          await signOut();
-          setPasswordRecovery(false);
-        }}
-      />
-    </ThemeProvider>
+    <IsOnlineProvider>
+      <ThemeProvider>
+        <AppContent
+          fontsLoaded={fontsLoaded}
+          session={session}
+          passwordRecovery={passwordRecovery}
+          onRecoveryDone={async () => {
+            // Sign out the temporary recovery session before dropping the
+            // `passwordRecovery` gate, so the user never briefly sees the
+            // authenticated app on that session.
+            await signOut();
+            setPasswordRecovery(false);
+          }}
+        />
+      </ThemeProvider>
+    </IsOnlineProvider>
   );
 }

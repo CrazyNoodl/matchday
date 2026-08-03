@@ -7,6 +7,14 @@ import { pingSupabase } from '@/supabase/health';
 // signal (NetInfo / browser online-offline events) claims we're online.
 export const HEALTH_CHECK_INTERVAL_MS = 60_000;
 
+// Delay before retrying a failed resume-triggered ping. Coming back from the
+// background after minutes/hours, the OS network radio is often still waking
+// up (re-associating with wifi, renegotiating cellular) right when this fires,
+// so a single ping is disproportionately likely to hit the 2.5s timeout in
+// pingSupabase() even though the connection is actually fine. One retry after
+// a short delay avoids flashing the offline banner for that transient case.
+export const RESUME_RETRY_DELAY_MS = 1500;
+
 export function useIsOnline(): boolean {
   const [rawOnline, setRawOnline] = useState(true);
   const [verifiedUnreachable, setVerifiedUnreachable] = useState(false);
@@ -67,11 +75,32 @@ export function useIsOnline(): boolean {
       }
     };
 
+    // Resume-triggered check: don't trust a single failure yet, since it's
+    // disproportionately likely to be the network radio still waking up (see
+    // RESUME_RETRY_DELAY_MS above) rather than a real outage. Give it one
+    // retry before reporting unreachable.
+    const verifyOnResume = async () => {
+      const reachable = await pingSupabase();
+      if (cancelled) return;
+      if (reachable) {
+        setVerifiedUnreachable(false);
+        setHasVerifiedOnce(true);
+        return;
+      }
+      await new Promise((resolve) => setTimeout(resolve, RESUME_RETRY_DELAY_MS));
+      if (cancelled) return;
+      const reachableOnRetry = await pingSupabase();
+      if (!cancelled) {
+        setVerifiedUnreachable(!reachableOnRetry);
+        setHasVerifiedOnce(true);
+      }
+    };
+
     verify();
     // eslint-disable-next-line @typescript-eslint/no-misused-promises -- setInterval ignores the return value, so an async callback is fine
     const interval = setInterval(verify, HEALTH_CHECK_INTERVAL_MS);
     const subscription = AppState.addEventListener('change', (nextState) => {
-      if (nextState === 'active') verify();
+      if (nextState === 'active') verifyOnResume();
     });
 
     return () => {

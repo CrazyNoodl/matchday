@@ -30,10 +30,6 @@ jest.mock('react-native', () => ({
   Platform: { OS: 'web' },
 }));
 
-jest.mock('@/hooks/useIsOnline', () => ({
-  useIsOnline: () => true,
-}));
-
 jest.mock('../sync', () => ({
   ...jest.requireActual('../sync'),
   pushState: jest.fn().mockResolvedValue(undefined),
@@ -64,7 +60,7 @@ beforeEach(() => {
 
 it('never pushes after resetStore() wipes local state, even though it has real cloud data', async () => {
   mockPullState.mockResolvedValue(null);
-  await renderHook(() => useSyncManager());
+  await renderHook(() => useSyncManager(true));
   await waitFor(() => expect(mockPullState).toHaveBeenCalledTimes(1));
 
   // A real edit — this is the baseline: it SHOULD push.

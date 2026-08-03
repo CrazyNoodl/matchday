@@ -5,7 +5,6 @@ import { getCurrentUserId } from './auth';
 import { pushState, pullState, subscribeToChanges, buildSyncPayload, ALL_DIRTY } from './sync';
 import type { DirtyTable } from './sync';
 import { supabaseConfigured } from './client';
-import { useIsOnline } from '@/hooks/useIsOnline';
 
 const PUSH_DEBOUNCE_MS = 300;
 const PULL_DEBOUNCE_MS = 400;
@@ -17,10 +16,14 @@ const PULL_DEBOUNCE_MS = 400;
 // syncSuppressionRef in store/index.ts.
 export const manualRetryRef = { current: () => {} };
 
-export function useSyncManager() {
+// Takes `isOnline` as a param rather than calling useIsOnline() itself — a
+// second independent instance of that hook mounts its own NetInfo listener
+// and its own pingSupabase() health-check cycle, racing the app root's
+// existing one (see the same note on useMediaRetryManager). One isOnline
+// value, computed once at the root and passed down, avoids the duplicate cycle.
+export function useSyncManager(isOnline: boolean) {
   const setSyncStatus = useStore((s) => s.setSyncStatus);
   const applyCloudState = useStore((s) => s.applyCloudState);
-  const isOnline = useIsOnline();
 
   const applyingRef = useRef(false);
   const pushTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);

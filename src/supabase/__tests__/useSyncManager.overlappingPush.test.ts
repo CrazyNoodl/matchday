@@ -41,9 +41,6 @@ jest.mock('react-native', () => ({
 }));
 
 let mockIsOnline = true;
-jest.mock('@/hooks/useIsOnline', () => ({
-  useIsOnline: () => mockIsOnline,
-}));
 
 jest.mock('../auth', () => ({
   getCurrentUserId: jest.fn().mockResolvedValue('test-user-id'),
@@ -252,7 +249,7 @@ it('a stale push finishing after a fresher one does not delete the newer match f
     matches: [preexisting],
   });
 
-  await renderHook(() => useSyncManager());
+  await renderHook(() => useSyncManager(mockIsOnline));
   await waitFor(() => expect(useStore.getState().syncStatus).toBe('idle'));
   // The initial pull()'s applyCloudState() sets applyingRef.current = true and
   // only clears it 100ms later (see useSyncManager.ts) — edits made inside
