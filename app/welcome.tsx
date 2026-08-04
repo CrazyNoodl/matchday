@@ -56,7 +56,11 @@ export default function WelcomeScreen() {
     <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
       <View style={styles.skipRow}>
         {!isLast && (
-          <TouchableOpacity onPress={finish} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+          <TouchableOpacity
+            testID="welcome-skip-button"
+            onPress={finish}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
             <Text style={{ color: colors.text.muted }}>{t('welcome.skip')}</Text>
           </TouchableOpacity>
         )}

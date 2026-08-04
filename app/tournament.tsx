@@ -143,6 +143,7 @@ export default function TournamentScreen() {
         onBack={() => router.push('/')}
         rightElement={
           <TouchableOpacity
+            testID="tournament-menu-button"
             style={styles.dotsBtn}
             onPress={() => setModal('tourSettings')}
             activeOpacity={0.75}
@@ -278,6 +279,7 @@ export default function TournamentScreen() {
             return (
               <RoundCard
                 key={r.id}
+                testID={`tournament-round-row-${roundOrdinals[r.id] ?? 0}`}
                 n={roundOrdinals[r.id] ?? 0}
                 ranked={r.ranked}
                 dateText={formatShortDate(r.date)}

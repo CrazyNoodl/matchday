@@ -72,6 +72,7 @@ export function NewRoundModal() {
 
         {/* Ranked toggle */}
         <Toggle
+          testID="new-round-ranked-toggle"
           label={t('tournament.newRound.rankedLabel')}
           subtitle={
             rankedLimitReached

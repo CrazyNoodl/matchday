@@ -32,20 +32,20 @@ describe('initial render', () => {
 
 describe('validation', () => {
   it('shows an error and does not call the API when both fields are empty', async () => {
-    const { getByText } = await renderScreen();
-    await fireEvent.press(getByText('SET NEW PASSWORD'));
+    const { getByText, getByTestId } = await renderScreen();
+    await fireEvent.press(getByTestId('reset-password-submit-button'));
 
     await waitFor(() => expect(getByText('Enter and confirm your new password')).toBeTruthy());
     expect(mockUpdatePassword).not.toHaveBeenCalled();
   });
 
   it('shows an error and does not call the API when passwords do not match', async () => {
-    const { getByText, getAllByPlaceholderText } = await renderScreen();
+    const { getByText, getAllByPlaceholderText, getByTestId } = await renderScreen();
     const [passwordInput, confirmInput] = getAllByPlaceholderText('••••••••');
 
     await fireEvent.changeText(passwordInput, 'newpass123');
     await fireEvent.changeText(confirmInput, 'different123');
-    await fireEvent.press(getByText('SET NEW PASSWORD'));
+    await fireEvent.press(getByTestId('reset-password-submit-button'));
 
     await waitFor(() => expect(getByText('Passwords do not match')).toBeTruthy());
     expect(mockUpdatePassword).not.toHaveBeenCalled();
@@ -56,12 +56,12 @@ describe('submit', () => {
   it('calls updatePassword and onDone when passwords match', async () => {
     mockUpdatePassword.mockResolvedValue({ error: null });
     const onDone = jest.fn();
-    const { getByText, getAllByPlaceholderText } = await renderScreen(onDone);
+    const { getAllByPlaceholderText, getByTestId } = await renderScreen(onDone);
     const [passwordInput, confirmInput] = getAllByPlaceholderText('••••••••');
 
     await fireEvent.changeText(passwordInput, 'newpass123');
     await fireEvent.changeText(confirmInput, 'newpass123');
-    await fireEvent.press(getByText('SET NEW PASSWORD'));
+    await fireEvent.press(getByTestId('reset-password-submit-button'));
 
     await waitFor(() => {
       expect(mockUpdatePassword).toHaveBeenCalledWith('newpass123');
@@ -72,12 +72,12 @@ describe('submit', () => {
   it('shows the API error and does not call onDone on failure', async () => {
     mockUpdatePassword.mockResolvedValue({ error: 'Password should be at least 6 characters' });
     const onDone = jest.fn();
-    const { getByText, getAllByPlaceholderText } = await renderScreen(onDone);
+    const { getByText, getAllByPlaceholderText, getByTestId } = await renderScreen(onDone);
     const [passwordInput, confirmInput] = getAllByPlaceholderText('••••••••');
 
     await fireEvent.changeText(passwordInput, '123');
     await fireEvent.changeText(confirmInput, '123');
-    await fireEvent.press(getByText('SET NEW PASSWORD'));
+    await fireEvent.press(getByTestId('reset-password-submit-button'));
 
     await waitFor(() => expect(getByText('Password should be at least 6 characters')).toBeTruthy());
     expect(onDone).not.toHaveBeenCalled();

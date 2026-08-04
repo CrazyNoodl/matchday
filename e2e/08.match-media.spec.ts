@@ -44,7 +44,7 @@ test.describe('Match media', () => {
 
     // Add a photo — expo-image-picker on web opens a real <input type=file>.
     const fileChooserPromise = page.waitForEvent('filechooser');
-    await page.getByText('+ Add', { exact: true }).click();
+    await page.getByTestId('match-add-media-button').click();
     const fileChooser = await fileChooserPromise;
     await fileChooser.setFiles(FIXTURE_IMAGE);
 
@@ -53,7 +53,7 @@ test.describe('Match media', () => {
     await expect(page.getByText('Tap to add media', { exact: true })).not.toBeVisible();
 
     // Delete it.
-    await page.getByText('×', { exact: true }).click();
+    await page.getByTestId('match-media-delete-button-0').click();
     await expect(page.getByText('Tap to add media', { exact: true })).toBeVisible();
     await expect(page.locator('img[src^="blob:"]')).toHaveCount(0);
   });

@@ -27,6 +27,7 @@ function RoundRow({ round, ordinal, onPress }: RoundRowProps) {
   const winner = useStore((s) => s.players.find((p) => p.id === round.winner));
   return (
     <RoundCard
+      testID={`archive-round-row-${ordinal}`}
       variant="row"
       n={ordinal}
       ranked={round.ranked}
@@ -75,6 +76,7 @@ function ClosedTournamentCard({
   return (
     <View style={styles.tourCard}>
       <TouchableOpacity
+        testID={`archive-tournament-row-${tournament.name}`}
         style={styles.tourCardHeader}
         onPress={() => setExpanded((v) => !v)}
         activeOpacity={0.8}
@@ -110,6 +112,7 @@ function ClosedTournamentCard({
 
         <View style={styles.tourCardRight}>
           <TouchableOpacity
+            testID={`archive-tournament-stats-button-${tournament.name}`}
             style={styles.statsBtn}
             onPress={(e) => {
               e.stopPropagation();

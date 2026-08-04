@@ -23,7 +23,7 @@ test.describe('Onboarding carousel', () => {
     await expect(page).toHaveURL(/.*welcome/);
     await expect(page.getByText('Welcome to Matchday', { exact: true })).toBeVisible();
 
-    await page.getByText('Skip', { exact: true }).click();
+    await page.getByTestId('welcome-skip-button').click();
     await expect(page).toHaveURL('/');
   });
 });
@@ -43,14 +43,14 @@ test.describe('Login screen', () => {
     await expect(page.getByText('SIGN IN', { exact: true })).toBeVisible();
     await expect(page.getByText('Forgot password?', { exact: true })).toBeVisible();
 
-    await page.getByText("Don't have an account? Sign up", { exact: true }).click();
+    await page.getByTestId('login-toggle-mode-button').click();
     await expect(page.getByText('CREATE ACCOUNT', { exact: true })).toBeVisible();
     await expect(page.getByTestId('confirm-password-input')).toBeVisible();
 
-    await page.getByText('Already have an account? Sign in', { exact: true }).click();
+    await page.getByTestId('login-toggle-mode-button').click();
     await expect(page.getByText('SIGN IN', { exact: true })).toBeVisible();
 
-    await page.getByText('Forgot password?', { exact: true }).click();
+    await page.getByTestId('login-forgot-password-button').click();
     await expect(page.getByText('SEND RESET LINK', { exact: true })).toBeVisible();
   });
 });
@@ -78,10 +78,10 @@ test.describe('Settings sub-screens', () => {
     await expect(page.getByText('Українська', { exact: true })).toBeVisible();
     // Exactly one language is selected (✓) before and after switching.
     await expect(page.getByText('✓', { exact: true })).toHaveCount(1);
-    await page.getByText('Українська', { exact: true }).click();
+    await page.getByTestId('language-option-uk').click();
     await expect(page.getByText('✓', { exact: true })).toHaveCount(1);
     // Switch back to English — later assertions in this test rely on English strings.
-    await page.getByText('English', { exact: true }).first().click();
+    await page.getByTestId('language-option-en').click();
     await expect(page.getByText('LANGUAGE', { exact: true })).toBeVisible();
 
     await page.goto('/settings/tournaments');

@@ -116,6 +116,7 @@ export default function TournamentsScreen() {
                 <Text style={styles.actionBtnText}>{t('tournament.rename.button')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
+                testID="settings-tournament-close-archive-button"
                 style={[styles.actionBtn, styles.actionBtnDanger]}
                 onPress={(e) => {
                   e.stopPropagation();

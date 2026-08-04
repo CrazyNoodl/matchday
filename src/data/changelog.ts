@@ -10,6 +10,12 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.66',
+    internal: [
+      'Internal: finished the e2e/unit-test testID selector migration — every action-target `getByText` locator (round/tournament menus, match edit sheets, team/player CRUD, login/reset-password screens) now uses `getByTestId`, closing the gap left by the 2026-07-23 partial pass',
+    ],
+  },
+  {
     version: '1.9.65',
     added: [
       'Archived round\'s "···" menu now has a "Reopen round" action for the most recently finished round of an open tournament, so a missed match can be added before finishing it again',

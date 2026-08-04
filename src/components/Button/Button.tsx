@@ -15,6 +15,7 @@ export interface ButtonProps {
   loading?: boolean;
   fullWidth?: boolean;
   onPress?: () => void;
+  testID?: string;
 }
 
 export function Button({
@@ -25,6 +26,7 @@ export function Button({
   loading = false,
   fullWidth = false,
   onPress,
+  testID,
 }: ButtonProps) {
   const colors = useColors();
   const VARIANTS = makeVariants(colors);
@@ -34,6 +36,7 @@ export function Button({
 
   return (
     <TouchableOpacity
+      testID={testID}
       style={[
         styles.base,
         v.container,

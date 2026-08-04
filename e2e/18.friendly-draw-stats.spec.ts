@@ -27,7 +27,7 @@ test.describe('Friendly round', () => {
 
     await page.getByTestId('new-match-day-button').click();
     await expect(page.getByTestId('new-round-start-button')).toBeVisible();
-    await page.getByText('Ranked match day', { exact: true }).click();
+    await page.getByTestId('new-round-ranked-toggle').click();
     await page.getByTestId('new-round-start-button').click();
     await expect(page).toHaveURL(/.*round/);
 
@@ -35,12 +35,12 @@ test.describe('Friendly round', () => {
 
     await addMatchViaUI(page, 'Alice', 'Bob', 2, 1);
 
-    await page.getByText('···', { exact: true }).last().click();
-    await page.getByText('Finish', { exact: true }).last().click();
+    await page.getByTestId('round-menu-button').click();
+    await page.getByTestId('round-menu-finish-item').click();
     await expect(page.getByText('FINISH ROUND?', { exact: true })).toBeVisible();
-    await page.getByText('Crown winner', { exact: true }).last().click();
+    await page.getByTestId('round-finish-confirm-button').click();
     await expect(page.getByText('MATCH DAY WINNER', { exact: true })).toBeVisible();
-    await page.getByText('DONE', { exact: true }).last().click();
+    await page.getByTestId('winner-modal-done-button').click();
     await expect(page).toHaveURL(/.*tournament/);
 
     // The round card on /tournament shows a FRIENDLY badge (RoundCard, !ranked).
@@ -62,16 +62,16 @@ test.describe('Tied round', () => {
     // A 1-1 draw between the only two players ties pts/GD/GF and H2H alike.
     await addMatchViaUI(page, 'Alice', 'Bob', 1, 1);
 
-    await page.getByText('···', { exact: true }).last().click();
-    await page.getByText('Finish', { exact: true }).last().click();
+    await page.getByTestId('round-menu-button').click();
+    await page.getByTestId('round-menu-finish-item').click();
     await expect(page.getByText('FINISH ROUND?', { exact: true })).toBeVisible();
-    await page.getByText('Crown winner', { exact: true }).last().click();
+    await page.getByTestId('round-finish-confirm-button').click();
 
     await expect(page.getByText('MATCH DAY RESULT', { exact: true })).toBeVisible();
     await expect(page.getByText('DRAW', { exact: true })).toBeVisible();
     await expect(page.getByText('MATCH DAY WINNER', { exact: true })).not.toBeVisible();
 
-    await page.getByText('DONE', { exact: true }).last().click();
+    await page.getByTestId('winner-modal-done-button').click();
     await expect(page).toHaveURL(/.*tournament/);
   });
 });
@@ -110,24 +110,22 @@ test.describe('Match detail — edit stats sheet', () => {
   test('adjusts a stat value and confirms a low-confidence stat', async ({ authedPage: page }) => {
     const matchId = await setupMatchWithStats(page);
 
-    await page.getByText('···', { exact: true }).click();
-    await page.getByText('Edit', { exact: true }).last().click();
+    await page.getByTestId('match-stats-menu-button').click();
+    await page.getByTestId('match-stats-menu-edit-item').click();
     await expect(page.getByText('EDIT STATS', { exact: true })).toBeVisible();
 
     // Possession row (side A = Alice, high confidence, no dot) — 55 -> 56.
     // The read-only stats section behind the sheet already shows "55" too
     // (app/match/[id].tsx's own StatsRow), so scope to the sheet's copy.
     await expect(page.getByText('55', { exact: true }).last()).toBeVisible();
-    await page.getByText('+', { exact: true }).first().click();
+    await page.getByTestId('edit-stat-possession-a-plus').click();
     await expect(page.getByText('56', { exact: true })).toBeVisible();
 
     // Shots row is medium-confidence — tapping its label confirms it in
-    // place without nudging the value via +/-. The row's accessibilityLabel
-    // ("Confirm value is correct") renders its own hidden text node with the
-    // same "Shots" content, so scope to the last (innermost) match.
-    await page.getByText('Shots', { exact: true }).last().click();
+    // place without nudging the value via +/-.
+    await page.getByTestId('edit-stat-label-shots').click();
 
-    await page.getByText('Save', { exact: true }).last().click();
+    await page.getByTestId('match-edit-stats-save-button').click();
 
     const updated = await page.evaluate((id) => {
       const raw = localStorage.getItem('matchday-store');

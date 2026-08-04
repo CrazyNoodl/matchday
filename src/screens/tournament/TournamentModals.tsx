@@ -75,7 +75,12 @@ export function TourSettingsSheet({
           </TouchableOpacity>
 
           {/* Close & archive / Delete (canArchive false — zero finished rounds, #86) */}
-          <TouchableOpacity style={sheetStyles.row} onPress={onCloseTournament} activeOpacity={0.8}>
+          <TouchableOpacity
+            testID="tournament-close-archive-row"
+            style={sheetStyles.row}
+            onPress={onCloseTournament}
+            activeOpacity={0.8}
+          >
             <View style={[sheetStyles.rowIcon, { backgroundColor: colors.accent.redSubtle }]}>
               <Text style={[sheetStyles.rowIconText, { color: colors.accent.red }]}>
                 {canArchive ? '🔒' : '🗑'}
@@ -173,7 +178,11 @@ export function CloseTournamentDialog({
         title={t('tournament.close.deleteTitle').toUpperCase()}
         description={t('tournament.close.deleteDesc')}
         cancel={{ label: t('tournament.close.keepGoing'), onPress: onClose }}
-        confirm={{ label: t('tournament.close.delete'), onPress: onDelete }}
+        confirm={{
+          label: t('tournament.close.delete'),
+          onPress: onDelete,
+          testID: 'tournament-delete-confirm-button',
+        }}
       />
     );
   }
@@ -187,7 +196,11 @@ export function CloseTournamentDialog({
       title={t('tournament.close.title').toUpperCase()}
       description={t('tournament.close.desc')}
       cancel={{ label: t('tournament.close.keepGoing'), onPress: onClose }}
-      confirm={{ label: t('tournament.close.archive'), onPress: onConfirm }}
+      confirm={{
+        label: t('tournament.close.archive'),
+        onPress: onConfirm,
+        testID: 'tournament-close-archive-confirm-button',
+      }}
     />
   );
 }

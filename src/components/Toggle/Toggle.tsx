@@ -15,6 +15,7 @@ interface ToggleProps {
   variant?: 'boxed' | 'flat';
   /** Track color when on. Defaults to colors.accent.green. */
   accentColor?: string;
+  testID?: string;
 }
 
 // Single toggle control used everywhere the app needs an on/off row —
@@ -29,6 +30,7 @@ export function Toggle({
   disabled = false,
   variant = 'boxed',
   accentColor,
+  testID,
 }: ToggleProps) {
   const colors = useColors();
   const styles = makeStyles(colors);
@@ -36,6 +38,7 @@ export function Toggle({
 
   return (
     <TouchableOpacity
+      testID={testID}
       style={[
         variant === 'flat' ? styles.rowFlat : styles.row,
         disabled && styles.rowDisabled,

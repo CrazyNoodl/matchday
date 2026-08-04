@@ -35,7 +35,11 @@ export function DeleteGuardDialogs({
         variant="destructive"
         title={t('common.cannotDeleteTitle').toUpperCase()}
         description={cannotDeleteDescription}
-        confirm={{ label: t('common.ok'), onPress: onCloseCannotDelete }}
+        confirm={{
+          label: t('common.ok'),
+          onPress: onCloseCannotDelete,
+          testID: 'delete-guard-cannot-delete-ok-button',
+        }}
       />
 
       <ConfirmDialog
@@ -45,7 +49,11 @@ export function DeleteGuardDialogs({
         title={deleteConfirmTitle}
         description={deleteConfirmDescription}
         cancel={{ label: t('matchday.dialogs.cancel'), onPress: onCloseDeleteConfirm }}
-        confirm={{ label: t('common.delete'), onPress: onConfirmDelete }}
+        confirm={{
+          label: t('common.delete'),
+          onPress: onConfirmDelete,
+          testID: 'delete-guard-confirm-button',
+        }}
       />
     </>
   );

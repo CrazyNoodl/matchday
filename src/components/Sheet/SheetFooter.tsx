@@ -10,6 +10,8 @@ export interface SheetFooterProps {
   onConfirm: () => void;
   confirmDisabled?: boolean;
   confirmLoading?: boolean;
+  cancelTestID?: string;
+  confirmTestID?: string;
 }
 
 export function SheetFooter({
@@ -19,11 +21,19 @@ export function SheetFooter({
   onConfirm,
   confirmDisabled,
   confirmLoading,
+  cancelTestID,
+  confirmTestID,
 }: SheetFooterProps) {
   return (
     <View style={styles.row}>
       <View style={styles.buttonWrap}>
-        <Button label={cancelLabel} variant="secondary" fullWidth onPress={onCancel} />
+        <Button
+          label={cancelLabel}
+          variant="secondary"
+          fullWidth
+          onPress={onCancel}
+          testID={cancelTestID}
+        />
       </View>
       <View style={styles.buttonWrap}>
         <Button
@@ -33,6 +43,7 @@ export function SheetFooter({
           disabled={confirmDisabled}
           loading={confirmLoading}
           onPress={onConfirm}
+          testID={confirmTestID}
         />
       </View>
     </View>

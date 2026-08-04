@@ -70,6 +70,7 @@ export default function MatchDetailScreen() {
   const headerRight = isEditableMatch ? (
     <View style={styles.headerActions}>
       <TouchableOpacity
+        testID="match-edit-score-button"
         style={styles.editBtn}
         onPress={d.openEditScore}
         activeOpacity={0.75}
@@ -79,6 +80,7 @@ export default function MatchDetailScreen() {
       </TouchableOpacity>
       {isCurrentRoundMatch && (
         <TouchableOpacity
+          testID="match-delete-button"
           style={styles.deleteBtn}
           onPress={() => d.store.setModal('delMatch')}
           activeOpacity={0.75}
@@ -180,6 +182,7 @@ export default function MatchDetailScreen() {
                     </View>
                   ) : (
                     <TouchableOpacity
+                      testID="match-stats-menu-button"
                       ref={statsMenu.anchorRef}
                       onPress={statsMenu.open}
                       hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
@@ -239,6 +242,7 @@ export default function MatchDetailScreen() {
                 </TouchableOpacity>
               )}
               <TouchableOpacity
+                testID="match-add-media-button"
                 style={[
                   styles.addMediaBtn,
                   (importingStats || isMediaFull || isOffline) && styles.btnCrossBlocked,
@@ -313,6 +317,7 @@ export default function MatchDetailScreen() {
                   </TouchableOpacity>
                   {isEditableMatch && !item.uploading && (
                     <TouchableOpacity
+                      testID={`match-media-delete-button-${originalIndex}`}
                       style={[styles.mediaDeleteBtn, isOffline && styles.btnCrossBlocked]}
                       onPress={() => d.handleDeleteMedia(originalIndex)}
                       disabled={isOffline}
@@ -345,6 +350,7 @@ export default function MatchDetailScreen() {
           <SectionLabel label={t('matchDetail.commentary').toUpperCase()} />
           {isEditableMatch && (
             <TouchableOpacity
+              testID="match-edit-note-button"
               onPress={d.openEditNote}
               hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
             >

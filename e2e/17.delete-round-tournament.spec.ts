@@ -23,22 +23,22 @@ test.describe('Delete round', () => {
     await addMatchViaUI(page, 'Alice', 'Bob', 1, 0);
 
     // Equal games (both played once) — finish and crown Alice, tournament stays open.
-    await page.getByText('···', { exact: true }).last().click();
-    await page.getByText('Finish', { exact: true }).last().click();
+    await page.getByTestId('round-menu-button').click();
+    await page.getByTestId('round-menu-finish-item').click();
     await expect(page.getByText('FINISH ROUND?', { exact: true })).toBeVisible();
-    await page.getByText('Crown winner', { exact: true }).last().click();
+    await page.getByTestId('round-finish-confirm-button').click();
     await expect(page.getByText('MATCH DAY WINNER', { exact: true })).toBeVisible();
-    await page.getByText('DONE', { exact: true }).last().click();
+    await page.getByTestId('winner-modal-done-button').click();
     await expect(page).toHaveURL(/.*tournament/);
 
     await expect(page.getByText('1 matches', { exact: true })).toBeVisible();
-    await page.getByText('1 matches', { exact: true }).click();
+    await page.getByTestId('tournament-round-row-1').click();
     await expect(page).toHaveURL(/.*archive-day/);
 
-    await page.getByText('···', { exact: true }).last().click();
-    await page.getByText('Delete Round', { exact: true }).last().click();
+    await page.getByTestId('archive-day-menu-button').click();
+    await page.getByTestId('archive-day-menu-delete-round-item').click();
     await expect(page.getByText('DELETE ROUND?', { exact: true })).toBeVisible();
-    await page.getByText('Delete Round', { exact: true }).last().click();
+    await page.getByTestId('archive-day-delete-round-confirm-button').click();
 
     await expect(page).toHaveURL(/.*tournament/);
     await expect(page.getByText('1 matches', { exact: true })).not.toBeVisible();
@@ -59,9 +59,9 @@ test.describe('Delete tournament', () => {
     await page.waitForLoadState('networkidle');
     await expect(page.getByText('Empty Cup', { exact: true })).toBeVisible();
 
-    await page.getByText('Close & archive', { exact: true }).click();
+    await page.getByTestId('settings-tournament-close-archive-button').click();
     await expect(page.getByText('DELETE TOURNAMENT?', { exact: true })).toBeVisible();
-    await page.getByText('Delete', { exact: true }).last().click();
+    await page.getByTestId('tournament-delete-confirm-button').click();
 
     await expect(page).toHaveURL('/');
     await expect(page.getByText('NO ACTIVE TOURNAMENT')).toBeVisible();

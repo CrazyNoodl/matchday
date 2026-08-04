@@ -220,6 +220,7 @@ export default function MatchdayScreen() {
         rightElement={
           roundOpen ? (
             <TouchableOpacity
+              testID="round-menu-button"
               ref={roundMenu.anchorRef}
               style={styles.dotsBtn}
               onPress={roundMenu.open}
@@ -367,6 +368,7 @@ export default function MatchdayScreen() {
         cancel={{ label: t('matchday.dialogs.cancel'), onPress: closeModal }}
         confirm={{
           label: t('matchday.dialogs.delete'),
+          testID: 'round-delete-match-confirm-button',
           onPress: () => {
             if (selectedMatchId) {
               deleteMatch(selectedMatchId);
@@ -402,6 +404,7 @@ export default function MatchdayScreen() {
         cancel={{ label: t('matchday.dialogs.cancel'), onPress: closeModal }}
         confirm={{
           label: t('matchday.dialogs.deleteRoundConfirm'),
+          testID: 'round-delete-round-confirm-button',
           onPress: handleConfirmDeleteRound,
         }}
       />
@@ -415,6 +418,7 @@ export default function MatchdayScreen() {
           {
             key: 'finish',
             label: t('matchday.finish'),
+            testID: 'round-menu-finish-item',
             onPress: () => {
               roundMenu.close();
               handleFinishPress();
@@ -423,6 +427,7 @@ export default function MatchdayScreen() {
           {
             key: 'stats',
             label: t('home.stats'),
+            testID: 'round-menu-stats-item',
             onPress: () => {
               roundMenu.close();
               // Null out `viewingRound` — it's session UI state that can be
@@ -437,6 +442,7 @@ export default function MatchdayScreen() {
             key: 'delete',
             label: t('matchday.dialogs.deleteRoundConfirm'),
             destructive: true,
+            testID: 'round-menu-delete-item',
             onPress: () => {
               roundMenu.close();
               setModal('delRound');

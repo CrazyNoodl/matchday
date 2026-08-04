@@ -20,6 +20,8 @@ interface SegmentedControlProps<T extends string> {
   chipActiveIntensity?: 'solid' | 'subtle';
   /** Extra layout styling (margin, flexWrap) for the outer container. */
   style?: StyleProp<ViewStyle>;
+  /** Each option gets a testID of `${testIDPrefix}-${option.value}`. */
+  testIDPrefix?: string;
 }
 
 export function SegmentedControl<T extends string>({
@@ -29,6 +31,7 @@ export function SegmentedControl<T extends string>({
   variant = 'boxed',
   chipActiveIntensity = 'solid',
   style,
+  testIDPrefix,
 }: SegmentedControlProps<T>) {
   const colors = useColors();
   const styles = makeStyles(colors);
@@ -47,6 +50,7 @@ export function SegmentedControl<T extends string>({
           return (
             <TouchableOpacity
               key={opt.value}
+              testID={testIDPrefix ? `${testIDPrefix}-${opt.value}` : undefined}
               style={[styles.segChip, active && activeSeg]}
               onPress={() => onChange(opt.value)}
               activeOpacity={0.75}
@@ -66,6 +70,7 @@ export function SegmentedControl<T extends string>({
         return (
           <TouchableOpacity
             key={opt.value}
+            testID={testIDPrefix ? `${testIDPrefix}-${opt.value}` : undefined}
             style={[
               isPill ? styles.segPill : styles.segBoxed,
               active && (isPill ? styles.segPillActive : styles.segBoxedActive),

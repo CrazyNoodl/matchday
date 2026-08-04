@@ -9,6 +9,8 @@ interface EditableEntityRowProps {
   subtitle?: string;
   onEdit: () => void;
   onDelete: () => void;
+  editTestID?: string;
+  deleteTestID?: string;
 }
 
 const HIT_SLOP = { top: 8, bottom: 8, left: 8, right: 8 };
@@ -21,6 +23,8 @@ export function EditableEntityRow({
   subtitle,
   onEdit,
   onDelete,
+  editTestID,
+  deleteTestID,
 }: EditableEntityRowProps) {
   const colors = useColors();
   const styles = makeStyles(colors);
@@ -34,6 +38,7 @@ export function EditableEntityRow({
       </View>
       <View style={styles.actions}>
         <TouchableOpacity
+          testID={editTestID}
           style={styles.actionBtn}
           onPress={onEdit}
           activeOpacity={0.75}
@@ -42,6 +47,7 @@ export function EditableEntityRow({
           <Text style={styles.editIcon}>✏️</Text>
         </TouchableOpacity>
         <TouchableOpacity
+          testID={deleteTestID}
           style={[styles.actionBtn, styles.deleteBtn]}
           onPress={onDelete}
           activeOpacity={0.75}

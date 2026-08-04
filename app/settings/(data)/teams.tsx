@@ -86,6 +86,8 @@ export default function TeamsScreen() {
               subtitle={team.short}
               onEdit={() => teamForm.openEdit(team)}
               onDelete={() => deleteGuard.requestDelete(team.code)}
+              editTestID={`team-edit-button-${team.name}`}
+              deleteTestID={`team-delete-button-${team.name}`}
             />
           ))
         )}

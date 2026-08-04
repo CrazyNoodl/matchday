@@ -41,21 +41,14 @@ test.describe('Match detail screen', () => {
     await setupMatchDetail(page);
     await expect(page.getByText('Alice won', { exact: true })).toBeVisible();
 
-    // Two "Edit" texts exist on this screen: the header score-edit button
-    // (rendered first, in NavHeader) and the commentary section's edit link
-    // (rendered last, further down the scroll content) — see MatchModals.tsx.
-    await page.getByText('Edit', { exact: true }).first().click();
+    await page.getByTestId('match-edit-score-button').click();
     await expect(page.getByText('EDIT SCORE', { exact: true })).toBeVisible();
 
-    // Two stepper pairs live in this sheet, home (Alice) first then away
-    // (Bob) — see the scoreEditRow JSX in MatchModals.tsx.
-    const minus = page.getByText('−', { exact: true });
-    const plus = page.getByText('+', { exact: true });
-    await minus.nth(0).click(); // Alice 2 -> 1
-    await minus.nth(0).click(); // Alice 1 -> 0
-    await plus.nth(1).click(); // Bob 0 -> 1
+    await page.getByTestId('match-score-edit-a-minus').click(); // Alice 2 -> 1
+    await page.getByTestId('match-score-edit-a-minus').click(); // Alice 1 -> 0
+    await page.getByTestId('match-score-edit-b-plus').click(); // Bob 0 -> 1
 
-    await page.getByText('Save', { exact: true }).last().click();
+    await page.getByTestId('match-edit-score-save-button').click();
     await expect(page.getByText('Bob won', { exact: true })).toBeVisible();
   });
 
@@ -63,13 +56,13 @@ test.describe('Match detail screen', () => {
     const matchId = await setupMatchDetail(page);
     await expect(page.getByText('Add commentary...', { exact: true })).toBeVisible();
 
-    await page.getByText('Edit', { exact: true }).last().click();
+    await page.getByTestId('match-edit-note-button').click();
     // "COMMENTARY" appears twice once the sheet is open: the section label
     // behind it, and the sheet's own header title — the header is the last
     // of the two in DOM order.
     await expect(page.getByText('COMMENTARY', { exact: true }).last()).toBeVisible();
     await page.getByTestId('match-edit-note-input').fill('Alice dominated the midfield.');
-    await page.getByText('Save', { exact: true }).last().click();
+    await page.getByTestId('match-edit-note-save-button').click();
 
     // The sheet's own textarea keeps the same value mounted behind it, so
     // scope to the rendered note card (the first match) rather than the
@@ -91,9 +84,9 @@ test.describe('Match detail screen', () => {
   }) => {
     await setupMatchDetail(page);
 
-    await page.getByText('🗑', { exact: true }).click();
+    await page.getByTestId('match-delete-button').click();
     await expect(page.getByText('DELETE MATCH?', { exact: true })).toBeVisible();
-    await page.getByText('Delete', { exact: true }).last().click();
+    await page.getByTestId('match-delete-confirm-button').click();
 
     await expect(page).toHaveURL(/.*round/);
     await expect(page.getByText('MATCHES · 0', { exact: true })).toBeVisible();

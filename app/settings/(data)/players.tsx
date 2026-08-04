@@ -85,6 +85,8 @@ export default function PlayersScreen() {
               subtitle={player.nick ? `@${player.nick}` : undefined}
               onEdit={() => playerForm.openEdit(player)}
               onDelete={() => deleteGuard.requestDelete(player.id)}
+              editTestID={`player-edit-button-${player.name}`}
+              deleteTestID={`player-delete-button-${player.name}`}
             />
           ))
         )}

@@ -222,6 +222,7 @@ export default function ArchiveDayScreen() {
         onBack={() => goBack()}
         rightElement={
           <TouchableOpacity
+            testID="archive-day-menu-button"
             ref={roundMenu.anchorRef}
             style={styles.dotsBtn}
             onPress={roundMenu.open}
@@ -332,6 +333,7 @@ export default function ArchiveDayScreen() {
           {
             key: 'share',
             label: t('common.share'),
+            testID: 'archive-day-menu-share-item',
             onPress: () => {
               roundMenu.close();
               setShareVisible(true);
@@ -340,6 +342,7 @@ export default function ArchiveDayScreen() {
           {
             key: 'stats',
             label: t('home.stats'),
+            testID: 'archive-day-menu-stats-item',
             onPress: () => {
               roundMenu.close();
               router.push('/matchday-stats');
@@ -350,6 +353,7 @@ export default function ArchiveDayScreen() {
                 {
                   key: 'reopen',
                   label: t('archive.reopenRoundMenu'),
+                  testID: 'archive-day-menu-reopen-item',
                   onPress: () => {
                     roundMenu.close();
                     setReopenVisible(true);
@@ -363,6 +367,7 @@ export default function ArchiveDayScreen() {
                   key: 'delete',
                   label: t('archive.deleteRoundConfirm'),
                   destructive: true,
+                  testID: 'archive-day-menu-delete-round-item',
                   onPress: () => {
                     roundMenu.close();
                     setDeleteVisible(true);
@@ -382,7 +387,11 @@ export default function ArchiveDayScreen() {
         title={t('archive.deleteRoundTitle').toUpperCase()}
         description={t('archive.deleteRoundDesc')}
         cancel={{ label: t('matchday.dialogs.cancel'), onPress: () => setDeleteVisible(false) }}
-        confirm={{ label: t('archive.deleteRoundConfirm'), onPress: handleConfirmDelete }}
+        confirm={{
+          label: t('archive.deleteRoundConfirm'),
+          onPress: handleConfirmDelete,
+          testID: 'archive-day-delete-round-confirm-button',
+        }}
       />
 
       <ConfirmDialog
@@ -394,7 +403,11 @@ export default function ArchiveDayScreen() {
         title={t('archive.reopenRoundTitle').toUpperCase()}
         description={t('archive.reopenRoundDesc')}
         cancel={{ label: t('matchday.dialogs.cancel'), onPress: () => setReopenVisible(false) }}
-        confirm={{ label: t('archive.reopenRoundConfirm'), onPress: handleConfirmReopen }}
+        confirm={{
+          label: t('archive.reopenRoundConfirm'),
+          onPress: handleConfirmReopen,
+          testID: 'archive-day-reopen-confirm-button',
+        }}
       />
 
       <EditRoundDateSheet

@@ -96,6 +96,7 @@ export default function StatsScreen() {
           variant="pill"
           value={activeTab}
           onChange={setActiveTab}
+          testIDPrefix="stats-tab"
           options={[
             { value: 'ranking', label: t('stats.ranking') },
             { value: 'h2h', label: t('stats.h2h') },
@@ -230,6 +231,7 @@ function H2HTab({ pairs, tournamentOnly }: H2HTabProps) {
       {pairs.map((pair) => (
         <TouchableOpacity
           key={`${pair.playerA.id}-${pair.playerB.id}`}
+          testID={`h2h-row-${pair.playerA.name}-${pair.playerB.name}`}
           activeOpacity={0.85}
           delayLongPress={3000}
           onLongPress={() =>
