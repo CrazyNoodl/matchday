@@ -610,6 +610,9 @@ export function useMatchDetail() {
   // (1 → 5 → 10) so a badly OCR'd value (e.g. 4 instead of 94) doesn't need
   // 90 taps. A quick tap (released before the hold kicks in) instead applies
   // the stat's own step once — 0.1 for xG, so the fraction stays reachable.
+  // The buttons need `delayPressIn={0}`: with only onPressIn/onPressOut (no
+  // onPress), react-native-web drops a tap released inside its default 50ms
+  // press delay entirely — neither callback fires.
   const holdTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const holdIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const holdTicksRef = useRef(0);
