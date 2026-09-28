@@ -148,6 +148,7 @@ export function MatchModals({ d }: MatchModalsProps) {
                       <TouchableOpacity
                         testID={`edit-stat-${stat.key}-a-minus`}
                         style={styles.stepBtn}
+                        delayPressIn={0}
                         onPressIn={() => d.startStatHold(stat.key, 'a', -1, stat.isPercent)}
                         onPressOut={() =>
                           d.endStatHold(stat.key, 'a', -1, stat.isPercent, stat.step)
@@ -162,6 +163,7 @@ export function MatchModals({ d }: MatchModalsProps) {
                       <TouchableOpacity
                         testID={`edit-stat-${stat.key}-a-plus`}
                         style={styles.stepBtn}
+                        delayPressIn={0}
                         onPressIn={() => d.startStatHold(stat.key, 'a', 1, stat.isPercent)}
                         onPressOut={() =>
                           d.endStatHold(stat.key, 'a', 1, stat.isPercent, stat.step)
@@ -191,6 +193,7 @@ export function MatchModals({ d }: MatchModalsProps) {
                       <TouchableOpacity
                         testID={`edit-stat-${stat.key}-b-minus`}
                         style={styles.stepBtn}
+                        delayPressIn={0}
                         onPressIn={() => d.startStatHold(stat.key, 'b', -1, stat.isPercent)}
                         onPressOut={() =>
                           d.endStatHold(stat.key, 'b', -1, stat.isPercent, stat.step)
@@ -205,6 +208,7 @@ export function MatchModals({ d }: MatchModalsProps) {
                       <TouchableOpacity
                         testID={`edit-stat-${stat.key}-b-plus`}
                         style={styles.stepBtn}
+                        delayPressIn={0}
                         onPressIn={() => d.startStatHold(stat.key, 'b', 1, stat.isPercent)}
                         onPressOut={() =>
                           d.endStatHold(stat.key, 'b', 1, stat.isPercent, stat.step)
