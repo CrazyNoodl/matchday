@@ -1,15 +1,24 @@
-import React, { useState, useCallback } from 'react';
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import React from 'react';
+import { View, ScrollView } from 'react-native';
 import { useGoBack } from '@/utils/useGoBack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStore } from '@/store';
 import { useColors } from '@/theme';
-import { useIsOnline } from '@/hooks/useIsOnline';
+import { useIsOnline } from '@/hooks/IsOnlineProvider';
 import { useTeamEditForm } from '@/hooks/useTeamEditForm';
-import { NavHeader, TeamBadge, EmptyState, GlowBackground, TeamEditSheet } from '@/components';
+import { useDeleteGuard } from '@/hooks/useDeleteGuard';
+import {
+  NavHeader,
+  TeamBadge,
+  EmptyState,
+  GlowBackground,
+  TeamEditSheet,
+  EditableEntityRow,
+  AddEntityButton,
+  DeleteGuardDialogs,
+} from '@/components';
 import { useTranslation } from 'react-i18next';
 import { makeStyles } from '@/screens/settings/teams/teams.styles';
-import { TeamDialogs } from '@/screens/settings/teams/TeamDialogs';
 
 export default function TeamsScreen() {
   const { t } = useTranslation();
@@ -26,36 +35,15 @@ export default function TeamsScreen() {
   const deleteTeam = useStore((s) => s.deleteTeam);
   const isOffline = !useIsOnline();
 
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [showCannotDelete, setShowCannotDelete] = useState(false);
-  const [pendingDeleteCode, setPendingDeleteCode] = useState<string | null>(null);
-
   const teamForm = useTeamEditForm({ teams, addTeam, updateTeam, demoMode });
 
-  const handleDelete = useCallback(
-    (code: string) => {
-      const allMatches = [
-        ...matches,
-        ...archivedRounds.flatMap((r) => r.matches),
-        ...closedTournaments.flatMap((t) => t.rounds.flatMap((r) => r.matches)),
-      ];
-      if (allMatches.some((m) => m.aTeam === code || m.bTeam === code)) {
-        setShowCannotDelete(true);
-        return;
-      }
-      setPendingDeleteCode(code);
-      setShowDeleteConfirm(true);
-    },
-    [matches, archivedRounds, closedTournaments],
-  );
-
-  const confirmDelete = useCallback(() => {
-    if (pendingDeleteCode) {
-      deleteTeam(pendingDeleteCode);
-    }
-    setShowDeleteConfirm(false);
-    setPendingDeleteCode(null);
-  }, [pendingDeleteCode, deleteTeam]);
+  const deleteGuard = useDeleteGuard({
+    matches,
+    archivedRounds,
+    closedTournaments,
+    isReferencedBy: (m, code) => m.aTeam === code || m.bTeam === code,
+    onDelete: deleteTeam,
+  });
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
@@ -65,14 +53,11 @@ export default function TeamsScreen() {
         subtitle={t('settings.data.teamsCount', { count: teams.length })}
         onBack={() => goBack()}
         rightElement={
-          <TouchableOpacity
+          <AddEntityButton
             testID="teams-add-button"
-            style={styles.addBtn}
+            label={'+ ' + t('common.add').toUpperCase()}
             onPress={teamForm.openCreate}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.addBtnText}>{'+ ' + t('common.add').toUpperCase()}</Text>
-          </TouchableOpacity>
+          />
         }
       />
 
@@ -89,34 +74,21 @@ export default function TeamsScreen() {
           />
         ) : (
           teams.map((team) => (
-            <View key={team.code} style={styles.teamRow}>
-              <View style={styles.teamBadgeWrap}>
-                <TeamBadge teamCode={team.code} size="lg" />
-                <View style={[styles.teamColorSwatch, { backgroundColor: team.color }]} />
-              </View>
-              <View style={styles.teamInfo}>
-                <Text style={styles.teamName}>{team.name}</Text>
-                <Text style={styles.teamCode}>{team.short}</Text>
-              </View>
-              <View style={styles.teamActions}>
-                <TouchableOpacity
-                  style={styles.actionBtn}
-                  onPress={() => teamForm.openEdit(team)}
-                  activeOpacity={0.75}
-                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                >
-                  <Text style={styles.editIcon}>✏️</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.actionBtn, styles.deleteBtn]}
-                  onPress={() => handleDelete(team.code)}
-                  activeOpacity={0.75}
-                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                >
-                  <Text style={styles.deleteIcon}>×</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
+            <EditableEntityRow
+              key={team.code}
+              leading={
+                <View style={styles.teamBadgeWrap}>
+                  <TeamBadge teamCode={team.code} size="lg" />
+                  <View style={[styles.teamColorSwatch, { backgroundColor: team.color }]} />
+                </View>
+              }
+              title={team.name}
+              subtitle={team.short}
+              onEdit={() => teamForm.openEdit(team)}
+              onDelete={() => deleteGuard.requestDelete(team.code)}
+              editTestID={`team-edit-button-${team.name}`}
+              deleteTestID={`team-delete-button-${team.name}`}
+            />
           ))
         )}
         <View style={{ height: 40 }} />
@@ -141,12 +113,15 @@ export default function TeamsScreen() {
         onSave={teamForm.save}
       />
 
-      <TeamDialogs
-        showCannotDelete={showCannotDelete}
-        onCloseCannotDelete={() => setShowCannotDelete(false)}
-        showDeleteConfirm={showDeleteConfirm}
-        onCloseDeleteConfirm={() => setShowDeleteConfirm(false)}
-        onConfirmDelete={confirmDelete}
+      <DeleteGuardDialogs
+        cannotDeleteDescription={t('teams.cannotDelete')}
+        deleteConfirmTitle={t('teams.deleteConfirm').toUpperCase()}
+        deleteConfirmDescription={t('teams.deleteDesc')}
+        showCannotDelete={deleteGuard.showCannotDelete}
+        onCloseCannotDelete={deleteGuard.closeCannotDelete}
+        showDeleteConfirm={deleteGuard.showDeleteConfirm}
+        onCloseDeleteConfirm={deleteGuard.closeDeleteConfirm}
+        onConfirmDelete={deleteGuard.confirmDelete}
       />
     </SafeAreaView>
   );

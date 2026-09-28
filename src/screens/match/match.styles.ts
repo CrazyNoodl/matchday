@@ -14,11 +14,6 @@ export const makeStyles = (colors: AppColors) =>
       alignItems: 'center',
       justifyContent: 'center',
     },
-    emptyText: {
-      fontFamily: FontFamily.body,
-      fontSize: FontSize.base,
-      color: colors.text.muted,
-    },
 
     // Header actions
     headerActions: {

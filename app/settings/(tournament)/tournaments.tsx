@@ -79,7 +79,11 @@ export default function TournamentsScreen() {
       >
         {/* Active tournament */}
         {hasTournament && (
-          <View style={styles.activeTour}>
+          <TouchableOpacity
+            style={styles.activeTour}
+            onPress={() => router.push('/tournament')}
+            activeOpacity={0.8}
+          >
             <View style={styles.activeTourHeader}>
               <View style={styles.liveBadge}>
                 <View style={styles.liveDot} />
@@ -103,14 +107,21 @@ export default function TournamentsScreen() {
             <View style={styles.activeTourActions}>
               <TouchableOpacity
                 style={styles.actionBtn}
-                onPress={handleOpenRename}
+                onPress={(e) => {
+                  e.stopPropagation();
+                  handleOpenRename();
+                }}
                 activeOpacity={0.8}
               >
                 <Text style={styles.actionBtnText}>{t('tournament.rename.button')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
+                testID="settings-tournament-close-archive-button"
                 style={[styles.actionBtn, styles.actionBtnDanger]}
-                onPress={handleCloseTournament}
+                onPress={(e) => {
+                  e.stopPropagation();
+                  handleCloseTournament();
+                }}
                 activeOpacity={0.8}
               >
                 <Text style={[styles.actionBtnText, styles.actionBtnTextDanger]}>
@@ -118,7 +129,7 @@ export default function TournamentsScreen() {
                 </Text>
               </TouchableOpacity>
             </View>
-          </View>
+          </TouchableOpacity>
         )}
 
         {!hasTournament && (

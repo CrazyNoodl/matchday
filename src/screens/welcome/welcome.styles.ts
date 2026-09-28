@@ -32,7 +32,6 @@ export const makeStyles = (colors: AppColors) =>
       gap: Spacing.lg,
     },
     screenshotWrap: {
-      flex: 1,
       width: '100%',
       maxWidth: '100%',
       aspectRatio: SCREENSHOT_ASPECT_RATIO,
@@ -48,7 +47,6 @@ export const makeStyles = (colors: AppColors) =>
       height: '100%',
     },
     iconWrap: {
-      flex: 1,
       width: '100%',
       maxWidth: '100%',
       aspectRatio: SCREENSHOT_ASPECT_RATIO,
@@ -63,32 +61,6 @@ export const makeStyles = (colors: AppColors) =>
     },
     iconText: {
       fontSize: 88,
-    },
-    toggleRow: {
-      width: '100%',
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      gap: Spacing.md,
-      padding: Spacing.lg,
-      borderRadius: Radius.xl,
-      borderWidth: 1,
-      borderColor: colors.border.medium,
-      backgroundColor: colors.bg.surface,
-    },
-    toggleLabelBlock: {
-      flex: 1,
-      gap: Spacing.xs,
-    },
-    toggleLabel: {
-      fontFamily: FontFamily.displayBold,
-      fontSize: FontSize.md,
-      color: colors.text.primary,
-    },
-    toggleHint: {
-      fontFamily: FontFamily.body,
-      fontSize: FontSize.sm,
-      color: colors.text.muted,
     },
     title: {
       fontFamily: FontFamily.displayBold,

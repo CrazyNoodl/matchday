@@ -24,7 +24,7 @@ const matchday = {
   homeWin: 'Home win',
   awayWin: 'Away win',
   draw: 'Draw',
-  addMedia: 'Add up to 7 photos or videos',
+  addMedia: 'Add up to 7 photos',
   addMediaBtn: 'Add',
   commentaryHint: 'Add a comment (optional)',
   commentaryPlaceholder: 'How did the match go?',

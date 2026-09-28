@@ -132,6 +132,14 @@ interface RootActions {
   // data can reach the newly-signed-in account's cloud rows — see #80.
   lastSyncedUserId: string | null;
   setLastSyncedUserId: (id: string | null) => void;
+  // Local-backup staleness tracking (see src/utils/backup.ts). lastBackupAt is
+  // the exportedAt of the most recent backup (auto or manual); read/written
+  // directly via useStore.setState() from backup.ts, same convention as
+  // applyBackupLocally(). backupStaleEditCount counts edits made to an
+  // already-archived matchday since then — i.e. changes that backup doesn't
+  // cover yet — bumped by noteBackupStaleness() in sliceHelpers.ts.
+  lastBackupAt: string | null;
+  backupStaleEditCount: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -212,6 +220,9 @@ export const useStore = create<RootState>()(
       lastSyncedUserId: null,
       setLastSyncedUserId: (id) => set({ lastSyncedUserId: id }),
 
+      lastBackupAt: null,
+      backupStaleEditCount: 0,
+
       // deleteCloudMedia defaults to false: resetStore() is also used by
       // sign-out to clear the *local* cache so it can't leak into the next
       // account on this device — that must never delete the real photos/
@@ -269,6 +280,8 @@ export const useStore = create<RootState>()(
           viewingRound: null,
           viewingTournament: null,
           lastSyncedUserId: null,
+          lastBackupAt: null,
+          backupStaleEditCount: 0,
           // Display preferences are account-scoped and synced (#81) — reset
           // to defaults here too, so a sign-out can't leave account A's
           // language/theme/etc. visible to account B before the next pull
@@ -319,6 +332,8 @@ export const useStore = create<RootState>()(
         teams: state.teams,
         pendingSyncTables: state.pendingSyncTables,
         lastSyncedUserId: state.lastSyncedUserId,
+        lastBackupAt: state.lastBackupAt,
+        backupStaleEditCount: state.backupStaleEditCount,
         showNick: state.showNick,
         showTeamLogo: state.showTeamLogo,
         groupByTours: state.groupByTours,
@@ -331,6 +346,7 @@ export const useStore = create<RootState>()(
         hasSeenOnboarding: state.hasSeenOnboarding,
         leaderModalEnabled: state.leaderModalEnabled,
         leaderModalMinPlayers: state.leaderModalMinPlayers,
+        dayWinnerBannerEnabled: state.dayWinnerBannerEnabled,
         matchDragReorderEnabled: state.matchDragReorderEnabled,
       }),
     },

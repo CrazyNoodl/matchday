@@ -22,6 +22,9 @@ import {
   MatchCard,
   GlowBackground,
   PlayerRankCard,
+  EmptyState,
+  StatTile,
+  SegmentedControl,
 } from '@/components';
 import type { Match } from '@/store/types';
 import { useTranslation } from 'react-i18next';
@@ -98,8 +101,8 @@ export default function SeasonStatsScreen() {
     return (
       <SafeAreaView style={styles.root} edges={['top']}>
         <NavHeader title={t('seasonStats.title').toUpperCase()} onBack={() => goBack()} />
-        <View style={styles.emptyWrap}>
-          <Text style={styles.emptyText}>{t('seasonStats.noTournament')}</Text>
+        <View style={styles.center}>
+          <EmptyState message={t('seasonStats.noTournament')} />
         </View>
       </SafeAreaView>
     );
@@ -173,23 +176,12 @@ export default function SeasonStatsScreen() {
         {/* INCLUDE filter chips */}
         <View style={styles.filterRow}>
           <Text style={styles.filterLabel}>{t('seasonStats.include').toUpperCase()}</Text>
-          <View style={styles.filterChips}>
-            {includeFilters.map((f) => {
-              const active = includeFilter === f.key;
-              return (
-                <TouchableOpacity
-                  key={f.key}
-                  style={[styles.filterChip, active && styles.filterChipActive]}
-                  onPress={() => setIncludeFilter(f.key)}
-                  activeOpacity={0.75}
-                >
-                  <Text style={[styles.filterChipText, active && styles.filterChipTextActive]}>
-                    {f.label}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
+          <SegmentedControl
+            variant="chip"
+            value={includeFilter}
+            onChange={setIncludeFilter}
+            options={includeFilters.map((f) => ({ value: f.key, label: f.label }))}
+          />
         </View>
 
         {/* Champion hero card */}
@@ -218,18 +210,22 @@ export default function SeasonStatsScreen() {
 
         {/* Totals row: Days | Matches | Goals */}
         <View style={styles.totalsRow}>
-          <View style={styles.totalCard}>
-            <Text style={styles.totalValue}>{filteredRounds.length}</Text>
-            <Text style={styles.totalLabel}>{t('seasonStats.days').toUpperCase()}</Text>
-          </View>
-          <View style={styles.totalCard}>
-            <Text style={styles.totalValue}>{allMatches.length}</Text>
-            <Text style={styles.totalLabel}>{t('seasonStats.matches').toUpperCase()}</Text>
-          </View>
-          <View style={styles.totalCard}>
-            <Text style={[styles.totalValue, styles.totalValueGreen]}>{totalGoals}</Text>
-            <Text style={styles.totalLabel}>{t('seasonStats.goals').toUpperCase()}</Text>
-          </View>
+          <StatTile
+            variant="compact"
+            label={t('seasonStats.days').toUpperCase()}
+            value={filteredRounds.length}
+          />
+          <StatTile
+            variant="compact"
+            label={t('seasonStats.matches').toUpperCase()}
+            value={allMatches.length}
+          />
+          <StatTile
+            variant="compact"
+            label={t('seasonStats.goals').toUpperCase()}
+            value={totalGoals}
+            highlight
+          />
         </View>
 
         {/* SEASON RANKING section */}
@@ -239,29 +235,18 @@ export default function SeasonStatsScreen() {
         />
 
         {/* Param chips */}
-        <View style={styles.paramChipsRow}>
-          {paramChips.map(({ key, label }) => {
-            const active = paramChip === key;
-            return (
-              <TouchableOpacity
-                key={key}
-                style={[styles.paramChip, active && styles.paramChipActive]}
-                onPress={() => setParamChip(key)}
-                activeOpacity={0.75}
-              >
-                <Text style={[styles.paramChipText, active && styles.paramChipTextActive]}>
-                  {label}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
+        <SegmentedControl
+          variant="chip"
+          chipActiveIntensity="subtle"
+          value={paramChip}
+          onChange={setParamChip}
+          options={paramChips.map(({ key, label }) => ({ value: key, label }))}
+          style={styles.paramChipsRow}
+        />
 
         {/* Ranking cards */}
         {standings.length === 0 ? (
-          <View style={styles.emptyWrap}>
-            <Text style={styles.emptyText}>{t('seasonStats.noMatchesFilter')}</Text>
-          </View>
+          <EmptyState message={t('seasonStats.noMatchesFilter')} />
         ) : (
           standings.map((s, index) => {
             const rank = index + 1;
@@ -303,9 +288,7 @@ export default function SeasonStatsScreen() {
         />
 
         {filteredRounds.length === 0 ? (
-          <View style={styles.emptyWrap}>
-            <Text style={styles.emptyText}>{t('seasonStats.noMatchesFilter')}</Text>
-          </View>
+          <EmptyState message={t('seasonStats.noMatchesFilter')} />
         ) : (
           reversedFilteredRounds.map((round) => (
             <View key={round.id} style={styles.roundBlock}>

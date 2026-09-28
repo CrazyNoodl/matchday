@@ -21,6 +21,10 @@ const archive = {
   deleteRoundTitle: 'Видалити раунд?',
   deleteRoundDesc: 'Всі матчі цього раунду будуть назавжди видалені.',
   deleteRoundConfirm: 'Видалити раунд',
+  reopenRoundMenu: 'Відкрити раунд знову',
+  reopenRoundTitle: 'Відкрити раунд знову?',
+  reopenRoundDesc: 'Раунд повернеться в поточний match day, щоб можна було додати або відредагувати матчі. Завершіть його знову, коли будете готові.',
+  reopenRoundConfirm: 'Відкрити знову',
   championDaysWon: 'чемпіон · виграно {{count}} дн.',
 } as const;
 

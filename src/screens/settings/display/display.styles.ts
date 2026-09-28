@@ -96,9 +96,6 @@ export const makeStyles = (colors: AppColors) =>
       paddingVertical: Spacing.lg,
       gap: Spacing.md,
     },
-    rowDisabled: {
-      opacity: 0.5,
-    },
     rowLeft: {
       flex: 1,
       gap: 4,

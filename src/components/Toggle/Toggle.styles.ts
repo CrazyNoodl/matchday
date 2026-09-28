@@ -15,6 +15,12 @@ export const makeStyles = (colors: AppColors) =>
       padding: Spacing.lg,
       gap: Spacing.lg,
     },
+    rowFlat: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      padding: Spacing.lg,
+      gap: Spacing.lg,
+    },
     rowDisabled: {
       opacity: 0.55,
     },

@@ -149,6 +149,73 @@ describe('finishRound', () => {
 
 // ---------------------------------------------------------------------------
 
+describe('reopenRound', () => {
+  beforeEach(() => {
+    useStore.getState().addPlayer(P1);
+    useStore.getState().addPlayer(P2);
+    useStore.getState().startTournament('Cup', ['p1', 'p2'], true);
+    useStore.getState().startRound(true, ['p1', 'p2']);
+    useStore.getState().addMatch(makeMatch('m1'));
+    useStore.getState().finishRound();
+  });
+
+  it('moves the last archived round back into matches and reopens it', () => {
+    const archivedId = useStore.getState().archivedRounds[0].id;
+    const ok = useStore.getState().reopenRound(archivedId);
+    const s = useStore.getState();
+    expect(ok).toBe(true);
+    expect(s.archivedRounds).toHaveLength(0);
+    expect(s.matches.map((m) => m.id)).toEqual(['m1']);
+    expect(s.roundOpen).toBe(true);
+    expect(s.roundPlayers).toEqual(['p1', 'p2']);
+    expect(s.round).toBe(1);
+  });
+
+  it('allows adding a match to the reopened round, then re-finishing it', () => {
+    const archivedId = useStore.getState().archivedRounds[0].id;
+    useStore.getState().reopenRound(archivedId);
+    useStore.getState().addMatch(makeMatch('m2'));
+    useStore.getState().finishRound();
+    const s = useStore.getState();
+    expect(s.archivedRounds).toHaveLength(1);
+    expect(s.archivedRounds[0].matches.map((m) => m.id)).toEqual(['m1', 'm2']);
+  });
+
+  it('refuses to reopen a round that is not the last one', () => {
+    useStore.getState().startRound(true, ['p1', 'p2']);
+    useStore.getState().addMatch(makeMatch('m2'));
+    useStore.getState().finishRound();
+    const firstRoundId = useStore.getState().archivedRounds[0].id;
+
+    const ok = useStore.getState().reopenRound(firstRoundId);
+    const s = useStore.getState();
+    expect(ok).toBe(false);
+    expect(s.archivedRounds).toHaveLength(2);
+    expect(s.matches).toHaveLength(0);
+  });
+
+  it('refuses to reopen while a round is already open live', () => {
+    const archivedId = useStore.getState().archivedRounds[0].id;
+    useStore.getState().startRound(true, ['p1', 'p2']);
+
+    const ok = useStore.getState().reopenRound(archivedId);
+    const s = useStore.getState();
+    expect(ok).toBe(false);
+    expect(s.archivedRounds).toHaveLength(1);
+  });
+
+  it('refuses to reopen once the tournament is closed', () => {
+    const archivedId = useStore.getState().archivedRounds[0].id;
+    useStore.getState().closeTournament();
+
+    const ok = useStore.getState().reopenRound(archivedId);
+    expect(ok).toBe(false);
+    expect(useStore.getState().hasTournament).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+
 describe('startRound — ranked-only ordinal numbering', () => {
   beforeEach(() => {
     useStore.getState().addPlayer(P1);
@@ -536,6 +603,53 @@ describe('media storage folder lifecycle (#67)', () => {
   });
 });
 
+// ---------------------------------------------------------------------------
+// Auto-backup feature: flags edits to an already-closed matchday made after
+// a backup already exists, so the UI can tell the user that backup doesn't
+// cover them yet (see src/utils/backup.ts / app/settings/(data)/backup.tsx).
+// ---------------------------------------------------------------------------
+
+describe('backup staleness tracking', () => {
+  beforeEach(() => {
+    useStore.getState().addPlayer(P1);
+    useStore.getState().addPlayer(P2);
+    useStore.getState().startTournament('Cup', ['p1', 'p2'], true);
+    useStore.getState().startRound(true, ['p1', 'p2']);
+    useStore.getState().addMatch(makeMatch('m1'));
+    useStore.getState().finishRound(); // m1 now lives in archivedRounds
+  });
+
+  it('does not bump the counter when no backup exists yet', () => {
+    useStore.getState().updateMatchScore('m1', 5, 0);
+    expect(useStore.getState().backupStaleEditCount).toBe(0);
+  });
+
+  it('bumps the counter when an already-archived match is edited after a backup exists', () => {
+    useStore.setState({ lastBackupAt: '2026-01-01T00:00:00.000Z' });
+    useStore.getState().updateMatchScore('m1', 5, 0);
+    expect(useStore.getState().backupStaleEditCount).toBe(1);
+    useStore.getState().updateMatchNote('m1', 'great game');
+    expect(useStore.getState().backupStaleEditCount).toBe(2);
+  });
+
+  it('does not bump the counter for edits to the still-open round', () => {
+    useStore.setState({ lastBackupAt: '2026-01-01T00:00:00.000Z' });
+    useStore.getState().startRound(true, ['p1', 'p2']);
+    useStore.getState().addMatch(makeMatch('m2'));
+    useStore.getState().updateMatchScore('m2', 3, 1);
+    expect(useStore.getState().backupStaleEditCount).toBe(0);
+  });
+
+  it('updateMatchMedia and updateMatchStats also count as stale edits', () => {
+    useStore.setState({ lastBackupAt: '2026-01-01T00:00:00.000Z' });
+    useStore.getState().updateMatchMedia('m1', []);
+    useStore.getState().updateMatchStats('m1', { possession: { a: 60, b: 40 } });
+    expect(useStore.getState().backupStaleEditCount).toBe(2);
+  });
+});
+
+// ---------------------------------------------------------------------------
+
 describe('resetStore — account-scoped display preferences (#81)', () => {
   it('resets colorScheme, language, showNick, showTeamLogo and groupByTours to defaults across a sign-out reset', async () => {
     // These are now account-scoped and synced (#81), not device-local — a
@@ -557,6 +671,15 @@ describe('resetStore — account-scoped display preferences (#81)', () => {
     expect(useStore.getState().showNick).toBe(true);
     expect(useStore.getState().showTeamLogo).toBe(true);
     expect(useStore.getState().groupByTours).toBe(true);
+  });
+
+  it('resets local-backup staleness tracking — it must not leak into the next signed-in account', async () => {
+    useStore.setState({ lastBackupAt: '2026-01-01T00:00:00.000Z', backupStaleEditCount: 5 });
+
+    await useStore.getState().resetStore();
+
+    expect(useStore.getState().lastBackupAt).toBeNull();
+    expect(useStore.getState().backupStaleEditCount).toBe(0);
   });
 
   it('still clears account-scoped data like players and tournaments', async () => {

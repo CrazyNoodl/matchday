@@ -1,5 +1,5 @@
 const stats = {
-  title: 'Stats &\nclassements',
+  title: 'Stats & classements',
   ranking: 'Classement',
   h2h: 'Face à face',
   allTime: 'Tous les temps',

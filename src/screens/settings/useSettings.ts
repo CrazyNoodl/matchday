@@ -7,7 +7,7 @@ import { LANGUAGES } from '@/i18n';
 import { signOut } from '@/supabase/auth';
 import { supabase, supabaseConfigured } from '@/supabase/client';
 import { deleteAllCloudData } from '@/supabase/sync';
-import { useIsOnline } from '@/hooks/useIsOnline';
+import { useIsOnline } from '@/hooks/IsOnlineProvider';
 
 export function useSettings() {
   const router = useRouter();

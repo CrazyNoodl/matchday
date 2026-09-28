@@ -10,6 +10,77 @@ export interface ChangelogEntry {
 // Newest first. Add a new entry here whenever package.json's version is bumped.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.66',
+    added: [
+      "Rivalry screen now highlights a stat row's date in gold when it matches the pair's most recent matchday, so reopening Rivalry after finishing a matchday shows at a glance which personal records just changed",
+    ],
+    fixed: [
+      'A tap on a stat\'s +/- button in Edit Stats could be silently swallowed if released right as the 350ms hold-and-repeat threshold fired but before the first repeat tick',
+      'Match-Day Stats comparison now ranks rate-like stats (e.g. time to regain) by per-match average instead of summed total, so a player with fewer games no longer outranks a faster one purely from having played less',
+      'On web, a quick click on a stat\'s +/- button in Edit Stats no longer does nothing — the button now reacts immediately instead of ignoring taps shorter than 50ms',
+      'Fixed the offline banner flickering between online/offline due to two concurrent network checks racing each other — network status is now read from a single shared source across the whole app',
+    ],
+    internal: [
+      'Internal: finished the e2e/unit-test testID selector migration — every action-target `getByText` locator (round/tournament menus, match edit sheets, team/player CRUD, login/reset-password screens) now uses `getByTestId`, closing the gap left by the 2026-07-23 partial pass',
+    ],
+  },
+  {
+    version: '1.9.65',
+    added: [
+      'Archived round\'s "···" menu now has a "Reopen round" action for the most recently finished round of an open tournament, so a missed match can be added before finishing it again',
+    ],
+  },
+  {
+    version: '1.9.64',
+    fixed: [
+      'Tournament screen\'s "Include friendly match days" toggle now shows the number of friendly rounds it would fold in, instead of the total number of individual matches inside them',
+    ],
+  },
+  {
+    version: '1.9.63',
+    added: [
+      'Tournament screen gained an "Include all friendly matches" toggle under the standings table, so friendly rounds can be folded into (or kept out of) the tournament standings and played-rounds list',
+    ],
+    changed: [
+      'Standardized the friendly-matches toggle across Share Standings, Rivalry, and Tournament screens: same wording, same on-by-default behavior; Share Standings dropped its separate "Include all ranked matches" toggle since ranked matches are always counted now',
+    ],
+    fixed: [
+      'The friendly-matches toggle now disables itself with an explanatory note when a tournament has no friendly matches yet, instead of silently doing nothing when tapped',
+    ],
+  },
+  {
+    version: '1.9.62',
+    changed: [
+      'Round "···" menu now lists Share before Stats, and menu item labels use normal casing instead of all-caps',
+    ],
+  },
+  {
+    version: '1.9.61',
+    added: [
+      'Added a Best/Worst toggle to the Match-day Stats screen\'s Records tab, matching the one already on the Rivalry screen',
+    ],
+  },
+  {
+    version: '1.9.60',
+    fixed: [
+      'Demo mode matches now carry full match stats, so Rivalry\'s Records/Comparison and Match-day Stats Records no longer show empty while browsing the demo tournament',
+    ],
+    changed: [
+      'Adding photos/videos is now disabled in demo mode (match detail\'s media button, stats re-scan, and the Add Match sheet) — the demo banner explains why',
+    ],
+  },
+  {
+    version: '1.9.59',
+    added: [
+      'Added a Best/Worst toggle to the Rivalry screen\'s Match stats Records tab, to see each side\'s worst single-match value per stat, not just their best',
+    ],
+    fixed: [
+      'Fixed the Stats screen header — was oversized and misaligned compared to every other screen',
+      'Archive-day header now shows the round number and date together, instead of a blank header with the date pill floating in the content below it',
+      'Fixed the Share Standings sheet rendering full-screen instead of as a bottom sheet, and its title wrapping onto the close button',
+    ],
+  },
+  {
     version: '1.9.58',
     added: [
       'Added an "Exclude friendly matches" toggle on the Rivalry screen to see head-to-head stats for ranked rounds only',

@@ -18,6 +18,7 @@ export const makeStyles = (colors: AppColors) =>
       paddingBottom: 40,
     },
 
+    // ---- Header ----
     // ---- Dots button ----
     dotsBtn: {
       width: 32,
@@ -47,6 +48,7 @@ export const makeStyles = (colors: AppColors) =>
       paddingVertical: Spacing.xl,
       gap: Spacing.xs,
       marginBottom: Spacing.xl,
+      overflow: 'hidden',
     },
     winnerLabel: {
       fontFamily: FontFamily.bodyBold,
@@ -64,6 +66,11 @@ export const makeStyles = (colors: AppColors) =>
     },
     winnerLogoWrap: {
       marginVertical: Spacing.sm,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    winnerCircle: {
+      position: 'absolute',
     },
     winnerName: {
       fontFamily: FontFamily.displayBold,
@@ -136,11 +143,7 @@ export const makeStyles = (colors: AppColors) =>
       color: colors.text.muted,
     },
 
-    // ---- Round date (now lives inside ScrollView) ----
-    dateRow: {
-      alignItems: 'flex-start',
-      marginBottom: Spacing.lg,
-    },
+    // ---- Round date (second line of the header) ----
     datePill: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -165,23 +168,5 @@ export const makeStyles = (colors: AppColors) =>
       fontFamily: FontFamily.body,
       fontSize: FontSize.sm,
       color: colors.text.muted,
-    },
-
-    // ---- Edit date sheet ----
-    dateSheet: {
-      backgroundColor: colors.bg.sheet,
-      paddingHorizontal: Spacing.xl,
-      paddingTop: Spacing.lg,
-      paddingBottom: Spacing['2xl'],
-    },
-    dateInputError: {
-      borderColor: colors.accent.red,
-    },
-    dateErrorText: {
-      fontFamily: FontFamily.body,
-      fontSize: FontSize.xs,
-      color: colors.accent.red,
-      marginTop: -Spacing.sm,
-      marginBottom: Spacing.md,
     },
   });

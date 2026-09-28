@@ -15,6 +15,7 @@ import {
   SegmentedControl,
   StatsRow,
   Toggle,
+  EmptyState,
 } from '@/components';
 import { STAT_DEF_MAP } from '@/utils/statDefinitions';
 import { formatShortDate } from '@/utils/dateFormat';
@@ -24,6 +25,7 @@ import { useRivalryData } from './useRivalryData';
 import { makeStyles } from './rivalry.styles';
 
 type StatsTab = 'records' | 'comparison';
+type RecordsMode = 'best' | 'worst';
 
 interface RivalryScreenProps {
   playerIdA: string;
@@ -43,12 +45,13 @@ export function RivalryScreen({ playerIdA, playerIdB, tournamentOnly }: RivalryS
   const teamColorFor = (player: Player) =>
     teams.find((team) => team.code === player.teamCode)?.color ?? colors.text.primary;
   const [statsTab, setStatsTab] = useState<StatsTab>('records');
-  const [excludeFriendly, setExcludeFriendly] = useState(false);
-  const { playerA, playerB, records, totals, pair, avgGoalsPerGame } = useRivalryData(
+  const [recordsMode, setRecordsMode] = useState<RecordsMode>('best');
+  const [includeFriendly, setIncludeFriendly] = useState(true);
+  const { playerA, playerB, records, totals, pair, avgGoalsPerGame, lastMatchdayDate } = useRivalryData(
     playerIdA,
     playerIdB,
     tournamentOnly,
-    excludeFriendly,
+    includeFriendly,
   );
 
   if (!playerA || !playerB || !pair) {
@@ -57,14 +60,16 @@ export function RivalryScreen({ playerIdA, playerIdB, tournamentOnly }: RivalryS
         <GlowBackground />
         <NavHeader title={t('rivalry.title').toUpperCase()} onBack={goBack} />
         <View style={styles.center}>
-          <Text style={styles.emptyText}>{t('rivalry.noData')}</Text>
+          <EmptyState message={t('rivalry.noData')} />
         </View>
       </SafeAreaView>
     );
   }
 
   const goToMatch = (matchId: string) => router.push(`/match/${matchId}`);
-  const { biggestWinA, biggestWinB, highestScoring, winStreakA, winStreakB, statRecords } = records;
+  const { biggestWinA, biggestWinB, highestScoring, winStreakA, winStreakB, bestStatRecords, worstStatRecords } =
+    records;
+  const activeStatRecords = recordsMode === 'best' ? bestStatRecords : worstStatRecords;
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
@@ -95,10 +100,10 @@ export function RivalryScreen({ playerIdA, playerIdB, tournamentOnly }: RivalryS
 
         {/* Friendly-matches filter */}
         <Toggle
-          label={t('rivalry.excludeFriendly')}
-          subtitle={t('rivalry.excludeFriendlyDesc')}
-          value={excludeFriendly}
-          onValueChange={setExcludeFriendly}
+          label={t('rivalry.includeFriendly')}
+          subtitle={t('rivalry.includeFriendlyDesc')}
+          value={includeFriendly}
+          onValueChange={setIncludeFriendly}
         />
 
         {/* Summary */}
@@ -186,7 +191,7 @@ export function RivalryScreen({ playerIdA, playerIdB, tournamentOnly }: RivalryS
         </View>
 
         {/* Match stats */}
-        {(statRecords.length > 0 || totals.length > 0) && (
+        {(bestStatRecords.length > 0 || totals.length > 0) && (
           <View style={styles.section}>
             <SectionLabel label={t('rivalry.statsSection')} style={styles.sectionLabel} />
 
@@ -200,22 +205,35 @@ export function RivalryScreen({ playerIdA, playerIdB, tournamentOnly }: RivalryS
               ]}
             />
 
-            {statsTab === 'records' &&
-              statRecords.map((record) => (
-                <StatRecordRow
-                  key={record.key}
-                  record={record}
-                  playerA={playerA}
-                  playerB={playerB}
-                  onPressA={
-                    record.a.entry.date ? () => goToMatch(record.a.entry.match.id) : undefined
-                  }
-                  onPressB={
-                    record.b.entry.date ? () => goToMatch(record.b.entry.match.id) : undefined
-                  }
-                  styles={styles}
+            {statsTab === 'records' && (
+              <>
+                <SegmentedControl
+                  variant="boxed"
+                  value={recordsMode}
+                  onChange={setRecordsMode}
+                  options={[
+                    { value: 'best', label: t('rivalry.best') },
+                    { value: 'worst', label: t('rivalry.worst') },
+                  ]}
                 />
-              ))}
+                {activeStatRecords.map((record) => (
+                  <StatRecordRow
+                    key={record.key}
+                    record={record}
+                    playerA={playerA}
+                    playerB={playerB}
+                    onPressA={
+                      record.a.entry.date ? () => goToMatch(record.a.entry.match.id) : undefined
+                    }
+                    onPressB={
+                      record.b.entry.date ? () => goToMatch(record.b.entry.match.id) : undefined
+                    }
+                    lastMatchdayDate={lastMatchdayDate}
+                    styles={styles}
+                  />
+                ))}
+              </>
+            )}
 
             {statsTab === 'comparison' &&
               totals.map((row) => <ComparisonRow key={row.key} row={row} />)}
@@ -278,10 +296,19 @@ interface StatRecordRowProps {
   playerB: Player;
   onPressA?: () => void;
   onPressB?: () => void;
+  lastMatchdayDate: string | null;
   styles: ReturnType<typeof makeStyles>;
 }
 
-function StatRecordRow({ record, playerA, playerB, onPressA, onPressB, styles }: StatRecordRowProps) {
+function StatRecordRow({
+  record,
+  playerA,
+  playerB,
+  onPressA,
+  onPressB,
+  lastMatchdayDate,
+  styles,
+}: StatRecordRowProps) {
   const { t } = useTranslation();
   const def = STAT_DEF_MAP[record.key];
   const label = def ? t(def.labelKey) : record.key;
@@ -292,6 +319,8 @@ function StatRecordRow({ record, playerA, playerB, onPressA, onPressB, styles }:
   const bWins = higherIsBetter
     ? record.b.value > record.a.value
     : record.b.value < record.a.value;
+  const isNewA = !!lastMatchdayDate && record.a.entry.date === lastMatchdayDate;
+  const isNewB = !!lastMatchdayDate && record.b.entry.date === lastMatchdayDate;
 
   return (
     <View style={styles.statRow}>
@@ -302,6 +331,7 @@ function StatRecordRow({ record, playerA, playerB, onPressA, onPressB, styles }:
         player={playerA}
         date={formatDate(record.a.entry.date)}
         highlight={aWins}
+        isNew={isNewA}
         onPress={onPressA}
       />
       <View style={styles.statCenter}>
@@ -314,6 +344,7 @@ function StatRecordRow({ record, playerA, playerB, onPressA, onPressB, styles }:
         player={playerB}
         date={formatDate(record.b.entry.date)}
         highlight={bWins}
+        isNew={isNewB}
         onPress={onPressB}
       />
     </View>
@@ -327,10 +358,20 @@ interface StatRecordSideProps {
   player: Player;
   date: string | null;
   highlight: boolean;
+  isNew: boolean;
   onPress?: () => void;
 }
 
-function StatRecordSide({ styles, align, value, player, date, highlight, onPress }: StatRecordSideProps) {
+function StatRecordSide({
+  styles,
+  align,
+  value,
+  player,
+  date,
+  highlight,
+  isNew,
+  onPress,
+}: StatRecordSideProps) {
   return (
     <TouchableOpacity
       style={[styles.statSide, align === 'right' && styles.statSideRight]}
@@ -349,7 +390,7 @@ function StatRecordSide({ styles, align, value, player, date, highlight, onPress
           {player.name}
         </Text>
         {date ? (
-          <Text style={styles.statDate} numberOfLines={1}>
+          <Text style={[styles.statDate, isNew && styles.statDateNew]} numberOfLines={1}>
             {date}
           </Text>
         ) : null}
@@ -371,9 +412,10 @@ function ComparisonRow({ row }: { row: RivalryTotalRow }) {
   const label = def ? t(def.labelKey) : row.key;
   const suffix = t('rivalry.perMatchSuffix');
   const higherIsBetter = def?.higherIsBetter ?? true;
+  const avgOnly = row.isPercent || def?.sumMeaningful === false;
 
-  const aValue = row.isPercent ? row.aAvg : (row.aSum ?? 0);
-  const bValue = row.isPercent ? row.bAvg : (row.bSum ?? 0);
+  const aValue = avgOnly ? row.aAvg : (row.aSum ?? 0);
+  const bValue = avgOnly ? row.bAvg : (row.bSum ?? 0);
   const aWins = aValue === bValue ? null : higherIsBetter ? aValue > bValue : aValue < bValue;
 
   return (
@@ -382,8 +424,8 @@ function ComparisonRow({ row }: { row: RivalryTotalRow }) {
       aValue={roundNum(aValue)}
       bValue={roundNum(bValue)}
       aWins={aWins}
-      aSubLabel={row.isPercent ? undefined : `${roundNum(row.aAvg)}${suffix}`}
-      bSubLabel={row.isPercent ? undefined : `${roundNum(row.bAvg)}${suffix}`}
+      aSubLabel={avgOnly ? undefined : `${roundNum(row.aAvg)}${suffix}`}
+      bSubLabel={avgOnly ? undefined : `${roundNum(row.bAvg)}${suffix}`}
       labelSubText={t('rivalry.gamesCount', { count: row.games })}
     />
   );

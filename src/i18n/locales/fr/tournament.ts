@@ -1,5 +1,9 @@
 const tournament = {
   standings: 'Classement du tournoi',
+  includeFriendly: 'Inclure tous les matchs amicaux',
+  includeFriendlyCount: 'Inclure les journées amicales ({{count}})',
+  includeFriendlyDesc: 'Compter aussi les tours amicaux dans le classement et la liste ci-dessous',
+  includeFriendlyEmpty: "Aucun match amical dans ce tournoi pour l'instant",
   headerSubtitle: 'Tour {{round}} / {{total}} · {{date}} · {{played}} tours joués',
   noMatches: "Aucun match joué pour l'instant",
   currentMatchDay: 'Journée en cours',

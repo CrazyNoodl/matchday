@@ -74,7 +74,11 @@ export function EndRoundDialog({
       title={t('matchday.dialogs.finishTitle').toUpperCase()}
       description={`${t('matchday.dialogs.finishDesc')}\n${leader ? t('matchday.dialogs.leading', { name: leaderName, pts: leader.pts }) : ''}`}
       cancel={{ label: t('matchday.dialogs.keepPlaying'), onPress: onClose }}
-      confirm={{ label: t('matchday.dialogs.crownWinner'), onPress: onConfirm }}
+      confirm={{
+        label: t('matchday.dialogs.crownWinner'),
+        onPress: onConfirm,
+        testID: 'round-finish-confirm-button',
+      }}
     />
   );
 }
@@ -98,7 +102,11 @@ export function NeedEqualDialog({ visible, onClose, standings, players }: NeedEq
       icon="⚖️"
       title={t('matchday.dialogs.evenGamesTitle').toUpperCase()}
       description={t('matchday.dialogs.evenGamesDesc')}
-      confirm={{ label: t('matchday.dialogs.gotIt'), onPress: onClose }}
+      confirm={{
+        label: t('matchday.dialogs.gotIt'),
+        onPress: onClose,
+        testID: 'round-need-equal-ok-button',
+      }}
     >
       {standings.map((s) => {
         const player = players.find((p) => p.id === s.playerId);
@@ -167,7 +175,12 @@ export function WinnerCelebrationModal({
               <Text style={winnerStyles.winnerName}>{t('matchday.winner.draw').toUpperCase()}</Text>
             </>
           )}
-          <TouchableOpacity style={winnerStyles.doneBtn} onPress={onDone} activeOpacity={0.85}>
+          <TouchableOpacity
+            testID="winner-modal-done-button"
+            style={winnerStyles.doneBtn}
+            onPress={onDone}
+            activeOpacity={0.85}
+          >
             <Text style={winnerStyles.doneBtnText}>{t('matchday.winner.done').toUpperCase()}</Text>
           </TouchableOpacity>
         </View>
@@ -217,7 +230,12 @@ export function LeaderAnnounceModal({
           <Text style={announceStyles.pts}>
             {t('matchday.leaderAnnounce.pts', { pts: leader.pts })}
           </Text>
-          <TouchableOpacity style={announceStyles.doneBtn} onPress={onClose} activeOpacity={0.85}>
+          <TouchableOpacity
+            testID="leader-announce-done-button"
+            style={announceStyles.doneBtn}
+            onPress={onClose}
+            activeOpacity={0.85}
+          >
             <Text style={announceStyles.doneBtnText}>
               {t('matchday.leaderAnnounce.doneButton').toUpperCase()}
             </Text>

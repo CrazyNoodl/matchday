@@ -98,8 +98,13 @@ export async function createPlayerViaUI(page: Page, name: string, teamShort?: st
 // app's build — see e2e/fixtures.ts git history if this ever regresses.)
 
 // Adds one match via the multi-step Add Match sheet on /round.
-// Assumes tournamentRanked (default from setup.tsx) — steps are:
-// 1 players -> 2 score -> 3 media (skip) -> 4 commentary (skip) -> save.
+// Steps for a ranked round (setup.tsx default): 1 players -> 2 score ->
+// 3 media (skip) -> 4 commentary (skip) -> save. A friendly (non-ranked)
+// round inserts an extra "pick teams" step between players and score
+// (useAddMatchFlow.ts: totalSteps = tournamentRanked ? 4 : 5, Next is
+// disabled on that step until both homeTeam/awayTeam are set — see
+// canAddMatchGoNext in src/utils/addMatchState.ts) — detected and cleared
+// here generically so this helper works for both round types.
 export async function addMatchViaUI(
   page: Page,
   homeName: string,
@@ -114,7 +119,16 @@ export async function addMatchViaUI(
   await page.getByTestId(`player-chip-${awayName}`).click();
   await page.getByTestId('add-match-next-button').click();
 
-  // Step 2 — score
+  // Friendly-round-only "pick teams" step — pick the first option for each
+  // side (which team doesn't matter for a generic helper) and continue.
+  const teamPickers = page.getByTestId(/^team-picker-item-/);
+  if (await teamPickers.first().isVisible().catch(() => false)) {
+    await teamPickers.first().click();
+    await teamPickers.last().click();
+    await page.getByTestId('add-match-next-button').click();
+  }
+
+  // Step — score
   const homeIncrement = page.getByTestId('score-counter-home-increment');
   const awayIncrement = page.getByTestId('score-counter-away-increment');
   for (let i = 0; i < homeScore; i++) await homeIncrement.click();

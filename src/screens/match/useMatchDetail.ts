@@ -18,6 +18,7 @@ import { fetchMatchById } from '@/supabase/sync';
 import { uploadMediaItem, deleteMediaItem } from '@/supabase/storage';
 import { buildMergedStats } from '@/utils/mergedStats';
 import { STAT_DEF_MAP } from '@/utils/statDefinitions';
+import { getHoldStep, HOLD_START_DELAY_MS, HOLD_REPEAT_INTERVAL_MS } from '@/utils/statStepAcceleration';
 
 // A photo must recognize at least this many of the 23 canonical stat params
 // to be treated as a genuine stats screenshot rather than the wrong photo.
@@ -35,6 +36,11 @@ export function useMatchDetail() {
   const isEditableMatch =
     isCurrentRoundMatch ||
     (store.hasTournament && archivedRounds.flatMap((r) => r.matches).some((m) => m.id === id));
+  // Demo mode ships matches with hand-authored stats already filled in, and
+  // opening the real device photo library from a fake match would be
+  // confusing (and pointless, since it's never uploaded) — media add/import
+  // is disabled entirely while demoMode is on, independent of isEditableMatch.
+  const canAddMedia = isEditableMatch && !store.demoMode;
 
   // Storage folder for a match's media — live matches use the currently open
   // round's folder, archived-round matches use their round's stored folder.
@@ -193,7 +199,7 @@ export function useMatchDetail() {
   }, [match, store, router]);
 
   const handleAddMedia = useCallback(async () => {
-    if (!match) return;
+    if (!match || store.demoMode) return;
     if (uploadingMediaRef.current || importingStatsRef.current) return;
 
     const slotsLeft = 5 - (match.media?.length ?? 0);
@@ -296,7 +302,7 @@ export function useMatchDetail() {
   }, [match, store, getMediaFolder]);
 
   const handleImportStats = useCallback(async () => {
-    if (!match) return;
+    if (!match || store.demoMode) return;
     // Bug 6 fix: ref guard is synchronously updated — prevents concurrent invocations
     // even when state batching would give a stale importingStats value in the closure
     if (importingStatsRef.current || uploadingMediaRef.current) return;
@@ -600,6 +606,59 @@ export function useMatchDetail() {
     setTouchedStats((prev) => (prev.has(key) ? prev : new Set(prev).add(key)));
   }, []);
 
+  // Press-and-hold on a stat +/- button repeats with an accelerating step
+  // (1 → 5 → 10) so a badly OCR'd value (e.g. 4 instead of 94) doesn't need
+  // 90 taps. A quick tap (released before the hold kicks in) instead applies
+  // the stat's own step once — 0.1 for xG, so the fraction stays reachable.
+  // The buttons need `delayPressIn={0}`: with only onPressIn/onPressOut (no
+  // onPress), react-native-web drops a tap released inside its default 50ms
+  // press delay entirely — neither callback fires.
+  const holdTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const holdIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const holdTicksRef = useRef(0);
+  const isHoldingRef = useRef(false);
+
+  const clearStatHold = useCallback(() => {
+    if (holdTimeoutRef.current) clearTimeout(holdTimeoutRef.current);
+    if (holdIntervalRef.current) clearInterval(holdIntervalRef.current);
+    holdTimeoutRef.current = null;
+    holdIntervalRef.current = null;
+    holdTicksRef.current = 0;
+  }, []);
+
+  useEffect(() => clearStatHold, [clearStatHold]);
+
+  const startStatHold = useCallback(
+    (key: string, side: 'a' | 'b', sign: 1 | -1, isPercent: boolean) => {
+      isHoldingRef.current = false;
+      holdTimeoutRef.current = setTimeout(() => {
+        isHoldingRef.current = true;
+        holdIntervalRef.current = setInterval(() => {
+          holdTicksRef.current += 1;
+          adjustStat(key, side, sign * getHoldStep(holdTicksRef.current), isPercent);
+        }, HOLD_REPEAT_INTERVAL_MS);
+      }, HOLD_START_DELAY_MS);
+    },
+    [adjustStat],
+  );
+
+  const endStatHold = useCallback(
+    (key: string, side: 'a' | 'b', sign: 1 | -1, isPercent: boolean, step: number) => {
+      const wasHolding = isHoldingRef.current;
+      // If the hold threshold fired but the repeat interval never ticked (e.g.
+      // released right on the 350ms edge, or main-thread jank delayed the
+      // pointer-up), no step has been applied yet — treat it as a tap so the
+      // press isn't silently swallowed.
+      const ticked = holdTicksRef.current > 0;
+      clearStatHold();
+      isHoldingRef.current = false;
+      if (!wasHolding || !ticked) {
+        adjustStat(key, side, sign * step, isPercent);
+      }
+    },
+    [adjustStat, clearStatHold],
+  );
+
   return {
     id,
     match,
@@ -607,6 +666,7 @@ export function useMatchDetail() {
     playerB,
     isCurrentRoundMatch,
     isEditableMatch,
+    canAddMedia,
     aWins,
     bWins,
     isDraw,
@@ -660,6 +720,8 @@ export function useMatchDetail() {
     openEditNote,
     handleSaveNote,
     adjustStat,
+    startStatHold,
+    endStatHold,
     confirmStat,
     deleteStat,
   };

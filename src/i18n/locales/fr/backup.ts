@@ -2,9 +2,18 @@ const backup = {
   title: 'Sauvegarde et restauration',
   infoTitle: 'Sauvegarde JSON locale',
   infoDesc:
-    'Crée un instantané de vos joueurs, équipes et tournois sous forme de fichier sur cet appareil — indépendamment de la synchronisation cloud.',
+    'Crée un instantané de vos joueurs, équipes et tournois sous forme de fichier sur cet appareil — indépendamment de la synchronisation cloud. Appuyez sur « Créer une sauvegarde » ci-dessous pour le faire manuellement, à tout moment.',
+  autoBackupDesc:
+    "Une sauvegarde est également créée automatiquement chaque fois que vous terminez une journée de match. Les {{count}} dernières sauvegardes automatiques sont conservées — les plus anciennes sont supprimées automatiquement ; les sauvegardes créées manuellement ne sont jamais supprimées ainsi.",
   mediaLimitationNote:
     "Les photos de joueurs, logos d'équipes et photos/vidéos de match ne sont pas inclus dans cette sauvegarde.",
+  origin: {
+    auto: 'Auto',
+    manual: 'Manuelle',
+  },
+  staleNotice:
+    "{{count}} modification(s) faites après la clôture de la journée ne sont pas encore dans votre dernière sauvegarde.",
+  staleUpdateBtn: 'Mettre à jour la sauvegarde',
   demoModeWarning:
     'Quittez le Mode Démo dans les Paramètres avant de créer ou restaurer une sauvegarde.',
   createSection: 'Créer',

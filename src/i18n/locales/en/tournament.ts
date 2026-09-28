@@ -1,5 +1,9 @@
 const tournament = {
   standings: 'Tournament standings',
+  includeFriendly: 'Include all friendly matches',
+  includeFriendlyCount: 'Include friendly match days ({{count}})',
+  includeFriendlyDesc: 'Also count friendly rounds in standings & rounds below',
+  includeFriendlyEmpty: 'No friendly matches in this tournament yet',
   headerSubtitle: 'Round {{round}} / {{total}} · {{date}} · {{played}} rounds played',
   noMatches: 'No matches played yet',
   currentMatchDay: 'Current match day',

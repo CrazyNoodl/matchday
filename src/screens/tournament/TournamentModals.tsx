@@ -1,10 +1,9 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, Platform } from 'react-native';
-import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { useTranslation } from 'react-i18next';
 import { useColors } from '@/theme';
-import { Sheet, SheetHeader, SheetFooter, ConfirmDialog } from '@/components';
-import { makeSheetStyles, makeInputStyles } from './tournament.styles';
+import { Sheet, ConfirmDialog, TextInputEditSheet } from '@/components';
+import { makeSheetStyles } from './tournament.styles';
 
 // ---------------------------------------------------------------------------
 // Tour settings sheet
@@ -76,7 +75,12 @@ export function TourSettingsSheet({
           </TouchableOpacity>
 
           {/* Close & archive / Delete (canArchive false — zero finished rounds, #86) */}
-          <TouchableOpacity style={sheetStyles.row} onPress={onCloseTournament} activeOpacity={0.8}>
+          <TouchableOpacity
+            testID="tournament-close-archive-row"
+            style={sheetStyles.row}
+            onPress={onCloseTournament}
+            activeOpacity={0.8}
+          >
             <View style={[sheetStyles.rowIcon, { backgroundColor: colors.accent.redSubtle }]}>
               <Text style={[sheetStyles.rowIconText, { color: colors.accent.red }]}>
                 {canArchive ? '🔒' : '🗑'}
@@ -124,34 +128,20 @@ export function EditTournamentNameSheet({
   onSave,
 }: EditTournamentNameSheetProps) {
   const { t } = useTranslation();
-  const colors = useColors();
-  const sheetStyles = makeSheetStyles(colors);
-  const inputStyles = makeInputStyles(colors);
 
   return (
-    <Sheet visible={visible} onClose={onClose} avoidKeyboard>
-      <View style={sheetStyles.sheet}>
-        <SheetHeader title={t('tournament.rename.title').toUpperCase()} />
-        <BottomSheetTextInput
-          style={inputStyles.input}
-          value={value}
-          onChangeText={onChangeValue}
-          placeholder={t('tournament.rename.placeholder')}
-          placeholderTextColor={colors.text.placeholder}
-          autoFocus
-          returnKeyType="done"
-          onSubmitEditing={onSave}
-        />
-        <SheetFooter
-          cancelLabel={t('tournament.rename.cancel')}
-          onCancel={onClose}
-          confirmLabel={t('tournament.rename.save')}
-          onConfirm={onSave}
-          confirmDisabled={!value.trim()}
-        />
-        {Platform.OS === 'ios' && <View style={{ height: 16 }} />}
-      </View>
-    </Sheet>
+    <TextInputEditSheet
+      visible={visible}
+      onClose={onClose}
+      title={t('tournament.rename.title').toUpperCase()}
+      value={value}
+      onChangeValue={onChangeValue}
+      onSave={onSave}
+      placeholder={t('tournament.rename.placeholder')}
+      confirmDisabled={!value.trim()}
+      cancelLabel={t('tournament.rename.cancel')}
+      confirmLabel={t('tournament.rename.save')}
+    />
   );
 }
 
@@ -188,7 +178,11 @@ export function CloseTournamentDialog({
         title={t('tournament.close.deleteTitle').toUpperCase()}
         description={t('tournament.close.deleteDesc')}
         cancel={{ label: t('tournament.close.keepGoing'), onPress: onClose }}
-        confirm={{ label: t('tournament.close.delete'), onPress: onDelete }}
+        confirm={{
+          label: t('tournament.close.delete'),
+          onPress: onDelete,
+          testID: 'tournament-delete-confirm-button',
+        }}
       />
     );
   }
@@ -202,7 +196,11 @@ export function CloseTournamentDialog({
       title={t('tournament.close.title').toUpperCase()}
       description={t('tournament.close.desc')}
       cancel={{ label: t('tournament.close.keepGoing'), onPress: onClose }}
-      confirm={{ label: t('tournament.close.archive'), onPress: onConfirm }}
+      confirm={{
+        label: t('tournament.close.archive'),
+        onPress: onConfirm,
+        testID: 'tournament-close-archive-confirm-button',
+      }}
     />
   );
 }

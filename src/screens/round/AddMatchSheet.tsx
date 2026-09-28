@@ -10,7 +10,7 @@ import {
 import { BottomSheetScrollView, BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { useTranslation } from 'react-i18next';
 import { useColors } from '@/theme';
-import { useIsOnline } from '@/hooks/useIsOnline';
+import { useIsOnline } from '@/hooks/IsOnlineProvider';
 import { Spacing } from '@/theme/spacing';
 import { Avatar, ScoreCounter, MediaThumbnail, Sheet, TeamPickerRow } from '@/components';
 import { type Player, type Team, type Match } from '@/store/types';
@@ -50,6 +50,7 @@ export function AddMatchSheet({
     addMatch,
     setAddMatch,
     isSavingMatch,
+    demoMode,
     totalSteps,
     handleNext,
     handleBack,
@@ -219,7 +220,7 @@ export function AddMatchSheet({
               }
             />
           ))}
-          {addMatch.media.length < 7 && (
+          {addMatch.media.length < 7 && !demoMode && (
             <TouchableOpacity
               style={[
                 sheetStyles.addMediaBtn,

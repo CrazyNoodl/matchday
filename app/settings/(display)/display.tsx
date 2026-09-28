@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, Switch, TouchableOpacity, TextInput } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, TextInput } from 'react-native';
 import { useGoBack } from '@/utils/useGoBack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '@/store';
 import { useColors } from '@/theme';
-import { NavHeader, GlowBackground, SegmentedControl } from '@/components';
+import { NavHeader, GlowBackground, SegmentedControl, Toggle } from '@/components';
 import { makeStyles } from '@/screens/settings/display/display.styles';
 import { trackEvent } from '@/analytics';
 
@@ -26,6 +26,8 @@ export default function DisplaySettingsScreen() {
   const setLeaderModalEnabled = useStore((s) => s.setLeaderModalEnabled);
   const leaderModalMinPlayers = useStore((s) => s.leaderModalMinPlayers);
   const setLeaderModalMinPlayers = useStore((s) => s.setLeaderModalMinPlayers);
+  const dayWinnerBannerEnabled = useStore((s) => s.dayWinnerBannerEnabled);
+  const setDayWinnerBannerEnabled = useStore((s) => s.setDayWinnerBannerEnabled);
   const colors = useColors();
 
   const styles = makeStyles(colors);
@@ -97,39 +99,29 @@ export default function DisplaySettingsScreen() {
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>{t('settings.display.matches')}</Text>
 
-          <View style={styles.row}>
-            <View style={styles.rowLeft}>
-              <Text style={styles.rowLabel}>{t('settings.display.groupByTours')}</Text>
-              <Text style={styles.rowDesc}>{t('settings.display.groupByToursDesc')}</Text>
-            </View>
-            <Switch
-              value={groupByTours}
-              onValueChange={(value) => {
-                setGroupByTours(value);
-                trackEvent('group_by_tours_toggle_changed', { enabled: value ? 'true' : 'false' });
-              }}
-              trackColor={{ false: colors.bg.elevated, true: colors.accent.green }}
-              thumbColor="#ffffff"
-            />
-          </View>
+          <Toggle
+            variant="flat"
+            label={t('settings.display.groupByTours')}
+            subtitle={t('settings.display.groupByToursDesc')}
+            value={groupByTours}
+            onValueChange={(value) => {
+              setGroupByTours(value);
+              trackEvent('group_by_tours_toggle_changed', { enabled: value ? 'true' : 'false' });
+            }}
+          />
 
           <View style={styles.divider} />
 
-          <View style={styles.row}>
-            <View style={styles.rowLeft}>
-              <Text style={styles.rowLabel}>{t('settings.display.showAvgGoals')}</Text>
-              <Text style={styles.rowDesc}>{t('settings.display.showAvgGoalsDesc')}</Text>
-            </View>
-            <Switch
-              value={showAvgGoals}
-              onValueChange={(value) => {
-                setShowAvgGoals(value);
-                trackEvent('show_avg_goals_toggle_changed', { enabled: value ? 'true' : 'false' });
-              }}
-              trackColor={{ false: colors.bg.elevated, true: colors.accent.green }}
-              thumbColor="#ffffff"
-            />
-          </View>
+          <Toggle
+            variant="flat"
+            label={t('settings.display.showAvgGoals')}
+            subtitle={t('settings.display.showAvgGoalsDesc')}
+            value={showAvgGoals}
+            onValueChange={(value) => {
+              setShowAvgGoals(value);
+              trackEvent('show_avg_goals_toggle_changed', { enabled: value ? 'true' : 'false' });
+            }}
+          />
 
           <View style={styles.divider} />
 
@@ -153,21 +145,16 @@ export default function DisplaySettingsScreen() {
 
           <View style={styles.divider} />
 
-          <View style={styles.row}>
-            <View style={styles.rowLeft}>
-              <Text style={styles.rowLabel}>{t('settings.display.leaderModal')}</Text>
-              <Text style={styles.rowDesc}>{t('settings.display.leaderModalDesc')}</Text>
-            </View>
-            <Switch
-              value={leaderModalEnabled}
-              onValueChange={(value) => {
-                setLeaderModalEnabled(value);
-                trackEvent('leader_modal_toggle_changed', { enabled: value ? 'true' : 'false' });
-              }}
-              trackColor={{ false: colors.bg.elevated, true: colors.accent.green }}
-              thumbColor="#ffffff"
-            />
-          </View>
+          <Toggle
+            variant="flat"
+            label={t('settings.display.leaderModal')}
+            subtitle={t('settings.display.leaderModalDesc')}
+            value={leaderModalEnabled}
+            onValueChange={(value) => {
+              setLeaderModalEnabled(value);
+              trackEvent('leader_modal_toggle_changed', { enabled: value ? 'true' : 'false' });
+            }}
+          />
 
           {leaderModalEnabled && (
             <>
@@ -218,6 +205,21 @@ export default function DisplaySettingsScreen() {
               </View>
             </>
           )}
+
+          <View style={styles.divider} />
+
+          <Toggle
+            variant="flat"
+            label={t('settings.display.dayWinnerBanner')}
+            subtitle={t('settings.display.dayWinnerBannerDesc')}
+            value={dayWinnerBannerEnabled}
+            onValueChange={(value) => {
+              setDayWinnerBannerEnabled(value);
+              trackEvent('day_winner_banner_toggle_changed', {
+                enabled: value ? 'true' : 'false',
+              });
+            }}
+          />
         </View>
 
         {/* Upcoming options */}
@@ -230,34 +232,26 @@ export default function DisplaySettingsScreen() {
           </View>
 
           {/* Show nicknames */}
-          <View style={[styles.row, styles.rowDisabled]}>
-            <View style={styles.rowLeft}>
-              <Text style={styles.rowLabel}>{t('settings.display.showNicknames')}</Text>
-              <Text style={styles.rowDesc}>{t('settings.display.showNicknamesDesc')}</Text>
-            </View>
-            <Switch
-              value={showNick}
-              disabled
-              trackColor={{ false: colors.bg.elevated, true: colors.accent.green }}
-              thumbColor="#ffffff"
-            />
-          </View>
+          <Toggle
+            variant="flat"
+            disabled
+            label={t('settings.display.showNicknames')}
+            subtitle={t('settings.display.showNicknamesDesc')}
+            value={showNick}
+            onValueChange={() => {}}
+          />
 
           <View style={styles.divider} />
 
           {/* Show team logos */}
-          <View style={[styles.row, styles.rowDisabled]}>
-            <View style={styles.rowLeft}>
-              <Text style={styles.rowLabel}>{t('settings.display.showTeamLogos')}</Text>
-              <Text style={styles.rowDesc}>{t('settings.display.showTeamLogosDesc')}</Text>
-            </View>
-            <Switch
-              value={showTeamLogo}
-              disabled
-              trackColor={{ false: colors.bg.elevated, true: colors.accent.green }}
-              thumbColor="#ffffff"
-            />
-          </View>
+          <Toggle
+            variant="flat"
+            disabled
+            label={t('settings.display.showTeamLogos')}
+            subtitle={t('settings.display.showTeamLogosDesc')}
+            value={showTeamLogo}
+            onValueChange={() => {}}
+          />
         </View>
       </ScrollView>
     </SafeAreaView>

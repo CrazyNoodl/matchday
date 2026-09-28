@@ -36,20 +36,41 @@ interface DayWinnerBannerProps {
   matchCount: number;
 }
 
+const WINNER_CIRCLE_CARD_RATIO = 0.45;
+
 function DayWinnerBanner({ winnerId, matchCount }: DayWinnerBannerProps) {
   const colors = useColors();
   const styles = makeStyles(colors);
   const { t } = useTranslation();
   const player = useStore((s) => s.players.find((p) => p.id === winnerId));
+  const team = useStore((s) => s.teams.find((tm) => tm.code === player?.teamCode));
   const name = player?.name ?? '—';
+  const [cardWidth, setCardWidth] = useState(0);
+  const circleSize = cardWidth * WINNER_CIRCLE_CARD_RATIO;
 
   return (
-    <View style={styles.winnerCard}>
+    <View
+      style={styles.winnerCard}
+      onLayout={(e) => setCardWidth(e.nativeEvent.layout.width)}
+    >
       <Text style={styles.winnerLabel}>♦ {t('archive.dayWinner').toUpperCase()} ♦</Text>
       <Text style={styles.winnerMatchCount}>
         {t('archive.matchCount', { count: matchCount }).toUpperCase()}
       </Text>
       <View style={styles.winnerLogoWrap}>
+        {cardWidth > 0 && (
+          <View
+            style={[
+              styles.winnerCircle,
+              {
+                width: circleSize,
+                height: circleSize,
+                borderRadius: circleSize / 2,
+                backgroundColor: (team?.color ?? colors.accent.gold) + '26',
+              },
+            ]}
+          />
+        )}
         <CardAvatar teamCode={player?.teamCode} size={56} />
       </View>
       <Text style={styles.winnerName} numberOfLines={1}>
@@ -86,11 +107,23 @@ export default function ArchiveDayScreen() {
     (s) =>
       hasTournament && !!viewingRound && s.archivedRounds.some((r) => r.id === viewingRound.id),
   );
+  // Reopening is only safe for the most recently finished round — see
+  // reopenRound()'s doc comment in tournamentSlice.ts for why.
+  const isLastRound = useStore(
+    (s) =>
+      !!viewingRound &&
+      s.archivedRounds.length > 0 &&
+      s.archivedRounds[s.archivedRounds.length - 1].id === viewingRound.id,
+  );
+  const roundOpen = useStore((s) => s.roundOpen);
+  const canReopen = isEditableRound && isLastRound && !roundOpen;
   const deleteArchivedRound = useStore((s) => s.deleteArchivedRound);
+  const reopenRound = useStore((s) => s.reopenRound);
   const reorderMatches = useStore((s) => s.reorderMatches);
   const matchDragReorderEnabled = useStore((s) => s.matchDragReorderEnabled);
   const groupByTours = useStore((s) => s.groupByTours);
   const showAvgGoals = useStore((s) => s.showAvgGoals);
+  const dayWinnerBannerEnabled = useStore((s) => s.dayWinnerBannerEnabled);
   const roundsForOrdinal = useStore((s) =>
     viewingRound && s.archivedRounds.some((r) => r.id === viewingRound.id)
       ? s.archivedRounds
@@ -106,6 +139,7 @@ export default function ArchiveDayScreen() {
   const [dateValue, setDateValue] = useState('');
   const [dateError, setDateError] = useState(false);
   const [deleteVisible, setDeleteVisible] = useState(false);
+  const [reopenVisible, setReopenVisible] = useState(false);
   const roundMenu = useDropdownMenu();
 
   const handleConfirmDelete = useCallback(() => {
@@ -114,6 +148,14 @@ export default function ArchiveDayScreen() {
     setDeleteVisible(false);
     goBack();
   }, [liveRound, deleteArchivedRound, goBack]);
+
+  const handleConfirmReopen = useCallback(() => {
+    if (!liveRound) return;
+    setReopenVisible(false);
+    if (reopenRound(liveRound.id)) {
+      router.replace('/round');
+    }
+  }, [liveRound, reopenRound, router]);
 
   const playerIds = useMemo(() => {
     if (!liveRound) return [];
@@ -166,10 +208,21 @@ export default function ArchiveDayScreen() {
 
       {/* Header */}
       <NavHeader
-        title=""
+        title={t('matchday.round', { n: roundNumber }).toUpperCase()}
+        subtitle={
+          isEditableRound ? (
+            <TouchableOpacity style={styles.datePill} onPress={openDateEditor} activeOpacity={0.7}>
+              <Text style={styles.datePillText}>{formatShortDate(date)}</Text>
+              <Text style={styles.datePillIcon}>✎</Text>
+            </TouchableOpacity>
+          ) : (
+            <Text style={styles.dateStatic}>{formatShortDate(date)}</Text>
+          )
+        }
         onBack={() => goBack()}
         rightElement={
           <TouchableOpacity
+            testID="archive-day-menu-button"
             ref={roundMenu.anchorRef}
             style={styles.dotsBtn}
             onPress={roundMenu.open}
@@ -186,20 +239,10 @@ export default function ArchiveDayScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Round date */}
-        <View style={styles.dateRow}>
-          {isEditableRound ? (
-            <TouchableOpacity style={styles.datePill} onPress={openDateEditor} activeOpacity={0.7}>
-              <Text style={styles.datePillText}>{formatShortDate(date)}</Text>
-              <Text style={styles.datePillIcon}>✎</Text>
-            </TouchableOpacity>
-          ) : (
-            <Text style={styles.dateStatic}>{formatShortDate(date)}</Text>
-          )}
-        </View>
-
         {/* Day Winner Banner */}
-        {winner ? <DayWinnerBanner winnerId={winner} matchCount={matches.length} /> : null}
+        {winner && dayWinnerBannerEnabled ? (
+          <DayWinnerBanner winnerId={winner} matchCount={matches.length} />
+        ) : null}
 
         {/* Round standings table */}
         {standings.length > 0 && (
@@ -288,27 +331,43 @@ export default function ArchiveDayScreen() {
         position={roundMenu.position}
         items={[
           {
-            key: 'stats',
-            label: t('home.stats').toUpperCase(),
-            onPress: () => {
-              roundMenu.close();
-              router.push('/matchday-stats');
-            },
-          },
-          {
             key: 'share',
             label: t('common.share'),
+            testID: 'archive-day-menu-share-item',
             onPress: () => {
               roundMenu.close();
               setShareVisible(true);
             },
           },
+          {
+            key: 'stats',
+            label: t('home.stats'),
+            testID: 'archive-day-menu-stats-item',
+            onPress: () => {
+              roundMenu.close();
+              router.push('/matchday-stats');
+            },
+          },
+          ...(canReopen
+            ? [
+                {
+                  key: 'reopen',
+                  label: t('archive.reopenRoundMenu'),
+                  testID: 'archive-day-menu-reopen-item',
+                  onPress: () => {
+                    roundMenu.close();
+                    setReopenVisible(true);
+                  },
+                },
+              ]
+            : []),
           ...(isEditableRound
             ? [
                 {
                   key: 'delete',
                   label: t('archive.deleteRoundConfirm'),
                   destructive: true,
+                  testID: 'archive-day-menu-delete-round-item',
                   onPress: () => {
                     roundMenu.close();
                     setDeleteVisible(true);
@@ -328,7 +387,27 @@ export default function ArchiveDayScreen() {
         title={t('archive.deleteRoundTitle').toUpperCase()}
         description={t('archive.deleteRoundDesc')}
         cancel={{ label: t('matchday.dialogs.cancel'), onPress: () => setDeleteVisible(false) }}
-        confirm={{ label: t('archive.deleteRoundConfirm'), onPress: handleConfirmDelete }}
+        confirm={{
+          label: t('archive.deleteRoundConfirm'),
+          onPress: handleConfirmDelete,
+          testID: 'archive-day-delete-round-confirm-button',
+        }}
+      />
+
+      <ConfirmDialog
+        visible={reopenVisible}
+        onRequestClose={() => setReopenVisible(false)}
+        icon="↺"
+        iconColor={colors.accent.gold}
+        variant="gold"
+        title={t('archive.reopenRoundTitle').toUpperCase()}
+        description={t('archive.reopenRoundDesc')}
+        cancel={{ label: t('matchday.dialogs.cancel'), onPress: () => setReopenVisible(false) }}
+        confirm={{
+          label: t('archive.reopenRoundConfirm'),
+          onPress: handleConfirmReopen,
+          testID: 'archive-day-reopen-confirm-button',
+        }}
       />
 
       <EditRoundDateSheet

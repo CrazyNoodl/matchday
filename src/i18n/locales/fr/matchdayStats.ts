@@ -2,6 +2,8 @@ const matchdayStats = {
   title: 'Stats de la journée',
   tabRecords: 'Records',
   tabComparison: 'Comparaison',
+  best: 'Meilleur',
+  worst: 'Pire',
   gamesCount: '{{count}} matchs',
   perMatchSuffix: '/match',
   noStats: 'Pas encore de statistiques détaillées pour cette journée',

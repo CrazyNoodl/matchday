@@ -42,6 +42,7 @@ export function MatchModals({ d }: MatchModalsProps) {
               </Text>
               <View style={styles.scoreEditControls}>
                 <TouchableOpacity
+                  testID="match-score-edit-a-minus"
                   style={styles.stepBtn}
                   onPress={() => d.setEditAScore((v) => Math.max(0, v - 1))}
                   activeOpacity={0.75}
@@ -50,6 +51,7 @@ export function MatchModals({ d }: MatchModalsProps) {
                 </TouchableOpacity>
                 <Text style={styles.scoreEditVal}>{d.editAScore}</Text>
                 <TouchableOpacity
+                  testID="match-score-edit-a-plus"
                   style={styles.stepBtn}
                   onPress={() => d.setEditAScore((v) => v + 1)}
                   activeOpacity={0.75}
@@ -67,6 +69,7 @@ export function MatchModals({ d }: MatchModalsProps) {
               </Text>
               <View style={styles.scoreEditControls}>
                 <TouchableOpacity
+                  testID="match-score-edit-b-minus"
                   style={styles.stepBtn}
                   onPress={() => d.setEditBScore((v) => Math.max(0, v - 1))}
                   activeOpacity={0.75}
@@ -75,6 +78,7 @@ export function MatchModals({ d }: MatchModalsProps) {
                 </TouchableOpacity>
                 <Text style={styles.scoreEditVal}>{d.editBScore}</Text>
                 <TouchableOpacity
+                  testID="match-score-edit-b-plus"
                   style={styles.stepBtn}
                   onPress={() => d.setEditBScore((v) => v + 1)}
                   activeOpacity={0.75}
@@ -90,6 +94,7 @@ export function MatchModals({ d }: MatchModalsProps) {
             onCancel={() => d.store.setModal(null)}
             confirmLabel={t('common.save')}
             onConfirm={d.handleSaveScore}
+            confirmTestID="match-edit-score-save-button"
           />
         </View>
       </Sheet>
@@ -141,8 +146,13 @@ export function MatchModals({ d }: MatchModalsProps) {
                   <View key={stat.key} style={styles.editStatRow}>
                     <View style={styles.editSideControls}>
                       <TouchableOpacity
+                        testID={`edit-stat-${stat.key}-a-minus`}
                         style={styles.stepBtn}
-                        onPress={() => d.adjustStat(stat.key, 'a', -stat.step, stat.isPercent)}
+                        delayPressIn={0}
+                        onPressIn={() => d.startStatHold(stat.key, 'a', -1, stat.isPercent)}
+                        onPressOut={() =>
+                          d.endStatHold(stat.key, 'a', -1, stat.isPercent, stat.step)
+                        }
                         activeOpacity={0.75}
                       >
                         <Text style={styles.stepBtnText}>−</Text>
@@ -151,8 +161,13 @@ export function MatchModals({ d }: MatchModalsProps) {
                         {format(current.a)}
                       </Text>
                       <TouchableOpacity
+                        testID={`edit-stat-${stat.key}-a-plus`}
                         style={styles.stepBtn}
-                        onPress={() => d.adjustStat(stat.key, 'a', stat.step, stat.isPercent)}
+                        delayPressIn={0}
+                        onPressIn={() => d.startStatHold(stat.key, 'a', 1, stat.isPercent)}
+                        onPressOut={() =>
+                          d.endStatHold(stat.key, 'a', 1, stat.isPercent, stat.step)
+                        }
                         activeOpacity={0.75}
                       >
                         <Text style={styles.stepBtnText}>+</Text>
@@ -160,6 +175,7 @@ export function MatchModals({ d }: MatchModalsProps) {
                     </View>
 
                     <TouchableOpacity
+                      testID={`edit-stat-label-${stat.key}`}
                       style={styles.editStatLabelRow}
                       activeOpacity={lowConfidence ? 0.6 : 1}
                       disabled={!lowConfidence}
@@ -175,8 +191,13 @@ export function MatchModals({ d }: MatchModalsProps) {
 
                     <View style={styles.editSideControls}>
                       <TouchableOpacity
+                        testID={`edit-stat-${stat.key}-b-minus`}
                         style={styles.stepBtn}
-                        onPress={() => d.adjustStat(stat.key, 'b', -stat.step, stat.isPercent)}
+                        delayPressIn={0}
+                        onPressIn={() => d.startStatHold(stat.key, 'b', -1, stat.isPercent)}
+                        onPressOut={() =>
+                          d.endStatHold(stat.key, 'b', -1, stat.isPercent, stat.step)
+                        }
                         activeOpacity={0.75}
                       >
                         <Text style={styles.stepBtnText}>−</Text>
@@ -185,8 +206,13 @@ export function MatchModals({ d }: MatchModalsProps) {
                         {format(current.b)}
                       </Text>
                       <TouchableOpacity
+                        testID={`edit-stat-${stat.key}-b-plus`}
                         style={styles.stepBtn}
-                        onPress={() => d.adjustStat(stat.key, 'b', stat.step, stat.isPercent)}
+                        delayPressIn={0}
+                        onPressIn={() => d.startStatHold(stat.key, 'b', 1, stat.isPercent)}
+                        onPressOut={() =>
+                          d.endStatHold(stat.key, 'b', 1, stat.isPercent, stat.step)
+                        }
                         activeOpacity={0.75}
                       >
                         <Text style={styles.stepBtnText}>+</Text>
@@ -214,6 +240,7 @@ export function MatchModals({ d }: MatchModalsProps) {
             onCancel={() => d.store.setModal(null)}
             confirmLabel={t('common.save')}
             onConfirm={d.handleSaveStats}
+            confirmTestID="match-edit-stats-save-button"
           />
         </View>
       </Sheet>
@@ -244,6 +271,7 @@ export function MatchModals({ d }: MatchModalsProps) {
             onCancel={() => d.setEditingNote(false)}
             confirmLabel={t('common.save')}
             onConfirm={d.handleSaveNote}
+            confirmTestID="match-edit-note-save-button"
           />
         </View>
       </Sheet>
@@ -260,19 +288,27 @@ export function MatchModals({ d }: MatchModalsProps) {
           }
         }}
         items={[
-          {
-            key: 'rescan',
-            label: t('matchDetail.statsMenu.rescan'),
-            loading: d.importingStats,
-            disabled: d.importingStats,
-            onPress: () => {
-              rescanAfterClose.current = true;
-              d.statsMenu.close();
-            },
-          },
+          // Re-scan opens the real device photo library — pointless (and
+          // confusing) against a fake demo match, so it's left out entirely
+          // in demo mode rather than shown disabled.
+          ...(d.store.demoMode
+            ? []
+            : [
+                {
+                  key: 'rescan',
+                  label: t('matchDetail.statsMenu.rescan'),
+                  loading: d.importingStats,
+                  disabled: d.importingStats,
+                  onPress: () => {
+                    rescanAfterClose.current = true;
+                    d.statsMenu.close();
+                  },
+                },
+              ]),
           {
             key: 'edit',
             label: t('common.edit'),
+            testID: 'match-stats-menu-edit-item',
             onPress: () => {
               d.statsMenu.close();
               d.openEditStats();
@@ -354,7 +390,11 @@ export function MatchModals({ d }: MatchModalsProps) {
         title={t('matchday.dialogs.deleteTitle').toUpperCase()}
         description={t('matchday.dialogs.deleteDesc')}
         cancel={{ label: t('matchday.dialogs.cancel'), onPress: () => d.store.setModal(null) }}
-        confirm={{ label: t('matchday.dialogs.delete'), onPress: d.handleDeleteMatch }}
+        confirm={{
+          label: t('matchday.dialogs.delete'),
+          onPress: d.handleDeleteMatch,
+          testID: 'match-delete-confirm-button',
+        }}
       />
     </>
   );

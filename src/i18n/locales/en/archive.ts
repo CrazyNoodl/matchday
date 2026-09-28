@@ -21,6 +21,10 @@ const archive = {
   deleteRoundTitle: 'Delete round?',
   deleteRoundDesc: 'All matches in this round will be permanently removed.',
   deleteRoundConfirm: 'Delete Round',
+  reopenRoundMenu: 'Reopen round',
+  reopenRoundTitle: 'Reopen this round?',
+  reopenRoundDesc: 'The round will move back to the current match day so you can add or edit matches. Finish it again when done.',
+  reopenRoundConfirm: 'Reopen Round',
   championDaysWon: 'champion · {{count}}d won',
 } as const;
 

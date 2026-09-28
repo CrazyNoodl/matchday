@@ -9,6 +9,11 @@ export const makeStyles = (colors: AppColors) =>
       flex: 1,
       backgroundColor: colors.bg.base,
     },
+    center: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
     scroll: {
       flex: 1,
     },
@@ -49,31 +54,6 @@ export const makeStyles = (colors: AppColors) =>
       letterSpacing: 0.8,
       textTransform: 'uppercase',
     },
-    filterChips: {
-      flexDirection: 'row',
-      gap: Spacing.sm,
-    },
-    filterChip: {
-      backgroundColor: colors.bg.surface,
-      borderRadius: Radius.full,
-      borderWidth: 1,
-      borderColor: colors.border.default,
-      paddingHorizontal: Spacing.md,
-      paddingVertical: 5,
-    },
-    filterChipActive: {
-      backgroundColor: colors.accent.green,
-      borderColor: colors.accent.green,
-    },
-    filterChipText: {
-      fontFamily: FontFamily.bodySemiBold,
-      fontSize: FontSize.sm,
-      color: colors.text.muted,
-    },
-    filterChipTextActive: {
-      color: colors.accent.greenDark,
-    },
-
     // Champion hero card
     champCard: {
       flexDirection: 'row',
@@ -129,32 +109,6 @@ export const makeStyles = (colors: AppColors) =>
       gap: Spacing.sm,
       marginBottom: Spacing.xl,
     },
-    totalCard: {
-      flex: 1,
-      backgroundColor: colors.bg.surface,
-      borderRadius: Radius.md,
-      borderWidth: 1,
-      borderColor: colors.border.default,
-      paddingVertical: Spacing.md,
-      paddingHorizontal: Spacing.sm,
-      alignItems: 'center',
-      gap: 3,
-    },
-    totalValue: {
-      fontFamily: FontFamily.displayBold,
-      fontSize: FontSize.xl,
-      color: colors.text.primary,
-      lineHeight: 24,
-    },
-    totalValueGreen: {
-      color: colors.accent.green,
-    },
-    totalLabel: {
-      fontFamily: FontFamily.bodyBold,
-      fontSize: FontSize.xs,
-      color: colors.text.muted,
-      letterSpacing: 0.8,
-    },
 
     // Section label
     sectionLabel: {
@@ -163,30 +117,8 @@ export const makeStyles = (colors: AppColors) =>
 
     // Param chips
     paramChipsRow: {
-      flexDirection: 'row',
-      gap: Spacing.sm,
       marginBottom: Spacing.md,
       flexWrap: 'wrap',
-    },
-    paramChip: {
-      backgroundColor: colors.bg.surface,
-      borderRadius: Radius.full,
-      borderWidth: 1,
-      borderColor: colors.border.default,
-      paddingHorizontal: Spacing.md,
-      paddingVertical: 5,
-    },
-    paramChipActive: {
-      borderColor: colors.accent.greenBorder,
-      backgroundColor: colors.accent.greenSubtle,
-    },
-    paramChipText: {
-      fontFamily: FontFamily.bodySemiBold,
-      fontSize: FontSize.sm,
-      color: colors.text.muted,
-    },
-    paramChipTextActive: {
-      color: colors.accent.green,
     },
 
     // Ranking cards
@@ -268,18 +200,5 @@ export const makeStyles = (colors: AppColors) =>
       fontFamily: FontFamily.body,
       fontSize: FontSize.sm,
       color: colors.text.muted,
-    },
-
-    // Empty
-    emptyWrap: {
-      flex: 1,
-      alignItems: 'center',
-      justifyContent: 'center',
-      paddingVertical: Spacing['2xl'],
-    },
-    emptyText: {
-      fontFamily: FontFamily.body,
-      fontSize: FontSize.base,
-      color: colors.text.placeholder,
     },
   });

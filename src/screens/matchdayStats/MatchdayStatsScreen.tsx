@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useGoBack } from '@/utils/useGoBack';
 import { useColors } from '@/theme';
-import { NavHeader, Avatar, GlowBackground, SegmentedControl } from '@/components';
+import { NavHeader, Avatar, GlowBackground, SegmentedControl, EmptyState } from '@/components';
 import { STAT_DEF_MAP } from '@/utils/statDefinitions';
 import { formatShortDate } from '@/utils/dateFormat';
 import type { DayStatRecord, DayStatComparison } from '@/utils/matchdayStatsAggregation';
@@ -14,6 +14,7 @@ import { useMatchdayStatsData } from './useMatchdayStatsData';
 import { makeStyles } from './matchdayStats.styles';
 
 type Tab = 'records' | 'comparison';
+type RecordsMode = 'best' | 'worst';
 
 const roundNum = (n: number) => Math.round(n * 10) / 10;
 
@@ -23,8 +24,11 @@ export function MatchdayStatsScreen() {
   const styles = makeStyles(colors);
   const router = useRouter();
   const goBack = useGoBack();
-  const { hasRound, date, players, records, comparisons } = useMatchdayStatsData();
+  const { hasRound, date, players, bestRecords, worstRecords, comparisons } =
+    useMatchdayStatsData();
   const [tab, setTab] = useState<Tab>('records');
+  const [recordsMode, setRecordsMode] = useState<RecordsMode>('best');
+  const records = recordsMode === 'best' ? bestRecords : worstRecords;
 
   if (!hasRound) {
     return (
@@ -32,7 +36,7 @@ export function MatchdayStatsScreen() {
         <GlowBackground />
         <NavHeader title={t('matchdayStats.title').toUpperCase()} onBack={goBack} />
         <View style={styles.center}>
-          <Text style={styles.emptyText}>{t('matchdayStats.noStats')}</Text>
+          <EmptyState message={t('matchdayStats.noStats')} />
         </View>
       </SafeAreaView>
     );
@@ -66,29 +70,39 @@ export function MatchdayStatsScreen() {
           ]}
         />
 
-        {isEmpty && (
-          <View style={styles.emptyWrap}>
-            <Text style={styles.emptyText}>{t('matchdayStats.noStats')}</Text>
-          </View>
-        )}
+        {isEmpty && <EmptyState message={t('matchdayStats.noStats')} />}
 
-        {tab === 'records' &&
-          records.map((record) => {
-            const firstPlayer = findPlayer(record.first.playerId);
-            if (!firstPlayer) return null;
-            const secondPlayer = record.second ? findPlayer(record.second.playerId) : undefined;
-            return (
-              <RecordRow
-                key={record.key}
-                record={record}
-                firstPlayer={firstPlayer}
-                secondPlayer={secondPlayer ?? null}
-                onPressFirst={() => goToMatch(record.first.matchId)}
-                onPressSecond={record.second ? () => goToMatch(record.second!.matchId) : undefined}
-                styles={styles}
-              />
-            );
-          })}
+        {tab === 'records' && (
+          <>
+            <SegmentedControl
+              variant="boxed"
+              value={recordsMode}
+              onChange={setRecordsMode}
+              options={[
+                { value: 'best', label: t('matchdayStats.best') },
+                { value: 'worst', label: t('matchdayStats.worst') },
+              ]}
+            />
+            {records.map((record) => {
+              const firstPlayer = findPlayer(record.first.playerId);
+              if (!firstPlayer) return null;
+              const secondPlayer = record.second ? findPlayer(record.second.playerId) : undefined;
+              return (
+                <RecordRow
+                  key={record.key}
+                  record={record}
+                  firstPlayer={firstPlayer}
+                  secondPlayer={secondPlayer ?? null}
+                  onPressFirst={() => goToMatch(record.first.matchId)}
+                  onPressSecond={
+                    record.second ? () => goToMatch(record.second!.matchId) : undefined
+                  }
+                  styles={styles}
+                />
+              );
+            })}
+          </>
+        )}
 
         {tab === 'comparison' &&
           comparisons.map((comparison) => (
@@ -210,8 +224,8 @@ function ComparisonGroup({ comparison, players, styles }: ComparisonGroupProps) 
   const { t } = useTranslation();
   const def = STAT_DEF_MAP[comparison.key];
   const label = def ? t(def.labelKey) : comparison.key;
-  const rowValue = (row: DayStatComparison['rows'][number]) =>
-    comparison.isPercent ? row.avg : row.sum;
+  const avgOnly = comparison.isPercent || def?.sumMeaningful === false;
+  const rowValue = (row: DayStatComparison['rows'][number]) => (avgOnly ? row.avg : row.sum);
   const maxValue = Math.max(...comparison.rows.map(rowValue), 1);
   const maxGames = Math.max(...comparison.rows.map((r) => r.games));
 
@@ -248,9 +262,9 @@ function ComparisonGroup({ comparison, players, styles }: ComparisonGroupProps) 
             </View>
             <View style={styles.compareValueWrap}>
               <Text style={[styles.compareValue, isTop && styles.compareValueTop]}>
-                {comparison.isPercent ? `${roundNum(row.avg)}%` : roundNum(row.sum)}
+                {comparison.isPercent ? `${roundNum(row.avg)}%` : roundNum(value)}
               </Text>
-              {!comparison.isPercent && row.games > 1 && (
+              {!avgOnly && row.games > 1 && (
                 <Text style={styles.compareValueSub}>
                   {roundNum(row.avg)}
                   {t('matchdayStats.perMatchSuffix')}

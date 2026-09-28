@@ -92,6 +92,19 @@ export function collectRivalryMatches(
   return entries;
 }
 
+/**
+ * The most recent date this specific pair actually played each other —
+ * `null` if every entry is still in the current open round (no archived
+ * meeting yet). Used to flag which stat records were set in that matchday.
+ */
+export function getLastMatchdayDate(entries: RivalryMatchEntry[]): string | null {
+  let latest: string | null = null;
+  for (const entry of entries) {
+    if (entry.date && (!latest || entry.date > latest)) latest = entry.date;
+  }
+  return latest;
+}
+
 export interface RivalryRecordMatch {
   entry: RivalryMatchEntry;
 }
@@ -128,7 +141,8 @@ export interface RivalryRecords {
   highestScoring: HighestScoringRecord | null;
   winStreakA: number;
   winStreakB: number;
-  statRecords: StatRecord[];
+  bestStatRecords: StatRecord[];
+  worstStatRecords: StatRecord[];
 }
 
 /** Longest run of consecutive entries decided in the given side's favor; a draw or a loss resets it. */
@@ -143,41 +157,60 @@ function longestWinStreak(entries: RivalryMatchEntry[], side: 'a' | 'b'): number
   return longest;
 }
 
-function computeStatRecords(entries: RivalryMatchEntry[]): StatRecord[] {
+/**
+ * Shared by best/worst: for each stat key, finds each side's own most extreme
+ * single-match value in the given direction (`wantHighest`). A "record" is
+ * normally the most extreme raw value in that direction, regardless of
+ * whether higher is generally the "better" outcome for this stat (that flag
+ * only drives which side is highlighted in the Comparison tab) — e.g. "most
+ * yellow cards in a match" is the best-record, "fewest" is the worst-record,
+ * neither is about "good discipline".
+ *
+ * `timeToRegain` is the one exception: unlike the other lower-is-better
+ * stats, a slow (high) recovery time reading as the "Best" record is
+ * actively confusing (a high number can't be anyone's best game), so its
+ * best/worst buckets are flipped to pick the opposite raw extreme.
+ */
+function computeExtremeStatRecords(entries: RivalryMatchEntry[], wantHighest: boolean): StatRecord[] {
   const records: StatRecord[] = [];
 
   for (const def of STAT_DEFINITIONS) {
-    // A "record" is always the most extreme single-match value, regardless of
-    // whether higher is generally the "better" outcome for this stat (that
-    // flag only drives which side is highlighted in the Comparison tab) —
-    // e.g. "most yellow cards in a match" is the notable record, not "fewest".
-    let bestA: StatSide | null = null;
-    let bestB: StatSide | null = null;
+    const pickHighest = def.key === 'timeToRegain' ? !wantHighest : wantHighest;
+    const isMoreExtreme = pickHighest
+      ? (candidate: number, current: number) => candidate > current
+      : (candidate: number, current: number) => candidate < current;
+
+    let extremeA: StatSide | null = null;
+    let extremeB: StatSide | null = null;
 
     for (const entry of entries) {
       const stat = entry.match.statsOverride?.[def.key];
       if (!stat) continue;
-      if (bestA === null || stat.a > bestA.value) bestA = { value: stat.a, entry };
-      if (bestB === null || stat.b > bestB.value) bestB = { value: stat.b, entry };
+      if (extremeA === null || isMoreExtreme(stat.a, extremeA.value)) extremeA = { value: stat.a, entry };
+      if (extremeB === null || isMoreExtreme(stat.b, extremeB.value)) extremeB = { value: stat.b, entry };
     }
 
     // Both sides always end up set together: whenever any entry has this key,
     // it carries both a and b values (they're recorded as a pair per match).
-    if (bestA && bestB) records.push({ key: def.key, a: bestA, b: bestB });
+    if (extremeA && extremeB) records.push({ key: def.key, a: extremeA, b: extremeB });
   }
 
   return records;
 }
+
+const computeBestStatRecords = (entries: RivalryMatchEntry[]) => computeExtremeStatRecords(entries, true);
+
+const computeWorstStatRecords = (entries: RivalryMatchEntry[]) => computeExtremeStatRecords(entries, false);
 
 export interface RivalryTotalRow {
   key: KnownStatKey;
   isPercent: boolean;
   /** Number of matches (in this pair, real stats only) that recorded this key. */
   games: number;
-  /** Sum across all recorded matches — omitted for percent stats, where a sum is meaningless. */
+  /** Sum across all recorded matches — omitted when `sumMeaningful` is false for this stat def (percent stats, or rate-like stats such as time to regain). */
   aSum?: number;
   bSum?: number;
-  /** Average per match — always present, this is the only figure shown for percent stats. */
+  /** Average per match — always present, this is the only figure shown when the sum is omitted. */
   aAvg: number;
   bAvg: number;
 }
@@ -206,12 +239,14 @@ export function computeRivalryTotals(entries: RivalryMatchEntry[]): RivalryTotal
 
     if (games === 0) continue;
 
+    const noSum = def.isPercent || def.sumMeaningful === false;
+
     rows.push({
       key: def.key,
       isPercent: def.isPercent,
       games,
-      aSum: def.isPercent ? undefined : aSum,
-      bSum: def.isPercent ? undefined : bSum,
+      aSum: noSum ? undefined : aSum,
+      bSum: noSum ? undefined : bSum,
       aAvg: aSum / games,
       bAvg: bSum / games,
     });
@@ -246,6 +281,7 @@ export function computeRivalryRecords(entries: RivalryMatchEntry[]): RivalryReco
     highestScoring,
     winStreakA: longestWinStreak(entries, 'a'),
     winStreakB: longestWinStreak(entries, 'b'),
-    statRecords: computeStatRecords(entries),
+    bestStatRecords: computeBestStatRecords(entries),
+    worstStatRecords: computeWorstStatRecords(entries),
   };
 }

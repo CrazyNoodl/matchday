@@ -17,6 +17,7 @@ interface RoundCardProps {
   /** 'card' = standalone bordered card (tournament.tsx). 'row' = row nested
    *  inside an already-bordered accordion card (archive.tsx). */
   variant?: 'card' | 'row';
+  testID?: string;
 }
 
 export const RoundCard = React.memo(function RoundCard({
@@ -28,6 +29,7 @@ export const RoundCard = React.memo(function RoundCard({
   winnerName,
   onPress,
   variant = 'card',
+  testID,
 }: RoundCardProps) {
   const { t } = useTranslation();
   const colors = useColors();
@@ -35,6 +37,7 @@ export const RoundCard = React.memo(function RoundCard({
   const isRow = variant === 'row';
   return (
     <TouchableOpacity
+      testID={testID}
       style={isRow ? styles.rowOuter : styles.cardOuter}
       onPress={onPress}
       activeOpacity={isRow ? 0.75 : 0.8}

@@ -24,6 +24,14 @@ type DocumentPickerModule = typeof import('expo-document-picker');
 
 export const BACKUP_SCHEMA_VERSION = 1;
 
+export type BackupOrigin = 'auto' | 'manual';
+
+// Every finished matchday creates an 'auto' backup (see app/round.tsx) — left
+// unbounded that grows forever, so only the most recent N are kept. Manual
+// backups are exempt: a user who deliberately tapped "Create Backup" expects
+// it to stick around until they delete it themselves.
+export const AUTO_BACKUP_RETENTION = 10;
+
 // Reuses RealDataBackup (the same "what counts as real data" shape the
 // demo-mode swap already relies on) plus the display settings a user would
 // actually want restored. Deliberately excludes pendingSyncTables/demoMode —
@@ -45,6 +53,7 @@ export interface BackupMeta {
   fileName: string;
   uri: string;
   exportedAt: string;
+  origin: BackupOrigin;
   sizeBytes?: number;
 }
 
@@ -86,23 +95,42 @@ function fileSafeToIso(safe: string): string | null {
   return `${datePart}T${hh}:${mm}:${ss}${msPart ?? ''}Z`;
 }
 
-export function backupFileName(userId: string, date: Date = new Date()): string {
-  return `matchday-backup-${userId}-${isoToFileSafe(date.toISOString())}.json`;
+export function backupFileName(
+  userId: string,
+  origin: BackupOrigin,
+  date: Date = new Date(),
+): string {
+  return `matchday-backup-${userId}-${origin}-${isoToFileSafe(date.toISOString())}.json`;
 }
 
 const FILE_NAME_RE =
+  /^matchday-backup-(.+)-(auto|manual)-(\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}(?:\.\d+)?Z)\.json$/;
+
+// Backups created before this feature shipped have no auto/manual segment —
+// they were all created manually, since automatic backups didn't exist yet.
+// Kept as a fallback so pre-existing backups on a user's device don't vanish
+// from the list the moment this ships.
+const LEGACY_FILE_NAME_RE =
   /^matchday-backup-(.+)-(\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}(?:\.\d+)?Z)\.json$/;
 
-// Backups created before #79 (no userId in the filename) never match this
+// Backups created before #79 (no userId in the filename) never match either
 // pattern and are intentionally excluded from listBackups() — they can't be
 // safely attributed to an account, and the whole point of this scoping is to
 // never show a backup that isn't provably the current account's.
-function parseBackupFileName(fileName: string): { userId: string; exportedAt: string } | null {
+function parseBackupFileName(
+  fileName: string,
+): { userId: string; origin: BackupOrigin; exportedAt: string } | null {
   const m = fileName.match(FILE_NAME_RE);
-  if (!m) return null;
-  const exportedAt = fileSafeToIso(m[2]);
+  if (m) {
+    const exportedAt = fileSafeToIso(m[3]);
+    if (!exportedAt) return null;
+    return { userId: m[1], origin: m[2] as BackupOrigin, exportedAt };
+  }
+  const legacy = fileName.match(LEGACY_FILE_NAME_RE);
+  if (!legacy) return null;
+  const exportedAt = fileSafeToIso(legacy[2]);
   if (!exportedAt) return null;
-  return { userId: m[1], exportedAt };
+  return { userId: legacy[1], origin: 'manual', exportedAt };
 }
 
 // ---------------------------------------------------------------------------
@@ -229,7 +257,7 @@ export function validateBackupFile(raw: unknown): BackupValidationResult {
 // caused the 2026-07-06 sync data-loss incident.
 // ---------------------------------------------------------------------------
 
-export function applyBackupLocally(data: BackupData): void {
+export function applyBackupLocally(data: BackupData, exportedAt: string): void {
   syncSuppressionRef.current = true;
   useStore.setState({
     ...data,
@@ -238,6 +266,11 @@ export function applyBackupLocally(data: BackupData): void {
     selectedMatchId: null,
     viewingRound: null,
     viewingTournament: null,
+    // The restored data is exactly what `exportedAt`'s backup captured, so
+    // there are no post-backup edits yet — reset staleness rather than
+    // leaving it pointed at whatever backup existed before the restore.
+    lastBackupAt: exportedAt,
+    backupStaleEditCount: 0,
   });
   syncSuppressionRef.current = false;
 }
@@ -246,30 +279,52 @@ export function applyBackupLocally(data: BackupData): void {
 // Platform-branching I/O
 // ---------------------------------------------------------------------------
 
-export async function createBackup(): Promise<
-  { ok: true; meta: BackupMeta } | { ok: false; reason: 'writeFailed' }
-> {
+// Resets the staleness counter every time a backup is made — auto or manual,
+// both equally "cover" the data as of this instant — and, for auto backups
+// only, sweeps anything past the retention window (manual backups are never
+// pruned; see AUTO_BACKUP_RETENTION).
+async function onBackupCreated(exportedAt: string, origin: BackupOrigin): Promise<void> {
+  useStore.setState({ lastBackupAt: exportedAt, backupStaleEditCount: 0 });
+  if (origin !== 'auto') return;
+  const autos = (await listBackups()).filter((b) => b.origin === 'auto');
+  const stale = autos.slice(AUTO_BACKUP_RETENTION);
+  await Promise.all(stale.map((meta) => deleteBackup(meta)));
+}
+
+export async function createBackup(
+  origin: BackupOrigin = 'manual',
+): Promise<{ ok: true; meta: BackupMeta } | { ok: false; reason: 'writeFailed' }> {
   const file = buildBackupPayload(useStore.getState());
   const json = serializeBackup(file);
   const userId = await currentBackupUserId();
-  const fileName = backupFileName(userId, new Date(file.exportedAt));
+  const fileName = backupFileName(userId, origin, new Date(file.exportedAt));
 
   try {
     if (Platform.OS === 'web') {
       localStorage.setItem(fileName, json);
-      return {
-        ok: true,
-        meta: { fileName, uri: fileName, exportedAt: file.exportedAt, sizeBytes: json.length },
+      const meta: BackupMeta = {
+        fileName,
+        uri: fileName,
+        exportedAt: file.exportedAt,
+        origin,
+        sizeBytes: json.length,
       };
+      await onBackupCreated(file.exportedAt, origin);
+      return { ok: true, meta };
     }
     const { File, Directory, Paths } = (await import('expo-file-system')) as FileSystemModule;
     const f = new File(new Directory(Paths.document, 'backups'), fileName);
     f.create({ intermediates: true, overwrite: true });
     f.write(json);
-    return {
-      ok: true,
-      meta: { fileName, uri: f.uri, exportedAt: file.exportedAt, sizeBytes: f.size },
+    const meta: BackupMeta = {
+      fileName,
+      uri: f.uri,
+      exportedAt: file.exportedAt,
+      origin,
+      sizeBytes: f.size,
     };
+    await onBackupCreated(file.exportedAt, origin);
+    return { ok: true, meta };
   } catch (e) {
     console.warn('[backup] createBackup write failed:', e);
     Sentry.captureException(e, { tags: { backupOp: 'createBackup' } });
@@ -292,10 +347,16 @@ export async function listBackups(): Promise<BackupMeta[]> {
         fileName: key,
         uri: key,
         exportedAt: parsed.exportedAt,
+        origin: parsed.origin,
         sizeBytes: value.length,
       });
     }
-    return metas.sort((a, b) => (a.fileName < b.fileName ? 1 : -1));
+    // Sort by exportedAt, not the raw fileName: the origin segment
+    // ('auto'/'manual') sits before the timestamp in the encoding, and
+    // 'auto' < 'manual' lexicographically — sorting by fileName would put
+    // every manual backup ahead of every auto backup regardless of actual
+    // recency once both origins exist for the same account.
+    return metas.sort((a, b) => (a.exportedAt < b.exportedAt ? 1 : -1));
   }
 
   try {
@@ -311,10 +372,16 @@ export async function listBackups(): Promise<BackupMeta[]> {
         fileName: entry.name,
         uri: entry.uri,
         exportedAt: parsed.exportedAt,
+        origin: parsed.origin,
         sizeBytes: entry.size,
       });
     }
-    return metas.sort((a, b) => (a.fileName < b.fileName ? 1 : -1));
+    // Sort by exportedAt, not the raw fileName: the origin segment
+    // ('auto'/'manual') sits before the timestamp in the encoding, and
+    // 'auto' < 'manual' lexicographically — sorting by fileName would put
+    // every manual backup ahead of every auto backup regardless of actual
+    // recency once both origins exist for the same account.
+    return metas.sort((a, b) => (a.exportedAt < b.exportedAt ? 1 : -1));
   } catch (e) {
     console.warn('[backup] listBackups failed:', e);
     Sentry.captureException(e, { tags: { backupOp: 'listBackups' } });

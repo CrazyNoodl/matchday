@@ -165,6 +165,9 @@ export const makeStyles = (colors: AppColors) =>
       fontSize: FontSize.xs,
       color: colors.text.muted,
     },
+    statDateNew: {
+      color: colors.accent.gold,
+    },
     statCenter: {
       alignItems: 'center',
       justifyContent: 'center',
@@ -179,16 +182,5 @@ export const makeStyles = (colors: AppColors) =>
       letterSpacing: 0.5,
       textTransform: 'uppercase',
       textAlign: 'center',
-    },
-
-    // Empty
-    emptyWrap: {
-      paddingVertical: Spacing['2xl'],
-      alignItems: 'center',
-    },
-    emptyText: {
-      fontFamily: FontFamily.body,
-      fontSize: FontSize.base,
-      color: colors.text.placeholder,
     },
   });

@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useGoBack } from '@/utils/useGoBack';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStore } from '@/store';
 import { calculateStandings } from '@/utils/standings';
 import {
@@ -15,11 +15,14 @@ import {
 } from '@/utils/statsAggregation';
 import { useColors } from '@/theme';
 import {
+  NavHeader,
   SectionLabel,
   GlowBackground,
   SegmentedControl,
   PlayerRankCard,
   H2HCard,
+  EmptyState,
+  StatTile,
 } from '@/components';
 import type { Match, Player } from '@/store/types';
 import { useTranslation } from 'react-i18next';
@@ -36,7 +39,6 @@ export default function StatsScreen() {
   const styles = makeStyles(colors);
   const [activeTab, setActiveTab] = useState<Tab>('ranking');
   const { t } = useTranslation();
-  const insets = useSafeAreaInsets();
 
   const { scope } = useLocalSearchParams<{ scope?: string }>();
   // Opened from the round screen mid-tournament (#87): scope to the active
@@ -86,30 +88,7 @@ export default function StatsScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       <GlowBackground />
-      <View style={[styles.statusBarFill, { height: insets.top }]} />
-
-      {/* Custom two-line header */}
-      <View style={styles.headerContainer}>
-        <TouchableOpacity
-          style={styles.backBtn}
-          onPress={() => goBack()}
-          activeOpacity={0.7}
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-        >
-          <Text style={styles.chevron}>‹</Text>
-        </TouchableOpacity>
-        <View style={styles.headerTitleWrap}>
-          {t('stats.title')
-            .toUpperCase()
-            .split('\n')
-            .map((line, i) => (
-              <Text key={i} style={styles.headerTitle}>
-                {line}
-              </Text>
-            ))}
-        </View>
-        <View style={styles.headerRight} />
-      </View>
+      <NavHeader title={t('stats.title').toUpperCase()} onBack={() => goBack()} />
 
       {/* Tab pills */}
       <View style={styles.tabRow}>
@@ -117,6 +96,7 @@ export default function StatsScreen() {
           variant="pill"
           value={activeTab}
           onChange={setActiveTab}
+          testIDPrefix="stats-tab"
           options={[
             { value: 'ranking', label: t('stats.ranking') },
             { value: 'h2h', label: t('stats.h2h') },
@@ -215,22 +195,16 @@ function RankingTab({ standings, players, totalGoals, matchDaysPlayed }: Ranking
         );
       })}
 
-      {standings.length === 0 && (
-        <View style={styles.emptyWrap}>
-          <Text style={styles.emptyText}>{t('stats.noMatches')}</Text>
-        </View>
-      )}
+      {standings.length === 0 && <EmptyState message={t('stats.noMatches')} />}
 
       {/* Stat tiles */}
       <View style={styles.tilesRow}>
-        <View style={styles.statTile}>
-          <Text style={styles.statTileLabel}>{t('stats.matchDaysPlayed').toUpperCase()}</Text>
-          <Text style={styles.statTileValue}>{matchDaysPlayed}</Text>
-        </View>
-        <View style={styles.statTile}>
-          <Text style={styles.statTileLabel}>{t('stats.goalsScored').toUpperCase()}</Text>
-          <Text style={[styles.statTileValue, styles.statTileValueGreen]}>{totalGoals}</Text>
-        </View>
+        <StatTile label={t('stats.matchDaysPlayed').toUpperCase()} value={matchDaysPlayed} />
+        <StatTile
+          label={t('stats.goalsScored').toUpperCase()}
+          value={totalGoals}
+          highlight
+        />
       </View>
     </View>
   );
@@ -257,6 +231,7 @@ function H2HTab({ pairs, tournamentOnly }: H2HTabProps) {
       {pairs.map((pair) => (
         <TouchableOpacity
           key={`${pair.playerA.id}-${pair.playerB.id}`}
+          testID={`h2h-row-${pair.playerA.name}-${pair.playerB.name}`}
           activeOpacity={0.85}
           delayLongPress={3000}
           onLongPress={() =>
@@ -269,11 +244,7 @@ function H2HTab({ pairs, tournamentOnly }: H2HTabProps) {
         </TouchableOpacity>
       ))}
 
-      {pairs.length === 0 && (
-        <View style={styles.emptyWrap}>
-          <Text style={styles.emptyText}>{t('stats.noRivalries')}</Text>
-        </View>
-      )}
+      {pairs.length === 0 && <EmptyState message={t('stats.noRivalries')} />}
     </View>
   );
 }

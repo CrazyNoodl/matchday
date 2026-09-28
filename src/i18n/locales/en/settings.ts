@@ -66,6 +66,8 @@ const settings = {
     leaderModalDesc: 'Announce the leader after each completed tour, when it changes',
     leaderModalMinPlayers: 'Minimum players',
     leaderModalMinPlayersDesc: 'Only announce when more than this many players are in the round',
+    dayWinnerBanner: 'Show day winner banner',
+    dayWinnerBannerDesc: 'Show the day winner card at the top of an archived round',
     upcoming: 'Coming soon',
     inDevelopment: 'In development',
   },

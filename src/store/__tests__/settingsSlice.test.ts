@@ -95,3 +95,17 @@ describe('leaderModalMinPlayers', () => {
     expect(useStore.getState().leaderModalMinPlayers).toBe(6);
   });
 });
+
+describe('dayWinnerBannerEnabled', () => {
+  it('defaults to true', () => {
+    expect(useStore.getState().dayWinnerBannerEnabled).toBe(true);
+  });
+
+  it('setDayWinnerBannerEnabled flips the value', () => {
+    useStore.getState().setDayWinnerBannerEnabled(false);
+    expect(useStore.getState().dayWinnerBannerEnabled).toBe(false);
+
+    useStore.getState().setDayWinnerBannerEnabled(true);
+    expect(useStore.getState().dayWinnerBannerEnabled).toBe(true);
+  });
+});

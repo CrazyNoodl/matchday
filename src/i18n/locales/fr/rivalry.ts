@@ -1,8 +1,8 @@
 const rivalry = {
   title: 'Rivalité',
   vs: 'vs',
-  excludeFriendly: 'Exclure les matchs amicaux',
-  excludeFriendlyDesc: 'Ne compter que les tours classés ci-dessous',
+  includeFriendly: 'Inclure les matchs amicaux',
+  includeFriendlyDesc: 'Compter aussi les tours amicaux ci-dessous',
   recordsSection: 'Records',
   statsSection: 'Statistiques des matchs',
   biggestWin: 'Plus large victoire',
@@ -15,6 +15,8 @@ const rivalry = {
   noData: 'Aucune donnée de rivalité trouvée.',
   tabRecords: 'Records',
   tabComparison: 'Comparaison',
+  best: 'Meilleur',
+  worst: 'Pire',
   perMatchSuffix: '/match',
   gamesCount: '{{count}} matchs',
 } as const;

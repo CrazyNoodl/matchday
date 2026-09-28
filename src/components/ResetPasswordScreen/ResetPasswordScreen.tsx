@@ -90,6 +90,7 @@ export function ResetPasswordScreen({ onDone }: Props) {
           />
 
           <TouchableOpacity
+            testID="reset-password-submit-button"
             style={[styles.btn, loading && styles.btnDisabled]}
             onPress={handleSubmit}
             activeOpacity={0.8}

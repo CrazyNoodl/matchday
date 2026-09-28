@@ -10,7 +10,7 @@ import {
 import { type ParsedMatch } from '@/utils/importRound';
 import { calculateStandings, isTopTied } from '@/utils/standings';
 import { Colors } from '@/theme/colors';
-import { initials, patchMatchEverywhere, matchMediaFolder } from '../sliceHelpers';
+import { initials, patchMatchEverywhere, matchMediaFolder, noteBackupStaleness } from '../sliceHelpers';
 import { buildRoundFolder, deleteStorageFolder } from '@/supabase/storage';
 import type { RootState } from '../index';
 
@@ -48,9 +48,10 @@ function buildArchivedRound(s: RootState): ArchivedRound {
   const standings = calculateStandings(s.matches, s.roundPlayers);
   const isTrueDraw = isTopTied(standings, s.matches);
   const winnerId = isTrueDraw || !standings[0] ? '' : standings[0].playerId;
+  const shareId = generateShareId();
 
   return {
-    id: `round-${Date.now()}`,
+    id: `round-${Date.now()}-${shareId}`,
     n: s.round,
     date: new Date().toISOString(),
     winner: winnerId,
@@ -60,7 +61,7 @@ function buildArchivedRound(s: RootState): ArchivedRound {
     name: `Round ${s.round}`,
     players: [...s.roundPlayers],
     folder: s.roundFolder || undefined,
-    shareId: generateShareId(),
+    shareId,
   };
 }
 
@@ -106,6 +107,13 @@ export interface TournamentActions {
   reorderMatches: (orderedIds: string[]) => void;
   finishRound: () => void;
   deleteRound: () => void;
+  // Moves the most recently finished round back into the live `matches`/
+  // `roundOpen` slot so it can be edited (e.g. to add a missed match).
+  // Only the LAST archived round qualifies — reopening an earlier one would
+  // re-append it to the end of archivedRounds on the next finishRound(),
+  // silently reordering round history. No-ops (returns false) if the round
+  // isn't last, a round is already open live, or the tournament is closed.
+  reopenRound: (id: string) => boolean;
   deleteArchivedRound: (id: string) => void;
   deleteClosedTournament: (id: string) => void;
   closeTournament: () => void;
@@ -175,14 +183,19 @@ export const createTournamentSlice: StateCreator<RootState, [], [], TournamentSl
   },
 
   updateMatchScore: (id, aScore, bScore) =>
-    set((s) => patchMatchEverywhere(s, id, { aScore, bScore })),
+    set((s) => ({ ...patchMatchEverywhere(s, id, { aScore, bScore }), ...noteBackupStaleness(s, id) })),
 
-  updateMatchMedia: (id, media) => set((s) => patchMatchEverywhere(s, id, { media })),
+  updateMatchMedia: (id, media) =>
+    set((s) => ({ ...patchMatchEverywhere(s, id, { media }), ...noteBackupStaleness(s, id) })),
 
-  updateMatchNote: (id, note) => set((s) => patchMatchEverywhere(s, id, { note })),
+  updateMatchNote: (id, note) =>
+    set((s) => ({ ...patchMatchEverywhere(s, id, { note }), ...noteBackupStaleness(s, id) })),
 
   updateMatchStats: (id, stats) =>
-    set((s) => patchMatchEverywhere(s, id, { statsOverride: stats })),
+    set((s) => ({
+      ...patchMatchEverywhere(s, id, { statsOverride: stats }),
+      ...noteBackupStaleness(s, id),
+    })),
 
   swapMatchSides: (id) =>
     set((s) => {
@@ -227,6 +240,24 @@ export const createTournamentSlice: StateCreator<RootState, [], [], TournamentSl
       roundPlayers: [],
       roundFolder: '',
     });
+  },
+
+  reopenRound: (id) => {
+    const s = get();
+    if (!s.hasTournament || s.roundOpen) return false;
+    const last = s.archivedRounds[s.archivedRounds.length - 1];
+    if (!last || last.id !== id) return false;
+
+    set({
+      archivedRounds: s.archivedRounds.slice(0, -1),
+      matches: [...last.matches],
+      roundOpen: true,
+      roundPlayers: [...(last.players ?? [])],
+      roundFolder: last.folder ?? '',
+      round: last.n,
+      tournamentRanked: last.ranked,
+    });
+    return true;
   },
 
   deleteRound: () => {

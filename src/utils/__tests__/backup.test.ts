@@ -13,6 +13,7 @@ import type { Player, Team, Match, ArchivedRound, ClosedTournament } from '@/sto
 import { getCurrentUserId } from '@/supabase/auth';
 import {
   BACKUP_SCHEMA_VERSION,
+  AUTO_BACKUP_RETENTION,
   backupFileName,
   buildBackupPayload,
   serializeBackup,
@@ -81,10 +82,17 @@ beforeEach(() => {
 });
 
 describe('backupFileName', () => {
-  it('produces a filesystem-safe, chronologically-sortable name tagged with the account id', () => {
-    const name = backupFileName('user-1', new Date('2026-07-06T14:32:05.123Z'));
-    expect(name).toBe('matchday-backup-user-1-2026-07-06T14-32-05.123Z.json');
+  it('produces a filesystem-safe name tagged with the account id and origin', () => {
+    const name = backupFileName('user-1', 'manual', new Date('2026-07-06T14:32:05.123Z'));
+    expect(name).toBe('matchday-backup-user-1-manual-2026-07-06T14-32-05.123Z.json');
     expect(name).not.toMatch(/:/);
+  });
+
+  it('tags an auto backup differently from a manual one', () => {
+    const date = new Date('2026-07-06T14:32:05.123Z');
+    expect(backupFileName('user-1', 'auto', date)).toBe(
+      'matchday-backup-user-1-auto-2026-07-06T14-32-05.123Z.json',
+    );
   });
 });
 
@@ -221,13 +229,23 @@ describe('applyBackupLocally', () => {
       suppressedDuringMutation = syncSuppressionRef.current;
     });
 
-    applyBackupLocally(backupData);
+    applyBackupLocally(backupData, '2026-01-01T00:00:00.000Z');
     unsubscribe();
 
     expect(suppressedDuringMutation).toBe(true);
     expect(syncSuppressionRef.current).toBe(false);
     expect(useStore.getState().players).toEqual([otherPlayer]);
     expect(useStore.getState().pendingSyncTables).toEqual([]);
+  });
+
+  it('resets backup staleness to match the restored backup — the restored data is exactly what that backup captured', () => {
+    useStore.setState({ lastBackupAt: '2020-01-01T00:00:00.000Z', backupStaleEditCount: 7 });
+    const backupData: BackupData = buildBackupPayload(useStore.getState()).data;
+
+    applyBackupLocally(backupData, '2026-03-01T00:00:00.000Z');
+
+    expect(useStore.getState().lastBackupAt).toBe('2026-03-01T00:00:00.000Z');
+    expect(useStore.getState().backupStaleEditCount).toBe(0);
   });
 });
 
@@ -251,14 +269,74 @@ describe('web storage I/O', () => {
     expect(await listBackups()).toEqual([]);
   });
 
-  it('sorts backups newest first by filename', async () => {
-    const older = backupFileName('user-1', new Date('2026-01-01T00:00:00.000Z'));
-    const newer = backupFileName('user-1', new Date('2026-06-01T00:00:00.000Z'));
+  it('sorts backups newest first', async () => {
+    const older = backupFileName('user-1', 'manual', new Date('2026-01-01T00:00:00.000Z'));
+    const newer = backupFileName('user-1', 'manual', new Date('2026-06-01T00:00:00.000Z'));
     localStorage.setItem(older, serializeBackup(buildBackupPayload(useStore.getState())));
     localStorage.setItem(newer, serializeBackup(buildBackupPayload(useStore.getState())));
 
     const list = await listBackups();
     expect(list.map((b) => b.fileName)).toEqual([newer, older]);
+  });
+
+  it('sorts by recency (exportedAt), not by the origin segment embedded in the filename', async () => {
+    // 'auto' < 'manual' lexicographically — a naive fileName sort would put
+    // every manual backup ahead of every auto one regardless of which is
+    // actually newer. This is the case that would catch that regression.
+    const olderManual = backupFileName('user-1', 'manual', new Date('2020-01-01T00:00:00.000Z'));
+    const newerAuto = backupFileName('user-1', 'auto', new Date('2026-01-01T00:00:00.000Z'));
+    localStorage.setItem(olderManual, serializeBackup(buildBackupPayload(useStore.getState())));
+    localStorage.setItem(newerAuto, serializeBackup(buildBackupPayload(useStore.getState())));
+
+    const list = await listBackups();
+    expect(list.map((b) => b.fileName)).toEqual([newerAuto, olderManual]);
+  });
+});
+
+describe('backup origin tagging + auto-backup retention', () => {
+  it('defaults to manual origin when none is given', async () => {
+    const created = await createBackup();
+    expect(created.ok && created.meta.origin).toBe('manual');
+  });
+
+  it('tags a backup with the given origin', async () => {
+    const auto = await createBackup('auto');
+    expect(auto.ok && auto.meta.origin).toBe('auto');
+  });
+
+  it('treats a pre-existing (no origin segment) filename as manual', async () => {
+    localStorage.setItem(
+      'matchday-backup-user-1-2026-01-01T00-00-00.000Z.json',
+      serializeBackup(buildBackupPayload(useStore.getState())),
+    );
+    const list = await listBackups();
+    expect(list).toHaveLength(1);
+    expect(list[0].origin).toBe('manual');
+  });
+
+  it('updates lastBackupAt and clears backupStaleEditCount on every successful backup, auto or manual', async () => {
+    useStore.setState({ backupStaleEditCount: 3 });
+    const created = await createBackup('manual');
+    expect(created.ok).toBe(true);
+    if (!created.ok) return;
+    expect(useStore.getState().lastBackupAt).toBe(created.meta.exportedAt);
+    expect(useStore.getState().backupStaleEditCount).toBe(0);
+  });
+
+  it('prunes auto backups beyond AUTO_BACKUP_RETENTION, keeping the newest ones and never touching manual backups', async () => {
+    for (let i = 0; i < AUTO_BACKUP_RETENTION + 3; i++) {
+      const fileName = backupFileName('user-1', 'auto', new Date(2026, 0, i + 1));
+      localStorage.setItem(fileName, serializeBackup(buildBackupPayload(useStore.getState())));
+    }
+    const manualFileName = backupFileName('user-1', 'manual', new Date(2020, 0, 1));
+    localStorage.setItem(manualFileName, serializeBackup(buildBackupPayload(useStore.getState())));
+
+    // One more auto backup — its creation is what triggers the prune.
+    await createBackup('auto');
+
+    const list = await listBackups();
+    expect(list.filter((b) => b.origin === 'auto')).toHaveLength(AUTO_BACKUP_RETENTION);
+    expect(list.filter((b) => b.origin === 'manual')).toHaveLength(1);
   });
 });
 

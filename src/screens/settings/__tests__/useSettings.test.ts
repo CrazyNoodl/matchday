@@ -41,7 +41,7 @@ jest.mock('@/supabase/sync', () => ({
 }));
 
 let mockIsOnline = true;
-jest.mock('@/hooks/useIsOnline', () => ({
+jest.mock('@/hooks/IsOnlineProvider', () => ({
   useIsOnline: () => mockIsOnline,
 }));
 

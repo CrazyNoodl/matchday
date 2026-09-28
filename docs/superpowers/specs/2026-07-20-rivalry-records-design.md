@@ -221,3 +221,101 @@ information.)
   picking (`timeToRegain` picks the minimum) and `computeRivalryTotals` (sum+avg,
   percent-only-average, per-key omission, average denominator excludes matches
   missing that specific key).
+
+## Addendum (2026-07-24): Best/Worst toggle on the Records tab
+
+The Records tab only ever showed each side's **best** (most extreme, direction-
+aware) single-match value per stat. This adds a second mode, **Worst** — the
+single most extreme value in the *other* direction — switchable via a nested
+toggle, scoped only to this tab (the top "Records" section — biggest win,
+highest-scoring match, win streaks, avg goals/game — is untouched).
+
+- **Data layer** (`rivalryAggregation.ts`): `RivalryRecords.statRecords` is
+  renamed to `bestStatRecords`; a new sibling field `worstStatRecords:
+  StatRecord[]` is added, same `StatRecord` shape. Both are produced by a single
+  new private helper, `computeExtremeStatRecords(entries, isMoreExtreme)`,
+  parameterized by a comparator (`(candidate, current) => candidate > current`
+  for best, `<` for worst) — replaces the existing `computeStatRecords` loop
+  body, called twice. "Worst" mirrors "best" exactly: the minimum raw value per
+  side, independent of `higherIsBetter` — e.g. worst `yellowCards` is the
+  *fewest* cards in a single match, not the most, matching the existing
+  "a record is the most extreme value, not the best performance" rule already
+  documented for `bestStatRecords`. Both arrays always cover the same set of
+  keys (both computed from the same `entries`).
+- **Highlight logic**: unchanged — `StatRecordRow`'s `aWins`/`bWins` comparison
+  (using `STAT_DEFINITIONS[key].higherIsBetter`) is applied verbatim to
+  whichever array is active, no new "worst" semantics.
+- **UI** (`RivalryScreen.tsx`): new local state `recordsMode: 'best' | 'worst'`
+  (default `'best'`). When the outer tab is `'records'`, a second
+  `SegmentedControl` (`variant="boxed"` — the compact, content-hugging style,
+  distinct from the full-width `variant="pill"` used for the outer
+  Records/Comparison tabs) renders above the stat rows, switching which array
+  feeds `StatRecordRow`. `StatRecordRow` itself is unchanged.
+- **i18n**: new keys in all 3 locales — `rivalry.best` ("Best"/"Найкращі"/"Le
+  meilleur" — exact `fr`/`uk` wording to match existing tone) and
+  `rivalry.worst`.
+- **Tests**: existing `bestStatRecords`-shaped cases in
+  `rivalryAggregation.test.ts` are renamed (`records.statRecords` →
+  `records.bestStatRecords`); new mirrored cases for `worstStatRecords` —
+  independent-per-side minimum from different matches, minimum-is-the-record
+  even for a higher-is-better stat like `shots`, and a same-keys-in-both-arrays
+  check.
+
+## Addendum (2026-08-03): "new record" date highlight
+
+After finishing a matchday, the user wants to glance at the Records tab and
+immediately tell which records changed as a result — without reading every
+row's date. With 20+ stat rows this isn't obvious today: the date under each
+side's name always displays, but nothing distinguishes "set years ago" from
+"set in the round we just played."
+
+- **Definition of "last matchday" is per-pair, not global.** It's
+  `max(entry.date)` across this pair's own `RivalryMatchEntry` list — i.e. the
+  most recent round in which these two specific players faced each other —
+  not the app's overall most-recently-archived round. A pair that hasn't
+  played each other in the current round keeps highlighting whatever their
+  own last meeting produced; it doesn't go stale just because other pairs
+  played more recently. If the pair has no archived entries at all (their
+  entire history is still in the current open round, `date === null` for
+  every entry), there is no "last matchday" and nothing is highlighted.
+- **Per-side, not per-row.** `StatRecord.a` and `StatRecord.b` are independent
+  personal-bests (or worsts) — each side's `entry.date` is compared to the
+  pair's last-matchday date on its own. Both sides of the same row can be
+  highlighted simultaneously if both players set a new personal record on the
+  same day; only one side can be highlighted if just one did; neither if the
+  row's records both predate the pair's last meeting.
+- **Persistent, not a dismissible "NEW" badge.** The highlight is a derived,
+  stateless fact (does this date equal the pair's last-matchday date), not a
+  seen/unseen flag — no new persisted state, no "mark as read" interaction.
+  It naturally stops applying once a later matchday's entry supersedes the
+  record with a newer date.
+- **Applies identically to both `recordsMode: 'best'` and `'worst'`** — same
+  comparison, run against whichever array (`bestStatRecords` /
+  `worstStatRecords`) is currently active.
+- **Visual treatment**: only the date text changes color, to
+  `Colors.accent.gold` (deliberately distinct from the existing
+  `accent.green` used elsewhere on the row for "which side currently holds
+  the record" — these are two different facts about the same row and must
+  not be visually conflated). No new badge, icon, or layout change.
+
+### Data layer
+
+New pure helper in `rivalryAggregation.ts`:
+
+```ts
+function getLastMatchdayDate(entries: RivalryMatchEntry[]): string | null
+```
+
+Returns the max non-null `date` across `entries`, or `null` if none are
+archived yet. `RivalryScreen.tsx` (via `useRivalryData.ts`) computes this once
+per pair alongside the existing `computeExtremeStatRecords` calls, and passes
+it down to `StatRecordRow`/`StatRecordSide` so each side can compare its own
+`entry.date` against it directly — no change to `StatRecord`'s shape, no new
+field stored on the record itself.
+
+### Tests
+
+New cases in `rivalryAggregation.test.ts` for `getLastMatchdayDate`: picks the
+max among several archived dates, returns `null` when every entry has
+`date === null`, and ignores `null` entries mixed in with archived ones
+(current open round alongside past archived rounds for the same pair).

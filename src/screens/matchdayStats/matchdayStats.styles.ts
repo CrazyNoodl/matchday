@@ -24,18 +24,6 @@ export const makeStyles = (colors: AppColors) =>
       gap: Spacing.md,
     },
 
-    // Empty
-    emptyWrap: {
-      paddingVertical: Spacing['2xl'],
-      alignItems: 'center',
-    },
-    emptyText: {
-      fontFamily: FontFamily.body,
-      fontSize: FontSize.base,
-      color: colors.text.placeholder,
-      textAlign: 'center',
-    },
-
     // Records tab — one row per stat: the day's top two record holders
     // mirrored left/right around the centered stat label.
     recordRow: {
@@ -135,7 +123,7 @@ export const makeStyles = (colors: AppColors) =>
       gap: Spacing.sm,
     },
     compareName: {
-      width: 64,
+      width: 40,
       fontFamily: FontFamily.bodyMedium,
       fontSize: FontSize.xs,
       color: colors.text.secondary,
@@ -156,7 +144,7 @@ export const makeStyles = (colors: AppColors) =>
       backgroundColor: colors.accent.green,
     },
     compareValueWrap: {
-      width: 48,
+      width: 60,
       alignItems: 'flex-end',
     },
     compareValue: {

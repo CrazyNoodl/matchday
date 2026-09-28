@@ -169,6 +169,7 @@ export function LoginScreen({ onSuccess }: Props) {
                   secureTextEntry={!showPassword}
                 />
                 <TouchableOpacity
+                  testID="password-visibility-toggle-button"
                   style={styles.visibilityToggle}
                   onPress={() => setShowPassword((v) => !v)}
                   activeOpacity={0.7}
@@ -195,6 +196,7 @@ export function LoginScreen({ onSuccess }: Props) {
                       secureTextEntry={!showConfirmPassword}
                     />
                     <TouchableOpacity
+                      testID="confirm-password-visibility-toggle-button"
                       style={styles.visibilityToggle}
                       onPress={() => setShowConfirmPassword((v) => !v)}
                       activeOpacity={0.7}
@@ -214,6 +216,7 @@ export function LoginScreen({ onSuccess }: Props) {
 
           {mode === 'signin' && (
             <TouchableOpacity
+              testID="login-forgot-password-button"
               style={styles.forgotBtn}
               onPress={() => switchMode('forgot')}
               activeOpacity={0.7}
@@ -223,6 +226,7 @@ export function LoginScreen({ onSuccess }: Props) {
           )}
 
           <TouchableOpacity
+            testID="login-submit-button"
             style={[styles.btn, loading && styles.btnDisabled]}
             onPress={handleSubmit}
             activeOpacity={0.8}
@@ -242,6 +246,7 @@ export function LoginScreen({ onSuccess }: Props) {
           </TouchableOpacity>
 
           <TouchableOpacity
+            testID="login-toggle-mode-button"
             style={styles.toggleBtn}
             onPress={() => switchMode(mode === 'signin' ? 'signup' : 'signin')}
             activeOpacity={0.7}

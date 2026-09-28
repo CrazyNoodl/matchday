@@ -17,6 +17,7 @@ import {
   DropdownMenu,
   ConfirmDialog,
   DraggableMatchBlock,
+  NavHeader,
 } from '@/components';
 import { useDropdownMenu } from '@/hooks/useDropdownMenu';
 import { groupMatchesByTour } from '@/utils/matchTours';
@@ -25,6 +26,7 @@ import { makeStyles } from '@/screens/round/round.styles';
 import { useAddMatchFlow } from '@/screens/round/useAddMatchFlow';
 import { AddMatchSheet } from '@/screens/round/AddMatchSheet';
 import { trackEvent } from '@/analytics';
+import { createBackup } from '@/utils/backup';
 import {
   EndRoundDialog,
   NeedEqualDialog,
@@ -163,6 +165,9 @@ export default function MatchdayScreen() {
     const winnerId = isTrueDraw || !s[0] ? null : s[0].playerId;
     setLocalWinnerId(winnerId);
     finishRound();
+    // Fire-and-forget: createBackup() never throws (it catches + reports
+    // internally), and shouldn't block or delay the winner celebration.
+    void createBackup('auto');
     trackEvent('round_finished', { matchCount: matches.length });
     setModal('winner');
   }, [matches, roundPlayers, finishRound, setModal]);
@@ -206,28 +211,16 @@ export default function MatchdayScreen() {
       <GlowBackground />
 
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backBtn}
-          onPress={() => router.push('/')}
-          activeOpacity={0.7}
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-        >
-          <Text style={styles.backChevron}>‹</Text>
-        </TouchableOpacity>
-        <View style={styles.headerCenter}>
-          <Text style={styles.headerTitle} numberOfLines={1} ellipsizeMode="tail">
-            {tournamentName}
-          </Text>
-          <Text style={styles.headerSubtitle}>
-            {tournamentRanked
-              ? t('matchday.round', { n: round })
-              : t('common.friendly').toUpperCase()}
-          </Text>
-        </View>
-        <View style={styles.headerRight}>
-          {roundOpen ? (
+      <NavHeader
+        title={tournamentName}
+        subtitle={
+          tournamentRanked ? t('matchday.round', { n: round }) : t('common.friendly').toUpperCase()
+        }
+        onBack={() => router.push('/')}
+        rightElement={
+          roundOpen ? (
             <TouchableOpacity
+              testID="round-menu-button"
               ref={roundMenu.anchorRef}
               style={styles.dotsBtn}
               onPress={roundMenu.open}
@@ -243,9 +236,9 @@ export default function MatchdayScreen() {
             >
               <Text style={styles.statsBtnIcon}>📊</Text>
             </TouchableOpacity>
-          )}
-        </View>
-      </View>
+          )
+        }
+      />
 
       <ScrollView
         style={styles.scroll}
@@ -375,6 +368,7 @@ export default function MatchdayScreen() {
         cancel={{ label: t('matchday.dialogs.cancel'), onPress: closeModal }}
         confirm={{
           label: t('matchday.dialogs.delete'),
+          testID: 'round-delete-match-confirm-button',
           onPress: () => {
             if (selectedMatchId) {
               deleteMatch(selectedMatchId);
@@ -410,6 +404,7 @@ export default function MatchdayScreen() {
         cancel={{ label: t('matchday.dialogs.cancel'), onPress: closeModal }}
         confirm={{
           label: t('matchday.dialogs.deleteRoundConfirm'),
+          testID: 'round-delete-round-confirm-button',
           onPress: handleConfirmDeleteRound,
         }}
       />
@@ -422,7 +417,8 @@ export default function MatchdayScreen() {
         items={[
           {
             key: 'finish',
-            label: t('matchday.finish').toUpperCase(),
+            label: t('matchday.finish'),
+            testID: 'round-menu-finish-item',
             onPress: () => {
               roundMenu.close();
               handleFinishPress();
@@ -430,7 +426,8 @@ export default function MatchdayScreen() {
           },
           {
             key: 'stats',
-            label: t('home.stats').toUpperCase(),
+            label: t('home.stats'),
+            testID: 'round-menu-stats-item',
             onPress: () => {
               roundMenu.close();
               // Null out `viewingRound` — it's session UI state that can be
@@ -445,6 +442,7 @@ export default function MatchdayScreen() {
             key: 'delete',
             label: t('matchday.dialogs.deleteRoundConfirm'),
             destructive: true,
+            testID: 'round-menu-delete-item',
             onPress: () => {
               roundMenu.close();
               setModal('delRound');

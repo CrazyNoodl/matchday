@@ -39,6 +39,7 @@ export default function LanguageScreen() {
             return (
               <React.Fragment key={lang.code}>
                 <TouchableOpacity
+                  testID={`language-option-${lang.code}`}
                   style={styles.row}
                   onPress={() => handleSelect(lang.code)}
                   activeOpacity={0.8}

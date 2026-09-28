@@ -66,6 +66,8 @@ const settings = {
     leaderModalDesc: 'Повідомляти про зміну лідера після завершення кожного туру',
     leaderModalMinPlayers: 'Мінімум гравців',
     leaderModalMinPlayersDesc: 'Показувати лише коли гравців у турі більше цього числа',
+    dayWinnerBanner: 'Показувати блок переможця дня',
+    dayWinnerBannerDesc: 'Показувати картку переможця дня зверху архівного раунду',
     upcoming: 'Скоро',
     inDevelopment: 'У розробці',
   },

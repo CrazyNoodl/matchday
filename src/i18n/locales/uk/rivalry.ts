@@ -1,8 +1,8 @@
 const rivalry = {
   title: 'Протистояння',
   vs: 'проти',
-  excludeFriendly: 'Виключити товариські матчі',
-  excludeFriendlyDesc: 'Враховувати лише рейтингові раунди нижче',
+  includeFriendly: 'Включити товариські матчі',
+  includeFriendlyDesc: 'Враховувати також товариські раунди нижче',
   recordsSection: 'Рекорди',
   statsSection: 'Статистика матчів',
   biggestWin: 'Найбільша перемога',
@@ -15,6 +15,8 @@ const rivalry = {
   noData: 'Дані протистояння не знайдено.',
   tabRecords: 'Рекорди',
   tabComparison: 'Порівняння',
+  best: 'Найкращі',
+  worst: 'Найгірші',
   perMatchSuffix: '/матч',
   gamesCount: '{{count}} матчів',
 } as const;
