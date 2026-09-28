@@ -11,6 +11,15 @@ export interface ChangelogEntry {
 export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '1.9.66',
+    added: [
+      "Rivalry screen now highlights a stat row's date in gold when it matches the pair's most recent matchday, so reopening Rivalry after finishing a matchday shows at a glance which personal records just changed",
+    ],
+    fixed: [
+      'A tap on a stat\'s +/- button in Edit Stats could be silently swallowed if released right as the 350ms hold-and-repeat threshold fired but before the first repeat tick',
+      'Match-Day Stats comparison now ranks rate-like stats (e.g. time to regain) by per-match average instead of summed total, so a player with fewer games no longer outranks a faster one purely from having played less',
+      'On web, a quick click on a stat\'s +/- button in Edit Stats no longer does nothing — the button now reacts immediately instead of ignoring taps shorter than 50ms',
+      'Fixed the offline banner flickering between online/offline due to two concurrent network checks racing each other — network status is now read from a single shared source across the whole app',
+    ],
     internal: [
       'Internal: finished the e2e/unit-test testID selector migration — every action-target `getByText` locator (round/tournament menus, match edit sheets, team/player CRUD, login/reset-password screens) now uses `getByTestId`, closing the gap left by the 2026-07-23 partial pass',
     ],
